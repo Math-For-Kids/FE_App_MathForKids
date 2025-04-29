@@ -5,6 +5,7 @@ import LoadingScreen from "./screens/LoadingScreen";
 import LoadingProgressScreen from "./screens/LoadingProgressScreen";
 import LoginScreen from "./screens/LoginScreen"; // màn chính
 import RegisterScreen from "./screens/RegisterScreen";
+import SettingScreen from "./screens/SettingScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -18,6 +19,7 @@ export default function AppNavigator() {
         />
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+        <Stack.Screen name="SettingScreen" component={SettingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

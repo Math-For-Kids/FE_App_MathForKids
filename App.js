@@ -7,6 +7,9 @@ import { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 
+// Import thêm ThemeProvider
+import { ThemeProvider } from "./src/themes/ThemeContext"; // ← thêm dòng này
+
 // Không auto hide splash screen
 SplashScreen.preventAutoHideAsync();
 
@@ -29,6 +32,7 @@ export default function App() {
     "Nunito-SemiBold": require("./assets/fonts/Nunito-SemiBold.ttf"),
     "Nunito-SemiBoldItalic": require("./assets/fonts/Nunito-SemiBoldItalic.ttf"),
   });
+
   useEffect(() => {
     async function prepare() {
       if (fontsLoaded) {
@@ -39,12 +43,15 @@ export default function App() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return null; // Không cần AppLoading nữa
+    return null;
   }
 
   return (
     <Provider store={store}>
-      <AppNavigator />
+      <ThemeProvider>
+        {/* ← Bọc App bằng ThemeProvider */}
+        <AppNavigator />
+      </ThemeProvider>
     </Provider>
   );
 }

@@ -1,0 +1,82 @@
+export const LightColors = {
+  // Public
+  white: "#FFFFFF",
+  black: "#000000",
+  paleBeige: "#FAF6F1",
+  blueGray: "607D8B",
+  grayLight: "#D9D9D9",
+  grayBorder: "#DDDDDD",
+  grayMedium: "#BFBFBF",
+  grayDark: "#5F5F5F",
+  blueLight: "#22E4F0",
+  blueDark: "#029DF0",
+  graySoft: "#EEEEEE",
+  greenLight: "#A2F078",
+  greenDark: "#60D56C",
+  green: "#2AB514",
+  yellowLight: "#FBD54C",
+  orangeLight: "#FD8550",
+  cyanLight: "#E9FDFE",
+  beigeLight: "#EBE0D9",
+  shadowDark: "#000000",
+  skyBlue: "#00BFFF ",
+
+  // Gradients
+  gradientBluePrimary: ["#22E4F0", "#029DF0"],
+  gradientBlue: ["#029DF0", "#22E4F0"],
+  gradientGreen: ["#A2F078", "#60D56C"],
+  gradientPurple: ["#F761DF", "#B526E4"],
+  gradientOrange: ["#FD7670", "#F73A7A"],
+  gradientRed: ["#FBD54C", "#FD8550"],
+  gradientPink: ["#FFAEBC", "#F761DF"],
+
+  // Private
+  cardBackground: "#FFFFFF",
+  backBackgound: "rgba(0,0,0,0.1)",
+  homeColor: "#029DF0",
+  backgroundLogoLoading: "#029DF0",
+  inputBackground: "#FFFFFF",
+  checkBoxBackground: "#029DF0",
+};
+
+export const DarkColors = {
+  // Public
+  white: "#FFFFFF",
+  black: "#FFFFFF",
+  paleBeige: "#FAF6F1",
+  blueGray: "#FFFFFF",
+  grayLight: "#D9D9D9",
+  grayBorder: "#FFFFFF",
+  grayMedium: "#BFBFBF",
+  grayDark: "#5F5F5F",
+  blueLight: "#FFFFFF",
+  blueDark: "#FFFFFF",
+  graySoft: "#B526E4",
+  greenLight: "#3B0A52",
+  greenDark: "#5D3A9B",
+  green: "#5D3A9B",
+  yellowLight: "#B526E4",
+  orangeLight: "#5D3A9B",
+  cyanLight: "#3D0C62",
+  beigeLight: "#120024",
+  shadowDark: "#000000",
+  skyBlue: "#00BFFF ",
+
+  // Gradients
+  gradientBluePrimary: ["#5D3A9B", "#120024"],
+  gradientBlue: ["#120024", "#5D3A9B"],
+  gradientGreen: ["#120024", "#5D3A9B"],
+  gradientPurple: ["#120024", "#5D3A9B"],
+  gradientOrange: ["#120024", "#5D3A9B"],
+  gradientRed: ["#120024", "#5D3A9B"],
+  gradientPink: ["#120024", "#5D3A9B"],
+
+  // Private
+  cardBackground: "#3B0A52",
+  backBackgound: "rgba(0,0,0,0.1)",
+  homeColor: "#5D3A9B",
+  backgroundLogoLoading: "#3B0A52",
+  inputBackground: "#3B0A52",
+  checkBoxBackground: "#029DF0",
+};
+export type Theme1Colors = typeof LightColors;

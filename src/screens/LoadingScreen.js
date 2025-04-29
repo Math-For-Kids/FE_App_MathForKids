@@ -1,11 +1,12 @@
-import React, { useEffect } from "react";
-import { Text, Image, StyleSheet, View } from "react-native";
+import React, { useEffect, useContext, useRef } from "react";
+import { View, Image, StyleSheet, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Images } from "../../constants/Images";
-import { Colors } from "../../constants/Colors";
-import { Fonts } from "../../constants/Fonts";
-
+import { useTheme } from "../themes/ThemeContext";
 export default function LoadingScreen({ navigation }) {
+  const { theme, isDarkMode } = useTheme();
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace("LoadingProgress");
@@ -13,63 +14,67 @@ export default function LoadingScreen({ navigation }) {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [isDarkMode]);
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    centerContent: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    backgroundBox: {
+      width: 250,
+      height: 180,
+      borderRadius: 20,
+      borderWidth: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 30,
+      backgroundColor: theme.colors.backgroundLogoLoading,
+      borderColor: theme.colors.white,
+    },
+    logoContainer: {
+      width: 200,
+      height: 220,
+      borderRadius: 30,
+      borderWidth: 1,
+      backgroundColor: "transparent",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    logo: {
+      width: 250,
+      height: 180,
+    },
+  });
   return (
-    <LinearGradient colors={Colors.PRIMARY} style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
-        colors={["transparent", "#fff"]}
-        style={styles.lightLayer}
+        colors={theme.colors.gradientBlue}
+        style={StyleSheet.absoluteFillObject}
       />
-      <View style={styles.backgroundBox}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={Images.logoDark}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+
+      <Animated.View style={[styles.centerContent, { opacity: fadeAnim }]}>
+        <View style={[styles.backgroundBox, {}]}>
+          <View
+            style={[styles.logoContainer, { borderColor: theme.colors.white }]}
+          >
+            <Image
+              source={theme.icons.logoDark}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
-      </View>
-    </LinearGradient>
+      </Animated.View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  lightLayer: {
-    position: "absolute",
-    width: 250,
-    height: 30,
-    top: "60%", // nằm dưới backgroundBox
-    borderRadius: 60,
-    opacity: 0.6,
-    zIndex: 1,
-  },
-  backgroundBox: {
-    width: 250,
-    height: 180,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#fff",
-    backgroundColor: "#029DF0",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 2,
-  },
-  logoContainer: {
-    width: 200,
-    height: 220,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: "#fff",
-    backgroundColor: "transparent",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logo: {
-    width: 250,
-    height: 180,
-  },
-});
