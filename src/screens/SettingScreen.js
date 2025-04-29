@@ -89,29 +89,10 @@ export default function SettingScreen() {
       color: theme.colors.white,
     },
   });
-  console.log("isDarkMode:", isDarkMode);
-  console.log("themeKey:", themeKey);
-  console.log("Current theme.colors.gradientBlue:", theme.colors.gradientBlue);
-  console.log(
-    "Current theme.colors.gradientBluePrimary:",
-    theme.colors.gradientBluePrimary
-  );
-
   return (
-    <LinearGradient
-      colors={
-        Array.isArray(theme.colors.gradientBlue)
-          ? theme.colors.gradientBlue
-          : ["#000000", "#FFFFFF"]
-      }
-      style={styles.container}
-    >
+    <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <LinearGradient
-        colors={
-          Array.isArray(theme.colors.gradientBluePrimary)
-            ? theme.colors.gradientBluePrimary
-            : ["#000000", "#FFFFFF"]
-        }
+        colors={theme.colors.gradientBluePrimary}
         style={styles.header}
       >
         <TouchableOpacity style={styles.backContainer}>
