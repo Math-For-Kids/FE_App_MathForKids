@@ -3,7 +3,7 @@ export const LightColors = {
   white: "#FFFFFF",
   black: "#000000",
   paleBeige: "#FAF6F1",
-  blueGray: "607D8B",
+  blueGray: "#607D8B",
   grayLight: "#D9D9D9",
   grayBorder: "#DDDDDD",
   grayMedium: "#BFBFBF",
@@ -19,7 +19,7 @@ export const LightColors = {
   cyanLight: "#E9FDFE",
   beigeLight: "#EBE0D9",
   shadowDark: "#000000",
-  skyBlue: "#00BFFF ",
+  skyBlue: "#00BFFF",
 
   // Gradients
   gradientBluePrimary: ["#22E4F0", "#029DF0"],
@@ -37,13 +37,15 @@ export const LightColors = {
   backgroundLogoLoading: "#029DF0",
   inputBackground: "#FFFFFF",
   checkBoxBackground: "#029DF0",
+  overlay: "rgba(0,0,0,0.3)",
+  avatartBackground: "#FFFFFF",
 };
 
 export const DarkColors = {
   // Public
   white: "#FFFFFF",
   black: "#FFFFFF",
-  paleBeige: "#FAF6F1",
+  paleBeige: "#5D3A9B",
   blueGray: "#FFFFFF",
   grayLight: "#D9D9D9",
   grayBorder: "#FFFFFF",
@@ -60,7 +62,7 @@ export const DarkColors = {
   cyanLight: "#3D0C62",
   beigeLight: "#120024",
   shadowDark: "#000000",
-  skyBlue: "#00BFFF ",
+  skyBlue: "#00BFFF",
 
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],
@@ -78,5 +80,7 @@ export const DarkColors = {
   backgroundLogoLoading: "#3B0A52",
   inputBackground: "#3B0A52",
   checkBoxBackground: "#029DF0",
+  overlay: "rgba(0,0,0,0.3)",
+  avatartBackground: "#5D3A9B",
 };
 export type Theme1Colors = typeof LightColors;

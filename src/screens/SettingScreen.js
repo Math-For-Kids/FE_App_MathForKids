@@ -5,8 +5,8 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
 import { useSound } from "../audio/SoundContext";
-
-export default function SettingScreen() {
+import FloatingMenu from "../components/FloatingMenu";
+export default function SettingScreen({ navigation }) {
   const { theme, isDarkMode, themeKey, toggleThemeMode, switchThemeKey } =
     useTheme();
   const { volume, increaseVolume, decreaseVolume } = useSound();
@@ -16,18 +16,16 @@ export default function SettingScreen() {
       width: "100%",
       height: "18%",
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "center",
       alignItems: "center",
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
-      shadowColor: theme.colors.shadowColor,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.6,
-      shadowRadius: 4,
-      elevation: 6,
+      elevation: 3,
       marginBottom: 40,
     },
     backContainer: {
+      position: "absolute",
+      left: 10,
       backgroundColor: theme.colors.backBackgound,
       marginLeft: 20,
       padding: 8,
@@ -39,24 +37,12 @@ export default function SettingScreen() {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
-    homeIconContainer: {
-      marginRight: 20,
-      backgroundColor: theme.colors.white,
-      borderWidth: 1,
-      borderColor: theme.colors.white,
-      borderRadius: 50,
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.6,
-      shadowRadius: 4,
-      elevation: 6,
-    },
-    homeIcon: { padding: 8 },
     sectionTitle: {
       fontSize: 32,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       textAlign: "center",
+      marginBottom: 10,
     },
     volume: {
       textAlign: "center",
@@ -102,7 +88,10 @@ export default function SettingScreen() {
         colors={theme.colors.gradientBluePrimary}
         style={styles.header}
       >
-        <TouchableOpacity style={styles.backContainer}>
+        <TouchableOpacity
+          style={styles.backContainer}
+          onPress={() => navigation.goBack()}
+        >
           <Image
             source={theme.icons.back}
             style={styles.backIcon}
@@ -110,14 +99,6 @@ export default function SettingScreen() {
           />
         </TouchableOpacity>
         <Text style={styles.title}>Setting</Text>
-        <TouchableOpacity style={styles.homeIconContainer}>
-          <Ionicons
-            name="home"
-            size={32}
-            color={theme.colors.homeColor}
-            style={styles.homeIcon}
-          />
-        </TouchableOpacity>
       </LinearGradient>
       <Text style={styles.sectionTitle}>Music</Text>
       <Text style={styles.volume}>Volume: {(volume * 100).toFixed(0)}%</Text>
@@ -216,13 +197,23 @@ export default function SettingScreen() {
         <View style={styles.darkModeOption}>
           <Image source={theme.icons.graphic} style={styles.darkIcon} />
           <Text style={styles.darkModeText}>
-            {themeKey === "theme1" ? "Capybara" : "Labubu"}
+            {themeKey === "theme1"
+              ? "Capybara"
+              : themeKey === "theme2"
+              ? "Animal"
+              : "Super Hero"}
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() =>
-            switchThemeKey(themeKey === "theme1" ? "theme2" : "theme1")
-          }
+          onPress={() => {
+            switchThemeKey(
+              themeKey === "theme1"
+                ? "theme2"
+                : themeKey === "theme2"
+                ? "theme3"
+                : "theme1"
+            );
+          }}
         >
           <Ionicons
             name="caret-forward-outline"
@@ -231,6 +222,7 @@ export default function SettingScreen() {
           />
         </TouchableOpacity>
       </View>
+      <FloatingMenu />
     </LinearGradient>
   );
 }
