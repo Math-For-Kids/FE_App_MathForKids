@@ -39,14 +39,18 @@ export default function AccountScreen() {
       fontSize: 28,
       fontFamily: Fonts.NUNITO_BLACK,
       color: theme.colors.blueDark,
+      marginBottom: 10,
     },
     subtitle: {
-      marginBottom: 16,
+      fontSize: 14,
+      marginBottom: 8,
       color: theme.colors.grayLight,
     },
     button: {
       width: "80%",
       paddingVertical: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
       borderRadius: 10,
       marginBottom: 20,
       elevation: 8,
@@ -63,15 +67,17 @@ export default function AccountScreen() {
       alignItems: "center",
       backgroundColor: theme.colors.paleBeige,
       borderRadius: 12,
-      padding: 10,
-      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
+      padding: 5,
+      marginBottom: 20,
       elevation: 4,
     },
     avatarContainer: {
-      backgroundColor: theme.colors.white,
-      padding: 10,
+      backgroundColor: theme.colors.avatartBackground,
+      padding: 5,
       borderRadius: 50,
-      borderWidth: 2,
+      borderWidth: 1,
       borderColor: theme.colors.white,
       marginRight: 10,
       elevation: 4,
@@ -106,6 +112,8 @@ export default function AccountScreen() {
 
         <LinearGradient
           colors={theme.colors.gradientBluePrimary}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 0 }}
           style={styles.button}
         >
           <Text style={styles.buttonText}>Parent</Text>
@@ -121,6 +129,8 @@ export default function AccountScreen() {
         ))}
         <LinearGradient
           colors={theme.colors.gradientBluePrimary}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
           style={styles.addButton}
         >
           <TouchableOpacity>

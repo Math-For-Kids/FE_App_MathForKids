@@ -10,7 +10,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
-export default function VerifyOTP() {
+export default function VerifyOTP({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputs = useRef([]);

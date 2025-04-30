@@ -37,13 +37,15 @@ export const LightColors = {
   backgroundLogoLoading: "#029DF0",
   inputBackground: "#FFFFFF",
   checkBoxBackground: "#029DF0",
+  overlay: "rgba(0,0,0,0.3)",
+  avatartBackground: "#FFFFFF",
 };
 
 export const DarkColors = {
   // Public
   white: "#FFFFFF",
   black: "#FFFFFF",
-  paleBeige: "#FAF6F1",
+  paleBeige: "#5D3A9B",
   blueGray: "#FFFFFF",
   grayLight: "#D9D9D9",
   grayBorder: "#FFFFFF",
@@ -78,5 +80,7 @@ export const DarkColors = {
   backgroundLogoLoading: "#3B0A52",
   inputBackground: "#3B0A52",
   checkBoxBackground: "#029DF0",
+  overlay: "rgba(0,0,0,0.3)",
+  avatartBackground: "#5D3A9B",
 };
 export type Theme1Colors = typeof LightColors;

@@ -16,10 +16,14 @@ import type { Theme1Images } from "./theme1/Images";
 import type { Theme2Colors } from "./theme2/Colors";
 import type { Theme2Icons } from "./theme2/Icons";
 import type { Theme2Images } from "./theme2/Images";
-type ThemeKey = "theme1" | "theme2";
-type MergedColors = Theme1Colors & Theme2Colors;
-type MergedIcons = Theme1Icons & Theme2Icons;
-type MergedImages = Theme1Images & Theme2Images;
+import type { Theme3Colors } from "./theme3/Colors";
+import type { Theme3Icons } from "./theme3/Icons";
+import type { Theme3Images } from "./theme3/Images";
+type ThemeKey = "theme1" | "theme2" | "theme3";
+type MergedColors = Theme1Colors & Theme2Colors & Theme3Colors;
+type MergedIcons = Theme1Icons & Theme2Icons & Theme3Icons;
+type MergedImages = Theme1Images & Theme2Images & Theme3Images;
+
 interface ThemeContextType {
   theme: {
     colors: MergedColors;
