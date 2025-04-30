@@ -6,20 +6,24 @@ import LoadingProgressScreen from "./screens/LoadingProgressScreen";
 import LoginScreen from "./screens/LoginScreen"; // màn chính
 import RegisterScreen from "./screens/RegisterScreen";
 import SettingScreen from "./screens/SettingScreen";
+import VerifyScreen from "./screens/VerifyScreen";
+import AccountScreen from "./screens/AccountScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Loading" component={LoadingScreen} />
+        {/* <Stack.Screen name="Loading" component={LoadingScreen} />
         <Stack.Screen
           name="LoadingProgress"
           component={LoadingProgressScreen}
         />
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-        <Stack.Screen name="SettingScreen" component={SettingScreen} />
+        <Stack.Screen name="SettingScreen" component={SettingScreen} /> */}
+        {/* <Stack.Screen name="VerifyScreen" component={VerifyScreen} /> */}
+        <Stack.Screen name="AccountScreen" component={AccountScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

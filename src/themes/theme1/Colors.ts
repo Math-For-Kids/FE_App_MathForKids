@@ -3,7 +3,7 @@ export const LightColors = {
   white: "#FFFFFF",
   black: "#000000",
   paleBeige: "#FAF6F1",
-  blueGray: "607D8B",
+  blueGray: "#607D8B",
   grayLight: "#D9D9D9",
   grayBorder: "#DDDDDD",
   grayMedium: "#BFBFBF",
@@ -19,7 +19,7 @@ export const LightColors = {
   cyanLight: "#E9FDFE",
   beigeLight: "#EBE0D9",
   shadowDark: "#000000",
-  skyBlue: "#00BFFF ",
+  skyBlue: "#00BFFF",
 
   // Gradients
   gradientBluePrimary: ["#22E4F0", "#029DF0"],
@@ -60,7 +60,7 @@ export const DarkColors = {
   cyanLight: "#3D0C62",
   beigeLight: "#120024",
   shadowDark: "#000000",
-  skyBlue: "#00BFFF ",
+  skyBlue: "#00BFFF",
 
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],

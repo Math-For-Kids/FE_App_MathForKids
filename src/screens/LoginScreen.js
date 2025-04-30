@@ -161,7 +161,10 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.buttonWrapper}
-            onPress={() => play("openClick")}
+            onPress={() => {
+              navigation.navigate("AccountScreen");
+              play("openClick");
+            }}
           >
             <LinearGradient
               colors={theme.colors.gradientBlue}
