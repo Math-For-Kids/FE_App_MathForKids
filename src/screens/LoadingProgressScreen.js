@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, Animated, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Images } from "../../constants/Images";
 import { Fonts } from "../../constants/Fonts";
-import { useTheme } from "../themes/ThemeContext"; // 🔥 Sửa đúng import nè!
+import { useTheme } from "../themes/ThemeContext"; 
 
 export default function LoadingProgressScreen({ navigation }) {
   const [progress, setProgress] = useState(0);

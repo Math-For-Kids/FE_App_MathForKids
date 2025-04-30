@@ -4,11 +4,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
+import { useSound } from "../audio/SoundContext";
 
 export default function SettingScreen() {
   const { theme, isDarkMode, themeKey, toggleThemeMode, switchThemeKey } =
     useTheme();
-
+  const { volume, increaseVolume, decreaseVolume } = useSound();
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -57,11 +58,17 @@ export default function SettingScreen() {
       color: theme.colors.white,
       textAlign: "center",
     },
+    volume: {
+      textAlign: "center",
+      color: theme.colors.white,
+      fontFamily: Fonts.NUNITO_BLACK,
+      fontSize: 8,
+    },
     selectorRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      marginVertical: 10,
+      marginBottom: 10,
     },
     musicDots: { flexDirection: "row", gap: 10 },
     dot: {
@@ -113,8 +120,9 @@ export default function SettingScreen() {
         </TouchableOpacity>
       </LinearGradient>
       <Text style={styles.sectionTitle}>Music</Text>
+      <Text style={styles.volume}>Volume: {(volume * 100).toFixed(0)}%</Text>
       <View style={styles.selectorRow}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={decreaseVolume}>
           <Ionicons
             name="caret-back-outline"
             size={30}
@@ -122,17 +130,22 @@ export default function SettingScreen() {
           />
         </TouchableOpacity>
         <View style={styles.musicDots}>
-          <View
-            style={[styles.dot, { backgroundColor: theme.colors.blueLight }]}
-          />
-          <View
-            style={[styles.dot, { backgroundColor: theme.colors.blueLight }]}
-          />
-          <View
-            style={[styles.dot, { backgroundColor: theme.colors.grayLight }]}
-          />
+          {[0, 1, 2].map((i) => (
+            <View
+              key={i}
+              style={[
+                styles.dot,
+                {
+                  backgroundColor:
+                    i < Math.round(volume * 3)
+                      ? theme.colors.blueLight
+                      : theme.colors.grayLight,
+                },
+              ]}
+            />
+          ))}
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={increaseVolume}>
           <Ionicons
             name="caret-forward-outline"
             size={30}
