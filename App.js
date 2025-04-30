@@ -2,10 +2,10 @@
 import { Provider } from "react-redux";
 import { store } from "./src/redux/store";
 import AppNavigator from "./src/AppNavigator";
-
 import { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
+import { SoundProvider } from "./src/audio/SoundContext";
 
 // Import thêm ThemeProvider
 import { ThemeProvider } from "./src/themes/ThemeContext"; // ← thêm dòng này
@@ -49,8 +49,10 @@ export default function App() {
   return (
     <Provider store={store}>
       <ThemeProvider>
-        {/* ← Bọc App bằng ThemeProvider */}
-        <AppNavigator />
+        <SoundProvider>
+          {/* ← Bọc App bằng ThemeProvider */}
+          <AppNavigator />
+        </SoundProvider>
       </ThemeProvider>
     </Provider>
   );

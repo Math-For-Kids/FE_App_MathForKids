@@ -12,10 +12,11 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
-
+import useSound from "../audio/useSound";
 export default function LoginScreen({ navigation }) {
   const [isFocused, setIsFocused] = useState(false);
   const { theme, isDarkMode } = useTheme();
+  const { play } = useSound();
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -146,12 +147,22 @@ export default function LoginScreen({ navigation }) {
               style={styles.input}
               placeholder="Enter phone number"
               placeholderTextColor={theme.colors.grayLight}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onFocus={() => {
+                play("openClick");
+                setIsFocused(true);
+              }}
+              onBlur={() => {
+                play("closeClick");
+                setIsFocused(false);
+              }}
             />
           </View>
 
-          <TouchableOpacity activeOpacity={0.8} style={styles.buttonWrapper}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.buttonWrapper}
+            onPress={() => play("openClick")}
+          >
             <LinearGradient
               colors={theme.colors.gradientBlue}
               start={{ x: 0, y: 0 }}
@@ -165,13 +176,19 @@ export default function LoginScreen({ navigation }) {
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account?</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("RegisterScreen")}
+              onPress={() => {
+                play("openClick");
+                navigation.navigate("RegisterScreen");
+              }}
             >
               <Text style={styles.registerText}>Register</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
-            onPress={() => navigation.navigate("SettingScreen")}
+            onPress={() => {
+              play("openClick");
+              navigation.navigate("SettingScreen");
+            }}
           >
             <Text style={styles.registerText}>Setting</Text>
           </TouchableOpacity>
