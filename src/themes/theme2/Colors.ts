@@ -20,6 +20,7 @@ export const LightColors = {
   beigeLight: "#EBE0D9",
   shadowDark: "#000000",
   skyBlue: "#00BFFF",
+  brown: "#6b1515",
 
   // Gradients
   gradientBluePrimary: ["#9CED76", "#00B448"],
@@ -63,6 +64,7 @@ export const DarkColors = {
   beigeLight: "#120024",
   shadowDark: "#000000",
   skyBlue: "#00BFFF",
+  brown: "#6b1515",
 
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],

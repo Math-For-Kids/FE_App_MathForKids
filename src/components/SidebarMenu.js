@@ -113,7 +113,6 @@ const SidebarMenu = () => {
       >
         <TouchableOpacity
           onPress={() => {
-            // Your logout logic here
             navigation.navigate("LoginScreen");
           }}
         >

@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  FlatList,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
@@ -37,6 +44,38 @@ export default function NotificationScreen({ navigation }) {
     },
     {
       id: 4,
+      title: "Learn one lessons of addition",
+      content:
+        "You have completed the assigned task, the reward has been added to your inventory.",
+      dateEnd: new Date("2025-05-20"),
+      isRead: false,
+    },
+    {
+      id: 5,
+      title: "Learn one lessons of addition",
+      content:
+        "You have completed the assigned task, the reward has been added to your inventory.",
+      dateEnd: new Date("2025-05-20"),
+      isRead: false,
+    },
+    {
+      id: 6,
+      title: "Learn one lessons of addition",
+      content:
+        "You have completed the assigned task, the reward has been added to your inventory.",
+      dateEnd: new Date("2025-05-20"),
+      isRead: false,
+    },
+    {
+      id: 7,
+      title: "Learn one lessons of addition",
+      content:
+        "You have completed the assigned task, the reward has been added to your inventory.",
+      dateEnd: new Date("2025-05-20"),
+      isRead: false,
+    },
+    {
+      id: 8,
       title: "Learn one lessons of addition",
       content:
         "You have completed the assigned task, the reward has been added to your inventory.",
@@ -144,38 +183,41 @@ export default function NotificationScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.title}>Notification</Text>
       </LinearGradient>
+      <FlatList
+        style={{ paddingTop: 10 }}
+        data={notifications}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.notificationCard}
+            onPress={() => handlePress(item.id)}
+          >
+            {!item.isRead && (
+              <View style={styles.notificationIcon}>
+                <Ionicons
+                  name="notifications-circle"
+                  size={14}
+                  color={isDarkMode ? theme.colors.white : theme.colors.green}
+                />
+              </View>
+            )}
 
-      {notifications.map((notification) => (
-        <TouchableOpacity
-          key={notification.id}
-          style={styles.notificationCard}
-          onPress={() => handlePress(notification.id)}
-        >
-          {!notification.isRead && (
-            <View style={styles.notificationIcon}>
-              <Ionicons
-                name="notifications-circle"
-                size={14}
-                color={isDarkMode ? theme.colors.white : theme.colors.green}
-              />
-            </View>
-          )}
-
-          <View>
-            <Text style={styles.notificationTitle}>{notification.title}</Text>
-            <Text style={styles.notificationDateEnd}>
-              {new Date(notification.dateEnd).toLocaleDateString("en-GB")}
-            </Text>
-          </View>
-          {expandedId === notification.id && (
-            <View style={styles.notificationContentContainer}>
-              <Text style={styles.notificationContent}>
-                {notification.content}
+            <View>
+              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.notificationDateEnd}>
+                {new Date(item.dateEnd).toLocaleDateString("en-GB")}
               </Text>
             </View>
-          )}
-        </TouchableOpacity>
-      ))}
+
+            {expandedId === item.id && (
+              <View style={styles.notificationContentContainer}>
+                <Text style={styles.notificationContent}>{item.content}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
+      />
       <FloatingMenu />
     </LinearGradient>
   );

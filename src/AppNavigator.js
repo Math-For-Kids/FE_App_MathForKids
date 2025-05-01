@@ -9,6 +9,7 @@ import SettingScreen from "./screens/SettingScreen";
 import VerifyScreen from "./screens/VerifyScreen";
 import AccountScreen from "./screens/AccountScreen";
 import NotificationScreen from "./screens/NotificationScreen";
+import RankScreen from "./screens/RankScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -33,6 +34,7 @@ export default function AppNavigator() {
           name="NotificationScreen"
           component={NotificationScreen}
         />
+        <Stack.Screen name="RankScreen" component={RankScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
