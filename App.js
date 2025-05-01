@@ -50,7 +50,6 @@ export default function App() {
     <Provider store={store}>
       <ThemeProvider>
         <SoundProvider>
-          {/* ← Bọc App bằng ThemeProvider */}
           <AppNavigator />
         </SoundProvider>
       </ThemeProvider>

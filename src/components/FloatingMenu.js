@@ -49,7 +49,7 @@ const FloatingMenu = () => {
       right: 0,
       bottom: 0,
       backgroundColor: theme.colors.overlay,
-      zIndex: 9999,
+      // zIndex: 9999,
       elevation: 6,
     },
     homeContainer: {
