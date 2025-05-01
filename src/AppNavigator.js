@@ -10,6 +10,7 @@ import VerifyScreen from "./screens/VerifyScreen";
 import AccountScreen from "./screens/AccountScreen";
 import NotificationScreen from "./screens/NotificationScreen";
 import RankScreen from "./screens/RankScreen";
+import TargetScreen from "./screens/TargetScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -35,6 +36,7 @@ export default function AppNavigator() {
           component={NotificationScreen}
         />
         <Stack.Screen name="RankScreen" component={RankScreen} />
+        <Stack.Screen name="TargetScreen" component={TargetScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
