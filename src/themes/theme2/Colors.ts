@@ -3,26 +3,27 @@ export const LightColors = {
   white: "#FFFFFF",
   black: "#000000",
   paleBeige: "#FAF6F1",
-  blueGray: "607D8B",
+  blueGray: "#607D8B",
   grayLight: "#D9D9D9",
   grayBorder: "#DDDDDD",
   grayMedium: "#BFBFBF",
   grayDark: "#5F5F5F",
-  blueLight: "#22E4F0",
-  blueDark: "#029DF0",
+  blueLight: "#9CED76",
+  blueDark: "#00B448",
   graySoft: "#EEEEEE",
   greenLight: "#A2F078",
   greenDark: "#60D56C",
   green: "#2AB514",
   yellowLight: "#FBD54C",
   orangeLight: "#FD8550",
-  cyanLight: "#E9FDFE",
+  cyanLight: "#E6FFDA",
   beigeLight: "#EBE0D9",
   shadowDark: "#000000",
+  skyBlue: "#00BFFF",
 
   // Gradients
-  gradientBluePrimary: ["#22E4F0", "#029DF0"],
-  gradientBlue: ["#F857A6", "#FF5858"],
+  gradientBluePrimary: ["#9CED76", "#00B448"],
+  gradientBlue: ["#00B448", "#9CED76"],
   gradientGreen: ["#A2F078", "#60D56C"],
   gradientPurple: ["#F761DF", "#B526E4"],
   gradientOrange: ["#FD7670", "#F73A7A"],
@@ -33,13 +34,18 @@ export const LightColors = {
   cardBackground: "#FFFFFF",
   backBackgound: "rgba(0,0,0,0.1)",
   homeColor: "#029DF0",
+  backgroundLogoLoading: "#00B448",
+  inputBackground: "#FFFFFF",
+  checkBoxBackground: "#00B448",
+  overlay: "rgba(0,0,0,0.3)",
+  avatartBackground: "#FFFFFF",
 };
 
 export const DarkColors = {
   // Public
   white: "#FFFFFF",
   black: "#FFFFFF",
-  paleBeige: "#FAF6F1",
+  paleBeige: "#5D3A9B",
   blueGray: "#FFFFFF",
   grayLight: "#D9D9D9",
   grayBorder: "#FFFFFF",
@@ -56,6 +62,7 @@ export const DarkColors = {
   cyanLight: "#3D0C62",
   beigeLight: "#120024",
   shadowDark: "#000000",
+  skyBlue: "#00BFFF",
 
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],
@@ -70,5 +77,10 @@ export const DarkColors = {
   cardBackground: "#3B0A52",
   backBackgound: "rgba(0,0,0,0.1)",
   homeColor: "#5D3A9B",
+  backgroundLogoLoading: "#3B0A52",
+  inputBackground: "#3B0A52",
+  checkBoxBackground: "#029DF0",
+  overlay: "rgba(0,0,0,0.3)",
+  avatartBackground: "#5D3A9B",
 };
 export type Theme2Colors = typeof LightColors;

@@ -12,24 +12,29 @@ import { useSound } from "../audio/SoundContext";
 import { Fonts } from "../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-
+import { useNavigation } from "@react-navigation/native";
 const SidebarMenu = () => {
   const { theme, isDarkMode } = useTheme();
   const screenHeight = Dimensions.get("window").height;
-
+  const navigation = useNavigation();
   const menuItems = [
+    { label: "Home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
+    { label: "Profile", icon: theme.icons.profile, screen: "ProfileScreen" },
+    { label: "Rank", icon: theme.icons.rank, screen: "RankScreen" },
+    { label: "Target", icon: theme.icons.target, screen: "TargetScreen" },
     {
-      label: "Home",
-      //   icon: <Ionicons name="home" size={28} color={theme.colors.blueDark} />,
+      label: "Notification",
+      icon: theme.icons.notification,
+      screen: "NotificationScreen",
     },
-    { label: "Profile", icon: theme.icons.profile },
-    { label: "Rank", icon: theme.icons.rank },
-    { label: "Target", icon: theme.icons.target },
-    { label: "Notification", icon: theme.icons.notification },
-    { label: "Test level", icon: theme.icons.testLevel },
-    { label: "Reward", icon: theme.icons.reward },
-    { label: "Setting", icon: theme.icons.setting },
-    { label: "Contact", icon: theme.icons.contact },
+    {
+      label: "Test level",
+      icon: theme.icons.testLevel,
+      screen: "TestLevelScreen",
+    },
+    { label: "Reward", icon: theme.icons.reward, screen: "RewardScreen" },
+    { label: "Setting", icon: theme.icons.setting, screen: "SettingScreen" },
+    { label: "Contact", icon: theme.icons.contact, screen: "ContactScreen" },
   ];
 
   const styles = StyleSheet.create({
@@ -91,7 +96,11 @@ const SidebarMenu = () => {
     <View style={styles.sidebar}>
       <Text style={styles.title}>Menu</Text>
       {menuItems.map((item, index) => (
-        <TouchableOpacity key={index} style={styles.menuItem}>
+        <TouchableOpacity
+          key={index}
+          style={styles.menuItem}
+          onPress={() => item.screen && navigation.navigate(item.screen)}
+        >
           <Image source={item.icon} style={{ width: 28, height: 28 }} />
           <Text style={styles.label}>{item.label}</Text>
         </TouchableOpacity>
@@ -102,7 +111,12 @@ const SidebarMenu = () => {
         end={{ x: 0, y: 0 }}
         style={styles.logoutButtonContainer}
       >
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            // Your logout logic here
+            navigation.navigate("LoginScreen");
+          }}
+        >
           <Text style={styles.logoutButton}>Logout</Text>
         </TouchableOpacity>
       </LinearGradient>

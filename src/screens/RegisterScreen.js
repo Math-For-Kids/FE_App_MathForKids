@@ -47,11 +47,7 @@ export default function RegisterScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
     },
     avatarWrapper: {
-      borderRadius: 60,
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
+      borderRadius: 50,
       elevation: 6,
       marginTop: 40,
       marginBottom: 20,
@@ -71,16 +67,10 @@ export default function RegisterScreen({ navigation }) {
       borderWidth: 1,
       borderColor: theme.colors.white,
       justifyContent: "center",
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
       elevation: 5,
     },
     inputWrapperFocused: {
       borderColor: theme.colors.blueDark,
-      shadowColor: theme.colors.blueDark,
-      shadowOpacity: 0.5,
       elevation: 8,
     },
     input: {
@@ -127,10 +117,6 @@ export default function RegisterScreen({ navigation }) {
       borderRadius: 10,
       overflow: "hidden",
       marginBottom: 10,
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
       elevation: 6,
     },
     button: {
@@ -274,8 +260,8 @@ export default function RegisterScreen({ navigation }) {
           <TouchableOpacity activeOpacity={0.8} style={styles.buttonWrapper}>
             <LinearGradient
               colors={theme.colors.gradientBluePrimary}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 0 }}
               style={styles.button}
             >
               <Text style={styles.buttonText}>Register</Text>

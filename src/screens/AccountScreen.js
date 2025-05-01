@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { useSound } from "../audio/SoundContext";
 import { Fonts } from "../../constants/Fonts";
-export default function AccountScreen() {
+export default function AccountScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const users = [
     {
@@ -120,7 +120,11 @@ export default function AccountScreen() {
         </LinearGradient>
 
         {users.map((user) => (
-          <TouchableOpacity key={user.id} style={styles.userCard}>
+          <TouchableOpacity
+            key={user.id}
+            style={styles.userCard}
+            onPress={() => navigation.navigate("VerifyScreen")}
+          >
             <View style={styles.avatarContainer}>
               <Image source={user.avatar} style={styles.avatar} />
             </View>
