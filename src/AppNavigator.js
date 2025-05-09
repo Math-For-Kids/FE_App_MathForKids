@@ -12,6 +12,7 @@ import NotificationScreen from "./screens/NotificationScreen";
 import RankScreen from "./screens/RankScreen";
 import TargetScreen from "./screens/TargetScreen";
 import RewardScreen from "./screens/RewardScreen";
+import ContactScreen from "./screens/ContactScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -39,6 +40,7 @@ export default function AppNavigator() {
         <Stack.Screen name="RankScreen" component={RankScreen} />
         <Stack.Screen name="TargetScreen" component={TargetScreen} />
         <Stack.Screen name="RewardScreen" component={RewardScreen} />
+        <Stack.Screen name="ContactScreen" component={ContactScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
