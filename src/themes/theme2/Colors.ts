@@ -21,7 +21,7 @@ export const LightColors = {
   shadowDark: "#000000",
   skyBlue: "#00BFFF",
   brown: "#6b1515",
-
+  red: "#FF0004",
   // Gradients
   gradientBluePrimary: ["#9CED76", "#00B448"],
   gradientBlue: ["#00B448", "#9CED76"],
@@ -65,7 +65,7 @@ export const DarkColors = {
   shadowDark: "#000000",
   skyBlue: "#00BFFF",
   brown: "#6b1515",
-
+  red: "#FF0004",
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],
   gradientBlue: ["#120024", "#5D3A9B"],

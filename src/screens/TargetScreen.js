@@ -118,7 +118,7 @@ export default function TargetScreen({ navigation }) {
       paddingHorizontal: 30,
       marginHorizontal: 5,
       borderRadius: 10,
-      backgroundColor: theme.colors.white,
+      backgroundColor: theme.colors.cardBackground,
       elevation: 3,
     },
     tabButtonActive: {

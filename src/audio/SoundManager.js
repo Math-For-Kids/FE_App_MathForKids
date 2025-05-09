@@ -26,7 +26,7 @@ class SoundManager {
       await this.backgroundSound.setVolumeAsync(this.volume);
       await this.backgroundSound.playAsync();
     } catch (error) {
-      console.log("Lỗi loadBackgroundSound:", error);
+      console.log("Error loadBackgroundSound:", error);
     }
   }
 

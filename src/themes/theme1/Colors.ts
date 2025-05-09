@@ -21,6 +21,7 @@ export const LightColors = {
   shadowDark: "#000000",
   skyBlue: "#00BFFF",
   brown: "#6b1515",
+  red: "#FF0004",
 
   // Gradients
   gradientBluePrimary: ["#22E4F0", "#029DF0"],
@@ -41,6 +42,8 @@ export const LightColors = {
   overlay: "rgba(0,0,0,0.3)",
   avatartBackground: "#FFFFFF",
   starColor: "#FBD54C",
+  tabBackground: "#60D56C",
+  progressBackground: "#D9D9D9",
 };
 
 export const DarkColors = {
@@ -66,6 +69,7 @@ export const DarkColors = {
   shadowDark: "#000000",
   skyBlue: "#00BFFF",
   brown: "#6b1515",
+  red: "#FF0004",
 
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],
@@ -86,5 +90,7 @@ export const DarkColors = {
   overlay: "rgba(0,0,0,0.3)",
   avatartBackground: "#5D3A9B",
   starColor: "#FBD54C",
+  tabBackground: "#5D3A9B",
+  progressBackground: "#120024",
 };
 export type Theme1Colors = typeof LightColors;

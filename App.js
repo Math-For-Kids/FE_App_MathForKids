@@ -36,7 +36,7 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       if (fontsLoaded) {
-        await SplashScreen.hideAsync(); // Ẩn splash khi font load xong
+        await SplashScreen.hideAsync();
       }
     }
     prepare();
