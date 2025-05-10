@@ -14,7 +14,7 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
 
-export default function Contactcreen({ navigation }) {
+export default function ContactScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const users = [
     {

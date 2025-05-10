@@ -1,9 +1,8 @@
-// src/AppNavigator.js
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoadingScreen from "./screens/LoadingScreen";
 import LoadingProgressScreen from "./screens/LoadingProgressScreen";
-import LoginScreen from "./screens/LoginScreen"; // màn chính
+import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import SettingScreen from "./screens/SettingScreen";
 import VerifyScreen from "./screens/VerifyScreen";
@@ -13,6 +12,7 @@ import RankScreen from "./screens/RankScreen";
 import TargetScreen from "./screens/TargetScreen";
 import RewardScreen from "./screens/RewardScreen";
 import ContactScreen from "./screens/ContactScreen";
+import TestLevelScreen from "./screens/TestLevelScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -42,6 +42,7 @@ export default function AppNavigator() {
         <Stack.Screen name="RewardScreen" component={RewardScreen} />
         <Stack.Screen name="ContactScreen" component={ContactScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
+        <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

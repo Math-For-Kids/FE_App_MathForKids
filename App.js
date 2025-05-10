@@ -6,11 +6,7 @@ import { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { SoundProvider } from "./src/audio/SoundContext";
-
-// Import thêm ThemeProvider
-import { ThemeProvider } from "./src/themes/ThemeContext"; // ← thêm dòng này
-
-// Không auto hide splash screen
+import { ThemeProvider } from "./src/themes/ThemeContext";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {

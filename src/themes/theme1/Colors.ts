@@ -44,6 +44,9 @@ export const LightColors = {
   starColor: "#FBD54C",
   tabBackground: "#60D56C",
   progressBackground: "#D9D9D9",
+  optionAnswerBackground: "#FFFFFF",
+  optionSelected: "#2AB514",
+  selectedOptionText: "#FFFFFF",
 };
 
 export const DarkColors = {
@@ -92,5 +95,8 @@ export const DarkColors = {
   starColor: "#FBD54C",
   tabBackground: "#5D3A9B",
   progressBackground: "#120024",
+  optionAnswerBackground: "#5D3A9B",
+  optionSelected: "#FFFFFF",
+  selectedOptionText: "#3B0A52",
 };
 export type Theme1Colors = typeof LightColors;

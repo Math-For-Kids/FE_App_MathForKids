@@ -19,7 +19,6 @@ const FloatingMenu = () => {
   const toggleSidebar = () => setShowSidebar((prev) => !prev);
   const position = useRef(new Animated.ValueXY({ x: 30, y: 100 })).current;
   const { theme, isDarkMode } = useTheme();
-  const { volume, increaseVolume, decreaseVolume } = useSound();
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
