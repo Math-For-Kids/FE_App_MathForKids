@@ -40,6 +40,12 @@ export const LightColors = {
   checkBoxBackground: "#00B448",
   overlay: "rgba(0,0,0,0.3)",
   avatartBackground: "#FFFFFF",
+  starColor: "#FBD54C",
+  tabBackground: "#60D56C",
+  progressBackground: "#D9D9D9",
+  optionAnswerBackground: "#FFFFFF",
+  optionSelected: "#2AB514",
+  selectedOptionText: "#FFFFFF",
 };
 
 export const DarkColors = {
@@ -84,5 +90,11 @@ export const DarkColors = {
   checkBoxBackground: "#029DF0",
   overlay: "rgba(0,0,0,0.3)",
   avatartBackground: "#5D3A9B",
+  starColor: "#FBD54C",
+  tabBackground: "#5D3A9B",
+  progressBackground: "#120024",
+  optionAnswerBackground: "#5D3A9B",
+  optionSelected: "#FFFFFF",
+  selectedOptionText: "#3B0A52",
 };
 export type Theme2Colors = typeof LightColors;

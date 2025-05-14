@@ -13,6 +13,8 @@ import TargetScreen from "./screens/TargetScreen";
 import RewardScreen from "./screens/RewardScreen";
 import ContactScreen from "./screens/ContactScreen";
 import TestLevelScreen from "./screens/TestLevelScreen";
+import ProfileScreen from "./screens/Profile/ProfileScreen";
+import DetailScreen from "./screens/Profile/DetailScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -23,7 +25,7 @@ export default function AppNavigator() {
           headerShown: false,
         }}
       >
-        <Stack.Screen name="Loading" component={LoadingScreen} />
+        {/* <Stack.Screen name="Loading" component={LoadingScreen} />
         <Stack.Screen
           name="LoadingProgress"
           component={LoadingProgressScreen}
@@ -41,8 +43,11 @@ export default function AppNavigator() {
         <Stack.Screen name="TargetScreen" component={TargetScreen} />
         <Stack.Screen name="RewardScreen" component={RewardScreen} />
         <Stack.Screen name="ContactScreen" component={ContactScreen} />
+
+        <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} /> */}
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+        <Stack.Screen name="DetailScreen" component={DetailScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
-        <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
