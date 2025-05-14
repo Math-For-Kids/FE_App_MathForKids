@@ -155,7 +155,7 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
       </View>
-      <Text style={styles.sectionTitle}>Dark Mode</Text>
+      <Text style={styles.sectionTitle}>Mode</Text>
       <View style={styles.selectorRow}>
         <TouchableOpacity onPress={toggleThemeMode}>
           <Ionicons
@@ -181,7 +181,7 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
       </View>
-      <Text style={styles.sectionTitle}>Graphic</Text>
+      <Text style={styles.sectionTitle}>Theme</Text>
       <View style={styles.selectorRow}>
         <TouchableOpacity
           onPress={() =>

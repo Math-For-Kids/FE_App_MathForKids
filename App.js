@@ -1,4 +1,3 @@
-// App.js
 import { Provider } from "react-redux";
 import { store } from "./src/redux/store";
 import AppNavigator from "./src/AppNavigator";
@@ -7,6 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { SoundProvider } from "./src/audio/SoundContext";
 import { ThemeProvider } from "./src/themes/ThemeContext";
+import { Provider as PaperProvider } from "react-native-paper";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -45,9 +45,11 @@ export default function App() {
   return (
     <Provider store={store}>
       <ThemeProvider>
-        <SoundProvider>
-          <AppNavigator />
-        </SoundProvider>
+        <PaperProvider>
+          <SoundProvider>
+            <AppNavigator />
+          </SoundProvider>
+        </PaperProvider>
       </ThemeProvider>
     </Provider>
   );
