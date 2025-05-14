@@ -25,7 +25,7 @@ export default function AppNavigator() {
           headerShown: false,
         }}
       >
-        {/* <Stack.Screen name="Loading" component={LoadingScreen} />
+        <Stack.Screen name="Loading" component={LoadingScreen} />
         <Stack.Screen
           name="LoadingProgress"
           component={LoadingProgressScreen}
@@ -44,7 +44,7 @@ export default function AppNavigator() {
         <Stack.Screen name="RewardScreen" component={RewardScreen} />
         <Stack.Screen name="ContactScreen" component={ContactScreen} />
 
-        <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} /> */}
+        <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         <Stack.Screen name="DetailScreen" component={DetailScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
