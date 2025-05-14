@@ -241,21 +241,17 @@ export default function RewardScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_BLACK,
       color: theme.colors.black,
     },
+    modalContainer: {
+      backgroundColor: theme.colors.overlay,
+    },
     modalBackground: {
-      flex: 1,
       justifyContent: "center",
       alignItems: "center",
       borderRadius: 20,
-      backgroundColor: theme.colors.overlay,
-    },
-    modalContainer: {
-      width: "80%",
+      padding: 20,
       backgroundColor: theme.colors.cardBackground,
-      borderRadius: 20,
-      padding: 40,
-      alignItems: "center",
-      elevation: 3,
     },
+
     modalImage: {
       width: 60,
       height: 60,
@@ -574,25 +570,19 @@ export default function RewardScreen({ navigation }) {
       />
       {/* Modal selectedReward */}
       {selectedReward && (
-        <Modal
-          isVisible={true}
-          animationIn="slideInUp"
-          animationOut="slideOutDown"
-          backdropColor="rgba(0, 0, 0, 0.5)"
-          onBackdropPress={() => setSelectedReward(null)}
-        >
+        <Modal isVisible={true} onBackdropPress={() => setSelectedReward(null)}>
           <View
             style={
               selectedTab === "Exchange points"
-                ? styles.modalBackground
-                : styles.modalBackground
+                ? styles.modalContainer
+                : styles.modalContainer
             }
           >
             <View
               style={
                 selectedTab === "Exchange points"
-                  ? styles.modalContainer
-                  : styles.modalContainer
+                  ? styles.modalBackground
+                  : styles.modalBackground
               }
             >
               <Image
@@ -691,23 +681,20 @@ export default function RewardScreen({ navigation }) {
           return (
             <Modal
               isVisible={true}
-              animationIn="slideInUp"
-              animationOut="slideOutDown"
-              backdropColor="rgba(0, 0, 0, 0.5)"
               onBackdropPress={() => setSelectedRewardOwn(null)}
             >
               <View
                 style={
                   selectedTab === "Exchange points"
-                    ? styles.modalBackground
-                    : styles.modalBackground
+                    ? styles.modalContainer
+                    : styles.modalContainer
                 }
               >
                 <View
                   style={
                     selectedTab === "Exchange points"
-                      ? styles.modalContainer
-                      : styles.modalContainer
+                      ? styles.modalBackground
+                      : styles.modalBackground
                   }
                 >
                   <Image
