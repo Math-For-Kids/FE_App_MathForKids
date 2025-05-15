@@ -127,21 +127,13 @@ export default function SkillScreen({ navigation, route }) {
             <TouchableOpacity
               style={styles.cardTouchable}
               onPress={() => {
-                switch (action.label) {
-                  case "Lesson":
-                    navigation.navigate("LessonScreen", { skillName });
-                    break;
-                  case "Exercise":
-                    navigation.navigate("ExerciseScreen", { skillName });
-                    break;
-                  case "Test":
-                    navigation.navigate("TestScreen", { skillName });
-                    break;
-                  case "Game":
-                    navigation.navigate("GameScreen", { skillName });
-                    break;
-                  default:
-                    break;
+                if (action.label === "Game") {
+                  navigation.navigate("GameScreen", { skillName });
+                } else {
+                  navigation.navigate("LessonScreen", {
+                    skillName,
+                    actionType: action.label,
+                  });
                 }
               }}
             >
