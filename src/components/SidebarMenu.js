@@ -12,11 +12,14 @@ import { useSound } from "../audio/SoundContext";
 import { Fonts } from "../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 const SidebarMenu = () => {
   const { theme, isDarkMode } = useTheme();
   const screenHeight = Dimensions.get("window").height;
   const navigation = useNavigation();
+  const route = useRoute();
+  const skillName = route.params?.skillName;
+
   const menuItems = [
     { label: "Home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
     { label: "Profile", icon: theme.icons.profile, screen: "ProfileScreen" },
@@ -36,6 +39,31 @@ const SidebarMenu = () => {
     { label: "Setting", icon: theme.icons.setting, screen: "SettingScreen" },
     { label: "Contact", icon: theme.icons.contact, screen: "ContactScreen" },
   ];
+  const getMenuItemBackground = () => {
+    if (skillName === "Addition") return theme.colors.cyanGreen;
+    if (skillName === "Subtraction") return theme.colors.cyanPurple;
+    if (skillName === "Multiplication") return theme.colors.cyanOrange;
+    if (skillName === "Division") return theme.colors.cyanRed;
+    if (skillName === "Expression") return theme.colors.cyanPink;
+    return theme.colors.cyanLight;
+  };
+
+  const getLabelColor = () => {
+    if (skillName === "Addition") return theme.colors.GreenDark;
+    if (skillName === "Subtraction") return theme.colors.purpleDark;
+    if (skillName === "Multiplication") return theme.colors.orangeDark;
+    if (skillName === "Division") return theme.colors.redDark;
+    if (skillName === "Expression") return theme.colors.pinkDark;
+    return theme.colors.blueDark;
+  };
+  const getLogutBackground = () => {
+    if (skillName === "Addition") return theme.colors.gradientGreen;
+    if (skillName === "Subtraction") return theme.colors.gradientPurple;
+    if (skillName === "Multiplication") return theme.colors.gradientOrange;
+    if (skillName === "Division") return theme.colors.gradientRed;
+    if (skillName === "Expression") return theme.colors.gradientPink;
+    return theme.colors.gradientBluePrimary;
+  };
 
   const styles = StyleSheet.create({
     sidebar: {
@@ -44,7 +72,6 @@ const SidebarMenu = () => {
       top: 24,
       width: 180,
       borderWidth: 3,
-      borderColor: theme.colors.blueDark,
       backgroundColor: theme.colors.cardBackground,
       borderTopLeftRadius: 30,
       borderBottomLeftRadius: 30,
@@ -57,7 +84,6 @@ const SidebarMenu = () => {
     title: {
       fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.blueDark,
       textAlign: "center",
       marginBottom: 10,
     },
@@ -65,7 +91,6 @@ const SidebarMenu = () => {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: theme.colors.cyanLight,
       paddingVertical: 10,
       paddingHorizontal: 8,
       borderRadius: 20,
@@ -75,7 +100,6 @@ const SidebarMenu = () => {
     },
     label: {
       fontSize: 16,
-      color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_BLACK,
       marginLeft: 10,
     },
@@ -93,20 +117,25 @@ const SidebarMenu = () => {
     },
   });
   return (
-    <View style={styles.sidebar}>
-      <Text style={styles.title}>Menu</Text>
+    <View style={[styles.sidebar, { borderColor: getLabelColor() }]}>
+      <Text style={[styles.title, { color: getLabelColor() }]}>Menu</Text>
       {menuItems.map((item, index) => (
         <TouchableOpacity
           key={index}
-          style={styles.menuItem}
+          style={[
+            styles.menuItem,
+            { backgroundColor: getMenuItemBackground() },
+          ]}
           onPress={() => item.screen && navigation.navigate(item.screen)}
         >
           <Image source={item.icon} style={{ width: 28, height: 28 }} />
-          <Text style={styles.label}>{item.label}</Text>
+          <Text style={[styles.label, { color: getLabelColor() }]}>
+            {item.label}
+          </Text>
         </TouchableOpacity>
       ))}
       <LinearGradient
-        colors={theme.colors.gradientBluePrimary}
+        colors={getLogutBackground()}
         start={{ x: 1, y: 0 }}
         end={{ x: 0, y: 0 }}
         style={styles.logoutButtonContainer}

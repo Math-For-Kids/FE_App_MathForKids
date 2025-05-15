@@ -15,6 +15,8 @@ import ContactScreen from "./screens/ContactScreen";
 import TestLevelScreen from "./screens/TestLevelScreen";
 import ProfileScreen from "./screens/Profile/ProfileScreen";
 import DetailScreen from "./screens/Profile/DetailScreen";
+import HomeScreen from "./screens/Home/HomeScreen";
+import SkillScreen from "./screens/Home/SkillScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -47,6 +49,8 @@ export default function AppNavigator() {
         <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         <Stack.Screen name="DetailScreen" component={DetailScreen} />
+        <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        <Stack.Screen name="SkillScreen" component={SkillScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
