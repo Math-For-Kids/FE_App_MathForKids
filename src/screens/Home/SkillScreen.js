@@ -124,7 +124,27 @@ export default function SkillScreen({ navigation, route }) {
             start={{ x: 0, y: 1 }}
             end={{ x: 0, y: 0 }}
           >
-            <TouchableOpacity style={styles.cardTouchable}>
+            <TouchableOpacity
+              style={styles.cardTouchable}
+              onPress={() => {
+                switch (action.label) {
+                  case "Lesson":
+                    navigation.navigate("LessonScreen", { skillName });
+                    break;
+                  case "Exercise":
+                    navigation.navigate("ExerciseScreen", { skillName });
+                    break;
+                  case "Test":
+                    navigation.navigate("TestScreen", { skillName });
+                    break;
+                  case "Game":
+                    navigation.navigate("GameScreen", { skillName });
+                    break;
+                  default:
+                    break;
+                }
+              }}
+            >
               <View style={styles.cardIconContainer}>
                 <Image source={action.icon} style={styles.cardIcon} />
               </View>
