@@ -51,6 +51,7 @@ export default function LessonScreen({ navigation, route }) {
     container: {
       flex: 1,
       paddingTop: 20,
+      backgroundColor: theme.colors.background,
     },
     header: {
       width: "100%",
