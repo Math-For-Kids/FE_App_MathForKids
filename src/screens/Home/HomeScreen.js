@@ -166,7 +166,6 @@ export default function HomeScreen({ navigation }) {
       color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_BLACK,
     },
-
     title: {
       textAlign: "center",
       marginTop: 60,
@@ -182,7 +181,7 @@ export default function HomeScreen({ navigation }) {
       paddingHorizontal: 20,
     },
     skillBox: {
-      backgroundColor: theme.colors.cardBackground,
+      backgroundColor: theme.colors.background,
       elevation: 3,
       borderRadius: 15,
       paddingHorizontal: 20,

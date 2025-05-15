@@ -26,7 +26,7 @@ export default function SkillScreen({ navigation, route }) {
     container: {
       flex: 1,
       paddingTop: 20,
-      backgroundColor: theme.colors.cardBackground,
+      backgroundColor: theme.colors.background,
     },
     header: {
       width: "100%",

@@ -59,6 +59,7 @@ export const LightColors = {
   selectedOptionText: "#FFFFFF",
   textModal: "#5F5F5F",
   inputBoxModal: "#EEEEEE",
+  background: "#FFFFFF",
 };
 
 export const DarkColors = {
@@ -122,5 +123,6 @@ export const DarkColors = {
   selectedOptionText: "#3B0A52",
   textModal: "#FFFFFF",
   inputBoxModal: "#5D3A9B",
+  background: "#120024",
 };
 export type Theme1Colors = typeof LightColors;
