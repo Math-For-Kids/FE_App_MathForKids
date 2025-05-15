@@ -14,8 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName } = route.params;
-  const [activeTab, setActiveTab] = useState("Lesson");
+  const { skillName, actionType } = route.params;
+  const [activeTab, setActiveTab] = useState(actionType || "Lesson");
 
   const tabs = ["Lesson", "Exercise", "Test"];
   const lessons = [
