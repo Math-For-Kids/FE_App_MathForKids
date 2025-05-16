@@ -36,6 +36,7 @@ export const LightColors = {
   purpleLight: "#F761DF",
   redLight: "#FBD54C",
   pinkLight: "#FFAEBC",
+  redTomato: "#FF4E46",
   // Gradients
   gradientBluePrimary: ["#22E4F0", "#029DF0"],
   gradientBlue: ["#029DF0", "#22E4F0"],
@@ -109,6 +110,7 @@ export const DarkColors = {
   purpleLight: "#5D3A9B",
   redLight: "#5D3A9B",
   pinkLight: "#5D3A9B",
+  redTomato: "#3B0A52",
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],
   gradientBlue: ["#120024", "#5D3A9B"],
