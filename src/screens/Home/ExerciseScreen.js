@@ -18,9 +18,9 @@ export default function ExerciseScreen({ navigation, route }) {
   const { skillName, title } = route.params;
 
   const questions = [
-    { id: 1, left: 1, right: 1, answer: 2, image: theme.icons.question1 },
-    { id: 2, left: 2, right: 1, answer: 3, image: theme.icons.question1 },
-    { id: 3, left: 3, right: 1, answer: 4, image: theme.icons.question1 },
+    { id: 1, answer: 2, image: theme.icons.question1 },
+    { id: 2, answer: 3, image: theme.icons.question1 },
+    { id: 3, answer: 4, image: theme.icons.question1 },
   ];
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -75,6 +75,22 @@ export default function ExerciseScreen({ navigation, route }) {
       .map((item) => ({ item, sort: Math.random() }))
       .sort((a, b) => a.sort - b.sort)
       .map(({ item }) => item);
+  };
+  const calculateResults = () => {
+    let correct = 0;
+    let wrong = 0;
+
+    questions.forEach((q) => {
+      const selected = selectedAnswers[q.id];
+      if (selected !== undefined) {
+        if (selected === q.answer) correct++;
+        else wrong++;
+      }
+    });
+
+    const score = correct * 5; // mỗi câu đúng 5 điểm
+
+    return { correct, wrong, score };
   };
 
   const getGradient = () => {
@@ -292,12 +308,17 @@ export default function ExerciseScreen({ navigation, route }) {
       </ScrollView>
       <LinearGradient colors={getGradient()} style={styles.submitButton}>
         <TouchableOpacity
-          onPress={() =>
+          onPress={() => {
+            const { correct, wrong, score } = calculateResults();
             navigation.navigate("ExerciseResultScreen", {
               skillName,
-              title: item.title,
-            })
-          }
+              answers: selectedAnswers,
+              questions,
+              score,
+              correctCount: correct,
+              wrongCount: wrong,
+            });
+          }}
         >
           <Text style={styles.submitText}>Submit</Text>
         </TouchableOpacity>
