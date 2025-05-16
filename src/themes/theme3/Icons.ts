@@ -64,5 +64,6 @@ export const Icons = {
   back: require("../../../assets/images/graphics/superhero/back.png"),
   graphic: require("../../../assets/images/graphics/superhero/capybara.png"),
   capybaraloading: require("../../../assets/images/graphics/superhero/capybara loading.png"),
+  question1: require("../../../assets/images/graphics/questions/1.png"),
 };
 export type Theme3Icons = typeof Icons;

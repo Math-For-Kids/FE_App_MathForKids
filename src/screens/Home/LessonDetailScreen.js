@@ -35,14 +35,13 @@ export default function LessonDetailScreen({ navigation, route }) {
 
   const screenWidth = Dimensions.get("window").width;
   const [currentIndex, setCurrentIndex] = useState(0);
-  const currentIndexRef = useRef(0); // luôn luôn chính xác
-  const isAnimating = useRef(false); // ✅ khóa trạng thái animation
+  const currentIndexRef = useRef(0);
+  const isAnimating = useRef(false);
 
   const position = useRef(new Animated.Value(0)).current;
   const [content, setContent] = useState(tabContents[0]);
   useEffect(() => {
     currentIndexRef.current = currentIndex;
-    console.log("✅ currentIndex đã cập nhật:", currentIndex);
   }, [currentIndex]);
 
   const handleSwipe = (direction) => {
@@ -54,9 +53,7 @@ export default function LessonDetailScreen({ navigation, route }) {
 
     if (direction === "left" && indexNow < maxIndex) {
       const newIndex = indexNow + 1;
-      console.log("➡️ Vuốt trái, newIndex:", newIndex);
       isAnimating.current = true;
-
       Animated.timing(position, {
         toValue: -screenWidth,
         duration: 300,
@@ -75,9 +72,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       });
     } else if (direction === "right" && indexNow > 0) {
       const newIndex = indexNow - 1;
-      console.log("⬅️ Vuốt phải, newIndex:", newIndex);
       isAnimating.current = true;
-
       Animated.timing(position, {
         toValue: screenWidth,
         duration: 300,
@@ -96,7 +91,6 @@ export default function LessonDetailScreen({ navigation, route }) {
       });
     }
   };
-
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 30,
@@ -109,7 +103,6 @@ export default function LessonDetailScreen({ navigation, route }) {
       },
     })
   ).current;
-
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;

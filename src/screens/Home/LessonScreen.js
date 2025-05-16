@@ -201,12 +201,24 @@ export default function LessonScreen({ navigation, route }) {
       <ScrollView style={styles.lessonList}>
         {currentData.map((item) => (
           <TouchableOpacity
-            key={item.id} // ✅ Đặt key ở đây với id duy nhất
+            key={item.id}
             onPress={() => {
-              navigation.navigate("LessonDetailScreen", {
-                skillName,
-                title: item.title,
-              });
+              if (activeTab === "Lesson") {
+                navigation.navigate("LessonDetailScreen", {
+                  skillName,
+                  title: item.title,
+                });
+              } else if (activeTab === "Exercise") {
+                navigation.navigate("ExerciseScreen", {
+                  skillName,
+                  title: item.title,
+                });
+              } else if (activeTab === "Test") {
+                navigation.navigate("TestScreen", {
+                  skillName,
+                  title: item.title,
+                });
+              }
             }}
           >
             <LinearGradient
