@@ -32,6 +32,10 @@ export const LightColors = {
   orangeDark: "#F73A7A",
   redDark: "#FD8550",
   pinkDark: "#F761DF",
+  GreenLight: "#A2F078",
+  purpleLight: "#F761DF",
+  redLight: "#FBD54C",
+  pinkLight: "#FFAEBC",
   // Gradients
   gradientBluePrimary: ["#22E4F0", "#029DF0"],
   gradientBlue: ["#029DF0", "#22E4F0"],
@@ -60,6 +64,11 @@ export const LightColors = {
   textModal: "#5F5F5F",
   inputBoxModal: "#EEEEEE",
   background: "#FFFFFF",
+  GreenBorderDark: "#60D56C",
+  purpleBorderDark: "#B526E4",
+  orangeBorderDark: "#F73A7A",
+  redBorderDark: "#FD8550",
+  pinkBorderDark: "#F761DF",
 };
 
 export const DarkColors = {
@@ -91,11 +100,15 @@ export const DarkColors = {
   cyanOrange: "#3D0C62",
   cyanRed: "#3D0C62",
   cyanPink: "#3D0C62",
-  GreenDark: "#FFFFFF",
-  purpleDark: "#FFFFFF",
-  orangeDark: "#FFFFFF",
-  redDark: "#FFFFFF",
-  pinkDark: "#FFFFFF",
+  GreenDark: "#5D3A9B",
+  purpleDark: "#5D3A9B",
+  orangeDark: "#5D3A9B",
+  redDark: "#5D3A9B",
+  pinkDark: "#5D3A9B",
+  GreenLight: "#5D3A9B",
+  purpleLight: "#5D3A9B",
+  redLight: "#5D3A9B",
+  pinkLight: "#5D3A9B",
   // Gradients
   gradientBluePrimary: ["#5D3A9B", "#120024"],
   gradientBlue: ["#120024", "#5D3A9B"],
@@ -124,5 +137,10 @@ export const DarkColors = {
   textModal: "#FFFFFF",
   inputBoxModal: "#5D3A9B",
   background: "#120024",
+  GreenBorderDark: "#FFFFFF",
+  purpleBorderDark: "#FFFFFF",
+  orangeBorderDark: "#FFFFFF",
+  redBorderDark: "#FFFFFF",
+  pinkBorderDark: "#FFFFFF",
 };
 export type Theme1Colors = typeof LightColors;

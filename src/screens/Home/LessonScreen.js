@@ -47,6 +47,21 @@ export default function LessonScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.gradientRed;
     return theme.colors.gradientPink;
   };
+
+  const getTab = () => {
+    if (skillName === "Addition") return theme.colors.greenLight;
+    if (skillName === "Subtraction") return theme.colors.purpleLight;
+    if (skillName === "Multiplication") return theme.colors.orangeLight;
+    if (skillName === "Division") return theme.colors.redLight;
+    return theme.colors.pinkLight;
+  };
+  const getTabSelected = () => {
+    if (skillName === "Addition") return theme.colors.GreenDark;
+    if (skillName === "Subtraction") return theme.colors.purpleDark;
+    if (skillName === "Multiplication") return theme.colors.orangeDark;
+    if (skillName === "Division") return theme.colors.redDark;
+    return theme.colors.pinkDark;
+  };
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -88,12 +103,12 @@ export default function LessonScreen({ navigation, route }) {
     tabItem: {
       paddingVertical: 10,
       paddingHorizontal: 20,
-      backgroundColor: theme.colors.greenLight,
+      backgroundColor: getTab(),
       borderRadius: 10,
       elevation: 3,
     },
     activeTabItem: {
-      backgroundColor: theme.colors.greenDark,
+      backgroundColor: getTabSelected(),
     },
     tabText: {
       fontSize: 16,
@@ -164,7 +179,11 @@ export default function LessonScreen({ navigation, route }) {
         {tabs.map((tab, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.tabItem, activeTab === tab && styles.activeTabItem]}
+            style={[
+              styles.tabItem,
+              activeTab === tab && styles.activeTabItem,
+              // { backgroundColor: getTab() },
+            ]}
             onPress={() => setActiveTab(tab)}
           >
             <Text
@@ -180,30 +199,41 @@ export default function LessonScreen({ navigation, route }) {
       </View>
 
       <ScrollView style={styles.lessonList}>
-        {currentData.map((item, index) => (
-          <LinearGradient
-            key={index}
-            colors={getGradient()}
-            style={styles.lessonCard}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 0, y: 0 }}
+        {currentData.map((item) => (
+          <TouchableOpacity
+            key={item.id} // ✅ Đặt key ở đây với id duy nhất
+            onPress={() => {
+              navigation.navigate("LessonDetailScreen", {
+                skillName,
+                title: item.title,
+              });
+            }}
           >
-            <View style={styles.lessonContent}>
-              <Image source={theme.icons.soundOn} style={styles.lessonIcon} />
-              <Text style={styles.lessonText}>{item.title}</Text>
-              {activeTab === "Test" && (
-                <View style={styles.lessonTestTextContainer}>
-                  <Text style={styles.lessonTestText}>
-                    Quantity: {item.quantity} questions
-                  </Text>
-                  <Text style={styles.lessonTestText}>
-                    Time: {item.time} min
-                  </Text>
-                  <Text style={styles.lessonTestText}>Level: {item.level}</Text>
-                </View>
-              )}
-            </View>
-          </LinearGradient>
+            <LinearGradient
+              colors={getGradient()}
+              style={styles.lessonCard}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 0 }}
+            >
+              <View style={styles.lessonContent}>
+                <Image source={theme.icons.soundOn} style={styles.lessonIcon} />
+                <Text style={styles.lessonText}>{item.title}</Text>
+                {activeTab === "Test" && (
+                  <View style={styles.lessonTestTextContainer}>
+                    <Text style={styles.lessonTestText}>
+                      Quantity: {item.quantity} questions
+                    </Text>
+                    <Text style={styles.lessonTestText}>
+                      Time: {item.time} min
+                    </Text>
+                    <Text style={styles.lessonTestText}>
+                      Level: {item.level}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
         ))}
       </ScrollView>
       <FloatingMenu />
