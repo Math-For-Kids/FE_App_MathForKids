@@ -49,11 +49,11 @@ const SidebarMenu = () => {
   };
 
   const getLabelColor = () => {
-    if (skillName === "Addition") return theme.colors.GreenDark;
-    if (skillName === "Subtraction") return theme.colors.purpleDark;
-    if (skillName === "Multiplication") return theme.colors.orangeDark;
-    if (skillName === "Division") return theme.colors.redDark;
-    if (skillName === "Expression") return theme.colors.pinkDark;
+    if (skillName === "Addition") return theme.colors.GreenBorderDark;
+    if (skillName === "Subtraction") return theme.colors.purpleBorderDark;
+    if (skillName === "Multiplication") return theme.colors.orangeBorderDark;
+    if (skillName === "Division") return theme.colors.redBorderDark;
+    if (skillName === "Expression") return theme.colors.pinkBorderDark;
     return theme.colors.blueDark;
   };
   const getLogutBackground = () => {
