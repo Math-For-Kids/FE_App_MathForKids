@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../themes/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { Fonts } from "../../../constants/Fonts";
+import FloatingMenu from "../../components/FloatingMenu";
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { answers, questions, score, correctCount, wrongCount, skillName } =
@@ -145,6 +146,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
           </View>
         ))}
       </ScrollView>
+      <FloatingMenu />
     </View>
   );
 }

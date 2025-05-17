@@ -12,15 +12,15 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-
+import FloatingMenu from "../../components/FloatingMenu";
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, title } = route.params;
 
   const questions = [
-    { id: 1, answer: 2, image: theme.icons.question1 },
-    { id: 2, answer: 3, image: theme.icons.question1 },
-    { id: 3, answer: 4, image: theme.icons.question1 },
+    { id: 1, type: "image", answer: 2, image: theme.icons.question1 },
+    { id: 2, type: "text", answer: 3, text: "14 + 25" },
+    { id: 3, type: "image", answer: 4, image: theme.icons.question1 },
   ];
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -157,6 +157,18 @@ export default function ExerciseScreen({ navigation, route }) {
       justifyContent: "space-around",
       alignItems: "center",
     },
+    questionImage: {
+      width: 150,
+      height: 150,
+    },
+    question: {
+      fontFamily: Fonts.NUNITO_BLACK,
+      color: theme.colors.black,
+      fontSize: 60,
+      maxWidth: "50%",
+    },
+    selectedContainer: { flexDirection: "row", alignItems: "center", gap: 5 },
+    equalIcon: { width: 50, height: 40 },
     optionsRow: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -259,17 +271,26 @@ export default function ExerciseScreen({ navigation, route }) {
           <View key={q.id} style={styles.questionContainer}>
             <Text style={styles.questionText}>Question {q.id}</Text>
             <View style={styles.questionImageContainer}>
-              <Image
-                source={q.image}
-                style={{ width: 150, height: 150, marginVertical: 10 }}
-                resizeMode="contain"
-              />
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
-              >
+              {q.type === "image" ? (
+                <Image
+                  source={q.image}
+                  style={styles.questionImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Text
+                  style={styles.question}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
+                  {q.text}
+                </Text>
+              )}
+              <View style={styles.selectedContainer}>
                 <Image
                   source={theme.icons.equalMark}
-                  style={{ width: 50, height: 40, marginVertical: 10 }}
+                  style={styles.equalIcon}
                   resizeMode="contain"
                 />
                 <View
@@ -329,6 +350,7 @@ export default function ExerciseScreen({ navigation, route }) {
           <Text style={styles.optionText}>{flyingValue}</Text>
         </Animated.View>
       )}
+      <FloatingMenu />
     </View>
   );
 }
