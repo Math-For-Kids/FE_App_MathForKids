@@ -29,7 +29,7 @@ export default function LessonScreen({ navigation, route }) {
     { id: 3, title: "Add multiple numbers" },
   ];
   const Test = [
-    { id: 1, title: "Test 1", quantity: 30, time: 30, level: "Easy" },
+    { id: 1, title: "Test 1", quantity: 30, time: 1, level: "Easy" },
     { id: 2, title: "Test 2", quantity: 30, time: 40, level: "Medium" },
     { id: 3, title: "Test 3", quantity: 30, time: 45, level: "Difficult" },
   ];
@@ -217,6 +217,9 @@ export default function LessonScreen({ navigation, route }) {
                 navigation.navigate("TestScreen", {
                   skillName,
                   title: item.title,
+                  time: item.time,
+                  quantity: item.quantity,
+                  level: item.level,
                 });
               }
             }}

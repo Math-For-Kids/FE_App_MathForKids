@@ -21,6 +21,7 @@ import LessonScreen from "./screens/Home/LessonScreen";
 import LessonDetailScreen from "./screens/Home/LessonDetailScreen";
 import ExerciseScreen from "./screens/Home/ExerciseScreen";
 import ExerciseResultScreen from "./screens/Home/ExerciseResultScreen";
+import TestScreen from "./screens/Home/TestScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -65,6 +66,7 @@ export default function AppNavigator() {
           name="ExerciseResultScreen"
           component={ExerciseResultScreen}
         />
+        <Stack.Screen name="TestScreen" component={TestScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
