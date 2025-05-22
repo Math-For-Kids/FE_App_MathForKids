@@ -33,11 +33,7 @@ export default function RegisterScreen({ navigation }) {
       padding: 30,
       marginTop: 25,
       alignItems: "center",
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.1,
-      shadowRadius: 20,
-      elevation: 10,
+      elevation: 3,
     },
     title: {
       position: "absolute",

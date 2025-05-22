@@ -15,8 +15,6 @@ import { useTheme } from "../themes/ThemeContext";
 
 export default function CreatePupilAccountScreen({ navigation }) {
   const { theme } = useTheme();
-
-  // local state
   const [fullName, setFullName] = useState("");
   const [nickName, setNickName] = useState("");
   const [studentClass, setStudentClass] = useState("");
@@ -33,15 +31,11 @@ export default function CreatePupilAccountScreen({ navigation }) {
     },
     card: {
       backgroundColor: theme.colors.cardBackground,
-      width: "85%",
+      width: "80%",
       borderRadius: 22,
       padding: 30,
       paddingTop: 60,
       alignItems: "center",
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.1,
-      shadowRadius: 20,
       elevation: 10,
     },
     title: {
@@ -49,19 +43,19 @@ export default function CreatePupilAccountScreen({ navigation }) {
       top: 20,
       fontSize: 28,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BLACK,
     },
     label: {
       width: "100%",
       fontSize: 16,
-      color: theme.colors.grayDark,
-      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.blueGray,
+      fontFamily: Fonts.NUNITO_BLACK,
       marginBottom: 4,
     },
     inputWrapper: {
       width: "100%",
       height: 48,
-      backgroundColor: theme.colors.inputBackground,
+      backgroundColor: theme.colors.paleBeige,
       borderRadius: 10,
       paddingHorizontal: 15,
       marginBottom: 18,
@@ -72,8 +66,8 @@ export default function CreatePupilAccountScreen({ navigation }) {
     },
     input: {
       fontSize: 16,
-      color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      color: theme.colors.grayDark,
+      fontFamily: Fonts.NUNITO_BLACK,
     },
     checkboxGroup: {
       width: "100%",
@@ -84,11 +78,12 @@ export default function CreatePupilAccountScreen({ navigation }) {
     checkboxItem: {
       flexDirection: "row",
       alignItems: "center",
+      gap: 10,
     },
     checkboxLabel: {
       marginLeft: 6,
-      fontFamily: Fonts.NUNITO_REGULAR,
-      fontSize: 14,
+      fontFamily: Fonts.NUNITO_BLACK,
+      fontSize: 16,
       color: theme.colors.grayMedium,
     },
     buttonRow: {
@@ -97,9 +92,8 @@ export default function CreatePupilAccountScreen({ navigation }) {
       justifyContent: "space-between",
     },
     buttonWrapper: {
-      width: "48%",
+      width: "40%",
       borderRadius: 10,
-      overflow: "hidden",
       elevation: 6,
     },
     button: {
@@ -108,17 +102,12 @@ export default function CreatePupilAccountScreen({ navigation }) {
       alignItems: "center",
     },
     buttonText: {
-      color: theme.colors.white,
+      fontFamily: Fonts.NUNITO_BLACK,
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.white,
     },
   });
-
-  /** ──────────────────────────
-   * Handlers
-   * ────────────────────────── */
   const onCreate = () => {
-    // TODO: validate & submit to backend
     console.log({
       fullName,
       nickName,
@@ -136,9 +125,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
         style={styles.container}
       >
         <View style={styles.card}>
-          <Text style={styles.title}>Create Student</Text>
-
-          {/* Full Name */}
+          <Text style={styles.title}>Create Pupil</Text>
           <Text style={styles.label}>FullName</Text>
           <View
             style={[
@@ -159,8 +146,6 @@ export default function CreatePupilAccountScreen({ navigation }) {
               onBlur={() => setFocusedField(null)}
             />
           </View>
-
-          {/* NickName */}
           <Text style={styles.label}>NickName</Text>
           <View
             style={[
@@ -181,8 +166,6 @@ export default function CreatePupilAccountScreen({ navigation }) {
               onBlur={() => setFocusedField(null)}
             />
           </View>
-
-          {/* Class */}
           <Text style={styles.label}>Class</Text>
           <View
             style={[
@@ -204,8 +187,6 @@ export default function CreatePupilAccountScreen({ navigation }) {
               onBlur={() => setFocusedField(null)}
             />
           </View>
-
-          {/* Birthday */}
           <Text style={styles.label}>Birthday</Text>
           <View
             style={[
@@ -227,12 +208,9 @@ export default function CreatePupilAccountScreen({ navigation }) {
               onBlur={() => setFocusedField(null)}
             />
           </View>
-
-          {/* Gender */}
           <Text style={styles.label}>General</Text>
           <View style={styles.checkboxGroup}>
             <View style={styles.checkboxItem}>
-              <Text style={styles.checkboxLabel}>Female</Text>
               <Checkbox
                 value={gender === "female"}
                 onValueChange={() => setGender("female")}
@@ -242,9 +220,9 @@ export default function CreatePupilAccountScreen({ navigation }) {
                     : undefined
                 }
               />
+              <Text style={styles.checkboxLabel}>Female</Text>
             </View>
             <View style={styles.checkboxItem}>
-              <Text style={styles.checkboxLabel}>Male</Text>
               <Checkbox
                 value={gender === "male"}
                 onValueChange={() => setGender("male")}
@@ -254,24 +232,20 @@ export default function CreatePupilAccountScreen({ navigation }) {
                     : undefined
                 }
               />
+              <Text style={styles.checkboxLabel}>Male</Text>
             </View>
           </View>
-
-          {/* Buttons */}
           <View style={styles.buttonRow}>
             <TouchableOpacity
               activeOpacity={0.8}
               style={styles.buttonWrapper}
               onPress={onCreate}
             >
-              <LinearGradient
-                colors={[theme.colors.green, theme.colors.greenDark]}
-                start={{ x: 1, y: 0 }}
-                end={{ x: 0, y: 0 }}
-                style={styles.button}
+              <View
+                style={[styles.button, { backgroundColor: theme.colors.green }]}
               >
                 <Text style={styles.buttonText}>Create</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -279,14 +253,11 @@ export default function CreatePupilAccountScreen({ navigation }) {
               style={styles.buttonWrapper}
               onPress={() => navigation.goBack()}
             >
-              <LinearGradient
-                colors={[theme.colors.red, theme.colors.redDark]}
-                start={{ x: 1, y: 0 }}
-                end={{ x: 0, y: 0 }}
-                style={styles.button}
+              <View
+                style={[styles.button, { backgroundColor: theme.colors.red }]}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
