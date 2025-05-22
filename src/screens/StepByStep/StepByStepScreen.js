@@ -237,12 +237,10 @@ export default function StepByStepScreen({ navigation, route }) {
       flexDirection: "row",
     },
     backStepButton: {
-      padding: 15,
       borderRadius: 30,
       margin: 10,
       borderWidth: 1,
       borderColor: theme.colors.white,
-
       padding: 5,
       elevation: 3,
     },

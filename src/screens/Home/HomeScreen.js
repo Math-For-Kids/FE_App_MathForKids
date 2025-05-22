@@ -28,7 +28,7 @@ export default function HomeScreen({ navigation }) {
     {
       id: 1,
       title: "New Achievement!",
-      message: "You've earned the Math Badge 🎉",
+      message: "You've earned the Math Badge",
       time: "2 mins ago",
       icon: theme.icons.badge,
     },
@@ -49,12 +49,25 @@ export default function HomeScreen({ navigation }) {
   ];
   const newNotificationCount = notifications.length;
   const skills = [
-    { icon: theme.icons.addition, label: "Addition" },
-    { icon: theme.icons.subtraction, label: "Subtraction" },
-    { icon: theme.icons.multiplication, label: "Multiplication" },
-    { icon: theme.icons.division, label: "Division" },
-    { icon: theme.icons.multiplicationTables, label: "Expression" },
+    { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
+    {
+      icon: theme.icons.subtraction,
+      label: "Subtraction",
+      route: "SkillScreen",
+    },
+    {
+      icon: theme.icons.multiplication,
+      label: "Multiplication",
+      route: "SkillScreen",
+    },
+    { icon: theme.icons.division, label: "Division", route: "SkillScreen" },
+    {
+      icon: theme.icons.multiplicationTables,
+      label: "Multiplication tables",
+      route: "MultiplicationTableScreen",
+    },
   ];
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -276,7 +289,7 @@ export default function HomeScreen({ navigation }) {
             key={index}
             style={styles.skillBox}
             onPress={() =>
-              navigation.navigate("SkillScreen", {
+              navigation.navigate(item.route, {
                 skillName: item.label,
                 skillIcon: item.icon,
               })

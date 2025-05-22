@@ -64,5 +64,6 @@ export const Images = {
   back: require("../../../assets/images/graphics/capybaras/back.png"),
   graphic: require("../../../assets/images/graphics/capybaras/capybara.png"),
   capybaraloading: require("../../../assets/images/graphics/capybaras/capybara loading.png"),
+  
 };
 export type Theme1Images = typeof Images;
