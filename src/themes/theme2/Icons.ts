@@ -66,5 +66,13 @@ export const Icons = {
   capybaraloading: require("../../../assets/images/graphics/animals/capybara loading.png"),
   question1: require("../../../assets/images/graphics/questions/1.png"),
   line: require("../../../assets/images/graphics/questions/line.png"),
+  multiplication2: require("../../../assets/images/graphics/animals/multiplication2.png"),
+  multiplication3: require("../../../assets/images/graphics/animals/multiplication3.png"),
+  multiplication4: require("../../../assets/images/graphics/animals/multiplication4.png"),
+  multiplication5: require("../../../assets/images/graphics/animals/multiplication5.png"),
+  multiplication6: require("../../../assets/images/graphics/animals/multiplication6.png"),
+  multiplication7: require("../../../assets/images/graphics/animals/multiplication7.png"),
+  multiplication8: require("../../../assets/images/graphics/animals/multiplication8.png"),
+  multiplication9: require("../../../assets/images/graphics/animals/multiplication9.png"),
 };
 export type Theme2Icons = typeof Icons;

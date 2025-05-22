@@ -18,6 +18,9 @@ import ProfileScreen from "./screens/Profile/ProfileScreen";
 import DetailScreen from "./screens/Profile/DetailScreen";
 import HomeScreen from "./screens/Home/HomeScreen";
 import SkillScreen from "./screens/Home/SkillScreen";
+import MultiplicationTableScreen from "./screens/Home/MultiplicationTablesScreen";
+import MultiplicationTableDetailScreen from "./screens/Home/MultiplicationTableDetailScreen";
+import PracticeMultiplicationTableScreen from "./screens/Home/PracticeMultiplicationTableScreen";
 import LessonScreen from "./screens/Home/LessonScreen";
 import LessonDetailScreen from "./screens/Home/LessonDetailScreen";
 import ExerciseScreen from "./screens/Home/ExerciseScreen";
@@ -35,7 +38,7 @@ export default function AppNavigator() {
           headerShown: false,
         }}
       >
-        <Stack.Screen name="Loading" component={LoadingScreen} />
+        {/* <Stack.Screen name="Loading" component={LoadingScreen} />
         <Stack.Screen
           name="LoadingProgress"
           component={LoadingProgressScreen}
@@ -56,9 +59,21 @@ export default function AppNavigator() {
 
         <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-        <Stack.Screen name="DetailScreen" component={DetailScreen} />
+        <Stack.Screen name="DetailScreen" component={DetailScreen} /> */}
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
         <Stack.Screen name="SkillScreen" component={SkillScreen} />
+        <Stack.Screen
+          name="MultiplicationTableScreen"
+          component={MultiplicationTableScreen}
+        />
+        <Stack.Screen
+          name="MultiplicationTableDetailScreen"
+          component={MultiplicationTableDetailScreen}
+        />
+        <Stack.Screen
+          name="PracticeMultiplicationTableScreen"
+          component={PracticeMultiplicationTableScreen}
+        />
         <Stack.Screen name="LessonScreen" component={LessonScreen} />
         <Stack.Screen
           name="LessonDetailScreen"
