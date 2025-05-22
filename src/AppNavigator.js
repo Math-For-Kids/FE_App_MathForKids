@@ -35,7 +35,7 @@ export default function AppNavigator() {
           headerShown: false,
         }}
       >
-        {/* <Stack.Screen name="Loading" component={LoadingScreen} />
+        <Stack.Screen name="Loading" component={LoadingScreen} />
         <Stack.Screen
           name="LoadingProgress"
           component={LoadingProgressScreen}
@@ -44,7 +44,7 @@ export default function AppNavigator() {
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
 
         <Stack.Screen name="VerifyScreen" component={VerifyScreen} />
-        <Stack.Screen name="AccountScreen" component={AccountScreen} />
+
         <Stack.Screen
           name="NotificationScreen"
           component={NotificationScreen}
@@ -56,7 +56,7 @@ export default function AppNavigator() {
 
         <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-        <Stack.Screen name="DetailScreen" component={DetailScreen} /> */}
+        <Stack.Screen name="DetailScreen" component={DetailScreen} />
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
         <Stack.Screen name="SkillScreen" component={SkillScreen} />
         <Stack.Screen name="LessonScreen" component={LessonScreen} />
@@ -71,6 +71,7 @@ export default function AppNavigator() {
         />
         <Stack.Screen name="TestScreen" component={TestScreen} />
         <Stack.Screen name="StepByStepScreen" component={StepByStepScreen} />
+        <Stack.Screen name="AccountScreen" component={AccountScreen} />
         <Stack.Screen
           name="CreatePupilAccountScreen"
           component={CreatePupilAccountScreen}

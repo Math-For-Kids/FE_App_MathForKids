@@ -100,7 +100,9 @@ export default function AccountScreen({ navigation }) {
       borderRadius: 30,
       alignItems: "center",
       justifyContent: "center",
-      //   elevation: 5,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
+      elevation: 3,
     },
   });
 
