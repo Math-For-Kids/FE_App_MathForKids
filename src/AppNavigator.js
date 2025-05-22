@@ -7,6 +7,7 @@ import RegisterScreen from "./screens/RegisterScreen";
 import SettingScreen from "./screens/SettingScreen";
 import VerifyScreen from "./screens/VerifyScreen";
 import AccountScreen from "./screens/AccountScreen";
+import CreatePupilAccountScreen from "./screens/CreatePupilAccount";
 import NotificationScreen from "./screens/NotificationScreen";
 import RankScreen from "./screens/RankScreen";
 import TargetScreen from "./screens/TargetScreen";
@@ -70,6 +71,10 @@ export default function AppNavigator() {
         />
         <Stack.Screen name="TestScreen" component={TestScreen} />
         <Stack.Screen name="StepByStepScreen" component={StepByStepScreen} />
+        <Stack.Screen
+          name="CreatePupilAccountScreen"
+          component={CreatePupilAccountScreen}
+        />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
       </Stack.Navigator>
     </NavigationContainer>

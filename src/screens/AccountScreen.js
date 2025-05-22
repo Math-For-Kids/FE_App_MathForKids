@@ -137,7 +137,9 @@ export default function AccountScreen({ navigation }) {
           end={{ x: 0, y: 0 }}
           style={styles.addButton}
         >
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("CreatePupilAccountScreen")}
+          >
             <Ionicons name="person-add" size={36} color={theme.colors.white} />
           </TouchableOpacity>
         </LinearGradient>
