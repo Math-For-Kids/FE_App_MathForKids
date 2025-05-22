@@ -65,5 +65,6 @@ export const Icons = {
   graphic: require("../../../assets/images/graphics/animals/capybara.png"),
   capybaraloading: require("../../../assets/images/graphics/animals/capybara loading.png"),
   question1: require("../../../assets/images/graphics/questions/1.png"),
+  line: require("../../../assets/images/graphics/questions/line.png"),
 };
 export type Theme2Icons = typeof Icons;

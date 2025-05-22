@@ -255,7 +255,9 @@ export default function LessonDetailScreen({ navigation, route }) {
         {tabs[currentIndex] === "Remember" && (
           <TouchableOpacity
             style={[styles.linkButton, styles.linkTextContainer]}
-            onPress={() => navigation.navigate("TestScreen", { skillName })}
+            onPress={() =>
+              navigation.navigate("StepByStepScreen", { skillName })
+            }
           >
             <Text style={styles.linkText}>Start Test</Text>
             <Ionicons
