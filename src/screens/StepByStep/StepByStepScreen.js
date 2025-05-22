@@ -129,6 +129,7 @@ export default function StepByStepScreen({ navigation, route }) {
     },
     title: {
       fontSize: 20,
+      color: theme.colors.black,
       fontFamily: Fonts.NUNITO_BLACK,
       marginBottom: 10,
       width: "80%",
@@ -142,6 +143,7 @@ export default function StepByStepScreen({ navigation, route }) {
       width: "40%",
       height: 200,
       textAlign: "center",
+      color: theme.colors.black,
       fontFamily: Fonts.NUNITO_BLACK,
     },
     numberBoxContainer: {
@@ -168,6 +170,8 @@ export default function StepByStepScreen({ navigation, route }) {
     operator: {
       fontFamily: Fonts.NUNITO_BLACK,
       fontSize: 80,
+      color: theme.colors.black,
+      fontFamily: Fonts.NUNITO_BLACK,
     },
     numbersContainer: {
       width: "30%",
@@ -185,19 +189,12 @@ export default function StepByStepScreen({ navigation, route }) {
     number: {
       fontFamily: Fonts.NUNITO_BLACK,
       fontSize: 80,
+      color: theme.colors.black,
     },
     lineIconContainer: {
       alignItems: "center",
     },
     lineIcon: { width: "80%", height: 10 },
-
-    description: {
-      fontSize: 20,
-      fontFamily: Fonts.NUNITO_BOLD,
-      width: "80%",
-      textAlign: "center",
-      marginBottom: 20,
-    },
     resultTextContainer: {
       height: 120,
       width: "60%",
@@ -217,7 +214,8 @@ export default function StepByStepScreen({ navigation, route }) {
     },
     subText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.black,
+      fontFamily: Fonts.NUNITO_BLACK,
       width: "80%",
     },
     nextButton: {
@@ -442,6 +440,7 @@ export default function StepByStepScreen({ navigation, route }) {
                 numberOfLines={100}
                 adjustsFontSizeToFit
                 minimumFontScale={0.5}
+                color={theme.colors.black}
               >
                 {currentStep.subText}
               </Text>
@@ -508,7 +507,12 @@ export default function StepByStepScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      <LinearGradient colors={getGradient()} style={styles.nextButton}>
+      <LinearGradient
+        colors={getGradient()}
+        style={styles.nextButton}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 0, y: 0 }}
+      >
         <TouchableOpacity
           onPress={() => {
             if (stepIndex === 0) {
