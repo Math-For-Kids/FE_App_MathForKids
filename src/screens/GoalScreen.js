@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
-
+import Ionicons from "react-native-vector-icons/Ionicons";
 export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -105,6 +105,8 @@ export default function GoalScreen() {
     },
     dateInput: { flex: 0.45 },
     input: {
+      flexDirection: "row",
+      justifyContent: "space-between",
       backgroundColor: theme.colors.cardBackground,
       padding: 10,
       borderRadius: 20,
@@ -170,6 +172,13 @@ export default function GoalScreen() {
       paddingVertical: 10,
       fontFamily: Fonts.NUNITO_BOLD,
     },
+    rewardContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 10,
+    },
+    rewardImage: { width: 32, height: 32, marginRight: 10 },
   });
   const lessonOptions = {
     Addition: [
@@ -204,8 +213,12 @@ export default function GoalScreen() {
     ],
   };
   const renderOptionModal = (title, options, onSelect, onClose) => (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalBox}>
+    <TouchableOpacity
+      style={styles.modalOverlay}
+      activeOpacity={1}
+      onPress={onClose}
+    >
+      <View style={styles.modalBox} onStartShouldSetResponder={() => true}>
         <Text style={styles.modalTitle}>{title}</Text>
         <ScrollView style={{ width: "100%" }}>
           {options.map((item) => (
@@ -219,14 +232,22 @@ export default function GoalScreen() {
                   onSelect(item.value);
                   onClose();
                 }}
+                style={styles.rewardContainer}
               >
+                {item.image && (
+                  <Image
+                    source={item.image}
+                    style={styles.rewardImage}
+                    resizeMode="contain"
+                  />
+                )}
                 <Text style={styles.modalButtonText}>{item.label}</Text>
               </TouchableOpacity>
             </LinearGradient>
           ))}
         </ScrollView>
       </View>
-    </View>
+    </TouchableOpacity>
   );
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
@@ -334,6 +355,11 @@ export default function GoalScreen() {
           >
             {skillType || "Select skill type"}
           </Text>
+          <Ionicons
+            name="caret-down-outline"
+            size={24}
+            color={theme.colors.blueDark}
+          />
         </TouchableOpacity>
 
         <Text style={styles.label}>Lesson</Text>
@@ -348,6 +374,11 @@ export default function GoalScreen() {
           >
             {lesson || "Select lesson"}
           </Text>
+          <Ionicons
+            name="caret-down-outline"
+            size={24}
+            color={theme.colors.blueDark}
+          />
         </TouchableOpacity>
 
         <Text style={styles.label}>Exercise</Text>
@@ -360,6 +391,11 @@ export default function GoalScreen() {
           >
             {exercise || "Select exercise"}
           </Text>
+          <Ionicons
+            name="caret-down-outline"
+            size={24}
+            color={theme.colors.blueDark}
+          />
         </TouchableOpacity>
 
         <Text style={styles.label}>Reward</Text>
@@ -372,6 +408,11 @@ export default function GoalScreen() {
           >
             {reward || "Select reward"}
           </Text>
+          <Ionicons
+            name="caret-down-outline"
+            size={24}
+            color={theme.colors.blueDark}
+          />
         </TouchableOpacity>
       </ScrollView>
 
@@ -418,12 +459,36 @@ export default function GoalScreen() {
         renderOptionModal(
           "Select Reward",
           [
-            { label: "Capypara", value: "Capypara" },
-            { label: "Starfish", value: "Starfish" },
-            { label: "Hippocampus", value: "Hippocampus" },
-            { label: "Whale", value: "Whale" },
-            { label: "Super hero", value: "Super hero" },
-            { label: "Mask", value: "Mask" },
+            {
+              label: "Capypara",
+              value: "Capypara",
+              image: theme.icons.characterSandwich,
+            },
+            {
+              label: "Starfish",
+              value: "Starfish",
+              image: theme.icons.characterSandwich,
+            },
+            {
+              label: "Hippocampus",
+              value: "Hippocampus",
+              image: theme.icons.characterSandwich,
+            },
+            {
+              label: "Whale",
+              value: "Whale",
+              image: theme.icons.characterSandwich,
+            },
+            {
+              label: "Super hero",
+              value: "Super hero",
+              image: theme.icons.characterSandwich,
+            },
+            {
+              label: "Mask",
+              value: "Mask",
+              image: theme.icons.characterSandwich,
+            },
           ],
           setReward,
           () => setShowRewardModal(false)
