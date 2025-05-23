@@ -492,7 +492,7 @@ export default function StatisticScreen({ navigation }) {
           <View style={styles.userRow}>
             <TouchableOpacity
               style={styles.avatarContainer}
-              onPress={() => navigation.navigate("ProfileScreen")}
+              onPress={() => navigation.navigate("DetailScreen")}
             >
               <Image source={user.avatar} style={styles.avatar} />
             </TouchableOpacity>

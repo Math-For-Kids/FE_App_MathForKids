@@ -30,7 +30,7 @@ const SidebarMenu = () => {
   // }, []);
   useEffect(() => {
     const loadRole = async () => {
-      const storedRole = "user";
+      const storedRole = "pupil";
       setRole(storedRole);
     };
     loadRole();

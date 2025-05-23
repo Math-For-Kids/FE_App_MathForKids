@@ -17,6 +17,7 @@ import { AdditionStepView } from "./StepView/AdditionStepView";
 import { SubtractionStepView } from "./StepView/SubtractionStepView";
 import { MultiplicationStepView } from "./StepView/MultiplicationStepView";
 import { DivisionStepView } from "./StepView/DivisionStepView";
+import FloatingMenu from "../../components/FloatingMenu";
 export default function StepByStepScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName } = route.params;
@@ -532,6 +533,7 @@ export default function StepByStepScreen({ navigation, route }) {
           <Text style={styles.nextText}>Next</Text>
         </TouchableOpacity>
       </LinearGradient>
+      <FloatingMenu />
     </View>
   );
 }

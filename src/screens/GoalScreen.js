@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import FloatingMenu from "../components/FloatingMenu";
 export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -493,6 +494,7 @@ export default function GoalScreen() {
           setReward,
           () => setShowRewardModal(false)
         )}
+      <FloatingMenu />
     </LinearGradient>
   );
 }
