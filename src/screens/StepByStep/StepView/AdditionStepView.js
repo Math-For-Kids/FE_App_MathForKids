@@ -6,7 +6,8 @@ import { Fonts } from "../../../../constants/Fonts";
 export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
   const { theme } = useTheme();
   if (!steps[2]?.digitSums) return null;
-  const labels = [...placeLabels].slice(-steps[2].digitSums.length);
+  const labels = placeLabels.slice(0, steps[2].digitSums.length).reverse();
+  console.log("Current column labels:", labels);
   const getSkillColor = () => {
     if (skillName === "Addition") return theme.colors.GreenDark;
     if (skillName === "Subtraction") return theme.colors.purpleDark;
@@ -75,7 +76,7 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
       {/* Cột tên đơn vị */}
       <View style={styles.row}>
         {labels.map((label, i) => (
-          <Text key={`label-${i}`} style={styles.labelText}>
+          <Text key={`label-reverse-${i}`} style={styles.labelText}>
             {label}
           </Text>
         ))}

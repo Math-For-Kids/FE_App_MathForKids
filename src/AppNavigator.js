@@ -53,7 +53,7 @@ export default function AppNavigator() {
   // }, []);
 
   useEffect(() => {
-    const testRole = "user";
+    const testRole = "pupil";
     setRole(testRole);
     setLoading(false);
   }, []);
@@ -142,6 +142,7 @@ export default function AppNavigator() {
             />
             <Stack.Screen name="SettingScreen" component={SettingScreen} />
             <Stack.Screen name="GoalScreen" component={GoalScreen} />
+            <Stack.Screen name="DetailScreen" component={DetailScreen} />
           </>
         )}
       </Stack.Navigator>

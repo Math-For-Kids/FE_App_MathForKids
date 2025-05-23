@@ -4,10 +4,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
-
+import FloatingMenu from "../../components/FloatingMenu";
 export default function MultiplicationTableDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { table, title } = route.params;
+  const { table, title, skillName } = route.params;
 
   const [currentIndex, setCurrentIndex] = useState(1);
 
@@ -16,6 +16,7 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
       setCurrentIndex(currentIndex + 1);
     } else {
       navigation.navigate("PracticeMultiplicationTableScreen", {
+        skillName,
         table,
         title,
       });
@@ -149,7 +150,6 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <LinearGradient colors={theme.colors.gradientPink} style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -159,7 +159,6 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
         </TouchableOpacity>
         <Text style={styles.headerText}>{title}</Text>
       </LinearGradient>
-      {/* Top Row */}
       <View style={styles.infoRow}>
         <TouchableOpacity>
           <LinearGradient
@@ -176,7 +175,6 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
         </TouchableOpacity>
         <Text style={styles.infoText}>Memorize</Text>
       </View>
-      {/* Multiplication Row */}
       <View style={styles.equationRow}>
         <BoxedText text={multiplicand.toString()} />
         <Text style={styles.operator}>×</Text>
@@ -184,8 +182,6 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
         <Text style={styles.operator}>=</Text>
         <BoxedText text={product.toString()} />
       </View>
-
-      {/* Explanation */}
       <View style={styles.infoRow}>
         <TouchableOpacity>
           <LinearGradient
@@ -205,13 +201,11 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
           {multiplier === 1 ? "time" : "times"}.
         </Text>
       </View>
-      {/* Addition Breakdown */}
       <View style={styles.equationRow}>
         <BoxedText text={Array(multiplier).fill(multiplicand).join(" + ")} />
         <Text style={styles.operator}>=</Text>
         <BoxedText text={product.toString()} />
       </View>
-      {/* Back Button riêng ở giữa màn hình */}
       {currentIndex > 1 && (
         <LinearGradient
           colors={theme.colors.gradientPink}
@@ -232,6 +226,7 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
           </Text>
         </LinearGradient>
       </TouchableOpacity>
+      <FloatingMenu />
     </View>
   );
 }
