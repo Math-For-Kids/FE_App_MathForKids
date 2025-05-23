@@ -37,6 +37,7 @@ export const LightColors = {
   redLight: "#FBD54C",
   pinkLight: "#FFAEBC",
   redTomato: "#FF4E46",
+
   // Gradients
   gradientBluePrimary: ["#22E4F0", "#029DF0"],
   gradientBlue: ["#029DF0", "#22E4F0"],
@@ -71,6 +72,7 @@ export const LightColors = {
   orangeBorderDark: "#F73A7A",
   redBorderDark: "#FD8550",
   pinkBorderDark: "#F761DF",
+  comment: "#FF4E46",
 };
 
 export const DarkColors = {
@@ -146,5 +148,6 @@ export const DarkColors = {
   orangeBorderDark: "#FFFFFF",
   redBorderDark: "#FFFFFF",
   pinkBorderDark: "#FFFFFF",
+  comment: "#5D3A8B",
 };
 export type Theme1Colors = typeof LightColors;

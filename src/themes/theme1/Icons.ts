@@ -74,5 +74,7 @@ export const Icons = {
   multiplication7: require("../../../assets/images/graphics/capybaras/multiplication7.png"),
   multiplication8: require("../../../assets/images/graphics/capybaras/multiplication8.png"),
   multiplication9: require("../../../assets/images/graphics/capybaras/multiplication9.png"),
+  statistic: require("../../../assets/images/graphics/capybaras/statistics.png"),
+  goal: require("../../../assets/images/graphics/capybaras/goal.png"),
 };
 export type Theme1Icons = typeof Icons;

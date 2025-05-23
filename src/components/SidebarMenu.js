@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,23 +6,45 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { useTheme } from "../themes/ThemeContext";
-import { useSound } from "../audio/SoundContext";
 import { Fonts } from "../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const SidebarMenu = () => {
-  const { theme, isDarkMode } = useTheme();
+  const { theme } = useTheme();
   const screenHeight = Dimensions.get("window").height;
   const navigation = useNavigation();
   const route = useRoute();
   const skillName = route.params?.skillName;
+  const [role, setRole] = useState(null);
+  // useEffect(() => {
+  //   const loadRole = async () => {
+  //     const storedRole = await AsyncStorage.getItem("userRole");
+  //     setRole(storedRole);
+  //   };
+  //   loadRole();
+  // }, []);
+  useEffect(() => {
+    const loadRole = async () => {
+      const storedRole = "user";
+      setRole(storedRole);
+    };
+    loadRole();
+  }, []);
 
   const menuItems = [
     { label: "Home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
+    {
+      label: "Statistics",
+      icon: theme.icons.statistic,
+      screen: "StatisticScreen",
+    },
     { label: "Profile", icon: theme.icons.profile, screen: "ProfileScreen" },
+    { label: "Goals", icon: theme.icons.goal, screen: "GoalScreen" },
     { label: "Rank", icon: theme.icons.rank, screen: "RankScreen" },
     { label: "Target", icon: theme.icons.target, screen: "TargetScreen" },
     {
@@ -39,6 +61,17 @@ const SidebarMenu = () => {
     { label: "Setting", icon: theme.icons.setting, screen: "SettingScreen" },
     { label: "Contact", icon: theme.icons.contact, screen: "ContactScreen" },
   ];
+
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (role === "pupil")
+      return item.label !== "Goals" && item.label !== "Statistics";
+    if (role === "user")
+      return !["Rank", "Reward", "Target", "Test level", "Home"].includes(
+        item.label
+      );
+    return true;
+  });
+
   const getMenuItemBackground = () => {
     if (skillName === "Addition") return theme.colors.cyanGreen;
     if (skillName === "Subtraction") return theme.colors.cyanPurple;
@@ -56,7 +89,8 @@ const SidebarMenu = () => {
     if (skillName === "Expression") return theme.colors.pinkBorderDark;
     return theme.colors.blueDark;
   };
-  const getLogutBackground = () => {
+
+  const getLogoutBackground = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
     if (skillName === "Multiplication") return theme.colors.gradientOrange;
@@ -71,41 +105,57 @@ const SidebarMenu = () => {
       right: 0,
       top: 24,
       width: 180,
-      borderWidth: 3,
+      height: screenHeight - 24,
       backgroundColor: theme.colors.cardBackground,
       borderTopLeftRadius: 30,
       borderBottomLeftRadius: 30,
-      //   height: Dimensions.get("window").height,
-      paddingTop: 14,
-      zIndex: 1,
+      paddingTop: 5,
       elevation: 15,
+      borderWidth: 3,
+      borderColor: getLabelColor(),
     },
-
     title: {
       fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
       textAlign: "center",
-      marginBottom: 10,
+      color: getLabelColor(),
+    },
+    menuContainer: {
+      flex: 1,
+      justifyContent: "space-between",
+    },
+    menuScroll: {
+      flexGrow: 0,
+    },
+    menuContent: {
+      paddingBottom: 10,
     },
     menuItem: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       paddingVertical: 10,
-      paddingHorizontal: 8,
+      paddingHorizontal: 15,
       borderRadius: 20,
       marginVertical: 4,
-      paddingHorizontal: 15,
+      borderWidth: 1,
+      borderColor: theme.colors.paleBeige,
       elevation: 3,
+      backgroundColor: getMenuItemBackground(),
+      marginHorizontal: 5,
+    },
+    icon: {
+      width: 28,
+      height: 28,
     },
     label: {
       fontSize: 16,
       fontFamily: Fonts.NUNITO_BLACK,
       marginLeft: 10,
+      color: getLabelColor(),
     },
     logoutButtonContainer: {
       alignItems: "center",
-      fontFamily: Fonts.NUNITO_BLACK,
       borderTopLeftRadius: 30,
       borderBottomLeftRadius: 30,
     },
@@ -113,41 +163,41 @@ const SidebarMenu = () => {
       fontSize: 16,
       color: theme.colors.white,
       fontFamily: Fonts.NUNITO_BLACK,
-      padding: 14,
+      padding: 10,
     },
   });
+
   return (
-    <View style={[styles.sidebar, { borderColor: getLabelColor() }]}>
-      <Text style={[styles.title, { color: getLabelColor() }]}>Menu</Text>
-      {menuItems.map((item, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.menuItem,
-            { backgroundColor: getMenuItemBackground() },
-          ]}
-          onPress={() => item.screen && navigation.navigate(item.screen)}
+    <View style={styles.sidebar}>
+      <Text style={styles.title}>Menu</Text>
+      <View style={styles.menuContainer}>
+        <ScrollView
+          style={styles.menuScroll}
+          contentContainerStyle={styles.menuContent}
         >
-          <Image source={item.icon} style={{ width: 28, height: 28 }} />
-          <Text style={[styles.label, { color: getLabelColor() }]}>
-            {item.label}
-          </Text>
-        </TouchableOpacity>
-      ))}
-      <LinearGradient
-        colors={getLogutBackground()}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 0 }}
-        style={styles.logoutButtonContainer}
-      >
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate("LoginScreen");
-          }}
+          {filteredMenuItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.menuItem}
+              onPress={() => item.screen && navigation.navigate(item.screen)}
+            >
+              <Image source={item.icon} style={styles.icon} />
+              <Text style={styles.label}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <LinearGradient
+          colors={getLogoutBackground()}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 0 }}
+          style={styles.logoutButtonContainer}
         >
-          <Text style={styles.logoutButton}>Logout</Text>
-        </TouchableOpacity>
-      </LinearGradient>
+          <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
+            <Text style={styles.logoutButton}>Logout</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
     </View>
   );
 };

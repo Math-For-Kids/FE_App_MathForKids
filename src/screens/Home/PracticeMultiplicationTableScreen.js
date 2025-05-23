@@ -258,7 +258,9 @@ export default function PracticeMultiplicationTableScreen({
           colors={theme.colors.gradientPink}
           style={styles.nextButton}
         >
-          <Text style={styles.nextText}>Next</Text>
+          <Text style={styles.nextText}>
+            {multiplier === 9 ? "Submit" : "Next"}
+          </Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
