@@ -74,5 +74,7 @@ export const Icons = {
   multiplication7: require("../../../assets/images/graphics/superhero/multiplication7.png"),
   multiplication8: require("../../../assets/images/graphics/superhero/multiplication8.png"),
   multiplication9: require("../../../assets/images/graphics/superhero/multiplication9.png"),
+  statistic: require("../../../assets/images/graphics/superhero/statistics.png"),
+  goal: require("../../../assets/images/graphics/superhero/goal.png"),
 };
 export type Theme3Icons = typeof Icons;

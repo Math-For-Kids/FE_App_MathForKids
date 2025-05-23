@@ -74,5 +74,7 @@ export const Icons = {
   multiplication7: require("../../../assets/images/graphics/animals/multiplication7.png"),
   multiplication8: require("../../../assets/images/graphics/animals/multiplication8.png"),
   multiplication9: require("../../../assets/images/graphics/animals/multiplication9.png"),
+  statistic: require("../../../assets/images/graphics/animals/statistics.png"),
+  goal: require("../../../assets/images/graphics/animals/goal.png"),
 };
 export type Theme2Icons = typeof Icons;
