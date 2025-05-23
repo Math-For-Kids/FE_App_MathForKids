@@ -63,7 +63,7 @@ export default function HomeScreen({ navigation }) {
     { icon: theme.icons.division, label: "Division", route: "SkillScreen" },
     {
       icon: theme.icons.multiplicationTables,
-      label: "Multiplication tables",
+      label: "Expression",
       route: "MultiplicationTableScreen",
     },
   ];

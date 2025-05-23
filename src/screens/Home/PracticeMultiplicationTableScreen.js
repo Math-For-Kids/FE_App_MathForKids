@@ -10,13 +10,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
-
+import FloatingMenu from "../../components/FloatingMenu";
 export default function PracticeMultiplicationTableScreen({
   navigation,
   route,
 }) {
   const { theme } = useTheme();
-  const { table, title } = route.params;
+  const { table, title, skillName } = route.params;
 
   const [multiplier, setMultiplier] = useState(1);
   const [userAnswer, setUserAnswer] = useState("");
@@ -79,7 +79,7 @@ export default function PracticeMultiplicationTableScreen({
         score: score + (isCorrect ? 10 : 0),
         correctCount: correctCount + (isCorrect ? 1 : 0),
         wrongCount: wrongCount + (isCorrect ? 0 : 1),
-        skillName: "Multiplication",
+        skillName,
       });
     }
   };
@@ -263,6 +263,7 @@ export default function PracticeMultiplicationTableScreen({
           </Text>
         </LinearGradient>
       </TouchableOpacity>
+      <FloatingMenu />
     </View>
   );
 }

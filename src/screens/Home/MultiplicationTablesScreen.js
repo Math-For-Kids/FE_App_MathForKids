@@ -11,7 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
-
+import FloatingMenu from "../../components/FloatingMenu";
 export default function MultiplicationTableScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName } = route.params;
@@ -182,10 +182,13 @@ export default function MultiplicationTableScreen({ navigation, route }) {
         <Text style={styles.infoText}>Selected one multiplication table</Text>
       </View>
       <ScrollView contentContainerStyle={styles.tableContainer}>
-        {tables.map((item, index) => (
-          <LinearGradient colors={getGradient()} style={styles.tableBox}>
+        {tables.map((item) => (
+          <LinearGradient
+            key={`table-${item.number}`}
+            colors={getGradient()}
+            style={styles.tableBox}
+          >
             <TouchableOpacity
-              key={index}
               onPress={() =>
                 navigation.navigate("MultiplicationTableDetailScreen", {
                   skillName,
@@ -202,6 +205,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
           </LinearGradient>
         ))}
       </ScrollView>
+      <FloatingMenu />
     </View>
   );
 }
