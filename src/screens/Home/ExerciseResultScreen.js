@@ -63,7 +63,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
       width: "60%",
       textAlign: "center",
@@ -75,17 +75,17 @@ export default function ExerciseResultScreen({ navigation, route }) {
     },
     scoreText: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     correctText: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     wrongText: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     wrongNumber: { color: theme.colors.red },
@@ -101,7 +101,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
     },
     questionText: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
   });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,87 +12,72 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
+import {
+  notificationsByUserId,
+  updateNotification,
+} from "../redux/userNotificationSlice";
+import {
+  notificationsByPupilId,
+  updatePupilNotification,
+} from "../redux/pupilNotificationSlice";
+import { useIsFocused } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
 
-export default function NotificationScreen({ navigation }) {
+export default function NotificationScreen({ navigation, route }) {
   const { theme, isDarkMode } = useTheme();
+  const { pupilId } = route.params || {};
+  console.log("pupilId", pupilId);
   const [expandedId, setExpandedId] = useState(null);
+  const user = useSelector((state) => state.auth.user);
+  const userNotifications = useSelector(
+    (state) => state.notifications.list || []
+  );
+  const pupilNotifications = useSelector(
+    (state) => state.pupilnotifications.list || []
+  );
+  const notificationsToDisplay = pupilId
+    ? pupilNotifications
+    : userNotifications;
+  console.log("🔔 Notifications to display:", notificationsToDisplay);
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Learn five lessons of addition",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-    {
-      id: 2,
-      title: "Learn five lessons of subtraction",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-    {
-      id: 3,
-      title: "Learn two lessons of addition",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-    {
-      id: 4,
-      title: "Learn one lessons of addition",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-    {
-      id: 5,
-      title: "Learn one lessons of addition",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-    {
-      id: 6,
-      title: "Learn one lessons of addition",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-    {
-      id: 7,
-      title: "Learn one lessons of addition",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-    {
-      id: 8,
-      title: "Learn one lessons of addition",
-      content:
-        "You have completed the assigned task, the reward has been added to your inventory.",
-      dateEnd: new Date("2025-05-20"),
-      isRead: false,
-    },
-  ]);
+  const isFocused = useIsFocused();
+  const dispatch = useDispatch();
 
-  const handlePress = (id) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-    setExpandedId(expandedId === id ? null : id);
+  useEffect(() => {
+    if (isFocused) {
+      console.log("👦 pupilId:", pupilId);
+      console.log("👤 userId:", user?.id);
+      if (pupilId) {
+        dispatch(notificationsByPupilId(pupilId));
+      } else if (user?.id) {
+        dispatch(notificationsByUserId(user.id));
+      }
+    }
+  }, [isFocused, pupilId, user?.id]);
+
+  const handlePress = async (id) => {
+    const selected = notificationsToDisplay.find((n) => n.id === id);
+    console.log("📩 Pressed notification ID:", id);
+    console.log("📄 Selected notification:", selected);
+
+    if (selected && !selected.isRead) {
+      try {
+        if (pupilId) {
+          await dispatch(
+            updatePupilNotification({ id, data: { ...selected, isRead: true } })
+          ).unwrap();
+          dispatch(notificationsByPupilId(pupilId));
+        } else {
+          await dispatch(
+            updateNotification({ id, data: { ...selected, isRead: true } })
+          ).unwrap();
+          dispatch(notificationsByUserId(user.id));
+        }
+      } catch (err) {
+        console.error("Failed to update notification:", err);
+      }
+    }
+    setExpandedId((prev) => (prev === id ? null : id));
   };
 
   const styles = StyleSheet.create({
@@ -135,7 +120,7 @@ export default function NotificationScreen({ navigation }) {
     notificationTitle: {
       fontSize: 16,
       padding: 10,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     notificationDateEnd: {
@@ -144,7 +129,7 @@ export default function NotificationScreen({ navigation }) {
       right: 10,
       top: 30,
       fontSize: 8,
-      fontFamily: Fonts.NUNITO_BLACK_ITALIC,
+      fontFamily: Fonts.NUNITO_BOLD_ITALIC,
       color: theme.colors.blueGray,
     },
     notificationContentContainer: {
@@ -183,9 +168,10 @@ export default function NotificationScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.title}>Notification</Text>
       </LinearGradient>
+
       <FlatList
         style={{ paddingTop: 10 }}
-        data={notifications}
+        data={notificationsToDisplay}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
@@ -204,15 +190,21 @@ export default function NotificationScreen({ navigation }) {
             )}
 
             <View>
-              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.notificationTitle}>
+                {item.title?.en || "No title"}
+              </Text>
               <Text style={styles.notificationDateEnd}>
-                {new Date(item.dateEnd).toLocaleDateString("en-GB")}
+                {new Date(
+                  item.dateEnd?.seconds * 1000 || item.dateEnd
+                ).toLocaleDateString("en-GB")}
               </Text>
             </View>
 
             {expandedId === item.id && (
               <View style={styles.notificationContentContainer}>
-                <Text style={styles.notificationContent}>{item.content}</Text>
+                <Text style={styles.notificationContent}>
+                  {item.content?.en || "No content"}
+                </Text>
               </View>
             )}
           </TouchableOpacity>

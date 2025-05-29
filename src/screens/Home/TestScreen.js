@@ -250,7 +250,7 @@ export default function TestScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
       width: "60%",
       textAlign: "center",
@@ -261,7 +261,7 @@ export default function TestScreen({ navigation, route }) {
     },
     subtitleText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     visualProgressBar: {
@@ -306,7 +306,7 @@ export default function TestScreen({ navigation, route }) {
     },
     timerTextOverlay: {
       position: "absolute",
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 14,
     },
@@ -327,7 +327,7 @@ export default function TestScreen({ navigation, route }) {
     },
     question: {
       fontSize: 100,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       maxWidth: "80%",
       height: 150,
@@ -361,7 +361,7 @@ export default function TestScreen({ navigation, route }) {
       elevation: 3,
     },
     answerText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       fontSize: 32,
     },
@@ -375,7 +375,7 @@ export default function TestScreen({ navigation, route }) {
     submitText: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       textAlign: "center",
     },
     modalContainer: {
@@ -395,7 +395,7 @@ export default function TestScreen({ navigation, route }) {
     modalTitleText: {
       color: theme.colors.white,
       fontSize: 28,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       textAlign: "center",
     },
     modalTextContainer: {
@@ -410,12 +410,12 @@ export default function TestScreen({ navigation, route }) {
     },
     modalText: {
       fontSize: 20,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     modalResultText: {
       fontSize: 20,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     closeIcon: {

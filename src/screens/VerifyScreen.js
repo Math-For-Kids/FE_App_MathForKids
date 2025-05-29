@@ -1,17 +1,27 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
-export default function VerifyOTP({ navigation }) {
-  const { theme, isDarkMode } = useTheme();
+import { useDispatch } from "react-redux";
+import {
+  sendOTPByPhone,
+  sendOTPByEmail,
+  verifyOTP,
+  setUser,
+} from "../redux/authSlice";
+export default function VerifyOTP({ navigation, route }) {
+  const { theme } = useTheme();
+  const { userId, contact, isEmail } = route.params;
+  const dispatch = useDispatch();
+
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputs = useRef([]);
   const [focusedIndex, setFocusedIndex] = useState(null);
@@ -20,11 +30,51 @@ export default function VerifyOTP({ navigation }) {
     const newOtp = [...otp];
     newOtp[index] = text;
     setOtp(newOtp);
+    if (text && index < 3) inputs.current[index + 1].focus();
+  };
 
-    if (text && index < 3) {
-      inputs.current[index + 1].focus();
+  const handleVerify = async () => {
+    const otpCode = otp.join("");
+    if (otpCode.length !== 4) {
+      return Alert.alert("Error", "Please enter the full 4-digit OTP");
+    }
+
+    try {
+      const result = await dispatch(verifyOTP({ userId, otpCode })).unwrap();
+      console.log("Verified user:", result);
+      dispatch(
+        setUser({
+          id: result.id,
+          role: result.role,
+          token: result.token,
+          fullName: result.fullName,
+          avatar: result.avatar,
+        })
+      );
+
+      Alert.alert("Success", "OTP Verified!", [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("AccountScreen"),
+        },
+      ]);
+    } catch (err) {
+      console.error("OTP verify failed:", err);
+      Alert.alert("Error", err?.message || "Failed to verify OTP");
     }
   };
+
+  const handleResend = () => {
+    const resendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
+    dispatch(resendAction(contact)).then((res) => {
+      if (!res.error) {
+        Alert.alert("Success", "OTP resent successfully!");
+      } else {
+        Alert.alert("Error", "Failed to resend OTP: " + res.payload);
+      }
+    });
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -41,19 +91,19 @@ export default function VerifyOTP({ navigation }) {
     },
     title: {
       fontSize: 28,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.blueDark,
       marginBottom: 10,
     },
     subtitle: {
       color: theme.colors.grayLight,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BOLD_ITALIC,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 12,
     },
     phoneNumber: {
       marginBottom: 20,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 12,
       color: theme.colors.grayMedium,
     },
@@ -76,7 +126,6 @@ export default function VerifyOTP({ navigation }) {
     },
     otpInputFocused: {
       borderColor: theme.colors.skyBlue,
-      borderWidth: 1,
     },
     verifyButton: {
       width: 250,
@@ -88,7 +137,7 @@ export default function VerifyOTP({ navigation }) {
     verifyText: {
       color: theme.colors.white,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 16,
     },
     resendText: {
@@ -97,7 +146,7 @@ export default function VerifyOTP({ navigation }) {
     },
     resendLink: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
   });
 
@@ -106,9 +155,9 @@ export default function VerifyOTP({ navigation }) {
       <View style={styles.card}>
         <Text style={styles.title}>Verify</Text>
         <Text style={styles.subtitle}>
-          Enter the code sent to your phone number:
+          Enter the code sent to your {isEmail ? "email" : "phone"}:
         </Text>
-        <Text style={styles.phoneNumber}>0123456789</Text>
+        <Text style={styles.phoneNumber}>{contact}</Text>
 
         <View style={styles.otpContainer}>
           {otp.map((digit, index) => (
@@ -135,14 +184,16 @@ export default function VerifyOTP({ navigation }) {
           end={{ x: 0, y: 0 }}
           style={styles.verifyButton}
         >
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleVerify}>
             <Text style={styles.verifyText}>Verify</Text>
           </TouchableOpacity>
         </LinearGradient>
 
         <Text style={styles.resendText}>Didn’t receive a code?</Text>
         <Text style={styles.resendText}>
-          <Text style={styles.resendLink}>Resend</Text>
+          <Text style={styles.resendLink} onPress={handleResend}>
+            Resend
+          </Text>
         </Text>
       </View>
     </LinearGradient>

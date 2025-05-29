@@ -146,7 +146,7 @@ export default function LessonDetailScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
       width: "60%",
       textAlign: "center",
@@ -181,7 +181,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       paddingBottom: 80,
     },
     lessonTitleTextList: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 22,
     },
@@ -203,7 +203,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       fontSize: 16,
     },
     linkText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.blueDark,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.blueDark,

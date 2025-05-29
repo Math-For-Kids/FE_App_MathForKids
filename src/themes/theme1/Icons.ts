@@ -76,5 +76,10 @@ export const Icons = {
   multiplication9: require("../../../assets/images/graphics/capybaras/multiplication9.png"),
   statistic: require("../../../assets/images/graphics/capybaras/statistics.png"),
   goal: require("../../../assets/images/graphics/capybaras/goal.png"),
+  privacy: require("../../../assets/images/graphics/capybaras/privacy.png"),
+  changeemail: require("../../../assets/images/graphics/capybaras/change emial.png"),
+  changephone: require("../../../assets/images/graphics/capybaras/change phone.png"),
+  changepin: require("../../../assets/images/graphics/capybaras/change pin.png"),
+  viewprofile: require("../../../assets/images/graphics/capybaras/view profile.png"),
 };
 export type Theme1Icons = typeof Icons;

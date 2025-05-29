@@ -9,43 +9,25 @@ import {
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
-
+import { getAllUser } from "../redux/authSlice";
+import { useIsFocused } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
 export default function ContactScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
-  const users = [
-    {
-      id: 1,
-      avatar: theme.images.avatarFemale,
-      name: "Nguyen Thi Hong",
-      position: "Marketing Director",
-      email: "hong123@gmail.com",
-    },
-    {
-      id: 2,
-      avatar: theme.images.avatarMale,
-      name: "Nguyen Van Hoai",
-      position: "System Manager",
-      email: "hoai123@gmail.com",
-    },
-    {
-      id: 3,
-      avatar: theme.images.avatarMale,
-      name: "Nguyen Van Hung",
-      position: "Collaborator",
-      email: "hung123@gmail.com",
-    },
-    {
-      id: 4,
-      avatar: theme.images.avatarFemale,
-      name: "Nguyen Thanh Thien",
-      position: "Admin",
-      email: "thien123@gmail.com",
-    },
-  ];
+  const users = useSelector((state) => state.auth.list || []);
+  const isFocused = useIsFocused();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (isFocused) {
+      dispatch(getAllUser());
+    }
+  }, [isFocused]);
+  const filteredUsers = users.filter(
+    (user) => user.role?.toLowerCase() === "admin"
+  );
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -73,7 +55,6 @@ export default function ContactScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
-
     userCard: {
       alignItems: "center",
       justifyContent: "center",
@@ -105,7 +86,7 @@ export default function ContactScreen({ navigation }) {
     name: {
       width: "50%",
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
     },
     rightContainer: {
@@ -114,13 +95,13 @@ export default function ContactScreen({ navigation }) {
     position: {
       width: "50%",
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     email: {
       width: "50%",
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
   });
@@ -143,7 +124,7 @@ export default function ContactScreen({ navigation }) {
         <Text style={styles.title}>Contact</Text>
       </LinearGradient>
       <FlatList
-        data={users}
+        data={filteredUsers}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
         renderItem={({ item, index }) => (
@@ -162,10 +143,10 @@ export default function ContactScreen({ navigation }) {
                 <View style={styles.avatarContainer}>
                   <Image source={item.avatar} style={styles.avatar} />
                 </View>
-                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.name}>{item.fullName}</Text>
               </View>
               <View style={styles.rightContainer}>
-                <Text style={styles.position}>{item.position}</Text>
+                <Text style={styles.position}>{item.role}</Text>
                 <Text style={styles.email}>{item.email} </Text>
               </View>
             </LinearGradient>

@@ -135,7 +135,7 @@ export default function PracticeMultiplicationTableScreen({
     },
     headerText: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
     },
     infoRow: {
@@ -152,7 +152,7 @@ export default function PracticeMultiplicationTableScreen({
       elevation: 3,
     },
     infoText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 14,
     },
@@ -164,12 +164,12 @@ export default function PracticeMultiplicationTableScreen({
     },
     operator: {
       fontSize: 40,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       marginHorizontal: 12,
     },
     operatorEqual: {
       fontSize: 40,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       marginHorizontal: 12,
       padding: 70,
     },
@@ -187,12 +187,12 @@ export default function PracticeMultiplicationTableScreen({
     },
     boxText: {
       fontSize: 80,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     input: {
       fontSize: 80,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       textAlign: "center",
       color: theme.colors.black,
     },
@@ -210,7 +210,7 @@ export default function PracticeMultiplicationTableScreen({
     },
     nextText: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
   });

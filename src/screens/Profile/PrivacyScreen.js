@@ -1,0 +1,137 @@
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useTheme } from "../../themes/ThemeContext";
+import { Fonts } from "../../../constants/Fonts";
+import FloatingMenu from "../../components/FloatingMenu";
+export default function PrivacyManagementScreen({ navigation }) {
+  const { theme } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: { flex: 1, paddingTop: 20 },
+    header: {
+      width: "100%",
+      height: "18%",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      borderBottomLeftRadius: 50,
+      borderBottomRightRadius: 50,
+      elevation: 3,
+      marginBottom: 20,
+    },
+    backContainer: {
+      position: "absolute",
+      left: 10,
+      backgroundColor: theme.colors.backBackgound,
+      marginLeft: 20,
+      padding: 8,
+      borderRadius: 50,
+    },
+    backIcon: { width: 24, height: 24 },
+    title: {
+      fontSize: 20,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      color: theme.colors.white,
+    },
+    scrollcontainer: { paddingBottom: 40 },
+    buttonContainer: {
+      gap: 20,
+      paddingHorizontal: 20,
+    },
+    button: {
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: "center",
+      elevation: 3,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.blueDark,
+    },
+    buttonImage: {
+      width: 80,
+      height: 80,
+      marginBottom: 10,
+    },
+  });
+
+  return (
+    <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
+      <LinearGradient
+        colors={theme.colors.gradientBluePrimary}
+        style={styles.header}
+      >
+        <TouchableOpacity
+          style={styles.backContainer}
+          onPress={() => navigation.goBack()}
+        >
+          <Image
+            source={theme.icons.back}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <Text style={styles.title}>Privacy management</Text>
+      </LinearGradient>
+      <ScrollView contentContainerStyle={styles.scrollcontainer}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("DetailScreen")}
+          >
+            <Image
+              source={theme.icons.viewprofile}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.buttonText}>View profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("ChangeEmailScreen")}
+          >
+            <Image
+              source={theme.icons.changeemail}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.buttonText}>Change email</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("ChangePhoneScreen")}
+          >
+            <Image
+              source={theme.icons.changephone}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.buttonText}>Change phone</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("ChangePinScreen")}
+          >
+            <Image
+              source={theme.icons.changepin}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.buttonText}>Change pin</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      <FloatingMenu />
+    </LinearGradient>
+  );
+}

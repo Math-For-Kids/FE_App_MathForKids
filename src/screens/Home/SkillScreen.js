@@ -63,7 +63,7 @@ export default function SkillScreen({ navigation, route }) {
     skillName: {
       fontSize: 24,
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     grid: {
       flexDirection: "row",
@@ -94,7 +94,7 @@ export default function SkillScreen({ navigation, route }) {
     },
     cardLabel: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       textAlign: "center",
     },
