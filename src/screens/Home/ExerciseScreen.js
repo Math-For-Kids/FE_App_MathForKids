@@ -134,7 +134,7 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
       width: "60%",
       textAlign: "center",
@@ -147,7 +147,7 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     soundOnIcon: { width: 40, height: 40 },
     requestText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 18,
     },
@@ -162,7 +162,7 @@ export default function ExerciseScreen({ navigation, route }) {
       height: 150,
     },
     question: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 60,
       maxWidth: "50%",
@@ -184,7 +184,7 @@ export default function ExerciseScreen({ navigation, route }) {
       elevation: 3,
     },
     optionText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       fontSize: 18,
     },
@@ -209,10 +209,10 @@ export default function ExerciseScreen({ navigation, route }) {
     selectedAnswerText: {
       fontSize: 24,
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     questionText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 16,
       marginTop: 10,
       marginBottom: 5,
@@ -227,7 +227,7 @@ export default function ExerciseScreen({ navigation, route }) {
     submitText: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       textAlign: "center",
     },
     isFlying: {

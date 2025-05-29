@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,17 +8,96 @@ import {
   Image,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Checkbox from "expo-checkbox";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  registerUser,
+  updateUser,
+  sendOTPByPhone,
+  sendOTPByEmail,
+} from "../redux/authSlice";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function RegisterScreen({ navigation }) {
   const { theme } = useTheme();
   const [gender, setGender] = useState("female");
   const [termsChecked, setTermsChecked] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [fullName, setFullName] = useState("");
+  const [address, setAddress] = useState("");
+  const [pin, setPin] = useState(["", "", "", ""]);
+  const pinRefs = [useRef(), useRef(), useRef(), useRef()];
+  const [showPin, setShowPin] = useState(false);
+  const [contact, setContact] = useState("");
+
+  const dispatch = useDispatch();
+  const handleSend = async () => {
+    const isEmail = /\S+@\S+\.\S+/.test(contact);
+    const isPhone = /^[0-9]{9,15}$/.test(contact);
+    const pinCode = pin.join("");
+    if (!/^\d{4}$/.test(pinCode)) {
+      Alert.alert("Invalid", "PIN must be 4 digits.");
+      return;
+    }
+
+    if (!isEmail && !isPhone) {
+      Alert.alert("Invalid", "Please enter a valid phone number or email.");
+      return;
+    }
+
+    if (!termsChecked) {
+      Alert.alert("Terms", "You must agree to the terms.");
+      return;
+    }
+
+    const userData = {
+      fullName,
+      phoneNumber: isPhone ? contact : "",
+      email: isEmail ? contact : "",
+      gender,
+      dateOfBirth: "2000-01-01",
+      address,
+      pin: pinCode,
+    };
+
+    try {
+      const result = await dispatch(registerUser(userData)).unwrap();
+      const userId = result.id;
+      const role = result.role || "user";
+      await dispatch(
+        updateUser({ id: userId, data: { isVerify: true } })
+      ).unwrap();
+      const sendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
+      const target = isEmail ? userData.email : userData.phoneNumber;
+      await dispatch(sendAction(target)).unwrap();
+      Alert.alert("Success", "OTP sent successfully!", [
+        {
+          text: "OK",
+          onPress: () =>
+            navigation.navigate("VerifyScreen", {
+              contact,
+              isEmail,
+              userId,
+              role,
+            }),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert("Error", error.toString());
+    }
+  };
+  const handlePinChange = (value, index) => {
+    const updatedPin = [...pin];
+    updatedPin[index] = value.replace(/[^0-9]/g, "");
+    setPin(updatedPin);
+    if (value && index < 3) pinRefs[index + 1].current.focus();
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -38,24 +117,23 @@ export default function RegisterScreen({ navigation }) {
     title: {
       position: "absolute",
       top: 10,
-      fontSize: 28,
+      fontSize: 20,
       color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
     },
     avatarWrapper: {
       borderRadius: 50,
       elevation: 6,
-      marginTop: 40,
+      marginTop: 20,
       marginBottom: 20,
     },
     avatar: {
-      width: 80,
-      height: 80,
+      width: 50,
+      height: 50,
     },
-
     inputWrapper: {
       width: "100%",
-      height: 50,
+      height: 45,
       backgroundColor: theme.colors.inputBackground,
       borderRadius: 10,
       paddingHorizontal: 15,
@@ -138,6 +216,39 @@ export default function RegisterScreen({ navigation }) {
       fontSize: 14,
       fontFamily: Fonts.NUNITO_BOLD,
     },
+    pinLabelContainer: {
+      width: "100%",
+      marginBottom: 5,
+    },
+    pinLabel: {
+      color: theme.colors.grayMedium,
+      fontSize: 14,
+      fontFamily: Fonts.NUNITO_BOLD,
+    },
+    pinInputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    pinContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 15,
+      width: "90%",
+    },
+    pinInput: {
+      width: 45,
+      height: 45,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.graySoft,
+      backgroundColor: theme.colors.cardBackground,
+      fontSize: 18,
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.blueDark,
+      elevation: 20,
+    },
   });
 
   return (
@@ -159,15 +270,11 @@ export default function RegisterScreen({ navigation }) {
               resizeMode="contain"
             />
           </LinearGradient>
+
           <View
             style={[
               styles.inputWrapper,
-              focusedField === "fullName" && {
-                borderColor: theme.colors.blueDark,
-                shadowColor: theme.colors.blueDark,
-                shadowOpacity: 0.5,
-                elevation: 8,
-              },
+              focusedField === "fullName" && styles.inputWrapperFocused,
             ]}
           >
             <TextInput
@@ -176,36 +283,33 @@ export default function RegisterScreen({ navigation }) {
               placeholderTextColor={theme.colors.grayMedium}
               onFocus={() => setFocusedField("fullName")}
               onBlur={() => setFocusedField(null)}
+              onChangeText={setFullName}
             />
           </View>
+
           <View
             style={[
               styles.inputWrapper,
-              focusedField === "phone" && {
-                borderColor: theme.colors.blueDark,
-                shadowColor: theme.colors.blueDark,
-                shadowOpacity: 0.5,
-                elevation: 8,
-              },
+              focusedField === "contact" && styles.inputWrapperFocused,
             ]}
           >
             <TextInput
               style={styles.input}
-              placeholder="Enter phone number"
+              placeholder="Phone number or email"
+              value={contact}
+              onChangeText={setContact}
+              keyboardType="email-address"
+              autoCapitalize="none"
               placeholderTextColor={theme.colors.grayMedium}
-              onFocus={() => setFocusedField("phone")}
+              onFocus={() => setFocusedField("contact")}
               onBlur={() => setFocusedField(null)}
             />
           </View>
+
           <View
             style={[
               styles.inputWrapper,
-              focusedField === "address" && {
-                borderColor: theme.colors.blueDark,
-                shadowColor: theme.colors.blueDark,
-                shadowOpacity: 0.5,
-                elevation: 8,
-              },
+              focusedField === "address" && styles.inputWrapperFocused,
             ]}
           >
             <TextInput
@@ -214,8 +318,41 @@ export default function RegisterScreen({ navigation }) {
               placeholderTextColor={theme.colors.grayMedium}
               onFocus={() => setFocusedField("address")}
               onBlur={() => setFocusedField(null)}
+              onChangeText={setAddress}
             />
           </View>
+
+          <View style={styles.pinLabelContainer}>
+            <Text style={styles.pinLabel}>Pin code</Text>
+          </View>
+
+          <View style={styles.pinInputWrapper}>
+            <View style={styles.pinContainer}>
+              {pin.map((digit, index) => (
+                <TextInput
+                  key={index}
+                  ref={pinRefs[index]}
+                  value={digit}
+                  onChangeText={(val) => handlePinChange(val, index)}
+                  style={styles.pinInput}
+                  maxLength={1}
+                  keyboardType="numeric"
+                  secureTextEntry={!showPin}
+                  textAlign="center"
+                />
+              ))}
+            </View>
+
+            <TouchableOpacity onPress={() => setShowPin(!showPin)}>
+              <Ionicons
+                name={showPin ? "eye" : "eye-off"}
+                size={18}
+                color={theme.colors.blueDark}
+                style={{ marginLeft: 10 }}
+              />
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.checkboxGroup}>
             <View style={styles.checkboxItem}>
               <Checkbox
@@ -242,6 +379,7 @@ export default function RegisterScreen({ navigation }) {
               <Text style={styles.checkboxLabel}>Male</Text>
             </View>
           </View>
+
           <View style={styles.termsWrapper}>
             <Checkbox
               value={termsChecked}
@@ -249,11 +387,16 @@ export default function RegisterScreen({ navigation }) {
               color={termsChecked ? theme.colors.checkBoxBackground : undefined}
             />
             <Text style={styles.termsText}>
-              <Text style={styles.agreeText}>I agree to the</Text>
+              <Text style={styles.agreeText}>I agree to the </Text>
               Terms and Privacy Policy
             </Text>
           </View>
-          <TouchableOpacity activeOpacity={0.8} style={styles.buttonWrapper}>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.buttonWrapper}
+            onPress={handleSend}
+          >
             <LinearGradient
               colors={theme.colors.gradientBluePrimary}
               start={{ x: 1, y: 0 }}
@@ -263,8 +406,9 @@ export default function RegisterScreen({ navigation }) {
               <Text style={styles.buttonText}>Register</Text>
             </LinearGradient>
           </TouchableOpacity>
+
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Have an account?</Text>
+            <Text style={styles.footerText}>Have an account? </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate("LoginScreen")}
             >

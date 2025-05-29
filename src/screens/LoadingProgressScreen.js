@@ -1,124 +1,78 @@
 import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, Animated, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useDispatch, useSelector } from "react-redux";
+import jwt_decode from "jwt-decode";
+
 import { Fonts } from "../../constants/Fonts";
-import { useTheme } from "../themes/ThemeContext"; 
+import { useTheme } from "../themes/ThemeContext";
+import { logout } from "../redux/authSlice";
 
 export default function LoadingProgressScreen({ navigation }) {
   const [progress, setProgress] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
 
-  const progressBarWidth = 250;
-  const capybaraloading = 30;
+  const user = useSelector((state) => state.auth.user);
+  const role = user?.role;
+  const token = user?.token;
 
+  const progressBarWidth = 250;
+  const logoWidth = 30;
+
+  // Animate the capybara and progress bar
   useEffect(() => {
     Animated.timing(slideAnim, {
-      toValue: progress * (progressBarWidth - capybaraloading),
+      toValue: progress * (progressBarWidth - logoWidth),
       duration: 100,
       useNativeDriver: true,
     }).start();
-  }, [progress]);
 
-  useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
-        const next = prev + 0.02;
-        if (next >= 1) {
+        if (prev >= 1) {
           clearInterval(interval);
-          setTimeout(() => {
-            navigation.replace("LoginScreen");
-          }, 800);
+          return 1;
         }
-        return next > 1 ? 1 : next;
+        return prev + 0.01;
       });
-    }, 100);
+    }, 30);
+
     return () => clearInterval(interval);
-  }, []);
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    header: {
-      position: "absolute",
-      top: 40,
-      alignSelf: "center",
-    },
-    normalText: {
-      fontSize: 12,
-      fontFamily: Fonts.NUNITO_REGULAR,
-      color: theme.colors.white,
-    },
-    boldText: {
-      fontFamily: Fonts.NUNITO_BOLD,
-      color: theme.colors.white,
-    },
-    title: {
-      fontSize: 32,
-      marginBottom: 8,
-      fontFamily: Fonts.NUNITO_BOLD,
-      color: theme.colors.white,
-    },
-    subtitle: {
-      fontSize: 12,
-      marginBottom: 20,
-      fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
-      color: theme.colors.white,
-    },
-    logoTrack: {
-      width: 250,
-      height: 30,
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    logo: {
-      width: 30,
-      height: 30,
-    },
-    progressContainer: {
-      width: 256,
-      height: 16,
-      borderRadius: 12,
-      overflow: "hidden",
-      marginBottom: 10,
-      position: "relative",
-      backgroundColor: theme.colors.grayLight,
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 1,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    backgroundBar: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: theme.colors.white,
-    },
-    foregroundBar: {
-      height: 10,
-      position: "absolute",
-      left: 3,
-      top: 3,
-      borderRadius: 6,
-      overflow: "hidden",
-    },
-    gradientFill: {
-      width: "100%",
-      height: "100%",
-    },
-    loadingText: {
-      fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
-      color: theme.colors.white,
-    },
-  });
+  }, [progress]);
+
+  // Handle redirection after loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const decoded = jwt_decode(token);
+        const now = Math.floor(Date.now() / 1000);
+        if (decoded.exp && decoded.exp < now) {
+          dispatch(logout());
+          navigation.replace("LoginScreen");
+          return;
+        }
+
+        if (role === "pupil" || role === "user") {
+          navigation.replace("AccountScreen");
+        } else {
+          navigation.replace("LoginScreen");
+        }
+      } catch {
+        dispatch(logout());
+        navigation.replace("LoginScreen");
+      }
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [token, role]);
+
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.normalText}>
-          Developed by
-          <Text style={styles.boldText}>FPT students</Text>
+          Developed by <Text style={styles.boldText}>FPT students</Text>
         </Text>
       </View>
 
@@ -161,3 +115,82 @@ export default function LoadingProgressScreen({ navigation }) {
     </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  header: {
+    position: "absolute",
+    top: 40,
+    alignSelf: "center",
+  },
+  normalText: {
+    fontSize: 12,
+    fontFamily: Fonts.NUNITO_REGULAR,
+    color: "white",
+  },
+  boldText: {
+    fontFamily: Fonts.NUNITO_BOLD,
+    color: "white",
+  },
+  title: {
+    fontSize: 32,
+    marginBottom: 8,
+    fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+    color: "white",
+  },
+  subtitle: {
+    fontSize: 12,
+    marginBottom: 20,
+    fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
+    color: "white",
+  },
+  logoTrack: {
+    width: 250,
+    height: 30,
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  logo: {
+    width: 30,
+    height: 30,
+  },
+  progressContainer: {
+    width: 256,
+    height: 16,
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 10,
+    position: "relative",
+    backgroundColor: "#ddd",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  backgroundBar: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "white",
+  },
+  foregroundBar: {
+    height: 10,
+    position: "absolute",
+    left: 3,
+    top: 3,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  gradientFill: {
+    width: "100%",
+    height: "100%",
+  },
+  loadingText: {
+    fontSize: 14,
+    fontFamily: Fonts.NUNITO_BOLD,
+    color: "white",
+  },
+});

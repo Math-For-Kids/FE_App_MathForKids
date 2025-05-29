@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,17 +12,32 @@ import { Fonts } from "../../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
+import Api from "../../api/api";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const [lessons, setLessons] = useState([]);
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      try {
+        const res = await Api.get("/lesson");
+        const allLessons = res.data;
+        const filteredLessons = allLessons.filter(
+          (item) => item.type?.toLowerCase() === skillName.toLowerCase()
+        );
+        setLessons(filteredLessons);
+      } catch (err) {
+        console.error("Error:", err.message);
+      }
+    };
+
+    fetchLessons();
+  }, [skillName]);
+
   const { skillName, actionType } = route.params;
   const [activeTab, setActiveTab] = useState(actionType || "Lesson");
 
   const tabs = ["Lesson", "Exercise", "Test"];
-  const lessons = [
-    { id: 1, title: "Plus some more" },
-    { id: 2, title: "Add two more numbers" },
-    { id: 3, title: "Add multiple numbers" },
-  ];
   const Exercise = [
     { id: 1, title: "Plus some more" },
     { id: 2, title: "Add two more numbers" },
@@ -93,7 +108,7 @@ export default function LessonScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
     },
     tabWrapper: {
@@ -117,12 +132,12 @@ export default function LessonScreen({ navigation, route }) {
     },
     activeTabText: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     lessonList: {
       paddingHorizontal: 20,
-      paddingTop: 40,
+      paddingVertical: 40,
     },
     lessonCard: {
       borderRadius: 20,
@@ -148,7 +163,7 @@ export default function LessonScreen({ navigation, route }) {
     lessonText: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       textAlign: "center",
     },
     lessonTestTextContainer: {
@@ -198,7 +213,7 @@ export default function LessonScreen({ navigation, route }) {
         ))}
       </View>
 
-      <ScrollView style={styles.lessonList}>
+      <ScrollView contentContainerStyle={styles.lessonList}>
         {currentData.map((item) => (
           <TouchableOpacity
             key={item.id}
@@ -206,17 +221,17 @@ export default function LessonScreen({ navigation, route }) {
               if (activeTab === "Lesson") {
                 navigation.navigate("LessonDetailScreen", {
                   skillName,
-                  title: item.title,
+                  title: item.name.en,
                 });
               } else if (activeTab === "Exercise") {
                 navigation.navigate("ExerciseScreen", {
                   skillName,
-                  title: item.title,
+                  title: item.name.en,
                 });
               } else if (activeTab === "Test") {
                 navigation.navigate("TestScreen", {
                   skillName,
-                  title: item.title,
+                  title: item.name.en,
                   time: item.time,
                   quantity: item.quantity,
                   level: item.level,
@@ -232,7 +247,7 @@ export default function LessonScreen({ navigation, route }) {
             >
               <View style={styles.lessonContent}>
                 <Image source={theme.icons.soundOn} style={styles.lessonIcon} />
-                <Text style={styles.lessonText}>{item.title}</Text>
+                <Text style={styles.lessonText}>{item.name.en}</Text>
                 {activeTab === "Test" && (
                   <View style={styles.lessonTestTextContainer}>
                     <Text style={styles.lessonTestText}>

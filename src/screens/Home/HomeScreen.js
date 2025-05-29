@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,42 +12,38 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
 import { Ionicons } from "@expo/vector-icons";
+import { getAllPupils } from "../../redux/pupilSlice";
+import { notificationsByPupilId } from "../../redux/pupilNotificationSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useIsFocused } from "@react-navigation/native";
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { pupilId } = route.params || {};
 
-  const gradeOptions = ["Class 1", "Class 2", "Class 3"];
-  const user = {
-    name: "Jolly",
-    grade: "Class 1",
-    avatar: theme.icons.avatarFemale,
-  };
+  const dispatch = useDispatch();
+  const isFocused = useIsFocused();
+
+  const pupils = useSelector((state) => state.pupil.pupils || []);
+  const pupilNotifications = useSelector(
+    (state) => state.pupilnotifications.list || []
+  );
+  useEffect(() => {
+    if (isFocused && pupilId) {
+      dispatch(getAllPupils());
+      dispatch(notificationsByPupilId(pupilId));
+    }
+  }, [isFocused, pupilId]);
+  const filteredPupils = pupils.find(
+    (pupil) => String(pupil.id) === String(pupilId)
+  );
+  const filteredNotifications = pupilNotifications.filter(
+    (notification) => notification.isRead === false
+  );
+  const gradeOptions = ["1", "2", "3"];
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedGrade, setSelectedGrade] = useState(user.grade);
-  const notifications = [
-    {
-      id: 1,
-      title: "New Achievement!",
-      message: "You've earned the Math Badge",
-      time: "2 mins ago",
-      icon: theme.icons.badge,
-    },
-    {
-      id: 2,
-      title: "Practice Reminder",
-      message: "Don't forget to practice subtraction today.",
-      time: "1 hour ago",
-      icon: theme.icons.reminder,
-    },
-    {
-      id: 3,
-      title: "New Skill Unlocked",
-      message: "You unlocked Multiplication skill!",
-      time: "Yesterday",
-      icon: theme.icons.multiply,
-    },
-  ];
-  const newNotificationCount = notifications.length;
+  const [selectedGrade, setSelectedGrade] = useState(filteredPupils.grade);
+  const newNotificationCount = filteredNotifications.length;
   const skills = [
     { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
     {
@@ -107,7 +103,7 @@ export default function HomeScreen({ navigation }) {
     name: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     notificationContainer: {
       position: "relative",
@@ -130,7 +126,7 @@ export default function HomeScreen({ navigation }) {
     badgeText: {
       color: theme.colors.white,
       fontSize: 10,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     notificationIcon: {
       width: 30,
@@ -152,7 +148,7 @@ export default function HomeScreen({ navigation }) {
     grade: {
       fontSize: 14,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     gradeRow: {
       flexDirection: "row",
@@ -171,13 +167,13 @@ export default function HomeScreen({ navigation }) {
     },
     dropdownItem: {
       paddingVertical: 6,
-      paddingHorizontal: 20,
+      paddingHorizontal: 45,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.blueDark,
     },
     dropdownItemText: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     title: {
       textAlign: "center",
@@ -185,7 +181,7 @@ export default function HomeScreen({ navigation }) {
       marginBottom: 24,
       fontSize: 32,
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     skillsContainer: {
       flexDirection: "row",
@@ -209,7 +205,7 @@ export default function HomeScreen({ navigation }) {
     },
     skillText: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       marginTop: 10,
     },
   });
@@ -224,17 +220,19 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.userRow}>
             <TouchableOpacity
               style={styles.avatarContainer}
-              onPress={() => navigation.navigate("ProfileScreen")}
+              onPress={() => navigation.navigate("ProfileScreen", { pupilId })}
             >
-              <Image source={user.avatar} style={styles.avatar} />
+              <Image source={filteredPupils.avatar} style={styles.avatar} />
             </TouchableOpacity>
             <View>
               <Text style={styles.greeting}>Hello!</Text>
-              <Text style={styles.name}>{user.name}</Text>
+              <Text style={styles.name}>{filteredPupils.fullName}</Text>
             </View>
           </View>
           <TouchableOpacity
-            onPress={() => navigation.navigate("NotificationScreen")}
+            onPress={() =>
+              navigation.navigate("NotificationScreen", { pupilId })
+            }
           >
             <View style={styles.notificationContainer}>
               {newNotificationCount > 0 && (
@@ -254,7 +252,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => setShowDropdown(!showDropdown)}
             style={styles.gradeRow}
           >
-            <Text style={styles.grade}>{selectedGrade}</Text>
+            <Text style={styles.grade}>Grade {selectedGrade} </Text>
             <Ionicons
               name={showDropdown ? "caret-up-outline" : "caret-down-outline"}
               size={20}

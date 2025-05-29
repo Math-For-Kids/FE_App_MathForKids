@@ -7,28 +7,64 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Checkbox from "expo-checkbox";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
+import { useDispatch, useSelector } from "react-redux";
+import { createPupil } from "../redux/pupilSlice";
 
 export default function CreatePupilAccountScreen({ navigation }) {
   const { theme } = useTheme();
+  const dispatch = useDispatch();
+  const userId = useSelector((state) => state.auth.user?.id); 
+  console.log("userId", userId);
   const [fullName, setFullName] = useState("");
   const [nickName, setNickName] = useState("");
   const [studentClass, setStudentClass] = useState("");
-  const [birthday, setBirthday] = useState("");
+  const [birthday, setBirthday] = useState(""); 
   const [gender, setGender] = useState("female");
-
   const [focusedField, setFocusedField] = useState(null);
+  const onCreate = async () => {
+    try {
+      if (!userId) {
+        Alert.alert("Error", "User ID not found from Redux.");
+        return;
+      }
+
+      const formattedBirthday =
+        birthday.length === 4 ? `${birthday}-01-01` : birthday;
+
+      const data = {
+        userId: userId,
+        fullName,
+        nickName,
+        image: "",
+        gender,
+        dateOfBirth: formattedBirthday,
+        grade: studentClass,
+        point: 0,
+        volume: 100,
+        language: "en",
+        mode: "light",
+        theme: 1,
+        isDisabled: false,
+      };
+
+      await dispatch(createPupil(data)).unwrap();
+
+      Alert.alert("Success", "Pupil created successfully", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      Alert.alert("Error", error?.message || "Failed to create pupil");
+    }
+  };
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
+    container: { flex: 1, justifyContent: "center", alignItems: "center" },
     card: {
       backgroundColor: theme.colors.cardBackground,
       width: "80%",
@@ -43,13 +79,13 @@ export default function CreatePupilAccountScreen({ navigation }) {
       top: 20,
       fontSize: 28,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
     },
     label: {
       width: "100%",
       fontSize: 16,
       color: theme.colors.blueGray,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       marginBottom: 4,
     },
     inputWrapper: {
@@ -67,7 +103,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
     input: {
       fontSize: 16,
       color: theme.colors.grayDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     checkboxGroup: {
       width: "100%",
@@ -78,11 +114,10 @@ export default function CreatePupilAccountScreen({ navigation }) {
     checkboxItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10,
     },
     checkboxLabel: {
       marginLeft: 6,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 16,
       color: theme.colors.grayMedium,
     },
@@ -102,21 +137,11 @@ export default function CreatePupilAccountScreen({ navigation }) {
       alignItems: "center",
     },
     buttonText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 16,
       color: theme.colors.white,
     },
   });
-  const onCreate = () => {
-    console.log({
-      fullName,
-      nickName,
-      studentClass,
-      birthday,
-      gender,
-    });
-    navigation.goBack();
-  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -126,7 +151,9 @@ export default function CreatePupilAccountScreen({ navigation }) {
       >
         <View style={styles.card}>
           <Text style={styles.title}>Create Pupil</Text>
-          <Text style={styles.label}>FullName</Text>
+
+          {/* Full Name */}
+          <Text style={styles.label}>Full Name</Text>
           <View
             style={[
               styles.inputWrapper,
@@ -146,7 +173,9 @@ export default function CreatePupilAccountScreen({ navigation }) {
               onBlur={() => setFocusedField(null)}
             />
           </View>
-          <Text style={styles.label}>NickName</Text>
+
+          {/* Nickname */}
+          <Text style={styles.label}>Nick Name</Text>
           <View
             style={[
               styles.inputWrapper,
@@ -166,6 +195,8 @@ export default function CreatePupilAccountScreen({ navigation }) {
               onBlur={() => setFocusedField(null)}
             />
           </View>
+
+          {/* Class */}
           <Text style={styles.label}>Class</Text>
           <View
             style={[
@@ -187,6 +218,8 @@ export default function CreatePupilAccountScreen({ navigation }) {
               onBlur={() => setFocusedField(null)}
             />
           </View>
+
+          {/* Birthday */}
           <Text style={styles.label}>Birthday</Text>
           <View
             style={[
@@ -201,14 +234,16 @@ export default function CreatePupilAccountScreen({ navigation }) {
               value={birthday}
               onChangeText={setBirthday}
               style={styles.input}
-              placeholder="e.g. 2018"
+              placeholder="e.g. 2015-06-10 or 2015"
               placeholderTextColor={theme.colors.grayMedium}
               keyboardType="numeric"
               onFocus={() => setFocusedField("birthday")}
               onBlur={() => setFocusedField(null)}
             />
           </View>
-          <Text style={styles.label}>General</Text>
+
+          {/* Gender */}
+          <Text style={styles.label}>Gender</Text>
           <View style={styles.checkboxGroup}>
             <View style={styles.checkboxItem}>
               <Checkbox
@@ -235,6 +270,8 @@ export default function CreatePupilAccountScreen({ navigation }) {
               <Text style={styles.checkboxLabel}>Male</Text>
             </View>
           </View>
+
+          {/* Buttons */}
           <View style={styles.buttonRow}>
             <TouchableOpacity
               activeOpacity={0.8}

@@ -9,7 +9,7 @@ export default function LoadingScreen({ navigation }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace("LoadingProgress");
+      navigation.replace("LoadingProgressScreen");
     }, 2500);
     return () => clearTimeout(timer);
   }, []);

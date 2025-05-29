@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,84 +8,137 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import {
-  VictoryChart,
-  VictoryGroup,
-  VictoryBar,
-  VictoryAxis,
-  VictoryTheme,
-  VictoryLegend,
-  VictoryPie,
-} from "victory-native";
-import { Rect } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
+import { BarChart, PieChart } from "react-native-chart-kit";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllPupils } from "../redux/pupilSlice";
+import { profileById } from "../redux/profileSlice";
+import { notificationsByUserId } from "../redux/userNotificationSlice";
+import { useIsFocused } from "@react-navigation/native";
 export default function StatisticScreen({ navigation }) {
   const { theme } = useTheme();
+
+  const screenWidth = Dimensions.get("window").width - 32;
+  const users = useSelector((state) => state.auth.user);
+  const pupils = useSelector((state) => state.pupil.pupils || []);
+  const profile = useSelector((state) => state.profile.info || {});
+  const userNotifications = useSelector(
+    (state) => state.notifications.list || []
+  );
+  console.log("notification", userNotifications);
+  const isFocused = useIsFocused();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (isFocused) {
+      dispatch(profileById(users.id));
+      dispatch(getAllPupils());
+      dispatch(notificationsByUserId(users.id));
+    }
+  }, [isFocused, users?.id]);
+
+  const filteredPupils = pupils.filter(
+    (pupil) => String(pupil.userId) === String(users?.id)
+  );
+
+  const filteredNotifications = userNotifications.filter(
+    (notification) => notification.isRead === false
+  );
+
   const skills = ["Add", "Sub", "Multipl", "Div"];
-  const lastMonth = [
-    { skill: "Add", value: 70 },
-    { skill: "Sub", value: 85 },
-    { skill: "Multipl", value: 40 },
-    { skill: "Div", value: 54 },
-  ];
-
-  const thisMonth = [
-    { skill: "Add", value: 85 },
-    { skill: "Sub", value: 90 },
-    { skill: "Multipl", value: 50 },
-    { skill: "Div", value: 10 },
-  ];
-
-  const trueRatio = [
-    { skill: "Add", value: 95 },
-    { skill: "Sub", value: 90 },
-    { skill: "Multipl", value: 55 },
-    { skill: "Div", value: 56 },
-  ];
-
-  const falseRatio = [
-    { skill: "Add", value: 5 },
-    { skill: "Sub", value: 10 },
-    { skill: "Multipl", value: 45 },
-    { skill: "Div", value: 44 },
-  ];
-  const user = {
-    name: "Nguyen Thi Hoa",
-    avatar: theme.icons.avatarFemale,
-    grade: "Class 1",
-    pupils: [
-      "Nguyen Thi Hoa",
-      "Nguyen Thi Hong",
-      "Tran Hoa Hong",
-      "Lam Hoai Man",
+  const lastMonth = [70, 85, 40, 54];
+  const thisMonth = [85, 90, 50, 10];
+  const trueRatio = [95, 90, 55, 56];
+  const falseRatio = [5, 10, 45, 44];
+  const groupedBarChartData = {
+    labels: skills
+      .flatMap((skill) => [skill, ""])
+      .flatMap((label, index) => (index % 3 === 2 ? [label] : [label])),
+    datasets: [
+      {
+        data: skills
+          .flatMap((_, i) => [lastMonth[i], thisMonth[i], 0])
+          .concat(100),
+        colors: skills
+          .flatMap((_, i) => [
+            () => theme.colors.grayLight,
+            () => theme.colors.blueDark,
+            () => "rgb(255, 255, 255)",
+          ])
+          .concat(() => "rgb(255, 255, 255)"),
+      },
     ],
+    legend: ["Last Month", "This Month"],
   };
 
-  const notifications = [
+  const chartConfig = {
+    backgroundGradientFrom: theme.colors.cardBackground,
+    backgroundGradientTo: theme.colors.cardBackground,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: () => theme.colors.black,
+    propsForBackgroundLines: {
+      stroke: "#e3e3e3",
+    },
+    barPercentage: 0.65,
+  };
+  const accuracyBarChartData = {
+    labels: skills
+      .flatMap((skill) => [skill, ""])
+      .flatMap((label, index) => (index % 3 === 2 ? [label] : [label])),
+    datasets: [
+      {
+        data: skills
+          .flatMap((_, i) => [trueRatio[i], falseRatio[i], 0])
+          .concat(100),
+        colors: skills
+          .flatMap((_, i) => [
+            () => theme.colors.green,
+            () => theme.colors.redTomato,
+            () => "rgba(0,0,0,0.01)",
+          ])
+          .concat(() => "rgb(255, 255, 255)"),
+      },
+    ],
+    legend: ["True", "False"],
+  };
+
+  const chartTFConfig = {
+    backgroundGradientFrom: theme.colors.cardBackground,
+    backgroundGradientTo: theme.colors.cardBackground,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: () => theme.colors.black,
+    propsForBackgroundLines: {
+      stroke: "#e3e3e3",
+    },
+    barPercentage: 0.65,
+  };
+
+  const timePieChartData = [
     {
-      id: 1,
-      title: "New Achievement!",
-      message: "You've earned the Math Badge",
-      time: "2 mins ago",
-      icon: theme.icons.badge,
+      name: "Study",
+      population: 25,
+      color: theme.colors.GreenDark,
+      legendFontColor: theme.colors.black,
+      legendFontSize: 12,
     },
     {
-      id: 2,
-      title: "Practice Reminder",
-      message: "Don't forget to practice subtraction today.",
-      time: "1 hour ago",
-      icon: theme.icons.reminder,
+      name: "Practice",
+      population: 22,
+      color: theme.colors.orangeDark,
+      legendFontColor: theme.colors.black,
+      legendFontSize: 12,
     },
     {
-      id: 3,
-      title: "New Skill Unlocked",
-      message: "You unlocked Multiplication skill!",
-      time: "Yesterday",
-      icon: theme.icons.multiply,
+      name: "Game",
+      population: 53,
+      color: theme.colors.yellowLight,
+      legendFontColor: theme.colors.black,
+      legendFontSize: 12,
     },
   ];
   const timeData = [
@@ -93,68 +146,6 @@ export default function StatisticScreen({ navigation }) {
     { x: "Practice", y: 22 },
     { x: "Game", y: 53 },
   ];
-  const analyzePerformance = () => {
-    const comments = [];
-    const summary = [];
-
-    let maxIncrease = -Infinity;
-    let maxDecrease = Infinity;
-    let bestSkill = "";
-    let worstSkill = "";
-
-    skills.forEach((skill) => {
-      const last = lastMonth.find((s) => s.skill === skill)?.value || 0;
-      const current = thisMonth.find((s) => s.skill === skill)?.value || 0;
-      const change = current - last;
-
-      if (change > maxIncrease) {
-        maxIncrease = change;
-        bestSkill = skill;
-      }
-
-      if (change < maxDecrease) {
-        maxDecrease = change;
-        worstSkill = skill;
-      }
-
-      if (change > 0) {
-        comments.push(`${skill}: improved by ${change}%.`);
-      } else if (change < 0) {
-        comments.push(`${skill}: decreased by ${Math.abs(change)}%.`);
-      } else {
-        comments.push(`${skill}: no change.`);
-      }
-
-      summary.push(`${skill}: ${last}% → ${current}%`);
-    });
-
-    if (maxIncrease > 0) {
-      comments.push(
-        `Best improvement: ${bestSkill} increased by ${maxIncrease}%.`
-      );
-    }
-    if (maxDecrease < 0) {
-      comments.push(
-        `Most decline: ${worstSkill} dropped by ${Math.abs(maxDecrease)}%.`
-      );
-    }
-
-    return {
-      commentText: comments.join("\n"),
-      summaryText: summary.join(", "),
-    };
-  };
-
-  const analyzeAccuracy = () => {
-    return trueRatio
-      .map((item) => {
-        const falseItem = falseRatio.find((f) => f.skill === item.skill);
-        return `${item.skill}: correct ${item.value}%, incorrect ${
-          falseItem?.value || 0
-        }%`;
-      })
-      .join("\n");
-  };
   const analyzeTimeUsage = () => {
     if (!timeData || timeData.length === 0) return { timeComment: "" };
 
@@ -178,16 +169,13 @@ export default function StatisticScreen({ navigation }) {
     return { timeComment };
   };
   const { timeComment } = analyzeTimeUsage();
-  const timeColors = ["#4c75f2", "#e6417a", "#f4c342"];
-  const [selectedPupil, setSelectedPupil] = useState(user.name);
+  const [selectedPupil, setSelectedPupil] = useState();
   const [showDropdown, setShowDropdown] = useState(false);
-  const newNotificationCount = notifications.length;
+  const newNotificationCount = filteredNotifications.length;
   const [selectedTab, setSelectedTab] = useState("Skill statistics");
   const [selectedPeriod, setSelectedPeriod] = useState("Last month");
   const periods = ["This week", "Last week", "This month", "Last month"];
   const [showpPeriod, setShowpPeriod] = useState(false);
-  const chartWidth = Dimensions.get("window").width - 20;
-  const chartHeight = 300;
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -227,7 +215,7 @@ export default function StatisticScreen({ navigation }) {
     name: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     notificationContainer: {
       position: "relative",
@@ -250,7 +238,7 @@ export default function StatisticScreen({ navigation }) {
     badgeText: {
       color: theme.colors.white,
       fontSize: 10,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     notificationIcon: {
       width: 30,
@@ -276,29 +264,19 @@ export default function StatisticScreen({ navigation }) {
       width: "89%",
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
-      elevation: 5,
+      elevation: 10,
       paddingVertical: 5,
     },
 
     grade: {
       fontSize: 14,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     gradeRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 5,
-    },
-    dropdownItem: {
-      paddingVertical: 6,
-      paddingHorizontal: 20,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.blueDark,
-    },
-    dropdownItemText: {
-      color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
     },
 
     filterRow: {
@@ -326,7 +304,7 @@ export default function StatisticScreen({ navigation }) {
     },
 
     filterText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 13,
       color: theme.colors.black,
       textAlign: "center",
@@ -357,7 +335,7 @@ export default function StatisticScreen({ navigation }) {
     },
 
     dropdownButtonText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 13,
       color: theme.colors.black,
     },
@@ -374,52 +352,94 @@ export default function StatisticScreen({ navigation }) {
     },
 
     dropdownItem: {
-      paddingVertical: 6,
       paddingHorizontal: 15,
+      paddingVertical: 20,
       borderBottomColor: theme.colors.grayLight,
       borderBottomWidth: 1,
     },
 
     dropdownItemText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 13,
       color: theme.colors.black,
       textAlign: "center",
+      elevation: 20,
     },
-    section: {
-      fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.white,
-      textAlign: "center",
+    academicChartContainer: {
       marginTop: 80,
-      marginBottom: 10,
-      textAlign: "center",
+      alignItems: "center",
     },
-    skillChartContainer: {
-      backgroundColor: theme.colors.cardBackground,
-      borderRadius: 16,
-      padding: 10,
-      marginHorizontal: 20,
-      marginVertical: 10,
-      elevation: 2,
+    chartName: {
+      color: theme.colors.white,
+      fontSize: 22,
+      fontFamily: Fonts.NUNITO_BOLD,
+      marginBottom: 10,
+    },
+    chartNoteContainer: {
+      marginTop: 10,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 20,
+    },
+    chartNote: { flexDirection: "row", alignItems: "center" },
+    noteLast: {
+      width: 12,
+      height: 12,
+      backgroundColor: theme.colors.grayLight,
+      marginRight: 6,
+      borderRadius: 2,
+    },
+    noteText: { color: theme.colors.white, fontFamily: Fonts.NUNITO_BOLD },
+    noteThis: {
+      width: 12,
+      height: 12,
+      backgroundColor: theme.colors.blueDark,
+      marginRight: 6,
+      borderRadius: 2,
+    },
+    tfChartContainer: { marginTop: 30, alignItems: "center" },
+    noteTrue: {
+      width: 12,
+      height: 12,
+      backgroundColor: theme.colors.green,
+      marginRight: 6,
+      borderRadius: 2,
+    },
+    noteFalse: {
+      width: 12,
+      height: 12,
+      backgroundColor: theme.colors.redTomato,
+      marginRight: 6,
+      borderRadius: 2,
+    },
+    timeChartContainer: { marginTop: 50, alignItems: "center" },
+    noteTimeContainer: {
+      position: "absolute",
+      top: 100,
+      right: 30,
+    },
+    noteTime: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 20,
     },
     commentContainer: {
       backgroundColor: theme.colors.cardBackground,
       marginHorizontal: 20,
+      marginVertical: 20,
       padding: 10,
       borderTopLeftRadius: 20,
       borderBottomRightRadius: 20,
-      marginBottom: 10,
       elevation: 3,
     },
     commentTitle: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.comment,
     },
     summaryContainer: {
+      width: "90%",
       backgroundColor: theme.colors.cardBackground,
-      marginHorizontal: 20,
       padding: 10,
       borderTopLeftRadius: 20,
       borderBottomRightRadius: 20,
@@ -428,60 +448,15 @@ export default function StatisticScreen({ navigation }) {
     },
     summaryTitle: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.green,
     },
     commentText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.black,
-    },
-    timeSectionTitle: {
-      fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.white,
-      marginTop: 80,
-      marginBottom: 10,
-      textAlign: "center",
-    },
-    timeChartContainer: {
-      backgroundColor: theme.colors.cardBackground,
-      borderRadius: 16,
-      marginHorizontal: 20,
-      paddingTop: 45,
-      paddingHorizontal: 10,
-      alignItems: "center",
-      elevation: 2,
-      marginBottom: 10,
-      height: 360,
-      overflow: "hidden",
-    },
-    labels: {
-      fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK_ITALIC,
-      fill: theme.colors.white,
-    },
-    timeCommentContainer: {
-      backgroundColor: theme.colors.cardBackground,
-      marginHorizontal: 20,
-      marginBottom: 20,
-      padding: 12,
-      borderTopLeftRadius: 20,
-      borderBottomRightRadius: 20,
-      elevation: 3,
-    },
-    timeCommentTitle: {
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.comment,
-      marginBottom: 5,
-    },
-    timeCommentText: {
-      fontSize: 13,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
   });
-
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <LinearGradient
@@ -494,11 +469,16 @@ export default function StatisticScreen({ navigation }) {
               style={styles.avatarContainer}
               onPress={() => navigation.navigate("DetailScreen")}
             >
-              <Image source={user.avatar} style={styles.avatar} />
+              <Image
+                source={
+                  profile?.avatar ? { uri: profile.avatar } : theme.icons.avatarAdd
+                }
+                style={styles.avatar}
+              />
             </TouchableOpacity>
             <View>
               <Text style={styles.greeting}>Hello!</Text>
-              <Text style={styles.name}>{user.name}</Text>
+              <Text style={styles.name}>{profile?.fullName}</Text>
             </View>
           </View>
           <TouchableOpacity
@@ -525,7 +505,9 @@ export default function StatisticScreen({ navigation }) {
               onPress={() => setShowDropdown((prev) => !prev)}
               style={styles.gradeRow}
             >
-              <Text style={styles.grade}>{selectedPupil}</Text>
+              <Text style={styles.grade}>
+                {selectedPupil?.fullName || "Selected pupil"}
+              </Text>
               <Ionicons
                 name={showDropdown ? "caret-up-outline" : "caret-down-outline"}
                 size={20}
@@ -536,16 +518,16 @@ export default function StatisticScreen({ navigation }) {
 
           {showDropdown && (
             <View style={styles.dropdown}>
-              {user.pupils.map((pupil, index) => (
+              {filteredPupils.map((pupil, index) => (
                 <TouchableOpacity
                   key={index}
+                  style={styles.dropdownItem}
                   onPress={() => {
                     setSelectedPupil(pupil);
                     setShowDropdown(false);
                   }}
-                  style={styles.dropdownItem}
                 >
-                  <Text style={styles.dropdownItemText}>{pupil}</Text>
+                  <Text style={styles.dropdownItemText}>{pupil.fullName}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -618,167 +600,177 @@ export default function StatisticScreen({ navigation }) {
               </View>
             )}
           </View>
+          {selectedTab === "Skill statistics" && (
+            <>
+              <View style={styles.academicChartContainer}>
+                <Text style={styles.chartName}>Academic Progress</Text>
+
+                <BarChart
+                  data={groupedBarChartData}
+                  width={screenWidth}
+                  height={250}
+                  fromZero={true}
+                  segments={4}
+                  chartConfig={chartConfig}
+                  showBarTops={false}
+                  withInnerLines={true}
+                  withHorizontalLabels={true}
+                  withCustomBarColorFromData={true}
+                  flatColor={true}
+                />
+
+                <View style={styles.chartNoteContainer}>
+                  <View style={styles.chartNote}>
+                    <View style={styles.noteLast} />
+                    <Text style={styles.noteText}>Last Month</Text>
+                  </View>
+                  <View style={styles.chartNote}>
+                    <View style={styles.noteThis} />
+                    <Text style={styles.noteText}>This Month</Text>
+                  </View>
+                </View>
+                <View style={styles.commentContainer}>
+                  <Text style={styles.commentTitle}>Comments</Text>
+                  <Text style={styles.commentText}>
+                    {skills
+                      .map((skill, i) => {
+                        const change = thisMonth[i] - lastMonth[i];
+                        if (change > 0) {
+                          return `${skill}: Improved by ${change}%. Keep practicing to maintain progress.`;
+                        } else if (change < 0) {
+                          return `${skill}: Dropped by ${Math.abs(
+                            change
+                          )}%. Needs more attention and review.`;
+                        } else {
+                          return `${skill}: No change. Continue steady practice.`;
+                        }
+                      })
+                      .join("")}
+                  </Text>
+                </View>
+
+                <View style={styles.summaryContainer}>
+                  <Text style={styles.summaryTitle}>Summary</Text>
+                  <Text style={styles.commentText}>
+                    {skills
+                      .map(
+                        (skill, i) =>
+                          `${skill}: ${lastMonth[i]}% → ${thisMonth[i]}%`
+                      )
+                      .join(".\n ")}
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
+          {selectedTab === "Skill statistics" && (
+            <>
+              <View style={styles.tfChartContainer}>
+                <Text style={styles.chartName}>True vs False Ratio</Text>
+
+                <BarChart
+                  data={accuracyBarChartData}
+                  width={screenWidth}
+                  height={250}
+                  chartConfig={chartTFConfig}
+                  fromZero
+                  showBarTops={false}
+                  withInnerLines={true}
+                  withHorizontalLabels={true}
+                  withCustomBarColorFromData={true}
+                  flatColor={true}
+                  segments={4}
+                />
+
+                <View style={styles.chartNoteContainer}>
+                  <View style={styles.chartNote}>
+                    <View style={styles.noteTrue} />
+                    <Text style={styles.noteText}>True</Text>
+                  </View>
+                  <View style={styles.chartNote}>
+                    <View style={styles.noteFalse} />
+                    <Text style={styles.noteText}>False</Text>
+                  </View>
+                </View>
+                <View style={styles.commentContainer}>
+                  <Text style={styles.commentTitle}>Comments</Text>
+                  <Text style={styles.commentText}>
+                    {skills
+                      .map((skill, i) => {
+                        const correct = trueRatio[i];
+                        const incorrect = falseRatio[i];
+                        if (correct >= 90) {
+                          return `${skill}: Excellent accuracy (${correct}% correct). Keep up the great work.\n`;
+                        } else if (correct >= 70) {
+                          return `${skill}: Good accuracy (${correct}% correct), but some mistakes (${incorrect}%) exist. Keep improving.\n`;
+                        } else {
+                          return `${skill}: Low accuracy (${correct}% correct). Needs focused review and practice.\n`;
+                        }
+                      })
+                      .join("")}
+                  </Text>
+                </View>
+
+                <View style={styles.summaryContainer}>
+                  <Text style={styles.summaryTitle}>Summary</Text>
+                  <Text style={styles.commentText}>
+                    {skills
+                      .map(
+                        (skill, i) =>
+                          `${skill}: ${trueRatio[i]}% correct, ${falseRatio[i]}% incorrect`
+                      )
+                      .join(".\n ")}
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
+          {selectedTab === "Time" && (
+            <>
+              <View style={styles.timeChartContainer}>
+                <Text style={styles.chartName}>Time Distribution</Text>
+
+                <PieChart
+                  data={timePieChartData}
+                  width={screenWidth}
+                  height={220}
+                  chartConfig={chartConfig}
+                  accessor="population"
+                  backgroundColor="transparent"
+                  paddingLeft="16"
+                  hasLegend={false}
+                />
+                <View style={styles.noteTimeContainer}>
+                  {timePieChartData.map((item, index) => (
+                    <View key={index} style={styles.noteTime}>
+                      <View
+                        style={{
+                          width: 12,
+                          height: 12,
+                          backgroundColor: item.color,
+                          borderRadius: 6,
+                          marginRight: 8,
+                        }}
+                      />
+                      <Text style={styles.noteText}>{item.name}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <View style={styles.commentContainer}>
+                  <Text style={styles.commentTitle}>Comments</Text>
+                  <Text style={styles.commentText}>{timeComment}</Text>
+                </View>
+                <View style={styles.summaryContainer}>
+                  <Text style={styles.summaryTitle}>Summary</Text>
+                  <Text style={styles.commentText}>
+                    {timeData.map((item) => `${item.x}: ${item.y}%`).join("\n")}
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
         </View>
-        {selectedTab === "Skill statistics" && (
-          <>
-            <Text style={styles.section}>Academic Progress</Text>
-            <View style={styles.skillChartContainer}>
-              <VictoryChart
-                width={chartWidth}
-                height={chartHeight}
-                domainPadding={20}
-                theme={VictoryTheme.material}
-              >
-                <VictoryLegend
-                  x={60}
-                  y={0}
-                  orientation="horizontal"
-                  gutter={20}
-                  data={[
-                    {
-                      name: "Last Month",
-                      symbol: { fill: theme.colors.grayLight },
-                    },
-                    {
-                      name: "This Month",
-                      symbol: { fill: theme.colors.blueDark },
-                    },
-                  ]}
-                />
-                <VictoryAxis
-                  tickValues={skills}
-                  tickFormat={skills}
-                  style={{ tickLabels: { fontSize: 12 } }}
-                />
-                <VictoryAxis
-                  dependentAxis
-                  tickFormat={(x) => `${x}%`}
-                  style={{ tickLabels: { fontSize: 10 } }}
-                />
-                <VictoryGroup
-                  offset={15}
-                  colorScale={[theme.colors.grayLight, theme.colors.blueDark]}
-                >
-                  <VictoryBar data={lastMonth} x="skill" y="value" />
-                  <VictoryBar data={thisMonth} x="skill" y="value" />
-                </VictoryGroup>
-              </VictoryChart>
-            </View>
-            <View style={styles.commentContainer}>
-              <Text style={styles.commentTitle}>Comments</Text>
-              <Text style={styles.commentText}>
-                {analyzePerformance().commentText}
-              </Text>
-            </View>
-            <View style={styles.summaryContainer}>
-              <Text style={styles.summaryTitle}>Summary</Text>
-              <Text style={styles.commentText}>{analyzeAccuracy()}</Text>
-            </View>
-          </>
-        )}
-        {selectedTab === "Skill statistics" && (
-          <>
-            <Text style={styles.section}>True and False Ratio</Text>
-            <View style={styles.skillChartContainer}>
-              <VictoryChart
-                width={chartWidth}
-                height={chartHeight}
-                domainPadding={20}
-                theme={VictoryTheme.material}
-              >
-                <VictoryLegend
-                  x={85}
-                  y={0}
-                  orientation="horizontal"
-                  gutter={50}
-                  data={[
-                    { name: "True", symbol: { fill: theme.colors.green } },
-                    { name: "False", symbol: { fill: theme.colors.comment } },
-                  ]}
-                />
-                <VictoryAxis
-                  tickValues={skills}
-                  tickFormat={skills}
-                  style={{ tickLabels: { fontSize: 12 } }}
-                />
-                <VictoryAxis
-                  dependentAxis
-                  tickFormat={(x) => `${x}%`}
-                  style={{ tickLabels: { fontSize: 10 } }}
-                />
-                <VictoryGroup
-                  offset={15}
-                  colorScale={[theme.colors.green, theme.colors.comment]}
-                >
-                  <VictoryBar data={trueRatio} x="skill" y="value" />
-                  <VictoryBar data={falseRatio} x="skill" y="value" />
-                </VictoryGroup>
-              </VictoryChart>
-            </View>
-            <View style={styles.commentContainer}>
-              <Text style={styles.commentTitle}>Comments</Text>
-              <Text style={styles.commentText}>
-                Addition: High correct (95%), low incorrect (5%) → Solid grasp.
-                {"\n"}
-                Subtraction: Best skill.{"\n"}
-                Multiplication: Many mistakes → needs review.{"\n"}
-                Division: Needs reinforcement.
-              </Text>
-            </View>
-            <View style={styles.summaryContainer}>
-              <Text style={styles.summaryTitle}>Summary</Text>
-              <Text style={styles.commentText}>
-                Student performs well with basic operations (add, subtract).
-                Needs improvement on advanced ones (multiply, divide).
-              </Text>
-            </View>
-          </>
-        )}
-        {selectedTab === "Time" && (
-          <View>
-            <Text style={styles.timeSectionTitle}>Operating time</Text>
-            <View style={styles.timeChartContainer}>
-              <VictoryPie
-                width={200}
-                height={200}
-                data={timeData}
-                colorScale={timeColors}
-                innerRadius={100}
-                labelRadius={60}
-                labels={({ datum }) => `${datum.y}%`}
-                style={{
-                  labels: styles.labels,
-                }}
-              />
-
-              <VictoryLegend
-                x={60}
-                y={50}
-                orientation="horizontal"
-                gutter={30}
-                data={[
-                  { name: "Study", symbol: { fill: "#4c75f2" } },
-                  { name: "Practice", symbol: { fill: "#e6417a" } },
-                  { name: "Game", symbol: { fill: "#f4c342" } },
-                ]}
-                style={{
-                  labels: {
-                    fontSize: 12,
-                    fontFamily: Fonts.NUNITO_BLACK,
-                    fill: theme.colors.black,
-                  },
-                }}
-              />
-            </View>
-          </View>
-        )}
-
-        {selectedTab === "Time" && (
-          <View style={styles.timeCommentContainer}>
-            <Text style={styles.timeCommentTitle}>Comments</Text>
-            <Text style={styles.timeCommentText}>{timeComment}</Text>
-          </View>
-        )}
       </ScrollView>
       <FloatingMenu />
     </LinearGradient>

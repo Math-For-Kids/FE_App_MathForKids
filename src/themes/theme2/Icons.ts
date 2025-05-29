@@ -76,5 +76,10 @@ export const Icons = {
   multiplication9: require("../../../assets/images/graphics/animals/multiplication9.png"),
   statistic: require("../../../assets/images/graphics/animals/statistics.png"),
   goal: require("../../../assets/images/graphics/animals/goal.png"),
+  privacy: require("../../../assets/images/graphics/animals/privacy.png"),
+  changeemail: require("../../../assets/images/graphics/animals/change emial.png"),
+  changephone: require("../../../assets/images/graphics/animals/change phone.png"),
+  changepin: require("../../../assets/images/graphics/animals/change pin.png"),
+  viewprofile: require("../../../assets/images/graphics/animals/view profile.png"),
 };
 export type Theme2Icons = typeof Icons;

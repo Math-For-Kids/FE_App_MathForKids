@@ -76,5 +76,10 @@ export const Icons = {
   multiplication9: require("../../../assets/images/graphics/superhero/multiplication9.png"),
   statistic: require("../../../assets/images/graphics/superhero/statistics.png"),
   goal: require("../../../assets/images/graphics/superhero/goal.png"),
+  privacy: require("../../../assets/images/graphics/superhero/privacy.png"),
+  changeemail: require("../../../assets/images/graphics/superhero/change emial.png"),
+  changephone: require("../../../assets/images/graphics/superhero/change phone.png"),
+  changepin: require("../../../assets/images/graphics/superhero/change pin.png"),
+  viewprofile: require("../../../assets/images/graphics/superhero/view profile.png"),
 };
 export type Theme3Icons = typeof Icons;

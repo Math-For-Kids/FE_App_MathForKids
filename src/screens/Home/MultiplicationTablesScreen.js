@@ -95,7 +95,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 22,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
     },
     infoRow: {
@@ -114,7 +114,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
     },
 
     infoText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 16,
     },
@@ -151,7 +151,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
     tableLabel: {
       marginTop: 10,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       textAlign: "center",
     },

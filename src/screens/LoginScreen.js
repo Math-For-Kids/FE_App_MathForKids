@@ -8,15 +8,69 @@ import {
   Image,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useDispatch } from "react-redux";
+import { sendOTPByPhone, sendOTPByEmail } from "../redux/authSlice";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import useSound from "../audio/useSound";
+
 export default function LoginScreen({ navigation }) {
+  const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
   const { play } = useSound();
+
+  const handleLogin = async () => {
+    play("openClick");
+
+    const value = inputValue.trim();
+    if (!value) {
+      return Alert.alert("Error", "Please enter your phone number or email");
+    }
+
+    const isPhone = /^[0-9]{9,15}$/.test(value);
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+    try {
+      let result;
+      if (isPhone) {
+        console.log("Sending OTP by phone:", value);
+        result = await dispatch(sendOTPByPhone(value)).unwrap();
+      } else if (isEmail) {
+        console.log("Sending OTP by email:", value);
+        result = await dispatch(sendOTPByEmail(value)).unwrap();
+      } else {
+        return Alert.alert(
+          "Invalid Format",
+          "Please enter a valid phone number or email."
+        );
+      }
+
+      console.log("OTP result:", result);
+
+      const userId = result?.userId;
+      const role = result?.role || "user";
+
+      if (!userId) {
+        throw new Error("userId not returned from OTP dispatch.");
+      }
+
+      navigation.navigate("VerifyScreen", {
+        userId,
+        contact: value,
+        isEmail,
+        role,
+      });
+    } catch (err) {
+      console.error("SEND OTP ERROR:", err);
+      Alert.alert("Login Failed", err?.message || "Could not send OTP.");
+    }
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -39,7 +93,6 @@ export default function LoginScreen({ navigation }) {
       position: "absolute",
       top: -15,
     },
-
     title: {
       fontSize: 28,
       color: theme.colors.blueDark,
@@ -94,7 +147,6 @@ export default function LoginScreen({ navigation }) {
       color: theme.colors.grayLight,
       fontSize: 14,
       fontFamily: Fonts.NUNITO_REGULAR,
-      color: theme.colors.grayLight,
     },
     registerText: {
       color: theme.colors.blueDark,
@@ -117,24 +169,19 @@ export default function LoginScreen({ navigation }) {
             resizeMode="contain"
           />
           <Text style={styles.title}>Log In</Text>
+
           <View
             style={[
               styles.inputWrapper,
-              {
-                borderColor: theme.colors.white,
-              },
-              isFocused && {
-                borderColor: theme.colors.blueDark,
-                shadowColor: theme.colors.blueDark,
-                shadowOpacity: 0.6,
-                elevation: 8,
-              },
+              isFocused && styles.inputWrapperFocused,
             ]}
           >
             <TextInput
               style={styles.input}
-              placeholder="Enter phone number"
+              placeholder="Enter phone or email"
               placeholderTextColor={theme.colors.grayLight}
+              value={inputValue}
+              onChangeText={setInputValue}
               onFocus={() => {
                 play("openClick");
                 setIsFocused(true);
@@ -149,10 +196,7 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.buttonWrapper}
-            onPress={() => {
-              navigation.navigate("AccountScreen");
-              play("openClick");
-            }}
+            onPress={handleLogin}
           >
             <LinearGradient
               colors={theme.colors.gradientBlue}
@@ -175,14 +219,6 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.registerText}>Register</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              play("openClick");
-              navigation.navigate("SettingScreen");
-            }}
-          >
-            <Text style={styles.registerText}>Setting</Text>
-          </TouchableOpacity>
         </View>
       </LinearGradient>
     </TouchableWithoutFeedback>

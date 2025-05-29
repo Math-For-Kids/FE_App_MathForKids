@@ -1,4 +1,3 @@
-// src/redux/yourSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const homeSlice = createSlice({

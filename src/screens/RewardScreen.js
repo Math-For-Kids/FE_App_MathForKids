@@ -172,7 +172,7 @@ export default function RewardScreen({ navigation }) {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 36,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
     },
     tabContainer: {
@@ -192,7 +192,7 @@ export default function RewardScreen({ navigation }) {
       backgroundColor: theme.colors.tabBackground,
     },
     tabText: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 12,
       color: theme.colors.black,
     },
@@ -222,7 +222,7 @@ export default function RewardScreen({ navigation }) {
     },
     cardTitleText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     itemOwnContainer: {
@@ -238,7 +238,7 @@ export default function RewardScreen({ navigation }) {
       borderBottomRightRadius: 10,
     },
     ownTextNumber: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
     modalContainer: {
@@ -259,7 +259,7 @@ export default function RewardScreen({ navigation }) {
     },
     modalText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       marginVertical: 5,
       color: theme.colors.black,
     },
@@ -290,7 +290,7 @@ export default function RewardScreen({ navigation }) {
     closeButtonText: {
       color: theme.colors.white,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     buttonContainer: {
       flexDirection: "row",
@@ -306,7 +306,7 @@ export default function RewardScreen({ navigation }) {
     exchangeButtonText: {
       color: theme.colors.white,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     exchangeNumber: {
       width: 200,
@@ -316,7 +316,7 @@ export default function RewardScreen({ navigation }) {
       padding: 10,
       marginTop: 10,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     rewardInfoText: { color: theme.colors.black },
   });

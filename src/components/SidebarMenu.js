@@ -13,28 +13,30 @@ import { Fonts } from "../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/authSlice";
 
 const SidebarMenu = () => {
   const { theme } = useTheme();
   const screenHeight = Dimensions.get("window").height;
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
   const skillName = route.params?.skillName;
+  const globalRole = useSelector((state) => state.auth.user?.role);
   const [role, setRole] = useState(null);
-  // useEffect(() => {
-  //   const loadRole = async () => {
-  //     const storedRole = await AsyncStorage.getItem("userRole");
-  //     setRole(storedRole);
-  //   };
-  //   loadRole();
-  // }, []);
+
   useEffect(() => {
-    const loadRole = async () => {
-      const storedRole = "pupil";
-      setRole(storedRole);
+    const fetchRole = async () => {
+      if (globalRole) {
+        setRole(globalRole);
+      } else {
+        const storedRole = await AsyncStorage.getItem("userRole");
+        setRole(storedRole);
+      }
     };
-    loadRole();
-  }, []);
+    fetchRole();
+  }, [globalRole]);
 
   const menuItems = [
     { label: "Home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
@@ -43,7 +45,13 @@ const SidebarMenu = () => {
       icon: theme.icons.statistic,
       screen: "StatisticScreen",
     },
+    { label: "Privacy", icon: theme.icons.privacy, screen: "PrivacyScreen" },
     { label: "Profile", icon: theme.icons.profile, screen: "ProfileScreen" },
+    {
+      label: "View profile",
+      icon: theme.icons.profile,
+      screen: "DetailScreen",
+    },
     { label: "Goals", icon: theme.icons.goal, screen: "GoalScreen" },
     { label: "Rank", icon: theme.icons.rank, screen: "RankScreen" },
     { label: "Target", icon: theme.icons.target, screen: "TargetScreen" },
@@ -64,11 +72,19 @@ const SidebarMenu = () => {
 
   const filteredMenuItems = menuItems.filter((item) => {
     if (role === "pupil")
-      return item.label !== "Goals" && item.label !== "Statistics";
-    if (role === "user")
-      return !["Rank", "Reward", "Target", "Test level", "Home"].includes(
+      return !["Goals", "Statistics", "View profile", "Privacy"].includes(
         item.label
       );
+    if (role === "user")
+      return ![
+        "Home",
+        "Rank",
+        "Reward",
+        "Target",
+        "Test level",
+        "Profile",
+        "View profile",
+      ].includes(item.label);
     return true;
   });
 
@@ -116,7 +132,7 @@ const SidebarMenu = () => {
     },
     title: {
       fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       textAlign: "center",
       color: getLabelColor(),
     },
@@ -150,7 +166,7 @@ const SidebarMenu = () => {
     },
     label: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       marginLeft: 10,
       color: getLabelColor(),
     },
@@ -162,7 +178,7 @@ const SidebarMenu = () => {
     logoutButton: {
       fontSize: 16,
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
       padding: 10,
     },
   });
@@ -193,7 +209,12 @@ const SidebarMenu = () => {
           end={{ x: 0, y: 0 }}
           style={styles.logoutButtonContainer}
         >
-          <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
+          <TouchableOpacity
+            onPress={() => {
+              dispatch(logout());
+              navigation.navigate("LoginScreen");
+            }}
+          >
             <Text style={styles.logoutButton}>Logout</Text>
           </TouchableOpacity>
         </LinearGradient>
