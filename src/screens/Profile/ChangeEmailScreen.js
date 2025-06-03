@@ -198,7 +198,7 @@ export default function ChangeEmailScreen({ navigation }) {
       >
         <TouchableOpacity
           style={styles.backContainer}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("PrivacyScreen")}
         >
           <Image
             source={theme.icons.back}

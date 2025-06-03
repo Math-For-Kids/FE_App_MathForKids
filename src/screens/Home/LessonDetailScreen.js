@@ -176,12 +176,12 @@ export default function LessonDetailScreen({ navigation, route }) {
     },
     lessonTextList: {
       fontSize: 20,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       paddingBottom: 80,
     },
     lessonTitleTextList: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       fontSize: 22,
     },
@@ -199,11 +199,11 @@ export default function LessonDetailScreen({ navigation, route }) {
       alignItems: "center",
       position: "absolute",
       top: 350,
-      left: 200,
+      left: 160,
       fontSize: 16,
     },
     linkText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueDark,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.blueDark,
@@ -259,7 +259,7 @@ export default function LessonDetailScreen({ navigation, route }) {
               navigation.navigate("StepByStepScreen", { skillName })
             }
           >
-            <Text style={styles.linkText}>Start Test</Text>
+            <Text style={styles.linkText}>Calculation steps</Text>
             <Ionicons
               name="arrow-forward"
               size={24}

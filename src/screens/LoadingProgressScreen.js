@@ -133,13 +133,13 @@ const styles = StyleSheet.create({
     color: "white",
   },
   boldText: {
-    fontFamily: Fonts.NUNITO_BOLD,
+    fontFamily: Fonts.NUNITO_MEDIUM,
     color: "white",
   },
   title: {
     fontSize: 32,
     marginBottom: 8,
-    fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+    fontFamily: Fonts.NUNITO_BOLD,
     color: "white",
   },
   subtitle: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    fontFamily: Fonts.NUNITO_BOLD,
+    fontFamily: Fonts.NUNITO_MEDIUM,
     color: "white",
   },
 });

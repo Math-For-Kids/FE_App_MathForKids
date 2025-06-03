@@ -94,7 +94,7 @@ export default function SkillScreen({ navigation, route }) {
     },
     cardLabel: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       textAlign: "center",
     },

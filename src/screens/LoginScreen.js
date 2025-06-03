@@ -96,7 +96,7 @@ export default function LoginScreen({ navigation }) {
     title: {
       fontSize: 28,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       marginBottom: 15,
       marginTop: 110,
     },
@@ -138,7 +138,7 @@ export default function LoginScreen({ navigation }) {
     buttonText: {
       color: theme.colors.white,
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     footer: {
       flexDirection: "row",
@@ -151,7 +151,7 @@ export default function LoginScreen({ navigation }) {
     registerText: {
       color: theme.colors.blueDark,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginLeft: 5,
     },
   });

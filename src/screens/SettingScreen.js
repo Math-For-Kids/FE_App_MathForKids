@@ -34,12 +34,12 @@ export default function SettingScreen({ navigation }) {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 36,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     sectionTitle: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       textAlign: "center",
       marginBottom: 10,
@@ -47,7 +47,7 @@ export default function SettingScreen({ navigation }) {
     volume: {
       textAlign: "center",
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 8,
     },
     selectorRow: {
@@ -70,14 +70,14 @@ export default function SettingScreen({ navigation }) {
     languageContainer: { flexDirection: "row", alignItems: "center", gap: 10 },
     flagIcon: { width: 40, height: 30 },
     languageText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 18,
       color: theme.colors.white,
     },
     darkModeOption: { flexDirection: "row", alignItems: "center", gap: 8 },
     darkIcon: { width: 35, height: 35 },
     darkModeText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 18,
       color: theme.colors.white,
     },

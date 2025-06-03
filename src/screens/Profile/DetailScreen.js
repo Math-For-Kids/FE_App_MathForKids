@@ -167,7 +167,7 @@ export default function DetailScreen({ navigation }) {
       marginBottom: 15,
     },
     fieldLabel: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 18,
       marginBottom: 5,
@@ -180,7 +180,7 @@ export default function DetailScreen({ navigation }) {
     },
     fieldText: {
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueGray,
       fontSize: 16,
     },
@@ -226,7 +226,7 @@ export default function DetailScreen({ navigation }) {
       marginBottom: 15,
     },
     inputLabel: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueGray,
       marginBottom: 5,
     },
@@ -240,7 +240,7 @@ export default function DetailScreen({ navigation }) {
     },
 
     editChangeTextButton: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 14,
     },
@@ -253,7 +253,7 @@ export default function DetailScreen({ navigation }) {
     },
     dropdownButtonText: {
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueGray,
     },
     dropdownItem: {
@@ -263,7 +263,7 @@ export default function DetailScreen({ navigation }) {
     },
     dropdownItemText: {
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.grayDark,
     },
     inputBox: {
@@ -275,7 +275,7 @@ export default function DetailScreen({ navigation }) {
     inputTextBox: {
       padding: 10,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueGray,
     },
     modalButtonContainer: {
@@ -297,7 +297,7 @@ export default function DetailScreen({ navigation }) {
       backgroundColor: theme.colors.red,
       elevation: 3,
     },
-    buttonText: { fontFamily: Fonts.NUNITO_BOLD, color: theme.colors.white },
+    buttonText: { fontFamily: Fonts.NUNITO_MEDIUM, color: theme.colors.white },
     carModalContainer: {
       flex: 1,
       justifyContent: "center",
@@ -313,7 +313,7 @@ export default function DetailScreen({ navigation }) {
     textModal: {
       color: theme.colors.blueGray,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       textAlign: "center",
     },
     avatarWrapperModel: {

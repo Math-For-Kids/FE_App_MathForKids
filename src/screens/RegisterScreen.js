@@ -119,7 +119,7 @@ export default function RegisterScreen({ navigation }) {
       top: 10,
       fontSize: 20,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     avatarWrapper: {
       borderRadius: 50,
@@ -151,7 +151,7 @@ export default function RegisterScreen({ navigation }) {
       flex: 1,
       fontSize: 16,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     checkboxGroup: {
       flexDirection: "row",
@@ -165,7 +165,7 @@ export default function RegisterScreen({ navigation }) {
     },
     checkboxLabel: {
       marginLeft: 6,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 14,
       color: theme.colors.grayMedium,
     },
@@ -177,14 +177,14 @@ export default function RegisterScreen({ navigation }) {
     },
     termsText: {
       marginLeft: 8,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 13,
       color: theme.colors.grayLight,
       flexShrink: 1,
     },
     agreeText: {
       color: theme.colors.grayMedium,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     buttonWrapper: {
       width: "100%",
@@ -201,7 +201,7 @@ export default function RegisterScreen({ navigation }) {
     buttonText: {
       color: theme.colors.white,
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     footer: {
       flexDirection: "row",
@@ -209,12 +209,12 @@ export default function RegisterScreen({ navigation }) {
     footerText: {
       color: theme.colors.grayLight,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     loginText: {
       color: theme.colors.blueDark,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     pinLabelContainer: {
       width: "100%",
@@ -223,7 +223,7 @@ export default function RegisterScreen({ navigation }) {
     pinLabel: {
       color: theme.colors.grayMedium,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     pinInputWrapper: {
       flexDirection: "row",
@@ -245,7 +245,7 @@ export default function RegisterScreen({ navigation }) {
       borderColor: theme.colors.graySoft,
       backgroundColor: theme.colors.cardBackground,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueDark,
       elevation: 20,
     },

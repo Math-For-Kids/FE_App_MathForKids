@@ -19,12 +19,12 @@ import { createPupil } from "../redux/pupilSlice";
 export default function CreatePupilAccountScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
-  const userId = useSelector((state) => state.auth.user?.id); 
+  const userId = useSelector((state) => state.auth.user?.id);
   console.log("userId", userId);
   const [fullName, setFullName] = useState("");
   const [nickName, setNickName] = useState("");
   const [studentClass, setStudentClass] = useState("");
-  const [birthday, setBirthday] = useState(""); 
+  const [birthday, setBirthday] = useState("");
   const [gender, setGender] = useState("female");
   const [focusedField, setFocusedField] = useState(null);
   const onCreate = async () => {
@@ -79,13 +79,13 @@ export default function CreatePupilAccountScreen({ navigation }) {
       top: 20,
       fontSize: 28,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     label: {
       width: "100%",
       fontSize: 16,
       color: theme.colors.blueGray,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 4,
     },
     inputWrapper: {
@@ -103,7 +103,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
     input: {
       fontSize: 16,
       color: theme.colors.grayDark,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     checkboxGroup: {
       width: "100%",
@@ -117,7 +117,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
     },
     checkboxLabel: {
       marginLeft: 6,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 16,
       color: theme.colors.grayMedium,
     },
@@ -137,7 +137,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
       alignItems: "center",
     },
     buttonText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 16,
       color: theme.colors.white,
     },

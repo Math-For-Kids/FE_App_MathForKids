@@ -63,7 +63,7 @@ export default function ProfileScreen({ navigation }) {
     </View>
   );
   const handleDetail = () => {
-    navigation.navigate("DetailScreen");
+    navigation.navigate("ProfilePupilDetailScreen");
   };
 
   const styles = StyleSheet.create({
@@ -113,7 +113,12 @@ export default function ProfileScreen({ navigation }) {
     avatar: { width: 30, height: 30 },
     name: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.blueDark,
+    },
+    text: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueDark,
     },
     achievementTagContainer: {
@@ -129,7 +134,7 @@ export default function ProfileScreen({ navigation }) {
     },
     achievementTagText: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     achievements: {
       marginTop: 10,
@@ -151,7 +156,7 @@ export default function ProfileScreen({ navigation }) {
     label: {
       fontSize: 14,
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     valueContainer: {
       width: "100%",
@@ -165,7 +170,7 @@ export default function ProfileScreen({ navigation }) {
     },
     value: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     progressContainer: {
       marginTop: 20,
@@ -180,7 +185,7 @@ export default function ProfileScreen({ navigation }) {
       elevation: 3,
     },
     progressTitle: {
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       marginBottom: 5,
     },
@@ -190,7 +195,7 @@ export default function ProfileScreen({ navigation }) {
       left: "50%",
       color: theme.colors.white,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     detailButtonWrapper: {
       position: "absolute",
@@ -207,7 +212,7 @@ export default function ProfileScreen({ navigation }) {
     detailText: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
   });
 
@@ -236,7 +241,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
           <View>
             <Text style={styles.name}>{user.name}</Text>
-            <Text style={styles.name}>{user.class}</Text>
+            <Text style={styles.text}>{user.class}</Text>
           </View>
         </View>
         <View style={styles.achievementTagContainer}>

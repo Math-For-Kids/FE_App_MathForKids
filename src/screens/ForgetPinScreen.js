@@ -309,7 +309,7 @@ export default function ForgetPinScreen({ navigation }) {
       marginTop: 10,
     },
     buttonText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       textAlign: "center",
       fontSize: 16,
@@ -332,7 +332,7 @@ export default function ForgetPinScreen({ navigation }) {
     },
     stepTitle: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.grayDark,
       marginBottom: 10,
     },

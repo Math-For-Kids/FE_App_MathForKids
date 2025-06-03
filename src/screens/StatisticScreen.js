@@ -238,7 +238,7 @@ export default function StatisticScreen({ navigation }) {
     badgeText: {
       color: theme.colors.white,
       fontSize: 10,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     notificationIcon: {
       width: 30,
@@ -271,7 +271,7 @@ export default function StatisticScreen({ navigation }) {
     grade: {
       fontSize: 14,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     gradeRow: {
       flexDirection: "row",
@@ -304,7 +304,7 @@ export default function StatisticScreen({ navigation }) {
     },
 
     filterText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 13,
       color: theme.colors.black,
       textAlign: "center",
@@ -335,7 +335,7 @@ export default function StatisticScreen({ navigation }) {
     },
 
     dropdownButtonText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 13,
       color: theme.colors.black,
     },
@@ -359,7 +359,7 @@ export default function StatisticScreen({ navigation }) {
     },
 
     dropdownItemText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 13,
       color: theme.colors.black,
       textAlign: "center",
@@ -372,7 +372,7 @@ export default function StatisticScreen({ navigation }) {
     chartName: {
       color: theme.colors.white,
       fontSize: 22,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 10,
     },
     chartNoteContainer: {
@@ -389,7 +389,7 @@ export default function StatisticScreen({ navigation }) {
       marginRight: 6,
       borderRadius: 2,
     },
-    noteText: { color: theme.colors.white, fontFamily: Fonts.NUNITO_BOLD },
+    noteText: { color: theme.colors.white, fontFamily: Fonts.NUNITO_MEDIUM },
     noteThis: {
       width: 12,
       height: 12,
@@ -412,7 +412,7 @@ export default function StatisticScreen({ navigation }) {
       marginRight: 6,
       borderRadius: 2,
     },
-    timeChartContainer: { marginTop: 50, alignItems: "center" },
+    timeChartContainer: { marginTop: 80, alignItems: "center" },
     noteTimeContainer: {
       position: "absolute",
       top: 100,
@@ -434,7 +434,7 @@ export default function StatisticScreen({ navigation }) {
     },
     commentTitle: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.comment,
     },
     summaryContainer: {
@@ -448,12 +448,12 @@ export default function StatisticScreen({ navigation }) {
     },
     summaryTitle: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.green,
     },
     commentText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
     },
   });
@@ -471,7 +471,9 @@ export default function StatisticScreen({ navigation }) {
             >
               <Image
                 source={
-                  profile?.avatar ? { uri: profile.avatar } : theme.icons.avatarAdd
+                  profile?.avatar
+                    ? { uri: profile.avatar }
+                    : theme.icons.avatarAdd
                 }
                 style={styles.avatar}
               />

@@ -65,18 +65,18 @@ export default function GoalScreen() {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 36,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     labelTitle: {
       fontSize: 24,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       textAlign: "center",
     },
     label: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       marginLeft: 10,
       marginTop: 10,
@@ -95,7 +95,7 @@ export default function GoalScreen() {
     selectedAccount: { backgroundColor: theme.colors.green },
     accountText: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
     },
     selectedAccountText: { color: theme.colors.white },
@@ -125,7 +125,7 @@ export default function GoalScreen() {
       marginTop: 20,
     },
     saveText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 16,
     },
@@ -153,7 +153,7 @@ export default function GoalScreen() {
     },
     modalTitle: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 16,
     },
     modalButton: {
@@ -168,10 +168,10 @@ export default function GoalScreen() {
     },
     modalButtonText: {
       textAlign: "center",
-      color: "#fff",
+      color: theme.colors.white,
       fontSize: 16,
       paddingVertical: 10,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     rewardContainer: {
       flexDirection: "row",
