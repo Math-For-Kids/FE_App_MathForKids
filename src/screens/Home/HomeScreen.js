@@ -42,7 +42,8 @@ export default function HomeScreen({ navigation, route }) {
   );
   const gradeOptions = ["1", "2", "3"];
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedGrade, setSelectedGrade] = useState(filteredPupils.grade);
+  // const [selectedGrade, setSelectedGrade] = useState(filteredPupils.grade);
+  const [selectedGrade, setSelectedGrade] = useState();
   const newNotificationCount = filteredNotifications.length;
   const skills = [
     { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
@@ -126,7 +127,7 @@ export default function HomeScreen({ navigation, route }) {
     badgeText: {
       color: theme.colors.white,
       fontSize: 10,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     notificationIcon: {
       width: 30,
@@ -148,7 +149,7 @@ export default function HomeScreen({ navigation, route }) {
     grade: {
       fontSize: 14,
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     gradeRow: {
       flexDirection: "row",
@@ -173,7 +174,7 @@ export default function HomeScreen({ navigation, route }) {
     },
     dropdownItemText: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     title: {
       textAlign: "center",
@@ -205,7 +206,7 @@ export default function HomeScreen({ navigation, route }) {
     },
     skillText: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginTop: 10,
     },
   });
@@ -222,11 +223,13 @@ export default function HomeScreen({ navigation, route }) {
               style={styles.avatarContainer}
               onPress={() => navigation.navigate("ProfileScreen", { pupilId })}
             >
-              <Image source={filteredPupils.avatar} style={styles.avatar} />
+              {/* <Image source={filteredPupils.avatar} style={styles.avatar} /> */}
+              <Image source={theme.icons.avatarFemale} style={styles.avatar} />
             </TouchableOpacity>
             <View>
               <Text style={styles.greeting}>Hello!</Text>
-              <Text style={styles.name}>{filteredPupils.fullName}</Text>
+              {/* <Text style={styles.name}>{filteredPupils.fullName}</Text> */}
+              <Text style={styles.name}>Nguyen Thi Nga</Text>
             </View>
           </View>
           <TouchableOpacity

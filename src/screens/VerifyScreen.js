@@ -91,19 +91,19 @@ export default function VerifyOTP({ navigation, route }) {
     },
     title: {
       fontSize: 28,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.blueDark,
       marginBottom: 10,
     },
     subtitle: {
       color: theme.colors.grayLight,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 12,
     },
     phoneNumber: {
       marginBottom: 20,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 12,
       color: theme.colors.grayMedium,
     },
@@ -137,7 +137,7 @@ export default function VerifyOTP({ navigation, route }) {
     verifyText: {
       color: theme.colors.white,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 16,
     },
     resendText: {
@@ -146,7 +146,7 @@ export default function VerifyOTP({ navigation, route }) {
     },
     resendLink: {
       color: theme.colors.blueDark,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
   });
 

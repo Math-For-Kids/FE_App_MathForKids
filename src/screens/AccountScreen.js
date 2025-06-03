@@ -161,7 +161,7 @@ export default function AccountScreen({ navigation }) {
     },
     buttonText: {
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 18,
       textAlign: "center",
     },
@@ -194,7 +194,7 @@ export default function AccountScreen({ navigation }) {
     },
     userName: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueGray,
     },
     addButton: {
@@ -244,7 +244,7 @@ export default function AccountScreen({ navigation }) {
     },
     textModal: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 10,
     },
     inputModalContainer: {
@@ -291,12 +291,12 @@ export default function AccountScreen({ navigation }) {
           end={{ x: 0, y: 0 }}
           style={styles.button}
         >
-          {/* <TouchableOpacity onPress={() => handleSwitchToParentRole(userId)}>
-            <Text style={styles.buttonText}>Parent</Text>
-          </TouchableOpacity> */}
-          <TouchableOpacity onPress={() => handleParentSelect(userId)}>
+          <TouchableOpacity onPress={() => handleSwitchToParentRole(userId)}>
             <Text style={styles.buttonText}>Parent</Text>
           </TouchableOpacity>
+          {/* <TouchableOpacity onPress={() => handleParentSelect(userId)}>
+            <Text style={styles.buttonText}>Parent</Text>
+          </TouchableOpacity> */}
         </LinearGradient>
 
         {filteredPupils.map((user) => (
@@ -325,9 +325,8 @@ export default function AccountScreen({ navigation }) {
           end={{ x: 0, y: 0 }}
           style={styles.addButton}
         >
-          <TouchableOpacity
-            // onPress={() => navigation.navigate("CreatePupilAccountScreen")}
-            onPress={() => navigation.navigate("ContactScreen")}
+          <TouchableOpacity 
+            onPress={() => navigation.navigate("CreatePupilAccountScreen")}
           >
             <Ionicons name="person-add" size={36} color={theme.colors.white} />
           </TouchableOpacity>

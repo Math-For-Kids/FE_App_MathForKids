@@ -41,15 +41,20 @@ export default function PrivacyManagementScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
     },
-    scrollcontainer: { paddingBottom: 40 },
+    scrollcontainer: { paddingVertical: 40 },
     buttonContainer: {
-      gap: 20,
+      gap: 35,
       paddingHorizontal: 20,
     },
+    wrapContainer: {
+      flexDirection: "row",
+      gap: 35,
+    },
     button: {
+      width: "45%",
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
-      paddingVertical: 14,
+      paddingVertical: 20,
       alignItems: "center",
       elevation: 3,
     },
@@ -85,50 +90,54 @@ export default function PrivacyManagementScreen({ navigation }) {
       </LinearGradient>
       <ScrollView contentContainerStyle={styles.scrollcontainer}>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("DetailScreen")}
-          >
-            <Image
-              source={theme.icons.viewprofile}
-              style={styles.buttonImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.buttonText}>View profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("ChangeEmailScreen")}
-          >
-            <Image
-              source={theme.icons.changeemail}
-              style={styles.buttonImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.buttonText}>Change email</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("ChangePhoneScreen")}
-          >
-            <Image
-              source={theme.icons.changephone}
-              style={styles.buttonImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.buttonText}>Change phone</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("ChangePinScreen")}
-          >
-            <Image
-              source={theme.icons.changepin}
-              style={styles.buttonImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.buttonText}>Change pin</Text>
-          </TouchableOpacity>
+          <View style={styles.wrapContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("DetailScreen")}
+            >
+              <Image
+                source={theme.icons.viewprofile}
+                style={styles.buttonImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.buttonText}>View profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("ChangeEmailScreen")}
+            >
+              <Image
+                source={theme.icons.changeemail}
+                style={styles.buttonImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.buttonText}>Change email</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.wrapContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("ChangePhoneScreen")}
+            >
+              <Image
+                source={theme.icons.changephone}
+                style={styles.buttonImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.buttonText}>Change phone</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("ChangePinScreen")}
+            >
+              <Image
+                source={theme.icons.changepin}
+                style={styles.buttonImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.buttonText}>Change pin</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
       <FloatingMenu />

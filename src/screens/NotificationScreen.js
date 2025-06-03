@@ -120,7 +120,7 @@ export default function NotificationScreen({ navigation, route }) {
     notificationTitle: {
       fontSize: 16,
       padding: 10,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
     },
     notificationDateEnd: {
@@ -129,7 +129,7 @@ export default function NotificationScreen({ navigation, route }) {
       right: 10,
       top: 30,
       fontSize: 8,
-      fontFamily: Fonts.NUNITO_BOLD_ITALIC,
+      fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
       color: theme.colors.blueGray,
     },
     notificationContentContainer: {

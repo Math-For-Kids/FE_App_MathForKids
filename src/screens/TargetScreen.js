@@ -104,7 +104,7 @@ export default function TargetScreen({ navigation }) {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 36,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     tabContainer: {
@@ -125,7 +125,7 @@ export default function TargetScreen({ navigation }) {
       backgroundColor: theme.colors.green,
     },
     tabText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 14,
       color: theme.colors.black,
     },
@@ -149,22 +149,22 @@ export default function TargetScreen({ navigation }) {
     },
     cardTitle: {
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 14,
       marginBottom: 4,
     },
     cardMission: {
       color: theme.colors.black,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 12,
     },
     cardReward: {
       color: theme.colors.black,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 12,
     },
     rewardHighlight: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     cardDateEnd: {
@@ -197,7 +197,7 @@ export default function TargetScreen({ navigation }) {
       height: 40,
     },
     boldText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
   });
 

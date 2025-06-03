@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,32 +12,26 @@ import { Fonts } from "../../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
-import Api from "../../api/api";
+
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const [lessons, setLessons] = useState([]);
-
-  useEffect(() => {
-    const fetchLessons = async () => {
-      try {
-        const res = await Api.get("/lesson");
-        const allLessons = res.data;
-        const filteredLessons = allLessons.filter(
-          (item) => item.type?.toLowerCase() === skillName.toLowerCase()
-        );
-        setLessons(filteredLessons);
-      } catch (err) {
-        console.error("Error:", err.message);
-      }
-    };
-
-    fetchLessons();
-  }, [skillName]);
-
   const { skillName, actionType } = route.params;
   const [activeTab, setActiveTab] = useState(actionType || "Lesson");
 
-  const tabs = ["Lesson", "Exercise", "Test"];
+  const [lessons] = useState([
+    { id: 1, title: "Intro to Addition", type: "Addition" },
+    { id: 2, title: "Adding up to 10", type: "Addition" },
+    { id: 3, title: "Adding with Carrying", type: "Addition" },
+    { id: 4, title: "Basic Subtraction", type: "Subtraction" },
+    { id: 5, title: "Subtraction with Borrowing", type: "Subtraction" },
+    { id: 6, title: "Multiplication Basics", type: "Multiplication" },
+    { id: 7, title: "Division by 1 Digit", type: "Division" },
+  ]);
+
+  const filteredLessons = lessons.filter(
+    (item) => item.type?.toLowerCase() === skillName.toLowerCase()
+  );
+
   const Exercise = [
     { id: 1, title: "Plus some more" },
     { id: 2, title: "Add two more numbers" },
@@ -48,11 +42,13 @@ export default function LessonScreen({ navigation, route }) {
     { id: 2, title: "Test 2", quantity: 30, time: 40, level: "Medium" },
     { id: 3, title: "Test 3", quantity: 30, time: 45, level: "Difficult" },
   ];
+
   const lessonData = {
-    Lesson: lessons,
+    Lesson: filteredLessons,
     Exercise: Exercise,
     Test: Test,
   };
+
   const currentData = lessonData[activeTab] || [];
 
   const getGradient = () => {
@@ -70,6 +66,7 @@ export default function LessonScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redLight;
     return theme.colors.pinkLight;
   };
+
   const getTabSelected = () => {
     if (skillName === "Addition") return theme.colors.GreenDark;
     if (skillName === "Subtraction") return theme.colors.purpleDark;
@@ -77,6 +74,7 @@ export default function LessonScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
   };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -102,13 +100,9 @@ export default function LessonScreen({ navigation, route }) {
       padding: 8,
       borderRadius: 50,
     },
-    backIcon: {
-      width: 24,
-      height: 24,
-    },
     headerText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     tabWrapper: {
@@ -127,12 +121,12 @@ export default function LessonScreen({ navigation, route }) {
     },
     tabText: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     activeTabText: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     lessonList: {
@@ -152,7 +146,6 @@ export default function LessonScreen({ navigation, route }) {
       justifyContent: "center",
       alignItems: "center",
     },
-
     lessonIcon: {
       position: "absolute",
       top: -40,
@@ -163,7 +156,7 @@ export default function LessonScreen({ navigation, route }) {
     lessonText: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       textAlign: "center",
     },
     lessonTestTextContainer: {
@@ -174,7 +167,7 @@ export default function LessonScreen({ navigation, route }) {
     lessonTestText: {
       color: theme.colors.white,
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
   });
 
@@ -191,14 +184,10 @@ export default function LessonScreen({ navigation, route }) {
       </LinearGradient>
 
       <View style={styles.tabWrapper}>
-        {tabs.map((tab, index) => (
+        {["Lesson", "Exercise", "Test"].map((tab, index) => (
           <TouchableOpacity
             key={index}
-            style={[
-              styles.tabItem,
-              activeTab === tab && styles.activeTabItem,
-              // { backgroundColor: getTab() },
-            ]}
+            style={[styles.tabItem, activeTab === tab && styles.activeTabItem]}
             onPress={() => setActiveTab(tab)}
           >
             <Text
@@ -221,17 +210,17 @@ export default function LessonScreen({ navigation, route }) {
               if (activeTab === "Lesson") {
                 navigation.navigate("LessonDetailScreen", {
                   skillName,
-                  title: item.name.en,
+                  title: item.title,
                 });
               } else if (activeTab === "Exercise") {
                 navigation.navigate("ExerciseScreen", {
                   skillName,
-                  title: item.name.en,
+                  title: item.title,
                 });
               } else if (activeTab === "Test") {
                 navigation.navigate("TestScreen", {
                   skillName,
-                  title: item.name.en,
+                  title: item.title,
                   time: item.time,
                   quantity: item.quantity,
                   level: item.level,
@@ -247,7 +236,10 @@ export default function LessonScreen({ navigation, route }) {
             >
               <View style={styles.lessonContent}>
                 <Image source={theme.icons.soundOn} style={styles.lessonIcon} />
-                <Text style={styles.lessonText}>{item.name.en}</Text>
+                <Text style={styles.lessonText}>{item.title}</Text>
+                {activeTab === "Exercise" && (
+                  <Text style={styles.lessonText}>Exercise one</Text>
+                )}
                 {activeTab === "Test" && (
                   <View style={styles.lessonTestTextContainer}>
                     <Text style={styles.lessonTestText}>

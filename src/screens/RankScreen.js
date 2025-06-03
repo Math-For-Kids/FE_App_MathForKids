@@ -95,7 +95,7 @@ export default function RankScreen({ navigation }) {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 36,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     topContainer: { paddingHorizontal: 10 },
@@ -108,7 +108,7 @@ export default function RankScreen({ navigation }) {
       marginTop: 5,
       textAlign: "center",
       fontSize: 12,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     topIcon: {
@@ -162,7 +162,7 @@ export default function RankScreen({ navigation }) {
     name: {
       width: "50%",
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     rightContainer: {
@@ -170,7 +170,7 @@ export default function RankScreen({ navigation }) {
     },
     point: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     time: {

@@ -86,7 +86,7 @@ export default function ContactScreen({ navigation }) {
     name: {
       width: "50%",
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     rightContainer: {
@@ -95,13 +95,13 @@ export default function ContactScreen({ navigation }) {
     position: {
       width: "50%",
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     email: {
       width: "50%",
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
     },
   });

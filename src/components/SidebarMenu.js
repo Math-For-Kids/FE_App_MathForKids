@@ -166,7 +166,7 @@ const SidebarMenu = () => {
     },
     label: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginLeft: 10,
       color: getLabelColor(),
     },
@@ -178,7 +178,7 @@ const SidebarMenu = () => {
     logoutButton: {
       fontSize: 16,
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       padding: 10,
     },
   });

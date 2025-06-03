@@ -23,6 +23,7 @@ import ChangePhoneScreen from "./screens/Profile/ChangePhoneScreen";
 import ChangePinScreen from "./screens/Profile/ChangePinScreen";
 import ProfileScreen from "./screens/Profile/ProfileScreen";
 import DetailScreen from "./screens/Profile/DetailScreen";
+import ProfilePupilDetailScreen from "./screens/Profile/ProfilePupilDetailScreen";
 import HomeScreen from "./screens/Home/HomeScreen";
 import SkillScreen from "./screens/Home/SkillScreen";
 import MultiplicationTableScreen from "./screens/Home/MultiplicationTablesScreen";
@@ -88,7 +89,10 @@ export default function AppNavigator() {
               component={StepByStepScreen}
             />
             <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-
+            <Stack.Screen
+              name="ProfilePupilDetailScreen"
+              component={ProfilePupilDetailScreen}
+            />
             <Stack.Screen
               name="NotificationScreen"
               component={NotificationScreen}

@@ -133,7 +133,7 @@ export default function TestLevelScreen({ navigation }) {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     timerContainer: {
@@ -153,13 +153,13 @@ export default function TestLevelScreen({ navigation }) {
     },
     timerText: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueDark,
     },
     leftText: { marginHorizontal: 20, marginBottom: 10 },
     text: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     ProgressBar: {
@@ -180,13 +180,13 @@ export default function TestLevelScreen({ navigation }) {
     },
     subjectText: {
       fontSize: 12,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       marginBottom: 4,
     },
     questionText: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       marginVertical: 8,
       textAlign: "center",
@@ -210,7 +210,7 @@ export default function TestLevelScreen({ navigation }) {
     },
     optionText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       textAlign: "center",
     },
@@ -230,7 +230,7 @@ export default function TestLevelScreen({ navigation }) {
     submitText: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     modalBackground: {
       flex: 1,
@@ -247,7 +247,7 @@ export default function TestLevelScreen({ navigation }) {
     },
     modalTitle: {
       fontSize: 22,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     modalMessage: {
       fontSize: 18,

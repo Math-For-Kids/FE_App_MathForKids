@@ -16,7 +16,6 @@ import FloatingMenu from "../../components/FloatingMenu";
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, title } = route.params;
-
   const questions = [
     { id: 1, type: "image", answer: 2, image: theme.icons.question1 },
     { id: 2, type: "text", answer: 3, text: "14 + 25" },
@@ -134,7 +133,7 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       width: "60%",
       textAlign: "center",

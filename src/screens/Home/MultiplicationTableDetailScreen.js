@@ -62,7 +62,7 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
     },
     headerText: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     infoRow: {
@@ -79,7 +79,7 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
       elevation: 3,
     },
     infoText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       fontSize: 16,
     },
@@ -92,7 +92,7 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
       paddingHorizontal: 10,
     },
     operator: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       fontSize: 28,
       marginHorizontal: 6,
@@ -107,14 +107,14 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
       margin: 4,
     },
     boxText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       fontSize: 28,
     },
     explanation: {
       width: "80%",
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
     },
     backStepButton: {
@@ -143,7 +143,7 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
     },
     nextText: {
       fontSize: 20,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
   });
