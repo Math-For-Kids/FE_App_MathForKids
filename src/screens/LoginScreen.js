@@ -35,38 +35,31 @@ export default function LoginScreen({ navigation }) {
     const isPhone = /^[0-9]{9,15}$/.test(value);
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-    try {
-      let result;
-      if (isPhone) {
-        console.log("Sending OTP by phone:", value);
-        result = await dispatch(sendOTPByPhone(value)).unwrap();
-      } else if (isEmail) {
-        console.log("Sending OTP by email:", value);
-        result = await dispatch(sendOTPByEmail(value)).unwrap();
-      } else {
-        return Alert.alert(
-          "Invalid Format",
-          "Please enter a valid phone number or email."
-        );
-      }
+    if (!isPhone && !isEmail) {
+      return Alert.alert("Invalid", "Please enter a valid phone or email.");
+    }
 
-      console.log("OTP result:", result);
+    try {
+      const sendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
+      const contactKey = isEmail ? "email" : "phoneNumber";
+      const result = await dispatch(
+        sendAction({
+          [contactKey]: value,
+          role: "user", 
+        })
+      ).unwrap();
 
       const userId = result?.userId;
-      const role = result?.role || "user";
-
-      if (!userId) {
-        throw new Error("userId not returned from OTP dispatch.");
-      }
+      if (!userId) throw new Error("No userId returned from server.");
 
       navigation.navigate("VerifyScreen", {
         userId,
         contact: value,
         isEmail,
-        role,
+        isLogin: true,
       });
     } catch (err) {
-      console.error("SEND OTP ERROR:", err);
+      console.error("Login Error:", err);
       Alert.alert("Login Failed", err?.message || "Could not send OTP.");
     }
   };

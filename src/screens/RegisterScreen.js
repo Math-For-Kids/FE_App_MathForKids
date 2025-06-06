@@ -16,11 +16,12 @@ import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  registerUser,
+  createUser,
   updateUser,
   sendOTPByPhone,
   sendOTPByEmail,
 } from "../redux/authSlice";
+
 import { Ionicons } from "@expo/vector-icons";
 
 export default function RegisterScreen({ navigation }) {
@@ -40,6 +41,7 @@ export default function RegisterScreen({ navigation }) {
     const isEmail = /\S+@\S+\.\S+/.test(contact);
     const isPhone = /^[0-9]{9,15}$/.test(contact);
     const pinCode = pin.join("");
+
     if (!/^\d{4}$/.test(pinCode)) {
       Alert.alert("Invalid", "PIN must be 4 digits.");
       return;
@@ -57,24 +59,25 @@ export default function RegisterScreen({ navigation }) {
 
     const userData = {
       fullName,
-      phoneNumber: isPhone ? contact : "",
-      email: isEmail ? contact : "",
       gender,
       dateOfBirth: "2000-01-01",
       address,
       pin: pinCode,
     };
 
+    if (isPhone) userData.phoneNumber = contact;
+    if (isEmail) userData.email = contact;
+
     try {
-      const result = await dispatch(registerUser(userData)).unwrap();
+      const result = await dispatch(createUser(userData)).unwrap();
       const userId = result.id;
       const role = result.role || "user";
-      await dispatch(
-        updateUser({ id: userId, data: { isVerify: true } })
-      ).unwrap();
       const sendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
       const target = isEmail ? userData.email : userData.phoneNumber;
-      await dispatch(sendAction(target)).unwrap();
+
+      await dispatch(
+        sendAction({ userId, [isEmail ? "email" : "phoneNumber"]: target })
+      ).unwrap();
       Alert.alert("Success", "OTP sent successfully!", [
         {
           text: "OK",
@@ -91,6 +94,7 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert("Error", error.toString());
     }
   };
+
   const handlePinChange = (value, index) => {
     const updatedPin = [...pin];
     updatedPin[index] = value.replace(/[^0-9]/g, "");

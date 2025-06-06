@@ -16,10 +16,11 @@ import {
   sendOTPByEmail,
   verifyOTP,
   setUser,
+  updateUser,
 } from "../redux/authSlice";
 export default function VerifyOTP({ navigation, route }) {
   const { theme } = useTheme();
-  const { userId, contact, isEmail } = route.params;
+  const { userId, contact, isEmail, isLogin } = route.params;
   const dispatch = useDispatch();
 
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -42,20 +43,27 @@ export default function VerifyOTP({ navigation, route }) {
     try {
       const result = await dispatch(verifyOTP({ userId, otpCode })).unwrap();
       console.log("Verified user:", result);
+      if (!isLogin) {
+        await dispatch(updateUser({ id: result.id, data: { isVerify: true } }));
+      }
+
       dispatch(
         setUser({
           id: result.id,
           role: result.role,
           token: result.token,
           fullName: result.fullName,
-          avatar: result.avatar,
+          image: result.image,
+          email: result.email,
+          pin: result.pin,
         })
       );
 
       Alert.alert("Success", "OTP Verified!", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("AccountScreen"),
+          onPress: () =>
+            navigation.navigate(isLogin ? "AccountScreen" : "HomeScreen"),
         },
       ]);
     } catch (err) {
@@ -66,7 +74,9 @@ export default function VerifyOTP({ navigation, route }) {
 
   const handleResend = () => {
     const resendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
-    dispatch(resendAction(contact)).then((res) => {
+    const targetKey = isEmail ? "email" : "phoneNumber";
+
+    dispatch(resendAction({ userId, [targetKey]: contact })).then((res) => {
       if (!res.error) {
         Alert.alert("Success", "OTP resent successfully!");
       } else {

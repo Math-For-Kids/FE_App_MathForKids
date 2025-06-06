@@ -12,7 +12,6 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/authSlice";
 
@@ -22,21 +21,13 @@ const SidebarMenu = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
-  const skillName = route.params?.skillName;
-  const globalRole = useSelector((state) => state.auth.user?.role);
-  const [role, setRole] = useState(null);
 
-  useEffect(() => {
-    const fetchRole = async () => {
-      if (globalRole) {
-        setRole(globalRole);
-      } else {
-        const storedRole = await AsyncStorage.getItem("userRole");
-        setRole(storedRole);
-      }
-    };
-    fetchRole();
-  }, [globalRole]);
+  const userId = useSelector((state) => state.auth.user?.id);
+  const skillName = route.params?.skillName;
+  const pupilId = route.params?.pupilId;
+
+  const isPupil = Boolean(pupilId);
+  const isParent = !pupilId;
 
   const menuItems = [
     { label: "Home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
@@ -71,11 +62,12 @@ const SidebarMenu = () => {
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
-    if (role === "pupil")
-      return !["Goals", "Statistics", "View profile", "Privacy"].includes(
+    if (isPupil) {
+      return !["Goals", "Statistics", "Privacy", "View profile"].includes(
         item.label
       );
-    if (role === "user")
+    }
+    if (isParent) {
       return ![
         "Home",
         "Rank",
@@ -85,7 +77,8 @@ const SidebarMenu = () => {
         "Profile",
         "View profile",
       ].includes(item.label);
-    return true;
+    }
+    return false;
   });
 
   const getMenuItemBackground = () => {
@@ -195,7 +188,12 @@ const SidebarMenu = () => {
             <TouchableOpacity
               key={index}
               style={styles.menuItem}
-              onPress={() => item.screen && navigation.navigate(item.screen)}
+              onPress={() => {
+                navigation.navigate(item.screen, {
+                  userId: userId,
+                  pupilId: pupilId,
+                });
+              }}
             >
               <Image source={item.icon} style={styles.icon} />
               <Text style={styles.label}>{item.label}</Text>
