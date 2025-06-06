@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllPupils } from "../redux/pupilSlice";
-import { updateUser, setUser } from "../redux/authSlice";
+import { updateUser, setUser, getUserById } from "../redux/authSlice";
 import { Fonts } from "../../constants/Fonts";
 import { useIsFocused } from "@react-navigation/native";
 
@@ -30,12 +30,7 @@ export default function AccountScreen({ navigation }) {
 
   const user = useSelector((state) => state.auth.user);
   const pupils = useSelector((state) => state.pupil.pupils || []);
-  console.log("user", user);
   const userId = user?.id;
-  const token = user?.token;
-  const fullName = user?.fullName;
-  const avatar = user?.avatar;
-
   useEffect(() => {
     if (isFocused) {
       dispatch(getAllPupils());
@@ -54,76 +49,49 @@ export default function AccountScreen({ navigation }) {
         { text: "No", style: "cancel" },
         {
           text: "Yes",
-          onPress: () => confirmRoleChange(pupil.id),
+          onPress: () => {
+            navigation.navigate("HomeScreen", { pupilId: pupil.id });
+          },
         },
       ]
     );
   };
 
-  const handleSwitchToParentRole = async () => {
-    setLoading(true);
-    try {
-      await dispatch(
-        updateUser({ id: userId, data: { role: "user" } })
-      ).unwrap();
-
-      dispatch(
-        setUser({
-          id: userId,
-          role: "user",
-          token,
-          fullName,
-          avatar,
-        })
-      );
-
-      setTimeout(() => {
-        navigation.navigate("StatisticScreen", { userId });
-        setLoading(false);
-      }, 500);
-    } catch (err) {
-      setLoading(false);
-      Alert.alert("Error", "Cannot switch to user role.");
-    }
-  };
-
-  const confirmRoleChange = async (pupilId) => {
-    setLoading(true);
-    try {
-      await dispatch(
-        updateUser({ id: userId, data: { role: "pupil" } })
-      ).unwrap();
-
-      dispatch(
-        setUser({
-          id: userId,
-          role: "pupil",
-          token,
-          fullName,
-          avatar,
-        })
-      );
-
-      setTimeout(() => {
-        navigation.navigate("HomeScreen", { pupilId });
-        setLoading(false);
-      }, 500);
-    } catch (err) {
-      setLoading(false);
-      Alert.alert("Error", "Cannot switch to pupil role.");
-    }
-  };
-  const handleParentSelect = (userId) => {
+  const handleParentSelect = () => {
     setPin(["", "", "", ""]);
     setModalVisible(true);
   };
-  const handleVerifyPin = () => {
+
+  const handleVerifyPin = async () => {
     const enteredPin = pin.join("");
-    if (enteredPin === user.pin) {
-      handleSwitchToParentRole();
-      setModalVisible(false);
-    } else {
-      Alert.alert("Incorrect PIN", "The PIN you entered is incorrect.");
+    if (enteredPin.length < 4) {
+      return Alert.alert("Invalid PIN", "Please enter all 4 digits.");
+    }
+
+    setLoading(true);
+    try {
+      const res = await dispatch(getUserById(userId)).unwrap();
+      const actualPin = res.pin;
+
+      console.log("Entered PIN:", enteredPin);
+      console.log("Fetched PIN:", actualPin);
+
+      if (enteredPin === actualPin) {
+        setModalVisible(false);
+        setTimeout(() => {
+          if (res.role === "user") {
+            navigation.navigate("StatisticScreen", { userId });
+          } else {
+            navigation.navigate("HomeScreen");
+          }
+        }, 300);
+      } else {
+        Alert.alert("Incorrect PIN", "The PIN you entered is incorrect.");
+      }
+    } catch (err) {
+      Alert.alert("Error", "Failed to verify PIN.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -291,12 +259,9 @@ export default function AccountScreen({ navigation }) {
           end={{ x: 0, y: 0 }}
           style={styles.button}
         >
-          <TouchableOpacity onPress={() => handleSwitchToParentRole(userId)}>
+          <TouchableOpacity onPress={handleParentSelect}>
             <Text style={styles.buttonText}>Parent</Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity onPress={() => handleParentSelect(userId)}>
-            <Text style={styles.buttonText}>Parent</Text>
-          </TouchableOpacity> */}
         </LinearGradient>
 
         {filteredPupils.map((user) => (
@@ -325,18 +290,20 @@ export default function AccountScreen({ navigation }) {
           end={{ x: 0, y: 0 }}
           style={styles.addButton}
         >
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => navigation.navigate("CreatePupilAccountScreen")}
           >
             <Ionicons name="person-add" size={36} color={theme.colors.white} />
           </TouchableOpacity>
         </LinearGradient>
       </View>
+
       {loading && (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={theme.colors.white} />
         </View>
       )}
+
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modal}>

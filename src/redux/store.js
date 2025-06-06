@@ -20,7 +20,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["auth", "pupil", "userNotification"],
+  whitelist: ["auth", "pupil"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -44,21 +44,21 @@ export default function LoadingProgressScreen({ navigation }) {
 
   // Handle redirection after loading
   useEffect(() => {
+    if (!user) {
+      navigation.replace("LoginScreen");
+      return;
+    }
     const timer = setTimeout(() => {
       try {
         const decoded = jwt_decode(token);
         const now = Math.floor(Date.now() / 1000);
+
         if (decoded.exp && decoded.exp < now) {
           dispatch(logout());
           navigation.replace("LoginScreen");
           return;
         }
-
-        if (role === "pupil" || role === "user") {
-          navigation.replace("AccountScreen");
-        } else {
-          navigation.replace("LoginScreen");
-        }
+        navigation.replace("AccountScreen");
       } catch {
         dispatch(logout());
         navigation.replace("LoginScreen");
@@ -66,7 +66,7 @@ export default function LoadingProgressScreen({ navigation }) {
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [token, role]);
+  }, [token]);
 
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
