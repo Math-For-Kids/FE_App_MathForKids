@@ -3,5 +3,6 @@
   "exercise_one": "Exercise one",
   "quantity": "Quantity: {{count}} questions",
   "time": "Time: {{minutes}} min",
-  "level": "Level: {{level}}"
+  "level": "Level: {{level}}",
+  "calculation_steps": "Calculation steps"
 }

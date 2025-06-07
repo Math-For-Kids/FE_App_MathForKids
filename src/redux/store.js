@@ -10,6 +10,7 @@ import pupilNotificationReducer from "./pupilNotificationSlice";
 import profileReducer from "./profileSlice";
 import lessonReducer from "./lessonSlice";
 import exerciseReducer from "./exerciseSlice";
+import LessonDetailReducer from "./lessonDetailSlice";
 const rootReducer = combineReducers({
   auth: authReducer,
   pupil: pupilReducer,
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   profile: profileReducer,
   lesson: lessonReducer,
   exercise: exerciseReducer,
+  lessonDetail: LessonDetailReducer,
   // thêm các reducer khác nếu cần
 });
 

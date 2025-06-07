@@ -3,5 +3,6 @@
   "exercise_one": "Bài tập một",
   "quantity": "Số lượng: {{count}} câu hỏi",
   "time": "Thời gian: {{minutes}} phút",
-  "level": "Mức độ: {{level}}"
+  "level": "Mức độ: {{level}}",
+  "calculation_steps": "Các bước tính"
 }

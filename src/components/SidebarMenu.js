@@ -21,10 +21,9 @@ const SidebarMenu = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
-
+  const pupilId = useSelector((state) => state.auth.user?.pupilId);
   const userId = useSelector((state) => state.auth.user?.id);
   const skillName = route.params?.skillName;
-  const pupilId = route.params?.pupilId;
 
   const isPupil = Boolean(pupilId);
   const isParent = !pupilId;

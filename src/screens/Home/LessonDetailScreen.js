@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,101 +8,102 @@ import {
   Dimensions,
   PanResponder,
   ScrollView,
+  Image,
 } from "react-native";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
-
+import { useDispatch, useSelector } from "react-redux";
+import { getEnabledByLesson } from "../../redux/lessonDetailSlice";
+import { useTranslation } from "react-i18next";
+import * as Speech from "expo-speech";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, title } = route.params;
-
-  const lessonData = {
-    define:
-      "Lesson content: Define with lots of information heref bgrbbbgbgbgvgeretrrrrrrrrrrrrrrrrrrrrrrrrrrrrrfgbfgbfgfbgbfgbfgbfgbfbfgfefregregrererertrtertergfghfghfghfghfghfghfghfghgfhghgfrrrrrrreeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeddddddddddddddddddddddddddddddddddddddddddDefine with lots of information heref bgrbbbgbgbgvgeretrrrrrrrrrrrrrrrrrrrrrrrrrrrrrfgbfgbfgfbgbfgbfgbfgbfbfgfefregregrererertrtertergfghfghfghfghfghfghfghfghgfhghgfrrrrrrreeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeedddddddddddddddddddddddddddddddddddddddddddddddddddddddddd...dddddddddddddddd...",
-    example: "Exercise content: Examples and tasks go here...",
-    remember: "Remember content: Review questions and summaries here...",
-  };
-
-  const tabs = ["Lesson", "Exercise", "Remember"];
-  const tabContents = [
-    lessonData.define,
-    lessonData.example,
-    lessonData.remember,
-  ];
+  const { skillName, title, lessonId } = route.params;
+  const dispatch = useDispatch();
+  const { t, i18n } = useTranslation("lesson");
 
   const screenWidth = Dimensions.get("window").width;
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentIndexRef = useRef(0);
+  const position = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
 
-  const position = useRef(new Animated.Value(0)).current;
-  const [content, setContent] = useState(tabContents[0]);
+  const enabledList = useSelector((state) => state.lessonDetail.enabledList);
+  const [content, setContent] = useState("");
+  const [imageUrl, setImageUrl] = useState(null);
+
+  useEffect(() => {
+    if (lessonId) {
+      dispatch(getEnabledByLesson(lessonId));
+    }
+  }, [lessonId]);
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
   useEffect(() => {
     currentIndexRef.current = currentIndex;
-  }, [currentIndex]);
+    const found = enabledList?.find((item) => item.order === currentIndex + 1);
+    setContent(found?.content?.[i18n.language] || "");
+    setImageUrl(found?.image || null);
+  }, [currentIndex, enabledList, i18n.language]);
+  console.log("getEnabledByLesson", enabledList);
+  const tabTitles = useMemo(() => {
+    return Array.isArray(enabledList)
+      ? enabledList
+          .slice()
+          .sort((a, b) => a.order - b.order)
+          .map((item) => item.title?.[i18n.language] || "")
+      : [];
+  }, [enabledList, i18n.language]);
 
   const handleSwipe = (direction) => {
-    const maxIndex = tabContents.length - 1;
-
+    const maxIndex = 2;
+    const indexNow = currentIndexRef.current;
     if (isAnimating.current) return;
 
-    const indexNow = currentIndexRef.current;
+    const newIndex =
+      direction === "left" && indexNow < maxIndex
+        ? indexNow + 1
+        : direction === "right" && indexNow > 0
+        ? indexNow - 1
+        : null;
 
-    if (direction === "left" && indexNow < maxIndex) {
-      const newIndex = indexNow + 1;
-      isAnimating.current = true;
+    if (newIndex === null) return;
+
+    isAnimating.current = true;
+    Animated.timing(position, {
+      toValue: direction === "left" ? -screenWidth : screenWidth,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setCurrentIndex(newIndex);
+      position.setValue(direction === "left" ? screenWidth : -screenWidth);
       Animated.timing(position, {
-        toValue: -screenWidth,
+        toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
-        setCurrentIndex(newIndex);
-        setContent(tabContents[newIndex]);
-        position.setValue(screenWidth);
-        Animated.timing(position, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(() => {
-          isAnimating.current = false;
-        });
+        isAnimating.current = false;
       });
-    } else if (direction === "right" && indexNow > 0) {
-      const newIndex = indexNow - 1;
-      isAnimating.current = true;
-      Animated.timing(position, {
-        toValue: screenWidth,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setCurrentIndex(newIndex);
-        setContent(tabContents[newIndex]);
-        position.setValue(-screenWidth);
-        Animated.timing(position, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(() => {
-          isAnimating.current = false;
-        });
-      });
-    }
+    });
   };
+
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 30,
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx < -100) {
-          handleSwipe("left");
-        } else if (gesture.dx > 100) {
-          handleSwipe("right");
-        }
+        if (gesture.dx < -100) handleSwipe("left");
+        else if (gesture.dx > 100) handleSwipe("right");
       },
     })
   ).current;
+
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
@@ -171,9 +172,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       minHeight: 250,
       maxHeight: 400,
     },
-    lessonTextListContainer: {
-      maxHeight: 400,
-    },
+    lessonTextListContainer: { maxHeight: 400 },
     lessonTextList: {
       fontSize: 20,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -208,10 +207,11 @@ export default function LessonDetailScreen({ navigation, route }) {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.blueDark,
     },
-    linkIcon: {
-      paddingLeft: 10,
-    },
+    linkIcon: { paddingLeft: 10 },
+    imageContainer: { alignItems: "center", marginBottom: 16 },
+    image: { width: 200, height: 200, resizeMode: "contain", borderRadius: 12 },
   });
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
@@ -232,34 +232,44 @@ export default function LessonDetailScreen({ navigation, route }) {
       </LinearGradient>
 
       <LinearGradient colors={getGradient()} style={styles.soundContainer}>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            if (content) {
+              Speech.speak(content, {
+                language: i18n.language === "vi" ? "vi-VN" : "en-US",
+              });
+            }
+          }}
+        >
           <Ionicons name="volume-medium" size={28} color={theme.colors.white} />
         </TouchableOpacity>
       </LinearGradient>
 
       <Animated.View
         {...panResponder.panHandlers}
-        style={[
-          styles.cardLesson,
-          {
-            transform: [{ translateX: position }],
-          },
-        ]}
+        style={[styles.cardLesson, { transform: [{ translateX: position }] }]}
       >
-        <Text style={styles.lessonTitleTextList}>{tabs[currentIndex]}</Text>
+        <Text style={styles.lessonTitleTextList}>
+          {tabTitles?.[currentIndex] || ""}
+        </Text>
 
         <ScrollView style={styles.lessonTextListContainer}>
           <Text style={styles.lessonTextList}>{content}</Text>
+          {imageUrl && (
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: imageUrl }} style={styles.image} />
+            </View>
+          )}
         </ScrollView>
 
-        {tabs[currentIndex] === "Remember" && (
+        {currentIndex === 2 && (
           <TouchableOpacity
             style={[styles.linkButton, styles.linkTextContainer]}
             onPress={() =>
               navigation.navigate("StepByStepScreen", { skillName })
             }
           >
-            <Text style={styles.linkText}>Calculation steps</Text>
+            <Text style={styles.linkText}>{t("calculation_steps")}</Text>
             <Ionicons
               name="arrow-forward"
               size={24}
@@ -269,6 +279,7 @@ export default function LessonDetailScreen({ navigation, route }) {
           </TouchableOpacity>
         )}
       </Animated.View>
+
       <FloatingMenu />
     </View>
   );

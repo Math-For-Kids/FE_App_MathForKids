@@ -14,20 +14,21 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllPupils } from "../redux/pupilSlice";
-import {
-  updateUser,
-  setUser,
-  getUserById,
-  setPupilId,
-} from "../redux/authSlice";
-import { Fonts } from "../../constants/Fonts";
+import { getAllPupils, pupilById } from "../redux/pupilSlice";
+import { getUserById, setPupilId } from "../redux/authSlice";
 import { useIsFocused } from "@react-navigation/native";
+import { useSound } from "../audio/SoundContext";
+import { useTranslation } from "react-i18next";
+import { applySettings } from "../components/applySettings";
+import { Fonts } from "../../constants/Fonts";
 
 export default function AccountScreen({ navigation }) {
-  const { theme } = useTheme();
+  const { theme, switchThemeKey, toggleThemeMode, isDarkMode } = useTheme();
+  const { setVolume } = useSound();
+  const { i18n } = useTranslation();
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
+
   const [loading, setLoading] = useState(false);
   const [pin, setPin] = useState(["", "", "", ""]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -36,17 +37,28 @@ export default function AccountScreen({ navigation }) {
   const user = useSelector((state) => state.auth.user);
   const pupils = useSelector((state) => state.pupil.pupils || []);
   const userId = user?.id;
+  const filteredPupils = pupils.filter(
+    (pupil) => String(pupil.userId) === String(userId)
+  );
+
   useEffect(() => {
     if (isFocused) {
       dispatch(getAllPupils());
     }
   }, [isFocused]);
 
-  const filteredPupils = pupils.filter(
-    (pupil) => String(pupil.userId) === String(userId)
-  );
+  const handleApplySettings = (profile) => {
+    applySettings({
+      ...profile,
+      switchThemeKey,
+      toggleThemeMode,
+      isDarkMode,
+      setVolume,
+      i18n,
+    });
+  };
 
-  const handlePupilSelect = (pupil) => {
+  const handlePupilSelect = async (pupil) => {
     Alert.alert(
       "Confirm",
       `Do you want to play as pupil "${pupil.fullName}"?`,
@@ -54,9 +66,15 @@ export default function AccountScreen({ navigation }) {
         { text: "No", style: "cancel" },
         {
           text: "Yes",
-          onPress: () => {
-            dispatch(setPupilId(pupil.id));
-            navigation.navigate("HomeScreen", { pupilId: pupil.id });
+          onPress: async () => {
+            try {
+              const res = await dispatch(pupilById(pupil.id)).unwrap();
+              handleApplySettings(res);
+              dispatch(setPupilId(pupil.id));
+              navigation.navigate("HomeScreen", { pupilId: pupil.id });
+            } catch (err) {
+              Alert.alert("Error", "Failed to load pupil settings.");
+            }
           },
         },
       ]
@@ -77,19 +95,14 @@ export default function AccountScreen({ navigation }) {
     setLoading(true);
     try {
       const res = await dispatch(getUserById(userId)).unwrap();
-      const actualPin = res.pin;
-
-      console.log("Entered PIN:", enteredPin);
-      console.log("Fetched PIN:", actualPin);
-
-      if (enteredPin === actualPin) {
+      if (enteredPin === res.pin) {
+        handleApplySettings(res);
         setModalVisible(false);
         setTimeout(() => {
-          if (res.role === "user") {
-            navigation.navigate("StatisticScreen", { userId });
-          } else {
-            navigation.navigate("HomeScreen");
-          }
+          navigation.navigate(
+            res.role === "user" ? "StatisticScreen" : "HomeScreen",
+            { userId }
+          );
         }, 300);
       } else {
         Alert.alert("Incorrect PIN", "The PIN you entered is incorrect.");

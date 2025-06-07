@@ -21,7 +21,7 @@ export const updateProfile = createAsyncThunk(
   "profile/update",
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const res = await Api.put(`/user/${id}`, data);
+      const res = await Api.patch(`/user/updateProfile/${id}`, data);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

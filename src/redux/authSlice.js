@@ -1,6 +1,18 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import Api from "../api/api";
 
+//getAll
+export const getAllUser = createAsyncThunk(
+  "profile/fetchAllUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await Api.get("/user");
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 // Get user by userId
 export const getUserById = createAsyncThunk(
   "auth/getUserById",
