@@ -2,7 +2,13 @@ import React, { useEffect } from "react";
 import i18n from "./i18n";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { profileById, pupilById } from "./redux/profileSlice";
+import { useSound } from "./audio/SoundContext";
+import { useTheme } from "./themes/ThemeContext";
+import { applySettings } from "./components/applySettings";
+
+// Screens
 import LoadingScreen from "./screens/LoadingScreen";
 import LoadingProgressScreen from "./screens/LoadingProgressScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -25,6 +31,7 @@ import ChangePinScreen from "./screens/Profile/ChangePinScreen";
 import ProfileScreen from "./screens/Profile/ProfileScreen";
 import DetailScreen from "./screens/Profile/DetailScreen";
 import ProfilePupilDetailScreen from "./screens/Profile/ProfilePupilDetailScreen";
+
 import HomeScreen from "./screens/Home/HomeScreen";
 import SkillScreen from "./screens/Home/SkillScreen";
 import MultiplicationTableScreen from "./screens/Home/MultiplicationTablesScreen";
@@ -42,13 +49,37 @@ import GoalScreen from "./screens/GoalScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
-  const role = user?.role;
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const pupil = useSelector((state) => state.profile.info);
+  const role = user?.role;
+
+  const { switchThemeKey, toggleThemeMode, isDarkMode } = useTheme();
+  const { setVolume } = useSound();
+
   useEffect(() => {
-    const language = user?.language || "en";
-    i18n.changeLanguage(language);
+    if (!user) return;
+    if (role === "pupil" && user.pupilId) {
+      dispatch(pupilById(user.pupilId));
+    } else if (user?.userId) {
+      dispatch(profileById(user.userId));
+    }
   }, [user]);
-  
+
+  useEffect(() => {
+    const settings = role === "pupil" ? pupil : user;
+    if (!settings) return;
+
+    applySettings({
+      ...settings,
+      switchThemeKey,
+      toggleThemeMode,
+      isDarkMode,
+      setVolume,
+      i18n,
+    });
+  }, [role, user, pupil]);
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -70,7 +101,7 @@ export default function AppNavigator() {
           component={NotificationScreen}
         />
 
-        {/* user */}
+        {/* user role */}
         {role === "user" && (
           <>
             <Stack.Screen name="StatisticScreen" component={StatisticScreen} />
@@ -91,7 +122,8 @@ export default function AppNavigator() {
             />
           </>
         )}
-        {/* pupil */}
+
+        {/* shared & pupil */}
         <>
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="SkillScreen" component={SkillScreen} />

@@ -17,7 +17,7 @@ import { getExercisesByGradeAndType } from "../../redux/exerciseSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
-
+import * as Speech from "expo-speech";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, actionType, grade } = route.params;
@@ -165,9 +165,14 @@ export default function LessonScreen({ navigation, route }) {
     lessonIcon: {
       position: "absolute",
       top: -40,
-      left: 0,
+      left: -140,
       width: 30,
       height: 30,
+    },
+    lessonTextContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
     },
     lessonText: {
       color: theme.colors.white,
@@ -234,6 +239,7 @@ export default function LessonScreen({ navigation, route }) {
                   navigation.navigate("LessonDetailScreen", {
                     skillName,
                     title,
+                    lessonId: item.id,
                   });
                 } else if (activeTab === "Exercise") {
                   navigation.navigate("ExerciseScreen", { skillName, title });
@@ -255,11 +261,25 @@ export default function LessonScreen({ navigation, route }) {
                 end={{ x: 0, y: 0 }}
               >
                 <View style={styles.lessonContent}>
-                  <Image
-                    source={theme.icons.soundOn}
-                    style={styles.lessonIcon}
-                  />
-                  <Text style={styles.lessonText}>{title}</Text>
+                  <View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const speakText =
+                          item.name?.[i18n.language] ||
+                          item.name?.en ||
+                          item.title;
+                        Speech.speak(speakText, { language: i18n.language });
+                      }}
+                    >
+                      <Image
+                        source={theme.icons.soundOn}
+                        style={styles.lessonIcon}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.lessonTextContainer}>
+                    <Text style={styles.lessonText}>{title}</Text>
+                  </View>
                   {activeTab === "Test" && (
                     <View style={styles.lessonTestTextContainer}>
                       <Text style={styles.lessonTestText}>

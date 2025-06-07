@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
-  Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
@@ -141,7 +140,16 @@ export default function ContactScreen({ navigation }) {
             >
               <View style={styles.leftContainer}>
                 <View style={styles.avatarContainer}>
-                  <Image source={item.avatar} style={styles.avatar} />
+                  <Image
+                    source={
+                      item.image
+                        ? { uri: item.image }
+                        : item.gender === "female"
+                        ? theme.icons.avatarFemale
+                        : theme.icons.avatarMale
+                    }
+                    style={styles.avatar}
+                  />
                 </View>
                 <Text style={styles.name}>{item.fullName}</Text>
               </View>

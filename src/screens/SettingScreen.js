@@ -6,7 +6,7 @@ import { Fonts } from "../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
 import { useSound } from "../audio/SoundContext";
 import FloatingMenu from "../components/FloatingMenu";
-import { updateUser } from "../redux/authSlice";
+import { updateProfile, updatePupilProfile } from "../redux/profileSlice";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -15,13 +15,34 @@ export default function SettingScreen({ navigation }) {
     useTheme();
   const { volume, increaseVolume, decreaseVolume } = useSound();
   const { t, i18n } = useTranslation("setting");
-  const user = useSelector((state) => state.auth.user);
+
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  console.log("userId", user.id);
+  console.log("pupilId", pupilId);
+  const profile = pupilId?.userId ? pupilId : user;
+  const updateUserOrPupil = (data) => {
+    if (pupilId) {
+      dispatch(updatePupilProfile({ id: pupilId, data }));
+    } else if (user?.userId) {
+      dispatch(updateProfile({ id: user.userId, data }));
+    } else {
+      console.warn("No valid user ID found!");
+    }
+  };
+  const handleVolumeChange = (change) => {
+    const newVolume = Math.max(0, Math.min(1, volume + change));
+    if (change > 0) increaseVolume();
+    else decreaseVolume();
+
+    const volumeNumber = Math.round(newVolume * 100);
+    updateUserOrPupil({ volume: volumeNumber });
+  };
 
   const switchLanguage = async (newLang) => {
-    console.log("Changing to language:", newLang);
     await i18n.changeLanguage(newLang);
-    await dispatch(updateUser({ id: user.id, data: { language: newLang } }));
+    updateUserOrPupil({ language: newLang });
   };
 
   const toggleLanguage = () => {
@@ -29,6 +50,37 @@ export default function SettingScreen({ navigation }) {
     switchLanguage(newLang);
   };
 
+  const handleToggleMode = () => {
+    const newMode = isDarkMode ? "light" : "dark";
+    toggleThemeMode();
+    updateUserOrPupil({ mode: newMode });
+  };
+
+  const themeKeyToNumber = (key) => {
+    switch (key) {
+      case "theme1":
+        return 1;
+      case "theme2":
+        return 2;
+      case "theme3":
+        return 3;
+      default:
+        return 1;
+    }
+  };
+  const handleSwitchTheme = () => {
+    const nextThemeKey =
+      themeKey === "theme1"
+        ? "theme2"
+        : themeKey === "theme2"
+        ? "theme3"
+        : "theme1";
+
+    switchThemeKey(nextThemeKey);
+    const themeNumber = themeKeyToNumber(nextThemeKey);
+    updateUserOrPupil({ theme: themeNumber }); 
+  };
+  if (!profile) return null;
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -97,7 +149,6 @@ export default function SettingScreen({ navigation }) {
       color: theme.colors.white,
     },
   });
-
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <LinearGradient
@@ -122,7 +173,7 @@ export default function SettingScreen({ navigation }) {
         {t("volume", { value: (volume * 100).toFixed(0) })}
       </Text>
       <View style={styles.selectorRow}>
-        <TouchableOpacity onPress={decreaseVolume}>
+        <TouchableOpacity onPress={() => handleVolumeChange(-0.34)}>
           <Ionicons
             name="caret-back-outline"
             size={30}
@@ -145,7 +196,7 @@ export default function SettingScreen({ navigation }) {
             />
           ))}
         </View>
-        <TouchableOpacity onPress={increaseVolume}>
+        <TouchableOpacity onPress={() => handleVolumeChange(+0.34)}>
           <Ionicons
             name="caret-forward-outline"
             size={30}
@@ -180,7 +231,7 @@ export default function SettingScreen({ navigation }) {
 
       <Text style={styles.sectionTitle}>{t("mode")}</Text>
       <View style={styles.selectorRow}>
-        <TouchableOpacity onPress={toggleThemeMode}>
+        <TouchableOpacity onPress={handleToggleMode}>
           <Ionicons
             name="caret-back-outline"
             size={30}
@@ -196,7 +247,7 @@ export default function SettingScreen({ navigation }) {
             {isDarkMode ? t("dark") : t("light")}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={toggleThemeMode}>
+        <TouchableOpacity onPress={handleToggleMode}>
           <Ionicons
             name="caret-forward-outline"
             size={30}
@@ -228,17 +279,7 @@ export default function SettingScreen({ navigation }) {
               : t("super_hero")}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() =>
-            switchThemeKey(
-              themeKey === "theme1"
-                ? "theme2"
-                : themeKey === "theme2"
-                ? "theme3"
-                : "theme1"
-            )
-          }
-        >
+        <TouchableOpacity onPress={handleSwitchTheme}>
           <Ionicons
             name="caret-forward-outline"
             size={30}

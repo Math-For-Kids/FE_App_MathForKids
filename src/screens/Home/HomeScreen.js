@@ -45,7 +45,7 @@ export default function HomeScreen({ navigation, route }) {
   const filteredPupils = pupils.find(
     (pupil) => String(pupil.id) === String(pupilId)
   );
-
+  console.log("filteredPupils", filteredPupils);
   useEffect(() => {
     if (filteredPupils?.grade) {
       setSelectedGrade(String(filteredPupils.grade));
@@ -79,7 +79,7 @@ export default function HomeScreen({ navigation, route }) {
         label: "Multiplication",
         route: "SkillScreen",
       },
-      { icon: theme.icons.division, label: "Mivision", route: "SkillScreen" },
+      { icon: theme.icons.division, label: "Division", route: "SkillScreen" },
       {
         icon: theme.icons.multiplicationTables,
         label: "Expression",
@@ -244,7 +244,16 @@ export default function HomeScreen({ navigation, route }) {
               style={styles.avatarContainer}
               onPress={() => navigation.navigate("ProfileScreen", { pupilId })}
             >
-              <Image source={filteredPupils?.avatar} style={styles.avatar} />
+              <Image
+                source={
+                  filteredPupils?.image
+                    ? { uri: filteredPupils?.image }
+                    : filteredPupils?.gender === "female"
+                    ? theme.icons.avatarFemale
+                    : theme.icons.avatarMale
+                }
+                style={styles.avatar}
+              />
             </TouchableOpacity>
             <View>
               <Text style={styles.greeting}>{t("hello")}</Text>
