@@ -8,12 +8,16 @@ import pupilReducer from "./pupilSlice";
 import userNotificationReducer from "./userNotificationSlice";
 import pupilNotificationReducer from "./pupilNotificationSlice";
 import profileReducer from "./profileSlice";
+import lessonReducer from "./lessonSlice";
+import exerciseReducer from "./exerciseSlice";
 const rootReducer = combineReducers({
   auth: authReducer,
   pupil: pupilReducer,
   notifications: userNotificationReducer,
   pupilnotifications: pupilNotificationReducer,
   profile: profileReducer,
+  lesson: lessonReducer,
+  exercise: exerciseReducer,
   // thêm các reducer khác nếu cần
 });
 

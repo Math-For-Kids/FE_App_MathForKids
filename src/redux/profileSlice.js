@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import Api from "../api/api";
 
+// ==================== USER ====================
+
 // Lấy thông tin người dùng theo ID
 export const profileById = createAsyncThunk(
   "profile/fetchById",
@@ -14,7 +16,7 @@ export const profileById = createAsyncThunk(
   }
 );
 
-//Cập nhật thông tin người dùng
+// Cập nhật thông tin người dùng
 export const updateProfile = createAsyncThunk(
   "profile/update",
   async ({ id, data }, { rejectWithValue }) => {
@@ -27,7 +29,7 @@ export const updateProfile = createAsyncThunk(
   }
 );
 
-// UPLOAD AVATAR (multipart/form-data)
+// Upload avatar người dùng
 export const uploadAvatar = createAsyncThunk(
   "profile/uploadAvatar",
   async ({ id, uri }, { rejectWithValue }) => {
@@ -48,7 +50,7 @@ export const uploadAvatar = createAsyncThunk(
         },
       });
 
-      return res.data.avatar; 
+      return res.data.avatar;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || err.message || "Upload failed"
@@ -56,6 +58,66 @@ export const uploadAvatar = createAsyncThunk(
     }
   }
 );
+
+// ==================== PUPIL ====================
+
+// Lấy thông tin học sinh theo ID
+export const pupilById = createAsyncThunk(
+  "profile/fetchPupilById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/pupil/${id}`);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Cập nhật thông tin học sinh
+export const updatePupilProfile = createAsyncThunk(
+  "profile/updatePupil",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await Api.patch(`/pupil/updateProfile/${id}`, data);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Upload avatar học sinh
+export const uploadPupilAvatar = createAsyncThunk(
+  "profile/uploadPupilAvatar",
+  async ({ id, uri }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      const fileName = uri.split("/").pop();
+      const fileType = fileName.split(".").pop();
+
+      formData.append("image", {
+        uri,
+        name: fileName,
+        type: `image/${fileType}`,
+      });
+
+      const res = await Api.patch(`/pupil/updateImageProfile/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return res.data.avatar;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.message || "Upload failed"
+      );
+    }
+  }
+);
+
+// ==================== SLICE ====================
 
 const profileSlice = createSlice({
   name: "profile",
@@ -77,7 +139,7 @@ const profileSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Lấy profile
+      // --- USER ---
       .addCase(profileById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -91,34 +153,68 @@ const profileSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Cập nhật profile
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.loading = false;
-        if (state.info) {
-          Object.assign(state.info, action.payload);
-        }
+        if (state.info) Object.assign(state.info, action.payload);
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // Upload avatar
       .addCase(uploadAvatar.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(uploadAvatar.fulfilled, (state, action) => {
         state.loading = false;
-        if (state.info) {
-          state.info.avatar = action.payload;
-        }
+        if (state.info) state.info.avatar = action.payload;
       })
       .addCase(uploadAvatar.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // --- PUPIL ---
+      .addCase(pupilById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(pupilById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.info = action.payload;
+      })
+      .addCase(pupilById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updatePupilProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatePupilProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.info) Object.assign(state.info, action.payload);
+      })
+      .addCase(updatePupilProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(uploadPupilAvatar.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(uploadPupilAvatar.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.info) state.info.avatar = action.payload;
+      })
+      .addCase(uploadPupilAvatar.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -126,4 +222,5 @@ const profileSlice = createSlice({
 });
 
 export const { clearProfile, setAvatar } = profileSlice.actions;
+
 export default profileSlice.reducer;

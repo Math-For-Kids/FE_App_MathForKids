@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -12,43 +12,43 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { ProgressBar } from "react-native-paper";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { pupilById } from "../../redux/profileSlice";
 export default function ProfileScreen({ navigation }) {
   const { theme } = useTheme();
+  const { t } = useTranslation("profile");
+  const { t: c } = useTranslation("common");
+  const dispatch = useDispatch();
+  const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  const pupil = useSelector((state) => state.profile.info);
+  console.log("pupil", pupil);
+  useEffect(() => {
+    if (pupilId) {
+      dispatch(pupilById(pupilId));
+    }
+  }, [pupilId]);
 
-  const user = {
-    name: "Nguyen Thi Hong",
-    class: "Class 3",
-    avatar: theme.icons.avatarFemale,
-  };
+  const avatar = pupil?.image
+    ? { uri: pupil.image }
+    : pupil?.gender === "female"
+    ? theme.icons.avatarFemale
+    : theme.icons.avatarMale;
 
   const achievements = [
-    {
-      icon: theme.icons.achievement,
-      label: "Top",
-      value: "1",
-    },
-    {
-      icon: theme.icons.point,
-      label: "Point",
-      value: "1500",
-    },
-    {
-      icon: theme.icons.time,
-      label: "Time",
-      value: "2h",
-    },
-    {
-      icon: theme.icons.badge,
-      label: "Badge",
-      value: "3",
-    },
+    { icon: theme.icons.achievement, label: t("top"), value: "1" },
+    { icon: theme.icons.point, label: t("point"), value: "1500" },
+    { icon: theme.icons.time, label: t("time"), value: "2h" },
+    { icon: theme.icons.badge, label: t("badge"), value: "3" },
   ];
+
   const progressData = {
     lesson: 0.01,
     exercise: 0.6,
     test: 0.4,
     mission: 0.7,
   };
+
   const renderProgressBar = (label, progress, key) => (
     <View key={key}>
       <Text style={styles.progressTitle}>{label}</Text>
@@ -62,6 +62,7 @@ export default function ProfileScreen({ navigation }) {
       )}%`}</Text>
     </View>
   );
+
   const handleDetail = () => {
     navigation.navigate("ProfilePupilDetailScreen");
   };
@@ -228,24 +229,20 @@ export default function ProfileScreen({ navigation }) {
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.title}>{t("Profile")}</Text>
       </LinearGradient>
       <ScrollView>
         <View style={styles.userInfo}>
           <View style={styles.avatarContainer}>
-            <Image
-              source={user.avatar}
-              style={styles.avatar}
-              resizeMode="contain"
-            />
+            <Image source={avatar} style={styles.avatar} resizeMode="contain" />
           </View>
           <View>
-            <Text style={styles.name}>{user.name}</Text>
-            <Text style={styles.text}>{user.class}</Text>
+            <Text style={styles.name}>{pupil?.fullName}</Text>
+            <Text style={styles.text}>Grade: {pupil?.grade}</Text>
           </View>
         </View>
         <View style={styles.achievementTagContainer}>
-          <Text style={styles.achievementTagText}>Achievements</Text>
+          <Text style={styles.achievementTagText}>{t("Achievements")}</Text>
         </View>
         <View style={styles.achievements}>
           {achievements.map((item, index) => (
@@ -266,11 +263,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
         <View style={styles.progressContainer}>
           {Object.entries(progressData).map(([key, progress]) =>
-            renderProgressBar(
-              `${key.charAt(0).toUpperCase() + key.slice(1)} Progress`,
-              progress,
-              key
-            )
+            renderProgressBar(`${c(key)} ${t("progress")}`, progress, key)
           )}
         </View>
       </ScrollView>
@@ -280,7 +273,7 @@ export default function ProfileScreen({ navigation }) {
             style={styles.detailButton}
             colors={theme.colors.gradientBlue}
           >
-            <Text style={styles.detailText}>Detail</Text>
+            <Text style={styles.detailText}>{t("detail")}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

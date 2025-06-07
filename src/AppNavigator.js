@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import i18n from "./i18n";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useSelector } from "react-redux";
@@ -41,8 +42,13 @@ import GoalScreen from "./screens/GoalScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
-  const role = useSelector((state) => state.auth.user?.role);
-
+  const role = user?.role;
+  const user = useSelector((state) => state.auth.user);
+  useEffect(() => {
+    const language = user?.language || "en";
+    i18n.changeLanguage(language);
+  }, [user]);
+  
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>

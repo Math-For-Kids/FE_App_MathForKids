@@ -25,8 +25,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 export default function NotificationScreen({ navigation, route }) {
   const { theme, isDarkMode } = useTheme();
-  const { pupilId } = route.params || {};
-  console.log("pupilId", pupilId);
+  const { userId, pupilId } = route.params || {};
+  console.log("userId", userId);
   const [expandedId, setExpandedId] = useState(null);
   const user = useSelector((state) => state.auth.user);
   const userNotifications = useSelector(
@@ -38,7 +38,7 @@ export default function NotificationScreen({ navigation, route }) {
   const notificationsToDisplay = pupilId
     ? pupilNotifications
     : userNotifications;
-  console.log("🔔 Notifications to display:", notificationsToDisplay);
+  console.log("🔔 Notifications to display:", pupilNotifications);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -46,14 +46,13 @@ export default function NotificationScreen({ navigation, route }) {
   useEffect(() => {
     if (isFocused) {
       console.log("👦 pupilId:", pupilId);
-      console.log("👤 userId:", user?.id);
       if (pupilId) {
         dispatch(notificationsByPupilId(pupilId));
-      } else if (user?.id) {
-        dispatch(notificationsByUserId(user.id));
+      } else if (userId) {
+        dispatch(notificationsByUserId(userId));
       }
     }
-  }, [isFocused, pupilId, user?.id]);
+  }, [isFocused, pupilId, userId]);
 
   const handlePress = async (id) => {
     const selected = notificationsToDisplay.find((n) => n.id === id);

@@ -4,16 +4,20 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
+
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon } = route.params;
+  const { skillName, skillIcon, grade } = route.params;
+  const { t } = useTranslation("common");
 
   const actions = [
-    { label: "Lesson", icon: theme.icons.lesson },
-    { label: "Exercise", icon: theme.icons.exercise },
-    { label: "Test", icon: theme.icons.test },
-    { label: "Game", icon: theme.icons.game },
+    { label: "lesson", icon: theme.icons.lesson },
+    { label: "exercise", icon: theme.icons.exercise },
+    { label: "test", icon: theme.icons.test },
+    { label: "game", icon: theme.icons.game },
   ];
+
   const getGradientBySkill = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
@@ -127,12 +131,15 @@ export default function SkillScreen({ navigation, route }) {
             <TouchableOpacity
               style={styles.cardTouchable}
               onPress={() => {
-                if (action.label === "Game") {
+                if (action.label === "game") {
                   navigation.navigate("GameScreen", { skillName });
                 } else {
                   navigation.navigate("LessonScreen", {
                     skillName,
-                    actionType: action.label,
+                    actionType:
+                      action.label.charAt(0).toUpperCase() +
+                      action.label.slice(1), // capitalized for backend
+                    grade,
                   });
                 }
               }}
@@ -140,7 +147,7 @@ export default function SkillScreen({ navigation, route }) {
               <View style={styles.cardIconContainer}>
                 <Image source={action.icon} style={styles.cardIcon} />
               </View>
-              <Text style={styles.cardLabel}>{action.label}</Text>
+              <Text style={styles.cardLabel}>{t(action.label)}</Text>
             </TouchableOpacity>
           </LinearGradient>
         ))}

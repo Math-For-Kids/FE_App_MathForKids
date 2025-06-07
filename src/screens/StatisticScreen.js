@@ -484,7 +484,9 @@ export default function StatisticScreen({ navigation }) {
             </View>
           </View>
           <TouchableOpacity
-            onPress={() => navigation.navigate("NotificationScreen")}
+            onPress={() =>
+              navigation.navigate("NotificationScreen", { userId: users.id })
+            }
           >
             <View style={styles.notificationContainer}>
               {newNotificationCount > 0 && (

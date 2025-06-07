@@ -6,10 +6,29 @@ import { Fonts } from "../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
 import { useSound } from "../audio/SoundContext";
 import FloatingMenu from "../components/FloatingMenu";
+import { updateUser } from "../redux/authSlice";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
 export default function SettingScreen({ navigation }) {
   const { theme, isDarkMode, themeKey, toggleThemeMode, switchThemeKey } =
     useTheme();
   const { volume, increaseVolume, decreaseVolume } = useSound();
+  const { t, i18n } = useTranslation("setting");
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
+
+  const switchLanguage = async (newLang) => {
+    console.log("Changing to language:", newLang);
+    await i18n.changeLanguage(newLang);
+    await dispatch(updateUser({ id: user.id, data: { language: newLang } }));
+  };
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "vi" : "en";
+    switchLanguage(newLang);
+  };
+
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -61,10 +80,6 @@ export default function SettingScreen({ navigation }) {
       width: 50,
       height: 15,
       borderRadius: 10,
-      shadowColor: theme.colors.shadowDark,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.6,
-      shadowRadius: 4,
       elevation: 6,
     },
     languageContainer: { flexDirection: "row", alignItems: "center", gap: 10 },
@@ -82,6 +97,7 @@ export default function SettingScreen({ navigation }) {
       color: theme.colors.white,
     },
   });
+
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <LinearGradient
@@ -98,10 +114,13 @@ export default function SettingScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Setting</Text>
+        <Text style={styles.title}>{t("setting")}</Text>
       </LinearGradient>
-      <Text style={styles.sectionTitle}>Music</Text>
-      <Text style={styles.volume}>Volume: {(volume * 100).toFixed(0)}%</Text>
+
+      <Text style={styles.sectionTitle}>{t("music")}</Text>
+      <Text style={styles.volume}>
+        {t("volume", { value: (volume * 100).toFixed(0) })}
+      </Text>
       <View style={styles.selectorRow}>
         <TouchableOpacity onPress={decreaseVolume}>
           <Ionicons
@@ -134,9 +153,10 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
       </View>
-      <Text style={styles.sectionTitle}>Language</Text>
+
+      <Text style={styles.sectionTitle}>{t("language")}</Text>
       <View style={styles.selectorRow}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={toggleLanguage}>
           <Ionicons
             name="caret-back-outline"
             size={30}
@@ -145,9 +165,11 @@ export default function SettingScreen({ navigation }) {
         </TouchableOpacity>
         <View style={styles.languageContainer}>
           <Image source={theme.icons.languageEnglish} style={styles.flagIcon} />
-          <Text style={styles.languageText}>English</Text>
+          <Text style={styles.languageText}>
+            {i18n.language === "en" ? t("english") : t("vietnamese")}
+          </Text>
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={toggleLanguage}>
           <Ionicons
             name="caret-forward-outline"
             size={30}
@@ -155,7 +177,8 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
       </View>
-      <Text style={styles.sectionTitle}>Mode</Text>
+
+      <Text style={styles.sectionTitle}>{t("mode")}</Text>
       <View style={styles.selectorRow}>
         <TouchableOpacity onPress={toggleThemeMode}>
           <Ionicons
@@ -170,7 +193,7 @@ export default function SettingScreen({ navigation }) {
             style={styles.darkIcon}
           />
           <Text style={styles.darkModeText}>
-            {isDarkMode ? "Dark" : "Light"}
+            {isDarkMode ? t("dark") : t("light")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={toggleThemeMode}>
@@ -181,7 +204,8 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
       </View>
-      <Text style={styles.sectionTitle}>Theme</Text>
+
+      <Text style={styles.sectionTitle}>{t("theme")}</Text>
       <View style={styles.selectorRow}>
         <TouchableOpacity
           onPress={() =>
@@ -198,22 +222,22 @@ export default function SettingScreen({ navigation }) {
           <Image source={theme.icons.graphic} style={styles.darkIcon} />
           <Text style={styles.darkModeText}>
             {themeKey === "theme1"
-              ? "Capybara"
+              ? t("capybara")
               : themeKey === "theme2"
-              ? "Animal"
-              : "Super Hero"}
+              ? t("animal")
+              : t("super_hero")}
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => {
+          onPress={() =>
             switchThemeKey(
               themeKey === "theme1"
                 ? "theme2"
                 : themeKey === "theme2"
                 ? "theme3"
                 : "theme1"
-            );
-          }}
+            )
+          }
         >
           <Ionicons
             name="caret-forward-outline"
@@ -222,6 +246,7 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
       </View>
+
       <FloatingMenu />
     </LinearGradient>
   );

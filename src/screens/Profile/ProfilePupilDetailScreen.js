@@ -9,56 +9,76 @@ import {
   Modal,
   TextInput,
   Alert,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  profileById,
-  updateProfile,
-  uploadAvatar,
+  pupilById,
+  updatePupilProfile,
+  uploadPupilAvatar,
 } from "../../redux/profileSlice";
 import * as ImagePicker from "expo-image-picker";
 import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 export default function ProfilePupilScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
-
+  const { t } = useTranslation("profile");
+  const { t: c } = useTranslation("common");
   const [modalVisible, setModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [currentField, setCurrentField] = useState("");
   const [newAvatar, setNewAvatar] = useState(null);
   const [refreshProfile, setRefreshProfile] = useState(false);
   const [editedProfile, setEditedProfile] = useState({});
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDateField, setCurrentDateField] = useState(null);
 
-  const users = useSelector((state) => state.auth.user);
-  const profile = useSelector((state) => state.profile.info || {});
+  const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  const pupil = useSelector((state) => state.profile.info);
 
   useEffect(() => {
-    if (isFocused) {
-      dispatch(profileById(users.id));
+    if (pupilId) {
+      dispatch(pupilById(pupilId));
     }
-  }, [isFocused, users?.id, refreshProfile]);
+  }, [pupilId]);
 
   useEffect(() => {
-    const formattedDate = profile?.dateOfBirth?.seconds
-      ? new Date(profile.dateOfBirth.seconds * 1000).toISOString().split("T")[0]
-      : "";
+    if (isFocused && pupilId) {
+      dispatch(pupilById(pupilId));
+    }
+  }, [isFocused, pupilId, refreshProfile]);
+
+  useEffect(() => {
+    const dobSeconds = pupil?.dateOfBirth?.seconds;
+
+    const formattedDate =
+      dobSeconds && dobSeconds > 0
+        ? new Date(dobSeconds * 1000).toISOString().split("T")[0] // ISO: "2025-06-07"
+        : "";
 
     setEditedProfile({
-      fullName: profile.fullName || "none",
-      nickName: profile.nickName || "none",
-      Grade: profile.grade || "none",
+      fullName: pupil.fullName || "none",
+      nickName: pupil.nickName || "none",
+      Grade: pupil.grade || "none",
       dateOfBirth: formattedDate,
-      gender: profile.gender || "none",
-      address: profile.address || "none",
+      gender: pupil.gender || "none",
+      grade: pupil.grade || "none",
     });
-  }, [profile]);
+  }, [pupil]);
+  const formatDateString = (isoStr) => {
+    if (!isoStr) return "";
+    const date = new Date(isoStr);
+    return isNaN(date) ? "" : date.toLocaleDateString("vi-VN");
+  };
 
   const handleChange = (field, value) => {
     setEditedProfile((prev) => ({ ...prev, [field]: value }));
@@ -76,38 +96,70 @@ export default function ProfilePupilScreen({ navigation }) {
       setNewAvatar(uri);
 
       try {
-        await dispatch(uploadAvatar({ id: users.id, uri })).unwrap();
-        dispatch(profileById(users.id));
-        Alert.alert("Success", "Avatar updated!");
+        await dispatch(uploadPupilAvatar({ id: pupilId, uri })).unwrap();
+        dispatch(pupilById(pupilId));
+        Alert.alert(c("success"), t("avatarUpdated"));
       } catch (error) {
-        Alert.alert("Upload failed", error);
+        Alert.alert(c("error"), error.message || error);
       }
+    }
+  };
+  const handlePickerDate = (fieldName) => {
+    setCurrentDateField(fieldName);
+    setShowDatePicker(true);
+  };
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate && currentDateField) {
+      const selectedYear = selectedDate.getFullYear();
+      const currentYear = new Date().getFullYear();
+
+      const age = currentYear - selectedYear;
+
+      // 1. Kiểm tra nhỏ hơn 8 tuổi
+      if (age < 8) {
+        Alert.alert("Lỗi", "Năm sinh phải nhỏ hơn năm hiện tại ít nhất 8 năm.");
+        return;
+      }
+
+      // 2. Kiểm tra lớn hơn 100 tuổi
+      if (age > 100) {
+        Alert.alert("Lỗi", "Tuổi không được vượt quá 100.");
+        return;
+      }
+
+      handleChange(currentDateField, selectedDate.toISOString().split("T")[0]);
     }
   };
 
   const handleSave = async () => {
     try {
       await dispatch(
-        updateProfile({ id: users.id, data: editedProfile })
+        updatePupilProfile({ id: pupilId, data: editedProfile })
       ).unwrap();
       setRefreshProfile((prev) => !prev);
-      Alert.alert("Success", "Profile updated successfully!");
+      Alert.alert(c("success"), t("updateSuccess"));
       setModalVisible(false);
     } catch (error) {
-      Alert.alert("Error", "Failed to update profile");
+      Alert.alert(c("error"), t("updateFailed"));
     }
   };
 
   const userFields = [
-    { label: "Full name", fieldName: "fullName", type: "text" },
-    { label: "Birthday", fieldName: "dateOfBirth", type: "text" },
+    { label: t("profile:fullName"), fieldName: "fullName", type: "text" },
+    { label: t("profile:birthday"), fieldName: "dateOfBirth", type: "date" },
     {
-      label: "Gender",
+      label: t("profile:gender"),
       fieldName: "gender",
       type: "dropdown",
-      options: ["Male", "Female"],
+      options: [t("common:male"), t("common:female")],
     },
-    { label: "Address", fieldName: "address", type: "text" },
+    {
+      label: t("profile:grade"),
+      fieldName: "grade",
+      type: "dropdown",
+      options: ["1", "2", "3"],
+    },
   ];
 
   const styles = StyleSheet.create({
@@ -348,7 +400,7 @@ export default function ProfilePupilScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>My profile</Text>
+        <Text style={styles.title}>{t("profile:title")}</Text>
       </LinearGradient>
 
       {/* Content */}
@@ -357,11 +409,12 @@ export default function ProfilePupilScreen({ navigation }) {
           <View style={styles.avatarContainer}>
             <Image
               source={
-                profile.avatar
-                  ? { uri: profile.avatar }
-                  : theme.icons.avatarFemale
+                pupil?.image
+                  ? { uri: pupil.image }
+                  : pupil?.gender === "female"
+                  ? theme.icons.avatarFemale
+                  : theme.icons.avatarMale
               }
-              style={styles.avatarImage}
             />
           </View>
         </View>
@@ -377,6 +430,18 @@ export default function ProfilePupilScreen({ navigation }) {
           </View>
         ))}
       </ScrollView>
+      {showDatePicker && (
+        <DateTimePicker
+          value={
+            editedProfile.dateOfBirth
+              ? new Date(editedProfile.dateOfBirth)
+              : new Date()
+          }
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "calendar"}
+          onChange={handleDateChange}
+        />
+      )}
       {/* Edit Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -384,15 +449,17 @@ export default function ProfilePupilScreen({ navigation }) {
             <ScrollView>
               <View style={styles.carModalContainer}>
                 <View style={styles.carModal}>
-                  <Text style={styles.textModal}>Edit Profile</Text>
+                  <Text style={styles.textModal}>
+                    {t("profile:editProfile")}
+                  </Text>
                   <View style={styles.avatarWrapperModel}>
                     <TouchableOpacity onPress={handlePickImage}>
                       <Image
                         source={
                           newAvatar
                             ? { uri: newAvatar }
-                            : profile.avatar
-                            ? { uri: profile.avatar }
+                            : pupil?.avatar
+                            ? { uri: pupil.avatar }
                             : theme.icons.avatarFemale
                         }
                         style={styles.avatar}
@@ -407,7 +474,6 @@ export default function ProfilePupilScreen({ navigation }) {
                   />
                 </View>
               </View>
-
               {userFields.map((field, index) => (
                 <View key={index} style={styles.inputGroup}>
                   <View
@@ -431,7 +497,8 @@ export default function ProfilePupilScreen({ navigation }) {
                         style={styles.dropdownButton}
                       >
                         <Text style={styles.dropdownButtonText}>
-                          {editedProfile[field.fieldName] || "Select option..."}
+                          {editedProfile[field.fieldName] ||
+                            t("common:selectOption")}
                         </Text>
                       </TouchableOpacity>
                       {menuVisible && currentField === field.fieldName && (
@@ -451,6 +518,17 @@ export default function ProfilePupilScreen({ navigation }) {
                         </View>
                       )}
                     </>
+                  ) : field.type === "date" ? (
+                    <TouchableOpacity
+                      onPress={() => handlePickerDate(field.fieldName)}
+                      style={[styles.inputBox, { justifyContent: "center" }]}
+                    >
+                      <Text style={styles.inputTextBox}>
+                        {editedProfile[field.fieldName]
+                          ? formatDateString(editedProfile[field.fieldName])
+                          : t("common:selectDate")}
+                      </Text>
+                    </TouchableOpacity>
                   ) : (
                     <View
                       style={[
@@ -486,7 +564,9 @@ export default function ProfilePupilScreen({ navigation }) {
                             color: theme.colors.graySoft,
                           },
                         ]}
-                        placeholder={`Enter ${field.label.toLowerCase()}`}
+                        placeholder={t("profile:placeholder", {
+                          field: field.label.toLowerCase(),
+                        })}
                         placeholderTextColor={theme.colors.grayMedium}
                       />
 
@@ -505,7 +585,9 @@ export default function ProfilePupilScreen({ navigation }) {
                           }}
                           style={styles.editChangeButtonContainer}
                         >
-                          <Text style={styles.editChangeTextButton}>Edit</Text>
+                          <Text style={styles.editChangeTextButton}>
+                            {t("common:edit")}
+                          </Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -516,26 +598,28 @@ export default function ProfilePupilScreen({ navigation }) {
 
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-                <Text style={styles.buttonText}>Save</Text>
+                <Text style={styles.buttonText}>{t("common:save")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.cancelButton}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{t("common:cancel")}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <LinearGradient
           colors={theme.colors.gradientBlue}
           style={styles.editButton}
         >
-          <Text style={styles.fieldLabel}>Edit</Text>
+          <Text style={styles.fieldLabel}>{t("common:edit")}</Text>
         </LinearGradient>
       </TouchableOpacity>
+
       <FloatingMenu />
     </LinearGradient>
   );

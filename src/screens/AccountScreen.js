@@ -15,7 +15,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllPupils } from "../redux/pupilSlice";
-import { updateUser, setUser, getUserById } from "../redux/authSlice";
+import {
+  updateUser,
+  setUser,
+  getUserById,
+  setPupilId,
+} from "../redux/authSlice";
 import { Fonts } from "../../constants/Fonts";
 import { useIsFocused } from "@react-navigation/native";
 
@@ -50,6 +55,7 @@ export default function AccountScreen({ navigation }) {
         {
           text: "Yes",
           onPress: () => {
+            dispatch(setPupilId(pupil.id));
             navigation.navigate("HomeScreen", { pupilId: pupil.id });
           },
         },

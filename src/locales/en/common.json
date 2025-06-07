@@ -1,0 +1,16 @@
+{
+  "lesson": "Lesson",
+  "exercise": "Exercise",
+  "test": "Test",
+  "game": "Game",
+  "mission": "Mission",
+
+  "edit": "Edit",
+  "save": "Save",
+  "cancel": "Cancel",
+  "success": "Success",
+  "error": "Error",
+  "selectOption": "Select option...",
+  "male": "Male",
+  "female": "Female"
+}

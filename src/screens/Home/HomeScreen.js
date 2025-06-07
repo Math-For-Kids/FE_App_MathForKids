@@ -16,60 +16,90 @@ import { getAllPupils } from "../../redux/pupilSlice";
 import { notificationsByPupilId } from "../../redux/pupilNotificationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useIsFocused } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 export default function HomeScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { pupilId } = route.params || {};
-
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
+
+  const { t } = useTranslation("home");
 
   const pupils = useSelector((state) => state.pupil.pupils || []);
   const pupilNotifications = useSelector(
     (state) => state.pupilnotifications.list || []
   );
+
+  const [selectedGrade, setSelectedGrade] = useState();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const gradeOptions = ["1", "2", "3"];
+
   useEffect(() => {
     if (isFocused && pupilId) {
       dispatch(getAllPupils());
       dispatch(notificationsByPupilId(pupilId));
     }
   }, [isFocused, pupilId]);
+
   const filteredPupils = pupils.find(
     (pupil) => String(pupil.id) === String(pupilId)
   );
+
+  useEffect(() => {
+    if (filteredPupils?.grade) {
+      setSelectedGrade(String(filteredPupils.grade));
+    }
+  }, [filteredPupils]);
+
   const filteredNotifications = pupilNotifications.filter(
     (notification) => notification.isRead === false
   );
-  const gradeOptions = ["1", "2", "3"];
-  const [showDropdown, setShowDropdown] = useState(false);
-  // const [selectedGrade, setSelectedGrade] = useState(filteredPupils.grade);
-  const [selectedGrade, setSelectedGrade] = useState();
-  const newNotificationCount = filteredNotifications.length;
-  const skills = [
-    { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
-    {
-      icon: theme.icons.subtraction,
-      label: "Subtraction",
-      route: "SkillScreen",
-    },
-    {
-      icon: theme.icons.multiplication,
-      label: "Multiplication",
-      route: "SkillScreen",
-    },
-    { icon: theme.icons.division, label: "Division", route: "SkillScreen" },
-    {
-      icon: theme.icons.multiplicationTables,
-      label: "Expression",
-      route: "MultiplicationTableScreen",
-    },
-  ];
+
+  const skills = (() => {
+    if (selectedGrade === "1") {
+      return [
+        { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
+        {
+          icon: theme.icons.subtraction,
+          label: "Subtraction",
+          route: "SkillScreen",
+        },
+      ];
+    }
+    return [
+      { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
+      {
+        icon: theme.icons.subtraction,
+        label: "Subtraction",
+        route: "SkillScreen",
+      },
+      {
+        icon: theme.icons.multiplication,
+        label: "Multiplication",
+        route: "SkillScreen",
+      },
+      { icon: theme.icons.division, label: "Mivision", route: "SkillScreen" },
+      {
+        icon: theme.icons.multiplicationTables,
+        label: "Expression",
+        route: "MultiplicationTableScreen",
+      },
+    ];
+  })();
+
+  if (!selectedGrade) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text style={{ color: theme.colors.white, fontSize: 18 }}>
+          Loading grade...
+        </Text>
+      </View>
+    );
+  }
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingTop: 20,
-    },
+    container: { flex: 1, paddingTop: 20 },
     header: {
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
@@ -92,10 +122,7 @@ export default function HomeScreen({ navigation, route }) {
       padding: 10,
       elevation: 3,
     },
-    avatar: {
-      width: 40,
-      height: 40,
-    },
+    avatar: { width: 40, height: 40 },
     greeting: {
       color: theme.colors.white,
       fontSize: 16,
@@ -129,10 +156,7 @@ export default function HomeScreen({ navigation, route }) {
       fontSize: 10,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
-    notificationIcon: {
-      width: 30,
-      height: 30,
-    },
+    notificationIcon: { width: 30, height: 30 },
     gradeWrapper: {
       position: "absolute",
       top: 120,
@@ -200,10 +224,7 @@ export default function HomeScreen({ navigation, route }) {
       justifyContent: "center",
       alignItems: "center",
     },
-    skillIcon: {
-      width: 100,
-      height: 100,
-    },
+    skillIcon: { width: 100, height: 100 },
     skillText: {
       color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -223,13 +244,11 @@ export default function HomeScreen({ navigation, route }) {
               style={styles.avatarContainer}
               onPress={() => navigation.navigate("ProfileScreen", { pupilId })}
             >
-              {/* <Image source={filteredPupils.avatar} style={styles.avatar} /> */}
-              <Image source={theme.icons.avatarFemale} style={styles.avatar} />
+              <Image source={filteredPupils?.avatar} style={styles.avatar} />
             </TouchableOpacity>
             <View>
-              <Text style={styles.greeting}>Hello!</Text>
-              {/* <Text style={styles.name}>{filteredPupils.fullName}</Text> */}
-              <Text style={styles.name}>Nguyen Thi Nga</Text>
+              <Text style={styles.greeting}>{t("hello")}</Text>
+              <Text style={styles.name}>{filteredPupils?.fullName}</Text>
             </View>
           </View>
           <TouchableOpacity
@@ -238,9 +257,11 @@ export default function HomeScreen({ navigation, route }) {
             }
           >
             <View style={styles.notificationContainer}>
-              {newNotificationCount > 0 && (
+              {filteredNotifications.length > 0 && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{newNotificationCount}</Text>
+                  <Text style={styles.badgeText}>
+                    {filteredNotifications.length}
+                  </Text>
                 </View>
               )}
               <Image
@@ -250,12 +271,15 @@ export default function HomeScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
         </View>
+
         <View style={styles.gradeWrapper}>
           <TouchableOpacity
             onPress={() => setShowDropdown(!showDropdown)}
             style={styles.gradeRow}
           >
-            <Text style={styles.grade}>Grade {selectedGrade} </Text>
+            <Text style={styles.grade}>
+              {t("grade", { value: selectedGrade })}
+            </Text>
             <Ionicons
               name={showDropdown ? "caret-up-outline" : "caret-down-outline"}
               size={20}
@@ -282,7 +306,7 @@ export default function HomeScreen({ navigation, route }) {
         </View>
       </LinearGradient>
 
-      <Text style={styles.title}>Select skill</Text>
+      <Text style={styles.title}>{t("select_skill")}</Text>
 
       <ScrollView contentContainerStyle={styles.skillsContainer}>
         {skills.map((item, index) => (
@@ -293,10 +317,12 @@ export default function HomeScreen({ navigation, route }) {
               navigation.navigate(item.route, {
                 skillName: item.label,
                 skillIcon: item.icon,
+                grade: selectedGrade,
               })
             }
           >
             <Image source={item.icon} style={styles.skillIcon} />
+            <Text style={styles.skillText}>{t(item.label)}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
