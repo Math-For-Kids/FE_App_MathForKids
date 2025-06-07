@@ -62,7 +62,7 @@ export default function ProfilePupilScreen({ navigation }) {
 
     const formattedDate =
       dobSeconds && dobSeconds > 0
-        ? new Date(dobSeconds * 1000).toISOString().split("T")[0] // ISO: "2025-06-07"
+        ? new Date(dobSeconds * 1000).toISOString().split("T")[0]
         : "";
 
     setEditedProfile({
@@ -409,12 +409,9 @@ export default function ProfilePupilScreen({ navigation }) {
           <View style={styles.avatarContainer}>
             <Image
               source={
-                pupil?.image
-                  ? { uri: pupil.image }
-                  : pupil?.gender === "female"
-                  ? theme.icons.avatarFemale
-                  : theme.icons.avatarMale
+                pupil.image ? { uri: pupil.image } : theme.icons.avatarFemale
               }
+              style={styles.avatarImage}
             />
           </View>
         </View>
@@ -458,8 +455,8 @@ export default function ProfilePupilScreen({ navigation }) {
                         source={
                           newAvatar
                             ? { uri: newAvatar }
-                            : pupil?.avatar
-                            ? { uri: pupil.avatar }
+                            : pupil?.image
+                            ? { uri: pupil?.image }
                             : theme.icons.avatarFemale
                         }
                         style={styles.avatar}
