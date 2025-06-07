@@ -1,0 +1,22 @@
+{
+  "Profile": "Profile",
+  "Achievements": "Achievements",
+  "detail": "Detail",
+  "top": "Top",
+  "point": "Point",
+  "time": "Time",
+  "badge": "Badge",
+  "mission": "Mission",
+  "progress": "Progress",
+
+  "title": "My profile",
+  "editProfile": "Edit Profile",
+  "fullName": "Full name",
+  "birthday": "Birthday",
+  "gender": "Gender",
+  "grade": "Grade",
+  "avatarUpdated": "Avatar updated!",
+  "updateSuccess": "Profile updated successfully!",
+  "updateFailed": "Failed to update profile",
+  "placeholder": "Enter {{field}}"
+}

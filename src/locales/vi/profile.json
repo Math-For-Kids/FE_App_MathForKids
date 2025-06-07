@@ -1,0 +1,22 @@
+{
+  "Profile": "Hồ sơ",
+  "Achievements": "Thành tích",
+  "detail": "Chi tiết",
+  "top": "Top",
+  "point": "Điểm",
+  "time": "Giờ",
+  "badge": "Quà",
+  "mission": "Nhiệm vụ",
+  "progress": "tiến trình",
+
+  "title": "Hồ sơ của tôi",
+  "editProfile": "Chỉnh sửa hồ sơ",
+  "fullName": "Họ và tên",
+  "birthday": "Sinh nhật",
+  "gender": "Giới tính",
+  "grade": "Lớp",
+  "avatarUpdated": "Đã cập nhật hình đại diện!",
+  "updateSuccess": "Hồ sơ đã cập nhật thành công!",
+  "updateFailed": "Không cập nhật được hồ sơ",
+  "placeholder": "Nhập {{field}}"
+}

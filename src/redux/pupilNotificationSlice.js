@@ -6,7 +6,14 @@ export const notificationsByPupilId = createAsyncThunk(
   "pupilnotifications/fetchByPupilId",
   async (pupilId, { rejectWithValue }) => {
     try {
-      const res = await Api.get(`/pupilnotification/pupil/${pupilId}`);
+      const res = await Api.get(
+        `/pupilnotification/getWithin30Days/${pupilId}`,
+        // {
+        //   headers: {
+        //     "Cache-Control": "no-cache",
+        //   },
+        // }
+      );
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

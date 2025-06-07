@@ -46,7 +46,6 @@ export default function VerifyOTP({ navigation, route }) {
       if (!isLogin) {
         await dispatch(updateUser({ id: result.id, data: { isVerify: true } }));
       }
-
       dispatch(
         setUser({
           id: result.id,
@@ -63,7 +62,7 @@ export default function VerifyOTP({ navigation, route }) {
         {
           text: "OK",
           onPress: () =>
-            navigation.navigate(isLogin ? "AccountScreen" : "HomeScreen"),
+            navigation.navigate(isLogin ? "AccountScreen" : "StatisticScreen"),
         },
       ]);
     } catch (err) {

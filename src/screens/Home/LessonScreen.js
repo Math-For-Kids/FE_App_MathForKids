@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,31 +12,47 @@ import { Fonts } from "../../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
+import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
+import { getExercisesByGradeAndType } from "../../redux/exerciseSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, actionType } = route.params;
+  const { skillName, actionType, grade } = route.params;
+  const { t } = useTranslation("lesson");
+  const { t: c } = useTranslation("common");
+  const dispatch = useDispatch();
+
+  const normalizedSkillName = skillName.toLowerCase();
   const [activeTab, setActiveTab] = useState(actionType || "Lesson");
 
-  const [lessons] = useState([
-    { id: 1, title: "Intro to Addition", type: "Addition" },
-    { id: 2, title: "Adding up to 10", type: "Addition" },
-    { id: 3, title: "Adding with Carrying", type: "Addition" },
-    { id: 4, title: "Basic Subtraction", type: "Subtraction" },
-    { id: 5, title: "Subtraction with Borrowing", type: "Subtraction" },
-    { id: 6, title: "Multiplication Basics", type: "Multiplication" },
-    { id: 7, title: "Division by 1 Digit", type: "Division" },
-  ]);
+  const {
+    lessons,
+    loading: lessonLoading,
+    error: lessonError,
+  } = useSelector((state) => state.lesson);
 
+  const {
+    exercises,
+    loading: exerciseLoading,
+    error: exerciseError,
+  } = useSelector((state) => state.exercise);
+
+  useEffect(() => {
+    dispatch(getLessonsByGradeAndType({ grade, type: normalizedSkillName }));
+    dispatch(getExercisesByGradeAndType({ grade, type: normalizedSkillName }));
+  }, []);
+  console.log("normalizedSkillName", normalizedSkillName);
   const filteredLessons = lessons.filter(
     (item) => item.type?.toLowerCase() === skillName.toLowerCase()
   );
 
-  const Exercise = [
-    { id: 1, title: "Plus some more" },
-    { id: 2, title: "Add two more numbers" },
-    { id: 3, title: "Add multiple numbers" },
-  ];
+  const filteredExercises = exercises.filter(
+    (item) => item.type?.toLowerCase() === skillName.toLowerCase()
+  );
+
   const Test = [
     { id: 1, title: "Test 1", quantity: 30, time: 1, level: "Easy" },
     { id: 2, title: "Test 2", quantity: 30, time: 40, level: "Medium" },
@@ -45,8 +61,8 @@ export default function LessonScreen({ navigation, route }) {
 
   const lessonData = {
     Lesson: filteredLessons,
-    Exercise: Exercise,
-    Test: Test,
+    Exercise: filteredExercises,
+    Test,
   };
 
   const currentData = lessonData[activeTab] || [];
@@ -171,6 +187,10 @@ export default function LessonScreen({ navigation, route }) {
     },
   });
 
+  if (lessonLoading || exerciseLoading) return <Text>Loading...</Text>;
+  if (lessonError || exerciseError)
+    return <Text>Error: {lessonError || exerciseError}</Text>;
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
@@ -180,7 +200,7 @@ export default function LessonScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Course</Text>
+        <Text style={styles.headerText}>{t("course")}</Text>
       </LinearGradient>
 
       <View style={styles.tabWrapper}>
@@ -196,67 +216,68 @@ export default function LessonScreen({ navigation, route }) {
                 activeTab === tab && styles.activeTabText,
               ]}
             >
-              {tab}
+              {c(tab.toLowerCase())}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
       <ScrollView contentContainerStyle={styles.lessonList}>
-        {currentData.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            onPress={() => {
-              if (activeTab === "Lesson") {
-                navigation.navigate("LessonDetailScreen", {
-                  skillName,
-                  title: item.title,
-                });
-              } else if (activeTab === "Exercise") {
-                navigation.navigate("ExerciseScreen", {
-                  skillName,
-                  title: item.title,
-                });
-              } else if (activeTab === "Test") {
-                navigation.navigate("TestScreen", {
-                  skillName,
-                  title: item.title,
-                  time: item.time,
-                  quantity: item.quantity,
-                  level: item.level,
-                });
-              }
-            }}
-          >
-            <LinearGradient
-              colors={getGradient()}
-              style={styles.lessonCard}
-              start={{ x: 1, y: 0 }}
-              end={{ x: 0, y: 0 }}
+        {currentData.map((item) => {
+          const title =
+            item.name?.[i18n.language] || item.name?.en || item.title;
+          return (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => {
+                if (activeTab === "Lesson") {
+                  navigation.navigate("LessonDetailScreen", {
+                    skillName,
+                    title,
+                  });
+                } else if (activeTab === "Exercise") {
+                  navigation.navigate("ExerciseScreen", { skillName, title });
+                } else if (activeTab === "Test") {
+                  navigation.navigate("TestScreen", {
+                    skillName,
+                    title,
+                    time: item.time,
+                    quantity: item.quantity,
+                    level: item.level,
+                  });
+                }
+              }}
             >
-              <View style={styles.lessonContent}>
-                <Image source={theme.icons.soundOn} style={styles.lessonIcon} />
-                <Text style={styles.lessonText}>{item.title}</Text>
-                {activeTab === "Exercise" && (
-                  <Text style={styles.lessonText}>Exercise one</Text>
-                )}
-                {activeTab === "Test" && (
-                  <View style={styles.lessonTestTextContainer}>
-                    <Text style={styles.lessonTestText}>
-                      Quantity: {item.quantity} questions
-                    </Text>
-                    <Text style={styles.lessonTestText}>
-                      Time: {item.time} min
-                    </Text>
-                    <Text style={styles.lessonTestText}>
-                      Level: {item.level}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        ))}
+              <LinearGradient
+                colors={getGradient()}
+                style={styles.lessonCard}
+                start={{ x: 1, y: 0 }}
+                end={{ x: 0, y: 0 }}
+              >
+                <View style={styles.lessonContent}>
+                  <Image
+                    source={theme.icons.soundOn}
+                    style={styles.lessonIcon}
+                  />
+                  <Text style={styles.lessonText}>{title}</Text>
+                  {activeTab === "Test" && (
+                    <View style={styles.lessonTestTextContainer}>
+                      <Text style={styles.lessonTestText}>
+                        {t("quantity")}: {item.quantity}
+                      </Text>
+                      <Text style={styles.lessonTestText}>
+                        {t("time")}: {item.time} {t("min")}
+                      </Text>
+                      <Text style={styles.lessonTestText}>
+                        {t("level")}: {item.level}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
       <FloatingMenu />
     </View>

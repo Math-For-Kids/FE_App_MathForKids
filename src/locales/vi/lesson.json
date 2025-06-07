@@ -1,0 +1,7 @@
+{
+  "course": "Khóa học",
+  "exercise_one": "Bài tập một",
+  "quantity": "Số lượng: {{count}} câu hỏi",
+  "time": "Thời gian: {{minutes}} phút",
+  "level": "Mức độ: {{level}}"
+}

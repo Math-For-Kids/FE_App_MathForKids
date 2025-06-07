@@ -74,10 +74,31 @@ export const verifyOTP = createAsyncThunk(
         otpCode,
       });
 
-      const { token, id, fullName, role, image, volume, language, mode, pin } =
-        res.data;
+      const {
+        token,
+        id,
+        fullName,
+        role,
+        image,
+        volume,
+        language,
+        mode,
+        pin,
+        pupilId, // nếu có
+      } = res.data;
 
-      return { token, id, fullName, role, image, volume, language, mode, pin };
+      return {
+        token,
+        id,
+        fullName,
+        role,
+        image,
+        volume,
+        language,
+        mode,
+        pin,
+        pupilId,
+      };
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
@@ -101,6 +122,7 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: null,
+    pupilId: null,
     loading: false,
     error: null,
   },
@@ -108,8 +130,15 @@ const authSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload;
     },
+    setPupilId: (state, action) => {
+      if (state.user) {
+        state.user.pupilId = action.payload;
+      }
+    },
+
     logout: (state) => {
       state.user = null;
+      state.pupilId = null;
     },
   },
   extraReducers: (builder) => {
@@ -124,6 +153,9 @@ const authSlice = createSlice({
           ...state.user,
           ...action.payload,
         };
+        if (action.payload.pupilId) {
+          state.pupilId = action.payload.pupilId;
+        }
       })
       .addCase(getUserById.rejected, (state, action) => {
         state.loading = false;
@@ -195,7 +227,11 @@ const authSlice = createSlice({
           language: action.payload.language,
           mode: action.payload.mode,
           pin: action.payload.pin,
+          pupilId: action.payload.pupilId,
         };
+        if (action.payload.pupilId) {
+          state.pupilId = action.payload.pupilId;
+        }
       })
       .addCase(verifyOTP.rejected, (state, action) => {
         state.loading = false;
@@ -222,5 +258,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, setUser } = authSlice.actions;
+export const { logout, setUser, setPupilId } = authSlice.actions;
 export default authSlice.reducer;

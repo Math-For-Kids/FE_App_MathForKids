@@ -1,4 +1,4 @@
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import { store, persistor } from "./src/redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./src/AppNavigator";
@@ -9,6 +9,7 @@ import { SoundProvider } from "./src/audio/SoundContext";
 import { ThemeProvider } from "./src/themes/ThemeContext";
 import { Provider as PaperProvider } from "react-native-paper";
 import { ActivityIndicator } from "react-native";
+import "./src/i18n";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -43,7 +44,6 @@ export default function App() {
   if (!fontsLoaded) {
     return null;
   }
-
   return (
     <Provider store={store}>
       <PersistGate

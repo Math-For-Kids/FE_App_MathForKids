@@ -1,0 +1,7 @@
+{
+  "course": "Course",
+  "exercise_one": "Exercise one",
+  "quantity": "Quantity: {{count}} questions",
+  "time": "Time: {{minutes}} min",
+  "level": "Level: {{level}}"
+}
