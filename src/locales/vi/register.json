@@ -1,0 +1,20 @@
+{
+  "title": "Đăng ký",
+  "phFullName": "Nhập họ tên đầy đủ",
+  "phPhone": "Nhập số điện thoại của bạn",
+  "phEmail": "Nhập email của bạn",
+  "phAddress": "Nhập địa chỉ",
+  "pinLabel": "Mã PIN",
+  "female": "Nữ",
+  "male": "Nam",
+  "invalidTitle": "Không hợp lệ",
+  "invalidPin": "Mã PIN phải gồm 4 chữ số.",
+  "invalidPhone": "Vui lòng nhập số điện thoại hợp lệ.",
+  "successDefault": "Người dùng đã tạo thành công!",
+  "sentOtpDefault": "Đã gửi OTP thành công!",
+  "ok": "OK",
+  "registerButton": "Đăng ký",
+  "haveAccount": "Bạn đã có tài khoản chưa?",
+  "loginLink": "Đăng nhập",
+  "errorTitle": "Lỗi"
+}

@@ -196,8 +196,8 @@ export default function CreatePupilAccountScreen({ navigation }) {
             />
           </View>
 
-          {/* Class */}
-          <Text style={styles.label}>Class</Text>
+          {/* Grade */}
+          <Text style={styles.label}>Grade</Text>
           <View
             style={[
               styles.inputWrapper,

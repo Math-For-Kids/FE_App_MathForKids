@@ -25,27 +25,45 @@ import { Fonts } from "../../constants/Fonts";
 export default function AccountScreen({ navigation }) {
   const { theme, switchThemeKey, toggleThemeMode, isDarkMode } = useTheme();
   const { setVolume } = useSound();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("account");
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
 
   const [loading, setLoading] = useState(false);
   const [pin, setPin] = useState(["", "", "", ""]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [redirectToCreatePupil, setRedirectToCreatePupil] = useState(false);
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
 
   const user = useSelector((state) => state.auth.user);
-  const pupils = useSelector((state) => state.pupil.pupils || []);
+  // const pupils = useSelector((state) => state.pupil.pupils || []);
+  const pupils = useSelector((state) => state.pupil.pupils);
   const userId = user?.id;
   const filteredPupils = pupils.filter(
-    (pupil) => String(pupil.userId) === String(userId)
+    (p) => String(p.userId) === String(userId)
   );
-
   useEffect(() => {
-    if (isFocused) {
-      dispatch(getAllPupils());
+    if (isFocused && userId) {
+      dispatch(getAllPupils())
+        .unwrap()
+        .catch((err) => {
+          const msg =
+            typeof err === "object"
+              ? err[i18n.language] ?? err.en
+              : err.toString();
+          Alert.alert(t("errorTitle"), msg);
+        });
+      dispatch(getUserById(userId))
+        .unwrap()
+        .catch((err) => {
+          const msg =
+            typeof err === "object"
+              ? err[i18n.language] ?? err.en
+              : err.toString();
+          Alert.alert(t("errorTitle"), msg);
+        });
     }
-  }, [isFocused]);
+  }, [isFocused, userId, dispatch]);
 
   const handleApplySettings = (profile) => {
     applySettings({
@@ -58,23 +76,35 @@ export default function AccountScreen({ navigation }) {
     });
   };
 
-  const handlePupilSelect = async (pupil) => {
+  const handlePupilSelect = (pupil) => {
     Alert.alert(
-      "Confirm",
-      `Do you want to play as pupil "${pupil.fullName}"?`,
+      t("confirmTitle"),
+      t("confirmPupil", { name: pupil.fullName }),
       [
-        { text: "No", style: "cancel" },
+        { text: t("no"), style: "cancel" },
         {
-          text: "Yes",
+          text: t("yes"),
           onPress: async () => {
-            try {
-              const res = await dispatch(pupilById(pupil.id)).unwrap();
-              handleApplySettings(res);
-              dispatch(setPupilId(pupil.id));
-              navigation.navigate("HomeScreen", { pupilId: pupil.id });
-            } catch (err) {
-              Alert.alert("Error", "Failed to load pupil settings.");
-            }
+            setLoading(true);
+            dispatch(pupilById(pupil.id))
+              .unwrap()
+              .then((res) => {
+                handleApplySettings(res);
+                dispatch(setPupilId(pupil.id));
+                setLoading(false);
+                navigation.navigate(
+                  res.isAssess ? "HomeScreen" : "TestLevelScreen",
+                  { pupilId: pupil.id }
+                );
+              })
+              .catch((err) => {
+                setLoading(false);
+                const msg =
+                  typeof err === "object"
+                    ? err[i18n.language] ?? err.en
+                    : err.toString();
+                Alert.alert(t("errorTitle"), msg);
+              });
           },
         },
       ]
@@ -85,32 +115,33 @@ export default function AccountScreen({ navigation }) {
     setPin(["", "", "", ""]);
     setModalVisible(true);
   };
+  const handleAddPupil = () => {
+    setPin(["", "", "", ""]);
+    setRedirectToCreatePupil(true);
+    setModalVisible(true);
+  };
 
-  const handleVerifyPin = async () => {
-    const enteredPin = pin.join("");
-    if (enteredPin.length < 4) {
-      return Alert.alert("Invalid PIN", "Please enter all 4 digits.");
+  const handleVerifyPin = () => {
+    const entered = pin.join("");
+    if (entered.length < 4) {
+      return Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
     }
-
-    setLoading(true);
-    try {
-      const res = await dispatch(getUserById(userId)).unwrap();
-      if (enteredPin === res.pin) {
-        handleApplySettings(res);
-        setModalVisible(false);
-        setTimeout(() => {
+    if (entered === String(user?.pin)) {
+      handleApplySettings(user);
+      setModalVisible(false);
+      setTimeout(() => {
+        if (redirectToCreatePupil) {
+          navigation.navigate("CreatePupilAccountScreen");
+        } else {
           navigation.navigate(
-            res.role === "user" ? "StatisticScreen" : "HomeScreen",
+            user.role === "user" ? "StatisticScreen" : "HomeScreen",
             { userId }
           );
-        }, 300);
-      } else {
-        Alert.alert("Incorrect PIN", "The PIN you entered is incorrect.");
-      }
-    } catch (err) {
-      Alert.alert("Error", "Failed to verify PIN.");
-    } finally {
-      setLoading(false);
+        }
+        setRedirectToCreatePupil(false);
+      }, 300);
+    } else {
+      Alert.alert(t("incorrectPinTitle"), t("incorrectPinMsg"));
     }
   };
 
@@ -269,8 +300,8 @@ export default function AccountScreen({ navigation }) {
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Account</Text>
-        <Text style={styles.subtitle}>Select an account</Text>
+        <Text style={styles.title}>{t("title")}</Text>
+        <Text style={styles.subtitle}>{t("subtitle")}</Text>
 
         <LinearGradient
           colors={theme.colors.gradientBluePrimary}
@@ -279,27 +310,27 @@ export default function AccountScreen({ navigation }) {
           style={styles.button}
         >
           <TouchableOpacity onPress={handleParentSelect}>
-            <Text style={styles.buttonText}>Parent</Text>
+            <Text style={styles.buttonText}>{t("parent")}</Text>
           </TouchableOpacity>
         </LinearGradient>
 
-        {filteredPupils.map((user) => (
+        {filteredPupils.map((pupil) => (
           <TouchableOpacity
-            key={user.id}
+            key={pupil.id}
             style={styles.userCard}
-            onPress={() => handlePupilSelect(user)}
+            onPress={() => handlePupilSelect(pupil)}
           >
             <View style={styles.avatarContainer}>
               <Image
                 source={
-                  user.gender === "female"
+                  pupil.gender === "female"
                     ? theme.icons.avatarFemale
                     : theme.icons.avatarMale
                 }
                 style={styles.avatar}
               />
             </View>
-            <Text style={styles.userName}>{user.fullName}</Text>
+            <Text style={styles.userName}>{pupil.fullName}</Text>
           </TouchableOpacity>
         ))}
 
@@ -309,9 +340,7 @@ export default function AccountScreen({ navigation }) {
           end={{ x: 0, y: 0 }}
           style={styles.addButton}
         >
-          <TouchableOpacity
-            onPress={() => navigation.navigate("CreatePupilAccountScreen")}
-          >
+          <TouchableOpacity onPress={handleAddPupil}>
             <Ionicons name="person-add" size={36} color={theme.colors.white} />
           </TouchableOpacity>
         </LinearGradient>
@@ -326,7 +355,7 @@ export default function AccountScreen({ navigation }) {
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modal}>
-            <Text style={styles.textModal}>Enter PIN to continue</Text>
+            <Text style={styles.textModal}>{t("enterPin")}</Text>
             <View style={styles.inputModalContainer}>
               {pin.map((digit, index) => (
                 <TextInput
@@ -341,7 +370,12 @@ export default function AccountScreen({ navigation }) {
                     const newPin = [...pin];
                     newPin[index] = val;
                     setPin(newPin);
-                    if (val && index < 3) pinRefs[index + 1].current.focus();
+                    if (val && index < 3) {
+                      pinRefs[index + 1].current.focus();
+                    }
+                    if (!val && index > 0) {
+                      pinRefs[index - 1].current.focus();
+                    }
                   }}
                 />
               ))}
@@ -349,20 +383,23 @@ export default function AccountScreen({ navigation }) {
             <TouchableOpacity
               onPress={() => navigation.navigate("ForgetPinScreen")}
             >
-              <Text style={styles.ForgotText}>Forgot pin</Text>
+              <Text style={styles.ForgotText}>{t("forgotPin")}</Text>
             </TouchableOpacity>
             <View style={styles.buttonModalContainer}>
               <TouchableOpacity
                 onPress={handleVerifyPin}
                 style={styles.buttonConfirm}
               >
-                <Text style={styles.buttonText}>Confirm</Text>
+                <Text style={styles.buttonText}>{t("confirm")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  setModalVisible(false);
+                  setRedirectToCreatePupil(false);
+                }}
                 style={styles.buttonCancel}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{t("cancel")}</Text>
               </TouchableOpacity>
             </View>
           </View>

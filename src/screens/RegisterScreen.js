@@ -5,101 +5,95 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Checkbox from "expo-checkbox";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  createUser,
-  updateUser,
-  sendOTPByPhone,
-  sendOTPByEmail,
-} from "../redux/authSlice";
-
+import { useDispatch } from "react-redux";
+import { createUser, sendOTPByPhone } from "../redux/authSlice";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterScreen({ navigation }) {
   const { theme } = useTheme();
+  const dispatch = useDispatch();
+  const { t, i18n } = useTranslation("register");
+
   const [gender, setGender] = useState("female");
-  const [termsChecked, setTermsChecked] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
   const [pin, setPin] = useState(["", "", "", ""]);
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
   const [showPin, setShowPin] = useState(false);
-  const [contact, setContact] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState(new Date(2000, 0, 1));
+  const [showPicker, setShowPicker] = useState(false);
 
-  const dispatch = useDispatch();
+  const handlePinChange = (value, index) => {
+    const updated = [...pin];
+    updated[index] = value.replace(/[^0-9]/g, "");
+    setPin(updated);
+    if (value && index < 3) pinRefs[index + 1].current.focus();
+  };
+
   const handleSend = async () => {
-    const isEmail = /\S+@\S+\.\S+/.test(contact);
-    const isPhone = /^[0-9]{9,15}$/.test(contact);
     const pinCode = pin.join("");
-
     if (!/^\d{4}$/.test(pinCode)) {
-      Alert.alert("Invalid", "PIN must be 4 digits.");
-      return;
+      return Alert.alert(t("invalidTitle"), t("invalidPin"));
     }
-
-    if (!isEmail && !isPhone) {
-      Alert.alert("Invalid", "Please enter a valid phone number or email.");
-      return;
-    }
-
-    if (!termsChecked) {
-      Alert.alert("Terms", "You must agree to the terms.");
-      return;
+    if (!/^[0-9]{9,15}$/.test(phone)) {
+      return Alert.alert(t("invalidTitle"), t("invalidPhone"));
     }
 
     const userData = {
       fullName,
       gender,
-      dateOfBirth: "2000-01-01",
+      dateOfBirth: dateOfBirth.toISOString().split("T")[0],
       address,
       pin: pinCode,
+      phoneNumber: phone,
+      email,
     };
-
-    if (isPhone) userData.phoneNumber = contact;
-    if (isEmail) userData.email = contact;
 
     try {
       const result = await dispatch(createUser(userData)).unwrap();
-      const userId = result.id;
-      const role = result.role || "user";
-      const sendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
-      const target = isEmail ? userData.email : userData.phoneNumber;
+      const createMsgObj = result.message || {};
+      const createMsg =
+        createMsgObj[i18n.language] || createMsgObj.en || t("successDefault");
 
-      await dispatch(
-        sendAction({ userId, [isEmail ? "email" : "phoneNumber"]: target })
+      const sendRes = await dispatch(
+        sendOTPByPhone({ userId: result.id, phoneNumber: phone })
       ).unwrap();
-      Alert.alert("Success", "OTP sent successfully!", [
+      const sendMsgObj = sendRes.message || {};
+      const sendMsg =
+        sendMsgObj[i18n.language] || sendMsgObj.en || t("sentOtpDefault");
+
+      Alert.alert(createMsg, sendMsg, [
         {
-          text: "OK",
+          text: t("ok"),
           onPress: () =>
             navigation.navigate("VerifyScreen", {
-              contact,
-              isEmail,
-              userId,
-              role,
+              contact: phone,
+              isEmail: false,
+              userId: result.id,
             }),
         },
       ]);
-    } catch (error) {
-      Alert.alert("Error", error.toString());
+    } catch (err) {
+      const payload = err.payload ?? err.message ?? err;
+      const errMsg =
+        typeof payload === "object"
+          ? payload[i18n.language] || payload.en
+          : String(payload);
+      Alert.alert(t("errorTitle"), errMsg);
     }
-  };
-
-  const handlePinChange = (value, index) => {
-    const updatedPin = [...pin];
-    updatedPin[index] = value.replace(/[^0-9]/g, "");
-    setPin(updatedPin);
-    if (value && index < 3) pinRefs[index + 1].current.focus();
   };
 
   const styles = StyleSheet.create({
@@ -129,11 +123,6 @@ export default function RegisterScreen({ navigation }) {
       borderRadius: 50,
       elevation: 6,
       marginTop: 20,
-      marginBottom: 20,
-    },
-    avatar: {
-      width: 50,
-      height: 50,
     },
     inputWrapper: {
       width: "100%",
@@ -157,11 +146,17 @@ export default function RegisterScreen({ navigation }) {
       color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
+    inputDateOfBirth: {
+      fontSize: 16,
+      color: theme.colors.blueDark,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+    },
     checkboxGroup: {
       flexDirection: "row",
       width: "100%",
       justifyContent: "space-between",
-      marginVertical: 10,
+      marginBottom: 20,
+      marginTop: 10,
     },
     checkboxItem: {
       flexDirection: "row",
@@ -172,23 +167,6 @@ export default function RegisterScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 14,
       color: theme.colors.grayMedium,
-    },
-    termsWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      width: "100%",
-      marginVertical: 10,
-    },
-    termsText: {
-      marginLeft: 8,
-      fontFamily: Fonts.NUNITO_MEDIUM,
-      fontSize: 13,
-      color: theme.colors.grayLight,
-      flexShrink: 1,
-    },
-    agreeText: {
-      color: theme.colors.grayMedium,
-      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     buttonWrapper: {
       width: "100%",
@@ -234,7 +212,6 @@ export default function RegisterScreen({ navigation }) {
       alignItems: "center",
       justifyContent: "center",
     },
-
     pinContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -252,6 +229,7 @@ export default function RegisterScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueDark,
       elevation: 20,
+      textAlign: "center",
     },
   });
 
@@ -262,17 +240,13 @@ export default function RegisterScreen({ navigation }) {
         style={styles.container}
       >
         <View style={styles.card}>
-          <Text style={styles.title}>Register</Text>
+          <Text style={styles.title}>{t("title")}</Text>
 
           <LinearGradient
             colors={theme.colors.gradientBluePrimary}
             style={styles.avatarWrapper}
           >
-            <Image
-              source={theme.icons.avatarAdd}
-              style={styles.avatar}
-              resizeMode="contain"
-            />
+            {/* avatar icon if any */}
           </LinearGradient>
 
           <View
@@ -283,7 +257,7 @@ export default function RegisterScreen({ navigation }) {
           >
             <TextInput
               style={styles.input}
-              placeholder="Enter full name"
+              placeholder={t("phFullName")}
               placeholderTextColor={theme.colors.grayMedium}
               onFocus={() => setFocusedField("fullName")}
               onBlur={() => setFocusedField(null)}
@@ -294,21 +268,63 @@ export default function RegisterScreen({ navigation }) {
           <View
             style={[
               styles.inputWrapper,
-              focusedField === "contact" && styles.inputWrapperFocused,
+              focusedField === "phone" && styles.inputWrapperFocused,
             ]}
           >
             <TextInput
               style={styles.input}
-              placeholder="Phone number or email"
-              value={contact}
-              onChangeText={setContact}
-              keyboardType="email-address"
-              autoCapitalize="none"
+              placeholder={t("phPhone")}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
               placeholderTextColor={theme.colors.grayMedium}
-              onFocus={() => setFocusedField("contact")}
+              onFocus={() => setFocusedField("phone")}
               onBlur={() => setFocusedField(null)}
             />
           </View>
+
+          <View
+            style={[
+              styles.inputWrapper,
+              focusedField === "email" && styles.inputWrapperFocused,
+            ]}
+          >
+            <TextInput
+              style={styles.input}
+              placeholder={t("phEmail")}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholderTextColor={theme.colors.grayMedium}
+              onFocus={() => setFocusedField("email")}
+              onBlur={() => setFocusedField(null)}
+            />
+          </View>
+
+          <TouchableOpacity
+            onPress={() => setShowPicker(true)}
+            style={[
+              styles.inputWrapper,
+              focusedField === "dob" && styles.inputWrapperFocused,
+            ]}
+          >
+            <Text style={styles.inputDateOfBirth}>
+              {dateOfBirth.toISOString().split("T")[0]}
+            </Text>
+          </TouchableOpacity>
+          {showPicker && (
+            <DateTimePicker
+              value={dateOfBirth}
+              mode="date"
+              display="default"
+              onChange={(_, d) => {
+                setShowPicker(false);
+                if (d) setDateOfBirth(d);
+              }}
+              maximumDate={new Date()}
+            />
+          )}
 
           <View
             style={[
@@ -318,7 +334,7 @@ export default function RegisterScreen({ navigation }) {
           >
             <TextInput
               style={styles.input}
-              placeholder="Enter address"
+              placeholder={t("phAddress")}
               placeholderTextColor={theme.colors.grayMedium}
               onFocus={() => setFocusedField("address")}
               onBlur={() => setFocusedField(null)}
@@ -327,26 +343,24 @@ export default function RegisterScreen({ navigation }) {
           </View>
 
           <View style={styles.pinLabelContainer}>
-            <Text style={styles.pinLabel}>Pin code</Text>
+            <Text style={styles.pinLabel}>{t("pinLabel")}</Text>
           </View>
 
           <View style={styles.pinInputWrapper}>
             <View style={styles.pinContainer}>
-              {pin.map((digit, index) => (
+              {pin.map((digit, idx) => (
                 <TextInput
-                  key={index}
-                  ref={pinRefs[index]}
+                  key={idx}
+                  ref={pinRefs[idx]}
                   value={digit}
-                  onChangeText={(val) => handlePinChange(val, index)}
+                  onChangeText={(v) => handlePinChange(v, idx)}
                   style={styles.pinInput}
                   maxLength={1}
                   keyboardType="numeric"
                   secureTextEntry={!showPin}
-                  textAlign="center"
                 />
               ))}
             </View>
-
             <TouchableOpacity onPress={() => setShowPin(!showPin)}>
               <Ionicons
                 name={showPin ? "eye" : "eye-off"}
@@ -368,11 +382,11 @@ export default function RegisterScreen({ navigation }) {
                     : undefined
                 }
               />
-              <Text style={styles.checkboxLabel}>Female</Text>
+              <Text style={styles.checkboxLabel}>{t("female")}</Text>
             </View>
             <View style={styles.checkboxItem}>
               <Checkbox
-                value={gender === "male"}
+                value={gender === "male"} 
                 onValueChange={() => setGender("male")}
                 color={
                   gender === "male"
@@ -380,20 +394,8 @@ export default function RegisterScreen({ navigation }) {
                     : undefined
                 }
               />
-              <Text style={styles.checkboxLabel}>Male</Text>
+              <Text style={styles.checkboxLabel}>{t("male")}</Text>
             </View>
-          </View>
-
-          <View style={styles.termsWrapper}>
-            <Checkbox
-              value={termsChecked}
-              onValueChange={setTermsChecked}
-              color={termsChecked ? theme.colors.checkBoxBackground : undefined}
-            />
-            <Text style={styles.termsText}>
-              <Text style={styles.agreeText}>I agree to the </Text>
-              Terms and Privacy Policy
-            </Text>
           </View>
 
           <TouchableOpacity
@@ -407,16 +409,16 @@ export default function RegisterScreen({ navigation }) {
               end={{ x: 0, y: 0 }}
               style={styles.button}
             >
-              <Text style={styles.buttonText}>Register</Text>
+              <Text style={styles.buttonText}>{t("registerButton")}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Have an account? </Text>
+            <Text style={styles.footerText}>{t("haveAccount")}</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate("LoginScreen")}
             >
-              <Text style={styles.loginText}>Log in</Text>
+              <Text style={styles.loginText}>{t("loginLink")}</Text>
             </TouchableOpacity>
           </View>
         </View>

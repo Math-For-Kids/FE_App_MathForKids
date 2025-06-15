@@ -1,9 +1,8 @@
 {
-  "lesson": "Lesson",
+  "exercise": "Exercise",
   "exercise_one": "Exercise one",
   "quantity": "Quantity: {{count}} questions",
   "time": "Time: {{minutes}} min",
   "level": "Level: {{level}}",
-  "calculation_steps": "Calculation steps",
-  "swipe_hint": "Swipe left or right to see more"
+  "calculation_steps": "Calculation steps"
 }

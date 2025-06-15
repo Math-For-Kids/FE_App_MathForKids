@@ -1,8 +1,8 @@
+import React, { useEffect } from "react";
 import { Provider, useSelector } from "react-redux";
 import { store, persistor } from "./src/redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./src/AppNavigator";
-import { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { SoundProvider } from "./src/audio/SoundContext";
@@ -10,7 +10,20 @@ import { ThemeProvider } from "./src/themes/ThemeContext";
 import { Provider as PaperProvider } from "react-native-paper";
 import { ActivityIndicator } from "react-native";
 import "./src/i18n";
+import i18n from "./src/i18n";
+
 SplashScreen.preventAutoHideAsync();
+
+function LanguageInitializer({ children }) {
+  const language = useSelector((state) => state.settings.language);
+  console.log("language", language);
+  useEffect(() => {
+    if (i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language]);
+  return <>{children}</>;
+}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -33,30 +46,30 @@ export default function App() {
   });
 
   useEffect(() => {
-    async function prepare() {
-      if (fontsLoaded) {
-        await SplashScreen.hideAsync();
-      }
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
     }
-    prepare();
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
     return null;
   }
+
   return (
     <Provider store={store}>
       <PersistGate
         loading={<ActivityIndicator size="large" />}
         persistor={persistor}
       >
-        <ThemeProvider>
-          <PaperProvider>
-            <SoundProvider>
-              <AppNavigator />
-            </SoundProvider>
-          </PaperProvider>
-        </ThemeProvider>
+        <LanguageInitializer>
+          <ThemeProvider>
+            <PaperProvider>
+              <SoundProvider>
+                <AppNavigator />
+              </SoundProvider>
+            </PaperProvider>
+          </ThemeProvider>
+        </LanguageInitializer>
       </PersistGate>
     </Provider>
   );

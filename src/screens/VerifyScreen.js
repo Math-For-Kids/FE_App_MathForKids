@@ -31,7 +31,12 @@ export default function VerifyOTP({ navigation, route }) {
     const newOtp = [...otp];
     newOtp[index] = text;
     setOtp(newOtp);
-    if (text && index < 3) inputs.current[index + 1].focus();
+    if (text && index < 3) {
+      inputs.current[index + 1].focus();
+    }
+    if (!text && index > 0) {
+      inputs.current[index - 1].focus();
+    }
   };
 
   const handleVerify = async () => {
@@ -62,7 +67,7 @@ export default function VerifyOTP({ navigation, route }) {
         {
           text: "OK",
           onPress: () =>
-            navigation.navigate(isLogin ? "AccountScreen" : "StatisticScreen"),
+            navigation.navigate(isLogin ? "AccountScreen" : "LoginScreen"),
         },
       ]);
     } catch (err) {

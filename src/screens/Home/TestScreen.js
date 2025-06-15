@@ -19,7 +19,9 @@ import { Svg, Circle } from "react-native-svg";
 
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, title, time, quantity, level } = route.params;
+  const { skillName } = route.params;
+  const time = 30;
+  const quantity = 30;
   const windowWidth = Dimensions.get("window").width;
 
   const [questions] = useState([
@@ -28,31 +30,6 @@ export default function TestScreen({ navigation, route }) {
     { id: 3, type: "text", text: "2 + 3", answer: 5 },
     { id: 4, type: "image", image: theme.icons.question1, answer: 5 },
     { id: 5, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 6, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 7, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 8, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 9, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 10, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 11, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 12, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 13, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 14, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 15, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 16, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 17, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 18, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 19, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 20, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 21, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 22, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 23, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 24, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 25, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 26, type: "text", text: "2788 + 37", answer: 5 },
-    // { id: 27, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 28, type: "text", text: "2 + 3", answer: 5 },
-    // { id: 29, type: "image", image: theme.icons.question1, answer: 5 },
-    // { id: 30, type: "text", text: "2788 + 37", answer: 5 },
   ]);
 
   const [currentQuestion, setCurrentQuestion] = useState(1);
@@ -265,7 +242,7 @@ export default function TestScreen({ navigation, route }) {
       color: theme.colors.black,
     },
     visualProgressBar: {
-      marginTop: 40,
+      marginTop: 62,
       marginHorizontal: 20,
       height: 20,
       backgroundColor: getProgressBackground(),
@@ -285,7 +262,7 @@ export default function TestScreen({ navigation, route }) {
     bearIconWrapper: {
       position: "absolute",
       top: 190,
-      left: -10,
+      left: -5,
       elevation: 3,
     },
     bearIcon: {
@@ -316,10 +293,6 @@ export default function TestScreen({ navigation, route }) {
       marginVertical: 20,
       flexDirection: "row",
       gap: 10,
-    },
-    questionContainer: {
-      flexDirection: "row",
-      height: 150,
     },
     questionImage: {
       width: 200,
@@ -459,12 +432,11 @@ export default function TestScreen({ navigation, route }) {
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
-          {title}
+          Test
         </Text>
       </LinearGradient>
       <View style={styles.subtitleContainer}>
         <Text style={styles.subtitleText}>Total questions: {quantity}</Text>
-        <Text style={styles.subtitleText}>Level: {level}</Text>
         <Text style={styles.subtitleText}>
           Anwsers: {currentQuestion}/{quantity}
         </Text>

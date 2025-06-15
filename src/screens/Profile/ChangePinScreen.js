@@ -14,11 +14,13 @@ import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfile, profileById } from "../../redux/profileSlice";
 import { Ionicons } from "@expo/vector-icons";
-
+import { useTranslation } from "react-i18next";
 export default function ChangePinScreen({ navigation }) {
   const { theme } = useTheme();
+  const { t } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const profile = useSelector((state) => state.profile?.info || {});
 
   const [currentPin, setCurrentPin] = useState(["", "", "", ""]);
   const [newPin, setNewPin] = useState(["", "", "", ""]);
@@ -38,7 +40,12 @@ export default function ChangePinScreen({ navigation }) {
     const newValues = [...pin];
     newValues[index] = value.replace(/[^0-9]/g, "");
     setPin(newValues);
-    if (value && index < 3) refs[index + 1].current.focus();
+    if (value && index < 3) {
+      refs[index + 1].current.focus();
+    }
+    if (!value && index > 0) {
+      refs[index - 1].current.focus();
+    }
   };
 
   const renderPinInputs = (pin, setPin, refs, show, setShow) => (
@@ -65,9 +72,9 @@ export default function ChangePinScreen({ navigation }) {
       >
         <View style={styles.lockIcon}>
           <Ionicons
-            name={show ? "lock-closed" : "lock-open"}
-            size={20}
-            color={theme.colors.blueDark}
+            name={show ? "eye" : "eye-off"}
+            size={14}
+            color={theme.colors.blueGray}
           />
         </View>
       </TouchableOpacity>
@@ -83,9 +90,12 @@ export default function ChangePinScreen({ navigation }) {
       Alert.alert("Invalid PIN", "Each PIN must be exactly 4 digits.");
       return;
     }
-
     if (newCode !== confirm) {
       Alert.alert("Mismatch", "New PIN and confirmation do not match.");
+      return;
+    }
+    if (profile.pin && current !== profile.pin) {
+      Alert.alert("Incorrect PIN", "Your current PIN is incorrect.");
       return;
     }
 
@@ -125,23 +135,22 @@ export default function ChangePinScreen({ navigation }) {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 30,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     section: { flex: 1, paddingHorizontal: 20, marginTop: 20 },
     label: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       marginBottom: 10,
       fontSize: 16,
     },
     hint: {
       fontSize: 12,
-      fontFamily: Fonts.NUNITO_ITALIC,
+      fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
       color: theme.colors.graySoft,
       marginBottom: 5,
     },
-
     pinRowContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -178,7 +187,7 @@ export default function ChangePinScreen({ navigation }) {
       borderTopRightRadius: 50,
     },
     confirmText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 16,
     },
@@ -200,14 +209,12 @@ export default function ChangePinScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Change PIN</Text>
+        <Text style={styles.title}>{t("changePin")}</Text>
       </LinearGradient>
 
       <View style={styles.section}>
-        <Text style={[styles.label, { marginTop: 10 }]}>Current PIN</Text>
-        <Text style={styles.hint}>
-          Enter your existing 4-digit PIN to confirm your identity.
-        </Text>
+        <Text style={[styles.label, { marginTop: 10 }]}>{t("currentPin")}</Text>
+        <Text style={styles.hint}>{t("currentPinHint")}</Text>
         {renderPinInputs(
           currentPin,
           setCurrentPin,
@@ -216,14 +223,12 @@ export default function ChangePinScreen({ navigation }) {
           setShowCurrent
         )}
 
-        <Text style={styles.label}>New PIN</Text>
-        <Text style={styles.hint}>
-          Set a new 4-digit PIN. Don’t share it with anyone.
-        </Text>
+        <Text style={styles.label}>{t("newPin")}</Text>
+        <Text style={styles.hint}>{t("newPinHint")}</Text>
         {renderPinInputs(newPin, setNewPin, pinRefs.new, showNew, setShowNew)}
 
-        <Text style={styles.label}>Confirm New PIN</Text>
-        <Text style={styles.hint}>Re-enter the new PIN to confirm.</Text>
+        <Text style={styles.label}>{t("confirmPin")}</Text>
+        <Text style={styles.hint}>{t("confirmPinHint")}</Text>
         {renderPinInputs(
           confirmPin,
           setConfirmPin,
@@ -238,7 +243,7 @@ export default function ChangePinScreen({ navigation }) {
           colors={theme.colors.gradientBlue}
           style={styles.confirmButton}
         >
-          <Text style={styles.confirmText}>Update</Text>
+          <Text style={styles.confirmText}>{t("update")}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </LinearGradient>

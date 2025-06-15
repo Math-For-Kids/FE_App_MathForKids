@@ -12,6 +12,20 @@ import viCommon from "./locales/vi/common.json";
 import enCommon from "./locales/en/common.json";
 import viProfile from "./locales/vi/profile.json";
 import enProfile from "./locales/en/profile.json";
+import viExercise from "./locales/vi/exercise.json";
+import enExercise from "./locales/en/exercise.json";
+import viStatistic from "./locales/vi/statistic.json";
+import enStatistic from "./locales/en/statistic.json";
+import viPrivacy from "./locales/vi/privacy.json";
+import enPrivacy from "./locales/en/privacy.json";
+import viVerify from "./locales/vi/verify.json";
+import enVerify from "./locales/en/verify.json";
+import viLogin from "./locales/vi/login.json";
+import enLogin from "./locales/en/login.json";
+import viAccount from "./locales/vi/account.json";
+import enAccount from "./locales/en/account.json";
+import viRegister from "./locales/vi/register.json";
+import enRegister from "./locales/en/register.json";
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en",
@@ -23,6 +37,13 @@ i18n.use(initReactI18next).init({
       lesson: enLesson,
       common: enCommon,
       profile: enProfile,
+      exercise: enExercise,
+      statistic: enStatistic,
+      privacy: enPrivacy,
+      verify: enVerify,
+      login: enLogin,
+      account: enAccount,
+      register: enRegister,
     },
     vi: {
       setting: vi,
@@ -30,6 +51,13 @@ i18n.use(initReactI18next).init({
       lesson: viLesson,
       common: viCommon,
       profile: viProfile,
+      exercise: viExercise,
+      statistic: viStatistic,
+      privacy: viPrivacy,
+      verify: viVerify,
+      login: viLogin,
+      account: viAccount,
+      register: viRegister,
     },
   },
 

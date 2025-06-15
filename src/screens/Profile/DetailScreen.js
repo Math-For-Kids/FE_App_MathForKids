@@ -23,27 +23,28 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useTranslation } from "react-i18next";
 export default function DetailScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
-
+  const { t } = useTranslation("profile");
   const [modalVisible, setModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [currentField, setCurrentField] = useState("");
   const [newAvatar, setNewAvatar] = useState(null);
-  const [refreshProfile, setRefreshProfile] = useState(false);
   const [editedProfile, setEditedProfile] = useState({});
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const users = useSelector((state) => state.auth.user);
-  const profile = useSelector((state) => state.profile.info || {});
+  const profile = useSelector((state) => state.profile?.info || {});
 
   useEffect(() => {
     if (isFocused) {
       dispatch(profileById(users.id));
     }
-  }, [isFocused, users?.id, refreshProfile]);
+  }, [isFocused, users?.id]);
 
   useEffect(() => {
     const formattedDate = profile?.dateOfBirth?.seconds
@@ -87,11 +88,26 @@ export default function DetailScreen({ navigation }) {
   };
 
   const handleSave = async () => {
+    for (const [key, value] of Object.entries(editedProfile)) {
+      if (!value || value === "none") {
+        Alert.alert("Missing Info", `Please fill in all fields.`);
+        return;
+      }
+    }
+    const age =
+      new Date().getFullYear() -
+      new Date(editedProfile.dateOfBirth).getFullYear();
+
+    if (age < 18 || age > 100) {
+      Alert.alert("Invalid Age", "Age must be between 18 and 100 years.");
+      return;
+    }
+
     try {
       await dispatch(
         updateProfile({ id: users.id, data: editedProfile })
       ).unwrap();
-      setRefreshProfile((prev) => !prev);
+      dispatch(profileById(users.id));
       Alert.alert("Success", "Profile updated successfully!");
       setModalVisible(false);
     } catch (error) {
@@ -100,18 +116,18 @@ export default function DetailScreen({ navigation }) {
   };
 
   const userFields = [
-    { label: "Full name", fieldName: "fullName", type: "text" },
-    { label: "Phone number", fieldName: "phoneNumber", type: "text" },
-    { label: "Email", fieldName: "email", type: "text" },
-    { label: "Pin", fieldName: "pin", type: "text" },
-    { label: "Birthday", fieldName: "dateOfBirth", type: "text" },
+    { label: t("fullName"), fieldName: "fullName", type: "text" },
+    // { label: "Phone number", fieldName: "phoneNumber", type: "text" },
+    // { label: "Email", fieldName: "email", type: "text" },
+    // { label: "Pin", fieldName: "pin", type: "text" },
+    { label: t("birthday"), fieldName: "dateOfBirth", type: "text" },
     {
-      label: "Gender",
+      label: t("gender"),
       fieldName: "gender",
       type: "dropdown",
-      options: ["Male", "Female"],
+      options: [t("male"), t("female")],
     },
-    { label: "Address", fieldName: "address", type: "text" },
+    { label: t("address"), fieldName: "address", type: "text" },
   ];
 
   const styles = StyleSheet.create({
@@ -125,7 +141,7 @@ export default function DetailScreen({ navigation }) {
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      marginBottom: 40,
+      marginBottom: 10,
     },
     backContainer: {
       position: "absolute",
@@ -138,16 +154,15 @@ export default function DetailScreen({ navigation }) {
     backIcon: { width: 24, height: 24 },
     title: {
       fontSize: 36,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     scrollViewContainer: {
       alignItems: "center",
-      paddingTop: 20,
     },
     imageWrapper: {
       alignItems: "center",
-      marginBottom: 20,
+      marginBottom: 10,
     },
     avatarContainer: {
       backgroundColor: theme.colors.cardBackground,
@@ -158,9 +173,9 @@ export default function DetailScreen({ navigation }) {
       elevation: 3,
     },
     avatarImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
+      width: 60,
+      height: 60,
+      borderRadius: 50,
     },
     fieldWrapper: {
       width: "80%",
@@ -192,10 +207,10 @@ export default function DetailScreen({ navigation }) {
       borderTopRightRadius: 50,
     },
     modalContainer: {
-      marginHorizontal: 20,
+      marginHorizontal: 30,
       padding: 20,
       borderRadius: 20,
-      maxHeight: "90%",
+      maxHeight: "98%",
       backgroundColor: theme.colors.cardBackground,
       elevation: 3,
     },
@@ -271,6 +286,7 @@ export default function DetailScreen({ navigation }) {
       backgroundColor: theme.colors.inputBoxModal,
       elevation: 3,
       overflow: "hidden",
+      width: "100%",
     },
     inputTextBox: {
       padding: 10,
@@ -318,15 +334,14 @@ export default function DetailScreen({ navigation }) {
     },
     avatarWrapperModel: {
       marginVertical: 10,
-      padding: 10,
       borderWidth: 2,
-      borderColor: theme.colors.grayLight,
+      borderColor: theme.colors.white,
       borderRadius: 50,
       backgroundColor: theme.colors.cardBackground,
       elevation: 5,
       alignSelf: "center",
     },
-    avatar: { width: 50, height: 50 },
+    avatar: { width: 70, height: 70, borderRadius: 40 },
     iconCamera: {
       position: "absolute",
       top: 50,
@@ -352,7 +367,7 @@ export default function DetailScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>My profile</Text>
+        <Text style={styles.title}>{t("title")}</Text>
       </LinearGradient>
 
       {/* Content */}
@@ -361,8 +376,8 @@ export default function DetailScreen({ navigation }) {
           <View style={styles.avatarContainer}>
             <Image
               source={
-                profile.avatar
-                  ? { uri: profile.avatar }
+                profile?.image
+                  ? { uri: profile?.image }
                   : theme.icons.avatarFemale
               }
               style={styles.avatarImage}
@@ -395,8 +410,8 @@ export default function DetailScreen({ navigation }) {
                         source={
                           newAvatar
                             ? { uri: newAvatar }
-                            : profile.avatar
-                            ? { uri: profile.avatar }
+                            : profile?.image
+                            ? { uri: profile?.image }
                             : theme.icons.avatarFemale
                         }
                         style={styles.avatar}
@@ -471,28 +486,74 @@ export default function DetailScreen({ navigation }) {
                         },
                       ]}
                     >
-                      <TextInput
-                        value={editedProfile[field.fieldName]}
-                        onChangeText={(text) =>
-                          handleChange(field.fieldName, text)
-                        }
-                        editable={
-                          !["phoneNumber", "email", "pin"].includes(
-                            field.fieldName
-                          )
-                        }
-                        style={[
-                          styles.inputTextBox,
-                          { flex: 1 },
-                          ["phoneNumber", "email", "pin"].includes(
-                            field.fieldName
-                          ) && {
-                            color: theme.colors.graySoft,
-                          },
-                        ]}
-                        placeholder={`Enter ${field.label.toLowerCase()}`}
-                        placeholderTextColor={theme.colors.grayMedium}
-                      />
+                      {field.fieldName === "dateOfBirth" ? (
+                        <>
+                          <TouchableOpacity
+                            onPress={() => setShowDatePicker(true)}
+                            style={styles.inputBox}
+                          >
+                            <Text
+                              style={[
+                                styles.inputTextBox,
+                                {
+                                  textAlign: "center",
+                                  width: "100%",
+                                },
+                              ]}
+                            >
+                              {editedProfile.dateOfBirth
+                                ? new Date(
+                                    editedProfile.dateOfBirth
+                                  ).toLocaleDateString("vi-VN")
+                                : "Select date"}
+                            </Text>
+                          </TouchableOpacity>
+
+                          {showDatePicker && (
+                            <DateTimePicker
+                              value={
+                                editedProfile.dateOfBirth
+                                  ? new Date(editedProfile.dateOfBirth)
+                                  : new Date()
+                              }
+                              mode="date"
+                              display="default"
+                              onChange={(event, selectedDate) => {
+                                setShowDatePicker(false);
+                                if (selectedDate) {
+                                  const isoDate = selectedDate
+                                    .toISOString()
+                                    .split("T")[0];
+                                  handleChange("dateOfBirth", isoDate);
+                                }
+                              }}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <TextInput
+                          value={editedProfile[field.fieldName]}
+                          onChangeText={(text) =>
+                            handleChange(field.fieldName, text)
+                          }
+                          editable={
+                            !["phoneNumber", "email", "pin"].includes(
+                              field.fieldName
+                            )
+                          }
+                          style={[
+                            styles.inputTextBox,
+                            { flex: 1 },
+                            ["phoneNumber", "email", "pin"].includes(
+                              field.fieldName
+                            ) && {
+                              color: theme.colors.graySoft,
+                            },
+                          ]}
+                          placeholder={`Enter ${field.label.toLowerCase()}`}
+                          placeholderTextColor={theme.colors.grayMedium}
+                        />
+                      )}
 
                       {["phoneNumber", "email", "pin"].includes(
                         field.fieldName
@@ -520,13 +581,13 @@ export default function DetailScreen({ navigation }) {
 
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-                <Text style={styles.buttonText}>Save</Text>
+                <Text style={styles.buttonText}>{t("save")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.cancelButton}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{t("cancel")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -537,7 +598,7 @@ export default function DetailScreen({ navigation }) {
           colors={theme.colors.gradientBlue}
           style={styles.editButton}
         >
-          <Text style={styles.fieldLabel}>Edit</Text>
+          <Text style={styles.fieldLabel}>{t("edit")}</Text>
         </LinearGradient>
       </TouchableOpacity>
       <FloatingMenu />

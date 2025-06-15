@@ -169,6 +169,7 @@ export default function HomeScreen({ navigation, route }) {
       borderRadius: 5,
       backgroundColor: theme.colors.cardBackground,
       elevation: 3,
+      width: 100,
     },
     grade: {
       fontSize: 14,
@@ -183,12 +184,12 @@ export default function HomeScreen({ navigation, route }) {
     dropdown: {
       position: "absolute",
       top: 30,
-      left: 2,
+      left: 0,
       marginTop: 5,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 5,
       elevation: 3,
-      paddingVertical: 5,
+      paddingVertical: 0,
     },
     dropdownItem: {
       paddingVertical: 6,

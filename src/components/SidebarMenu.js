@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/authSlice";
-
+import { logoutUser } from "../redux/authSlice";
 const SidebarMenu = () => {
   const { theme } = useTheme();
   const screenHeight = Dimensions.get("window").height;
@@ -27,7 +27,19 @@ const SidebarMenu = () => {
 
   const isPupil = Boolean(pupilId);
   const isParent = !pupilId;
-
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      // thành công: điều hướng về Login
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "LoginScreen" }],
+      });
+    } catch (errMsg) {
+      // lỗi khi gọi API
+      Alert.alert("Error", errMsg || "Failed to logout");
+    }
+  };
   const menuItems = [
     { label: "Home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
     {
@@ -50,11 +62,11 @@ const SidebarMenu = () => {
       icon: theme.icons.notification,
       screen: "NotificationScreen",
     },
-    {
-      label: "Test level",
-      icon: theme.icons.testLevel,
-      screen: "TestLevelScreen",
-    },
+    // {
+    //   label: "Test level",
+    //   icon: theme.icons.testLevel,
+    //   screen: "TestLevelScreen",
+    // },
     { label: "Reward", icon: theme.icons.reward, screen: "RewardScreen" },
     { label: "Setting", icon: theme.icons.setting, screen: "SettingScreen" },
     { label: "Contact", icon: theme.icons.contact, screen: "ContactScreen" },
@@ -207,10 +219,11 @@ const SidebarMenu = () => {
           style={styles.logoutButtonContainer}
         >
           <TouchableOpacity
-            onPress={() => {
-              dispatch(logout());
-              navigation.navigate("LoginScreen");
-            }}
+            // onPress={() => {
+            //   dispatch(logout());
+            //   navigation.navigate("LoginScreen");
+            // }}
+            onPress={handleLogout}
           >
             <Text style={styles.logoutButton}>Logout</Text>
           </TouchableOpacity>

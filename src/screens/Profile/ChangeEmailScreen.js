@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -14,45 +14,65 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfile, profileById } from "../../redux/profileSlice";
-
+import { sendOTPByEmail } from "../../redux/authSlice";
+import { verifyOnlyOTP } from "../../redux/authSlice";
+import { useTranslation } from "react-i18next";
 export default function ChangeEmailScreen({ navigation }) {
   const { theme } = useTheme();
+  const { t } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-  const profile = useSelector((state) => state.profile.info);
-
+  const profile = useSelector((state) => state.profile?.info);
   const [newEmail, setNewEmail] = useState("");
-  const [pin, setPin] = useState("");
+  const pinRefs = [useRef(), useRef(), useRef(), useRef()];
+  const [pin, setPin] = useState(["", "", "", ""]);
   const [pinModalVisible, setPinModalVisible] = useState(false);
 
   const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(profileById(user.id));
+    }
+  }, [user?.id, dispatch]);
 
   const handleConfirmPin = async () => {
     if (!/^\d{4}$/.test(pin)) {
       Alert.alert("Invalid PIN", "PIN must be exactly 4 digits.");
       return;
     }
-
     try {
       await dispatch(
-        updateProfile({ id: user.id, data: { email: newEmail } })
+        verifyOnlyOTP({ userId: user?.id, otpCode: pin })
       ).unwrap();
-      dispatch(profileById(user.id));
+      await dispatch(
+        updateProfile({ id: user?.id, data: { email: newEmail } })
+      ).unwrap();
+
+      dispatch(profileById(user?.id));
       Alert.alert("Success", "Email updated successfully!");
       setPinModalVisible(false);
       setPin("");
-      navigation.navigate("DetailScreen");
+      navigation.navigate("PrivacyScreen");
     } catch (error) {
-      Alert.alert("Error", "Failed to update email.");
+      Alert.alert(
+        "Error",
+        typeof error === "string" ? error : "Failed to update email."
+      );
     }
   };
-
-  const handleOpenPinModal = () => {
+  const handleOpenPinModal = async () => {
     if (!validateEmail(newEmail)) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
-    setPinModalVisible(true);
+
+    try {
+      await dispatch(sendOTPByEmail({ email: profile.email })).unwrap();
+      Alert.alert("OTP Sent", "An OTP has been sent to your current email.");
+      setPinModalVisible(true);
+    } catch (error) {
+      Alert.alert("Error", "Failed to send OTP.");
+    }
   };
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
@@ -77,8 +97,8 @@ export default function ChangeEmailScreen({ navigation }) {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 30,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontSize: 26,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     formContainer: {
@@ -91,20 +111,20 @@ export default function ChangeEmailScreen({ navigation }) {
       marginBottom: 20,
     },
     currentEmailText: {
-      fontFamily: Fonts.NUNITO_BOLD_ITALIC,
+      fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
       color: theme.colors.white,
       textAlign: "center",
       marginBottom: 10,
     },
     descriptionText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 14,
       marginBottom: 20,
       textAlign: "center",
     },
     label: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       marginBottom: 10,
       fontSize: 16,
@@ -113,7 +133,7 @@ export default function ChangeEmailScreen({ navigation }) {
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
       padding: 12,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 20,
     },
     confirmButton: {
@@ -124,7 +144,7 @@ export default function ChangeEmailScreen({ navigation }) {
       borderTopRightRadius: 50,
     },
     confirmText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 16,
     },
@@ -143,7 +163,7 @@ export default function ChangeEmailScreen({ navigation }) {
     },
     modalTitle: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       marginBottom: 20,
     },
@@ -185,13 +205,12 @@ export default function ChangeEmailScreen({ navigation }) {
       alignItems: "center",
     },
     buttonText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
   });
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
-      {/* Header */}
       <LinearGradient
         colors={theme.colors.gradientBluePrimary}
         style={styles.header}
@@ -206,9 +225,9 @@ export default function ChangeEmailScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Change Email</Text>
+        <Text style={styles.title}>{t("changeEmail")}</Text>
       </LinearGradient>
-      {/* Content */}
+
       <View style={{ flex: 1 }}>
         <View style={styles.formContainer}>
           <Image
@@ -217,14 +236,13 @@ export default function ChangeEmailScreen({ navigation }) {
             resizeMode="contain"
           />
           <Text style={styles.currentEmailText}>
-            Current email: {profile?.email}
+            {t("currentEmail")}: {profile?.email}
           </Text>
           <Text style={styles.descriptionText}>
-            Please enter your new email. You will need to confirm it with your
-            4-digit PIN.
+            {t("changeEmailInstruction")}
           </Text>
 
-          <Text style={styles.label}>New Email</Text>
+          <Text style={styles.label}>{t("newEmail")}</Text>
           <TextInput
             style={styles.input}
             value={newEmail}
@@ -236,24 +254,32 @@ export default function ChangeEmailScreen({ navigation }) {
           />
         </View>
       </View>
-      {/* PIN Modal */}
+
       <Modal visible={pinModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.pinModalContainer}>
-            <Text style={styles.modalTitle}>Enter 4-digit PIN</Text>
+            <Text style={styles.modalTitle}>{t("enterPin")}</Text>
 
             <View style={styles.pinRow}>
-              {[0, 1, 2, 3].map((index) => (
+              {pin.map((digit, index) => (
                 <TextInput
                   key={index}
-                  value={pin[index] || ""}
+                  ref={pinRefs[index]}
+                  value={digit}
                   onChangeText={(val) => {
-                    const newPin = pin.split("");
+                    const newPin = [...pin];
                     newPin[index] = val;
-                    setPin(newPin.join(""));
+                    setPin(newPin);
+
+                    if (val && index < 3) {
+                      pinRefs[index + 1].current.focus();
+                    }
+                    if (!val && index > 0) {
+                      pinRefs[index - 1].current.focus();
+                    }
                   }}
-                  maxLength={1}
                   keyboardType="number-pad"
+                  maxLength={1}
                   style={styles.pinBox}
                 />
               ))}
@@ -267,28 +293,25 @@ export default function ChangeEmailScreen({ navigation }) {
                   setPinModalVisible(false);
                 }}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{t("cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.verifyButton}
                 onPress={handleConfirmPin}
               >
-                <Text style={styles.buttonText}>Confirm</Text>
+                <Text style={styles.buttonText}>{t("confirm")}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-      {/* Confirm Button */}
-      <TouchableOpacity
-        onPress={handleOpenPinModal}
-        style={styles.buttonWrapper}
-      >
+
+      <TouchableOpacity onPress={handleOpenPinModal}>
         <LinearGradient
           colors={theme.colors.gradientBlue}
           style={styles.confirmButton}
         >
-          <Text style={styles.confirmText}>Confirm</Text>
+          <Text style={styles.confirmText}>{t("confirm")}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </LinearGradient>

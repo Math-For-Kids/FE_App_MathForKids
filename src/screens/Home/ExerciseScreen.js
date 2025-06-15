@@ -1,97 +1,47 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Image,
-  Animated,
+  ScrollView,
 } from "react-native";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
+import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import * as Speech from "expo-speech";
+
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, title } = route.params;
-  const questions = [
-    { id: 1, type: "image", answer: 2, image: theme.icons.question1 },
-    { id: 2, type: "text", answer: 3, text: "14 + 25" },
-    { id: 3, type: "image", answer: 4, image: theme.icons.question1 },
-  ];
+  const { skillName, grade } = route.params;
+  const { t } = useTranslation("exercise");
+  const { t: c } = useTranslation("common");
+  const dispatch = useDispatch();
 
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-  const optionRefs = useRef({});
-  const boxRefs = useRef({});
-  const flyingAnim = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
-  const [flyingValue, setFlyingValue] = useState(null);
-  const [isFlying, setIsFlying] = useState(false);
+  const normalizedSkillName = skillName.toLowerCase();
+  // const [activeTab] = useState("Lesson");
 
-  const handleSelect = (questionId, value) => {
-    const optionRef = optionRefs.current[`q${questionId}-opt${value}`];
-    const boxRef = boxRefs.current[`box${questionId}`];
+  const {
+    lessons,
+    loading: lessonLoading,
+    error: lessonError,
+  } = useSelector((state) => state.lesson);
 
-    if (optionRef && boxRef) {
-      optionRef.measure((fx, fy, width, height, px, py) => {
-        boxRef.measure((bx, by, bWidth, bHeight, bpx, bpy) => {
-          // bắt đầu animation từ vị trí nút
-          flyingAnim.setValue({
-            x: px + width / 2 - 25,
-            y: py + height / 2 - 25,
-          });
-          setFlyingValue(value);
-          setIsFlying(true);
-          Animated.timing(flyingAnim, {
-            // điểm đến
-            toValue: {
-              x: bpx + bWidth / 2 - 25,
-              y: bpy + bHeight / 2 - 25,
-            },
-            duration: 800,
-            useNativeDriver: true,
-          }).start(() => {
-            setSelectedAnswers((prev) => ({ ...prev, [questionId]: value }));
-            setIsFlying(false);
-          });
-        });
-      });
-    }
-  };
-  const generateOptions = (question) => {
-    const correct = question.answer;
-    const wrong1 = correct + 1;
-    const wrong2 = correct - 1;
-    const wrong3 = correct + 2;
+  useEffect(() => {
+    dispatch(getLessonsByGradeAndType({ grade, type: normalizedSkillName }));
+  }, []);
 
-    // Trả về mảng hoán vị để vị trí đáp án đúng không cố định
-    return shuffleArray([correct, wrong1, wrong2, wrong3]);
-  };
-
-  const shuffleArray = (array) => {
-    return array
-      .map((item) => ({ item, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map(({ item }) => item);
-  };
-  const calculateResults = () => {
-    let correct = 0;
-    let wrong = 0;
-
-    questions.forEach((q) => {
-      const selected = selectedAnswers[q.id];
-      if (selected !== undefined) {
-        if (selected === q.answer) correct++;
-        else wrong++;
-      }
-    });
-
-    const score = correct * 5; // mỗi câu đúng 5 điểm
-
-    return { correct, wrong, score };
-  };
-
+  const filteredLessons = lessons.filter(
+    (item) => item.type?.toLowerCase() === normalizedSkillName
+  );
+  console.log("filteredLessons", filteredLessons);
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
@@ -99,13 +49,23 @@ export default function ExerciseScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.gradientRed;
     return theme.colors.gradientPink;
   };
-  const getOptionBackground = () => {
+
+  const getTab = () => {
     if (skillName === "Addition") return theme.colors.greenLight;
     if (skillName === "Subtraction") return theme.colors.purpleLight;
     if (skillName === "Multiplication") return theme.colors.orangeLight;
     if (skillName === "Division") return theme.colors.redLight;
     return theme.colors.pinkLight;
   };
+
+  const getTabSelected = () => {
+    if (skillName === "Addition") return theme.colors.GreenDark;
+    if (skillName === "Subtraction") return theme.colors.purpleDark;
+    if (skillName === "Multiplication") return theme.colors.orangeDark;
+    if (skillName === "Division") return theme.colors.redDark;
+    return theme.colors.pinkDark;
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -135,111 +95,70 @@ export default function ExerciseScreen({ navigation, route }) {
       fontSize: 32,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
-      width: "60%",
-      textAlign: "center",
     },
-    requestContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      gap: 10,
-      alignItems: "center",
-    },
-    soundOnIcon: { width: 40, height: 40 },
-    requestText: {
-      fontFamily: Fonts.NUNITO_BOLD,
-      color: theme.colors.black,
-      fontSize: 18,
-    },
-    questionContainer: { marginBottom: 30, paddingHorizontal: 20 },
-    questionImageContainer: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      alignItems: "center",
-    },
-    questionImage: {
-      width: 150,
-      height: 150,
-    },
-    question: {
-      fontFamily: Fonts.NUNITO_BOLD,
-      color: theme.colors.black,
-      fontSize: 60,
-      maxWidth: "50%",
-    },
-    selectedContainer: { flexDirection: "row", alignItems: "center", gap: 5 },
-    equalIcon: { width: 50, height: 40 },
-    optionsRow: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      marginTop: 10,
-    },
-    option: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: getOptionBackground(),
-      elevation: 3,
-    },
-    optionText: {
-      fontFamily: Fonts.NUNITO_BOLD,
-      color: theme.colors.white,
-      fontSize: 18,
-    },
-    selectedAnswerBox: {
-      width: 80,
-      height: 80,
-      borderWidth: 2,
-      borderStyle: "dashed",
-      borderColor: getOptionBackground(),
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 10,
-      backgroundColor: theme.colors.cardBackground,
-    },
-    selectedAnswerTextContainer: {
-      backgroundColor: getOptionBackground(),
-      borderRadius: 50,
+    // tabWrapper: {
+    //   flexDirection: "row",
+    //   justifyContent: "center",
+    // },
+    // tabItem: {
+    //   paddingVertical: 10,
+    //   paddingHorizontal: 20,
+    //   backgroundColor: getTab(),
+    //   borderRadius: 10,
+    //   elevation: 3,
+    // },
+    // activeTabItem: {
+    //   backgroundColor: getTabSelected(),
+    // },
+    // tabText: {
+    //   fontSize: 16,
+    //   fontFamily: Fonts.NUNITO_MEDIUM,
+    //   color: theme.colors.white,
+    // },
+    // activeTabText: {
+    //   fontSize: 18,
+    //   fontFamily: Fonts.NUNITO_MEDIUM,
+    //   color: theme.colors.white,
+    // },
+    lessonList: {
       paddingHorizontal: 20,
-      paddingVertical: 10,
+      paddingVertical: 40,
+    },
+    lessonCard: {
+      borderRadius: 20,
+      padding: 15,
+      marginBottom: 30,
+      height: 100,
+      justifyContent: "center",
       elevation: 3,
     },
-    selectedAnswerText: {
-      fontSize: 24,
-      color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BOLD,
-    },
-    questionText: {
-      fontFamily: Fonts.NUNITO_BOLD,
-      fontSize: 16,
-      marginTop: 10,
-      marginBottom: 5,
-    },
-    submitButton: {
-      marginTop: 20,
-      paddingHorizontal: 40,
-      paddingVertical: 10,
-      borderTopLeftRadius: 50,
-      borderTopRightRadius: 50,
-    },
-    submitText: {
-      color: theme.colors.white,
-      fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
-      textAlign: "center",
-    },
-    isFlying: {
-      position: "absolute",
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: getOptionBackground(),
+    lessonContent: {
+      flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      transform: flyingAnim.getTranslateTransform(),
+    },
+    lessonIcon: {
+      position: "absolute",
+      top: -40,
+      left: -140,
+      width: 30,
+      height: 30,
+    },
+    lessonTextContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    lessonText: {
+      color: theme.colors.white,
+      fontSize: 18,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      textAlign: "center",
     },
   });
+
+  if (lessonLoading) return <Text>Loading...</Text>;
+  if (lessonError) return <Text>Error: {lessonError}</Text>;
 
   return (
     <View style={styles.container}>
@@ -250,105 +169,64 @@ export default function ExerciseScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
-        <Text
-          style={styles.headerText}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.5}
-        >
-          {title}
-        </Text>
+        <Text style={styles.headerText}>{t("exercise")}</Text>
       </LinearGradient>
 
-      <ScrollView>
-        <View style={styles.requestContainer}>
-          <Image source={theme.icons.soundOn} style={styles.soundOnIcon} />
-          <Text style={styles.requestText}>Choose the correct answer</Text>
-        </View>
-
-        {questions.map((q) => (
-          <View key={q.id} style={styles.questionContainer}>
-            <Text style={styles.questionText}>Question {q.id}</Text>
-            <View style={styles.questionImageContainer}>
-              {q.type === "image" ? (
-                <Image
-                  source={q.image}
-                  style={styles.questionImage}
-                  resizeMode="contain"
-                />
-              ) : (
-                <Text
-                  style={styles.question}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.5}
-                >
-                  {q.text}
-                </Text>
-              )}
-              <View style={styles.selectedContainer}>
-                <Image
-                  source={theme.icons.equalMark}
-                  style={styles.equalIcon}
-                  resizeMode="contain"
-                />
-                <View
-                  style={styles.selectedAnswerBox}
-                  ref={(ref) => (boxRefs.current[`box${q.id}`] = ref)}
-                >
-                  {selectedAnswers[q.id] !== undefined && (
-                    <View style={styles.selectedAnswerTextContainer}>
-                      <Text style={styles.selectedAnswerText}>
-                        {selectedAnswers[q.id]}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.optionsRow}>
-              {generateOptions(q).map((val) =>
-                selectedAnswers[q.id] === val ? null : (
-                  <TouchableOpacity
-                    key={`q${q.id}-opt${val}`}
-                    style={styles.option}
-                    ref={(ref) =>
-                      (optionRefs.current[`q${q.id}-opt${val}`] = ref)
-                    }
-                    onPress={() => handleSelect(q.id, val)}
-                  >
-                    <Text style={styles.optionText}>{val}</Text>
-                  </TouchableOpacity>
-                )
-              )}
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-      <LinearGradient colors={getGradient()} style={styles.submitButton}>
-        <TouchableOpacity
-          onPress={() => {
-            const { correct, wrong, score } = calculateResults();
-            navigation.navigate("ExerciseResultScreen", {
-              skillName,
-              answers: selectedAnswers,
-              questions,
-              score,
-              correctCount: correct,
-              wrongCount: wrong,
-            });
-          }}
-        >
-          <Text style={styles.submitText}>Submit</Text>
+      {/* <View style={styles.tabWrapper}>
+        <TouchableOpacity style={[styles.tabItem, styles.activeTabItem]}>
+          <Text style={[styles.tabText, styles.activeTabText]}>
+            {c("lesson")}
+          </Text>
         </TouchableOpacity>
-      </LinearGradient>
-      {/* Viên bay */}
-      {isFlying && (
-        <Animated.View style={styles.isFlying}>
-          <Text style={styles.optionText}>{flyingValue}</Text>
-        </Animated.View>
-      )}
+      </View> */}
+
+      <ScrollView contentContainerStyle={styles.lessonList}>
+        {filteredLessons.map((item) => {
+          const title =
+            item.name?.[i18n.language] || item.name?.en || item.title;
+          return (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => {
+                navigation.navigate("LessonDetailScreen", {
+                  skillName,
+                  title,
+                  lessonId: item.id,
+                });
+              }}
+            >
+              <LinearGradient
+                colors={getGradient()}
+                style={styles.lessonCard}
+                start={{ x: 1, y: 0 }}
+                end={{ x: 0, y: 0 }}
+              >
+                <View style={styles.lessonContent}>
+                  <View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const speakText =
+                          item.name?.[i18n.language] ||
+                          item.name?.en ||
+                          item.title;
+                        Speech.speak(speakText, { language: i18n.language });
+                      }}
+                    >
+                      <Image
+                        source={theme.icons.soundOn}
+                        style={styles.lessonIcon}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.lessonTextContainer}>
+                    <Text style={styles.lessonText}>{title}</Text>
+                  </View>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
       <FloatingMenu />
     </View>
   );

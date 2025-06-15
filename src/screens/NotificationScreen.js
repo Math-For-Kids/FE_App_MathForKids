@@ -38,14 +38,14 @@ export default function NotificationScreen({ navigation, route }) {
   const notificationsToDisplay = pupilId
     ? pupilNotifications
     : userNotifications;
-  console.log("🔔 Notifications to display:", pupilNotifications);
+  console.log("Notifications to display:", pupilNotifications);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (isFocused) {
-      console.log("👦 pupilId:", pupilId);
+      console.log("pupilId:", pupilId);
       if (pupilId) {
         dispatch(notificationsByPupilId(pupilId));
       } else if (userId) {
@@ -56,8 +56,8 @@ export default function NotificationScreen({ navigation, route }) {
 
   const handlePress = async (id) => {
     const selected = notificationsToDisplay.find((n) => n.id === id);
-    console.log("📩 Pressed notification ID:", id);
-    console.log("📄 Selected notification:", selected);
+    console.log("Pressed notification ID:", id);
+    console.log("Selected notification:", selected);
 
     if (selected && !selected.isRead) {
       try {

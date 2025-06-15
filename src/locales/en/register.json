@@ -1,0 +1,20 @@
+{
+  "title": "Register",
+  "phFullName": "Enter full name",
+  "phPhone": "Enter your phone number",
+  "phEmail": "Enter your email",
+  "phAddress": "Enter address",
+  "pinLabel": "PIN code",
+  "female": "Female",
+  "male": "Male",
+  "invalidTitle": "Invalid",
+  "invalidPin": "PIN must be 4 digits.",
+  "invalidPhone": "Please enter a valid phone number.",
+  "successDefault": "User created successfully!",
+  "sentOtpDefault": "OTP sent successfully!",
+  "ok": "OK",
+  "registerButton": "Register",
+  "haveAccount": "Have an account?",
+  "loginLink": "Log in",
+  "errorTitle": "Error"
+}

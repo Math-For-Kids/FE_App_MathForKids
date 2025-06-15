@@ -1,0 +1,14 @@
+{
+  "title": "Login",
+  "placeholder": "Enter phone number or email",
+  "loginButton": "Log In",
+  "noAccount": "Don't have an account?",
+  "registerLink": "Register",
+  "errorTitle": "Error",
+  "errorEnterContact": "Please enter your phone number or email",
+  "invalidTitle": "Invalid",
+  "errorInvalidContact": "Please enter a valid phone number or email",
+  "loginFailedTitle": "Login Failed",
+  "errorSendOtp": "Could not send OTP",
+  "errorNoUserId": "No userId returned from server"
+}
