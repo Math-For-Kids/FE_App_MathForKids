@@ -16,41 +16,40 @@ import { sendOTPByPhone, sendOTPByEmail } from "../redux/authSlice";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import useSound from "../audio/useSound";
+import { useTranslation } from "react-i18next";
 
 export default function LoginScreen({ navigation }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+
   const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
   const { play } = useSound();
+  const { t } = useTranslation("login");
 
   const handleLogin = async () => {
     play("openClick");
 
     const value = inputValue.trim();
     if (!value) {
-      return Alert.alert("Error", "Please enter your phone number or email");
+      return Alert.alert(t("errorTitle"), t("errorEnterContact"));
     }
 
     const isPhone = /^[0-9]{9,15}$/.test(value);
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
     if (!isPhone && !isEmail) {
-      return Alert.alert("Invalid", "Please enter a valid phone or email.");
+      return Alert.alert(t("invalidTitle"), t("errorInvalidContact"));
     }
 
     try {
       const sendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
       const contactKey = isEmail ? "email" : "phoneNumber";
       const result = await dispatch(
-        sendAction({
-          [contactKey]: value,
-          role: "user", 
-        })
+        sendAction({ [contactKey]: value, role: "user" })
       ).unwrap();
 
       const userId = result?.userId;
-      if (!userId) throw new Error("No userId returned from server.");
+      if (!userId) throw new Error(t("errorNoUserId"));
 
       navigation.navigate("VerifyScreen", {
         userId,
@@ -60,7 +59,10 @@ export default function LoginScreen({ navigation }) {
       });
     } catch (err) {
       console.error("Login Error:", err);
-      Alert.alert("Login Failed", err?.message || "Could not send OTP.");
+      Alert.alert(
+        t("loginFailedTitle"),
+        typeof err?.message === "string" ? err.message : t("errorSendOtp")
+      );
     }
   };
 
@@ -107,12 +109,11 @@ export default function LoginScreen({ navigation }) {
     inputWrapperFocused: {
       borderColor: theme.colors.skyBlue,
       shadowColor: theme.colors.skyBlue,
-      shadowOpacity: 0.3,
       elevation: 8,
     },
     input: {
       flex: 1,
-      fontSize: 16,
+      fontSize: 15,
       color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_REGULAR,
     },
@@ -161,8 +162,7 @@ export default function LoginScreen({ navigation }) {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Log In</Text>
-
+          <Text style={styles.title}>{t("title")}</Text>
           <View
             style={[
               styles.inputWrapper,
@@ -171,7 +171,7 @@ export default function LoginScreen({ navigation }) {
           >
             <TextInput
               style={styles.input}
-              placeholder="Enter phone or email"
+              placeholder={t("placeholder")}
               placeholderTextColor={theme.colors.grayLight}
               value={inputValue}
               onChangeText={setInputValue}
@@ -185,7 +185,6 @@ export default function LoginScreen({ navigation }) {
               }}
             />
           </View>
-
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.buttonWrapper}
@@ -197,19 +196,18 @@ export default function LoginScreen({ navigation }) {
               end={{ x: 1, y: 0 }}
               style={styles.button}
             >
-              <Text style={styles.buttonText}>Log In</Text>
+              <Text style={styles.buttonText}>{t("loginButton")}</Text>
             </LinearGradient>
           </TouchableOpacity>
-
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account?</Text>
+            <Text style={styles.footerText}>{t("noAccount")}</Text>
             <TouchableOpacity
               onPress={() => {
                 play("openClick");
                 navigation.navigate("RegisterScreen");
               }}
             >
-              <Text style={styles.registerText}>Register</Text>
+              <Text style={styles.registerText}>{t("registerLink")}</Text>
             </TouchableOpacity>
           </View>
         </View>

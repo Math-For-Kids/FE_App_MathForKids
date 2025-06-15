@@ -17,14 +17,18 @@ import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useDispatch, useSelector } from "react-redux";
 import { getEnabledByLesson } from "../../redux/lessonDetailSlice";
+import { getLessonById } from "../../redux/lessonSlice";
 import { useTranslation } from "react-i18next";
 import * as Speech from "expo-speech";
+import LottieView from "lottie-react-native";
+import swipeGifLeft from "../../../assets/animations/swipe.gif/1.json";
+import swipeGifRight from "../../../assets/animations/swipe.gif/2.json";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, title, lessonId } = route.params;
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation("lesson");
-
+  const [lessonName, setLessonName] = useState("");
   const screenWidth = Dimensions.get("window").width;
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentIndexRef = useRef(0);
@@ -32,14 +36,32 @@ export default function LessonDetailScreen({ navigation, route }) {
   const isAnimating = useRef(false);
 
   const enabledList = useSelector((state) => state.lessonDetail.enabledList);
+
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
+
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+  const [currentOrder, setCurrentOrder] = useState(null);
+  useEffect(() => {
+    if (lessonId) {
+      dispatch(getLessonById(lessonId)).then((res) => {
+        const data = res.payload;
+        setLessonName(data?.name?.[i18n.language] || data?.name?.en || "");
+      });
+    }
+  }, [lessonId, i18n.language]);
+  useEffect(() => {
+    setShowSwipeHint(true);
+    const timeout = setTimeout(() => setShowSwipeHint(false), 4000);
+    return () => clearTimeout(timeout);
+  }, [currentIndex]);
 
   useEffect(() => {
     if (lessonId) {
       dispatch(getEnabledByLesson(lessonId));
     }
   }, [lessonId]);
+
   useEffect(() => {
     return () => {
       Speech.stop();
@@ -49,10 +71,12 @@ export default function LessonDetailScreen({ navigation, route }) {
   useEffect(() => {
     currentIndexRef.current = currentIndex;
     const found = enabledList?.find((item) => item.order === currentIndex + 1);
+    console.log("enabledList", found);
     setContent(found?.content?.[i18n.language] || "");
     setImageUrl(found?.image || null);
+    setCurrentOrder(found?.order || null);
   }, [currentIndex, enabledList, i18n.language]);
-  console.log("getEnabledByLesson", enabledList);
+
   const tabTitles = useMemo(() => {
     return Array.isArray(enabledList)
       ? enabledList
@@ -63,7 +87,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   }, [enabledList, i18n.language]);
 
   const handleSwipe = (direction) => {
-    const maxIndex = 2;
+    const maxIndex = enabledList.length - 1;
     const indexNow = currentIndexRef.current;
     if (isAnimating.current) return;
 
@@ -160,6 +184,29 @@ export default function LessonDetailScreen({ navigation, route }) {
       elevation: 3,
       marginLeft: 20,
     },
+    swipeHintContainer: {
+      marginBottom: 10,
+      position: "absolute",
+      top: 200,
+      elevation: 20,
+      left: 60,
+    },
+    swipeHintImage: {
+      width: 200,
+      height: 200,
+    },
+    swipeHintTextContainer: {
+      backgroundColor: theme.colors.cardBackground,
+      elevation: 20,
+      borderRadius: 40,
+    },
+    swipeHintText: {
+      color: theme.colors.gray,
+      fontSize: 13,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+    },
     cardLesson: {
       paddingHorizontal: 20,
       paddingTop: 40,
@@ -227,7 +274,7 @@ export default function LessonDetailScreen({ navigation, route }) {
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
-          {title}
+          {lessonName}
         </Text>
       </LinearGradient>
 
@@ -244,6 +291,20 @@ export default function LessonDetailScreen({ navigation, route }) {
           <Ionicons name="volume-medium" size={28} color={theme.colors.white} />
         </TouchableOpacity>
       </LinearGradient>
+
+      {showSwipeHint && currentOrder !== 2 && (
+        <View style={styles.swipeHintContainer}>
+          <LottieView
+            source={currentOrder === 3 ? swipeGifRight : swipeGifLeft}
+            autoPlay
+            loop={true}
+            style={styles.swipeHintImage}
+          />
+          <View style={styles.swipeHintTextContainer}>
+            <Text style={styles.swipeHintText}>{t("swipe_hint")}</Text>
+          </View>
+        </View>
+      )}
 
       <Animated.View
         {...panResponder.panHandlers}

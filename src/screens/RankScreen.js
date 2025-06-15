@@ -250,7 +250,7 @@ export default function RankScreen({ navigation }) {
               </View>
               <View style={styles.rightContainer}>
                 <Text style={styles.point}>{item.point}</Text>
-                <Text style={styles.time}>{item.time} Hours</Text>
+                {/* <Text style={styles.time}>{item.time} Hours</Text> */}
               </View>
             </LinearGradient>
           </TouchableOpacity>

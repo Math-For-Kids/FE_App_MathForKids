@@ -9,7 +9,7 @@ import FloatingMenu from "../components/FloatingMenu";
 import { updateProfile, updatePupilProfile } from "../redux/profileSlice";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-
+import { setLanguage } from "../redux/settingsSlice";
 export default function SettingScreen({ navigation }) {
   const { theme, isDarkMode, themeKey, toggleThemeMode, switchThemeKey } =
     useTheme();
@@ -19,14 +19,12 @@ export default function SettingScreen({ navigation }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
-  console.log("userId", user.id);
-  console.log("pupilId", pupilId);
   const profile = pupilId?.userId ? pupilId : user;
   const updateUserOrPupil = (data) => {
     if (pupilId) {
       dispatch(updatePupilProfile({ id: pupilId, data }));
-    } else if (user?.userId) {
-      dispatch(updateProfile({ id: user.userId, data }));
+    } else if (user?.id) {
+      dispatch(updateProfile({ id: user.id, data }));
     } else {
       console.warn("No valid user ID found!");
     }
@@ -47,7 +45,9 @@ export default function SettingScreen({ navigation }) {
 
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "vi" : "en";
-    switchLanguage(newLang);
+    i18n.changeLanguage(newLang);
+    dispatch(setLanguage(newLang));
+    updateUserOrPupil({ language: newLang });
   };
 
   const handleToggleMode = () => {
@@ -78,7 +78,7 @@ export default function SettingScreen({ navigation }) {
 
     switchThemeKey(nextThemeKey);
     const themeNumber = themeKeyToNumber(nextThemeKey);
-    updateUserOrPupil({ theme: themeNumber }); 
+    updateUserOrPupil({ theme: themeNumber });
   };
   if (!profile) return null;
   const styles = StyleSheet.create({

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -14,15 +14,19 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfile, profileById } from "../../redux/profileSlice";
-
+import { sendOTPByPhone, verifyOnlyOTP } from "../../redux/authSlice";
+import { useTranslation } from "react-i18next";
 export default function ChangePhoneScreen({ navigation }) {
   const { theme } = useTheme();
+  const { t } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const profile = useSelector((state) => state.profile.info);
 
   const [newPhone, setNewPhone] = useState("");
-  const [pin, setPin] = useState("");
+  const pinRefs = [useRef(), useRef(), useRef(), useRef()];
+  const [pin, setPin] = useState(["", "", "", ""]);
+
   const [pinModalVisible, setPinModalVisible] = useState(false);
 
   const validatePhone = (phone) => /^\d{10,11}$/.test(phone);
@@ -32,27 +36,40 @@ export default function ChangePhoneScreen({ navigation }) {
       Alert.alert("Invalid PIN", "PIN must be exactly 4 digits.");
       return;
     }
-
     try {
+      await dispatch(verifyOnlyOTP({ userId: user.id, otpCode: pin })).unwrap();
       await dispatch(
         updateProfile({ id: user.id, data: { phoneNumber: newPhone } })
       ).unwrap();
+
       dispatch(profileById(user.id));
       Alert.alert("Success", "Phone number updated successfully!");
       setPinModalVisible(false);
       setPin("");
-      navigation.navigate("DetailScreen");
+      navigation.navigate("PrivacyScreen");
     } catch (error) {
-      Alert.alert("Error", "Failed to update phone number.");
+      Alert.alert(
+        "Error",
+        typeof error === "string" ? error : "OTP verification failed."
+      );
     }
   };
 
-  const handleOpenPinModal = () => {
+  const handleOpenPinModal = async () => {
     if (!validatePhone(newPhone)) {
       Alert.alert("Invalid Phone Number", "Enter a valid phone number.");
       return;
     }
-    setPinModalVisible(true);
+
+    try {
+      await dispatch(
+        sendOTPByPhone({ userId: user.id, phoneNumber: profile.phoneNumber })
+      ).unwrap();
+      Alert.alert("OTP Sent", "An OTP has been sent to your current phone.");
+      setPinModalVisible(true);
+    } catch (error) {
+      Alert.alert("Error", "Failed to send OTP.");
+    }
   };
 
   const styles = StyleSheet.create({
@@ -78,8 +95,8 @@ export default function ChangePhoneScreen({ navigation }) {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 30,
-      fontFamily: Fonts.NUNITO_EXTRA_BOLD,
+      fontSize: 26,
+      fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
     formContainer: {
@@ -92,20 +109,20 @@ export default function ChangePhoneScreen({ navigation }) {
       marginBottom: 20,
     },
     currentPhoneText: {
-      fontFamily: Fonts.NUNITO_BOLD_ITALIC,
+      fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
       color: theme.colors.white,
       textAlign: "center",
       marginBottom: 10,
     },
     descriptionText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 14,
       marginBottom: 20,
       textAlign: "center",
     },
     label: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       marginBottom: 10,
       fontSize: 16,
@@ -114,7 +131,7 @@ export default function ChangePhoneScreen({ navigation }) {
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
       padding: 12,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 20,
     },
     confirmButton: {
@@ -125,7 +142,7 @@ export default function ChangePhoneScreen({ navigation }) {
       borderTopRightRadius: 50,
     },
     confirmText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 16,
     },
@@ -144,7 +161,7 @@ export default function ChangePhoneScreen({ navigation }) {
     },
     modalTitle: {
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
       marginBottom: 20,
     },
@@ -186,7 +203,7 @@ export default function ChangePhoneScreen({ navigation }) {
       alignItems: "center",
     },
     buttonText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
   });
@@ -207,7 +224,7 @@ export default function ChangePhoneScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Change Phone</Text>
+        <Text style={styles.title}>{t("changePhone")}</Text>
       </LinearGradient>
 
       <View style={{ flex: 1 }}>
@@ -218,13 +235,12 @@ export default function ChangePhoneScreen({ navigation }) {
             resizeMode="contain"
           />
           <Text style={styles.currentPhoneText}>
-            Current phone: {profile?.phoneNumber}
+            {t("currentPhone")}: {profile?.phoneNumber}
           </Text>
           <Text style={styles.descriptionText}>
-            Enter your new phone number. You will need to confirm it with your
-            4-digit PIN.
+            {t("changePhoneInstruction")}
           </Text>
-          <Text style={styles.label}>New Phone Number</Text>
+          <Text style={styles.label}>{t("newPhone")}</Text>
           <TextInput
             style={styles.input}
             value={newPhone}
@@ -240,19 +256,27 @@ export default function ChangePhoneScreen({ navigation }) {
       <Modal visible={pinModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.pinModalContainer}>
-            <Text style={styles.modalTitle}>Enter 4-digit PIN</Text>
+            <Text style={styles.modalTitle}>{t("enterPin")}</Text>
             <View style={styles.pinRow}>
-              {[0, 1, 2, 3].map((index) => (
+              {pin.map((digit, index) => (
                 <TextInput
                   key={index}
-                  value={pin[index] || ""}
+                  ref={pinRefs[index]}
+                  value={digit}
                   onChangeText={(val) => {
-                    const newPin = pin.split("");
+                    const newPin = [...pin];
                     newPin[index] = val;
-                    setPin(newPin.join(""));
+                    setPin(newPin);
+
+                    if (val && index < 3) {
+                      pinRefs[index + 1].current.focus();
+                    }
+                    if (!val && index > 0) {
+                      pinRefs[index - 1].current.focus();
+                    }
                   }}
-                  maxLength={1}
                   keyboardType="number-pad"
+                  maxLength={1}
                   style={styles.pinBox}
                 />
               ))}
@@ -265,13 +289,13 @@ export default function ChangePhoneScreen({ navigation }) {
                   setPinModalVisible(false);
                 }}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{t("cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.verifyButton}
                 onPress={handleConfirmPin}
               >
-                <Text style={styles.buttonText}>Confirm</Text>
+                <Text style={styles.buttonText}>{t("confirm")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -283,7 +307,7 @@ export default function ChangePhoneScreen({ navigation }) {
           colors={theme.colors.gradientBlue}
           style={styles.confirmButton}
         >
-          <Text style={styles.confirmText}>Confirm</Text>
+          <Text style={styles.confirmText}>{t("confirm")}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </LinearGradient>

@@ -1,0 +1,31 @@
+{
+  "hello": "Xin chào!",
+  "selectPupil": "Chọn học sinh",
+  "This week": "Tuần này",
+  "Last week": "Tuần trước",
+  "This month": "Tháng này",
+  "Last month": "Tháng trước",
+  "academicProgress": "Tiến bộ học tập",
+  "lastMonth": "Tháng trước",
+  "thisMonth": "Tháng này",
+  "comment": "Nhận xét",
+  "summary": "Tóm tắt",
+  "trueFalseRatio": "Tỷ lệ đúng/sai",
+  "true": "Đúng",
+  "false": "Sai",
+  "improvedBy": "Tăng {{value}}%. Tiếp tục duy trì nhé.",
+  "droppedBy": "Giảm {{value}}%. Cần ôn lại.",
+  "noChange": "Không thay đổi. Tiếp tục luyện tập đều đặn.",
+  "summaryChange": "{{from}}% → {{to}}%",
+  "excellentAccuracy": "Độ chính xác tuyệt vời ({{correct}}% đúng). Tiếp tục phát huy.",
+  "goodAccuracy": "Độ chính xác khá ({{correct}}% đúng), còn {{incorrect}}% sai. Cần luyện thêm.",
+  "lowAccuracy": "Độ chính xác thấp ({{correct}}% đúng). Cần ôn kỹ và luyện tập thêm.",
+  "summaryTF": "{{true}}% đúng, {{false}}% sai",
+  "skillComments": "Nhận xét kỹ năng",
+  "skill": {
+    "add": "Cộng",
+    "sub": "Trừ",
+    "mul": "Nhân",
+    "div": "Chia"
+  }
+}

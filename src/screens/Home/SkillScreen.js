@@ -15,7 +15,6 @@ export default function SkillScreen({ navigation, route }) {
     { label: "lesson", icon: theme.icons.lesson },
     { label: "exercise", icon: theme.icons.exercise },
     { label: "test", icon: theme.icons.test },
-    { label: "game", icon: theme.icons.game },
   ];
 
   const getGradientBySkill = () => {
@@ -131,14 +130,19 @@ export default function SkillScreen({ navigation, route }) {
             <TouchableOpacity
               style={styles.cardTouchable}
               onPress={() => {
-                if (action.label === "game") {
-                  navigation.navigate("GameScreen", { skillName });
-                } else {
+                if (action.label === "lesson") {
                   navigation.navigate("LessonScreen", {
                     skillName,
-                    actionType:
-                      action.label.charAt(0).toUpperCase() +
-                      action.label.slice(1), // capitalized for backend
+                    grade,
+                  });
+                } else if (action.label === "exercise") {
+                  navigation.navigate("ExerciseScreen", {
+                    skillName,
+                    grade,
+                  });
+                } else if (action.label === "test") {
+                  navigation.navigate("TestScreen", {
+                    skillName,
                     grade,
                   });
                 }

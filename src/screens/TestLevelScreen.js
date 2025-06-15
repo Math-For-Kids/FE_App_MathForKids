@@ -13,26 +13,30 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import { ProgressBar } from "react-native-paper";
+import { updatePupilProfile } from "../redux/pupilSlice";
+import { useDispatch } from "react-redux";
 
-export default function TestLevelScreen({ navigation }) {
+export default function TestLevelScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const dispatch = useDispatch();
+  const { pupilId } = route.params || {};
+
   const [showModal, setShowModal] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(0);
+
   const testLevels = [
     {
       id: 1,
-      grade: 6,
       question: { title: "2 + 3 = ?" },
       option: ["4", "5", "6", "7"],
       answer: 1,
     },
     {
       id: 2,
-      grade: 7,
       question: { title: "4 - 2 = ?" },
       option: ["2", "3", "4", "5"],
-      answer: 2,
+      answer: 0,
     },
   ];
 
@@ -79,6 +83,7 @@ export default function TestLevelScreen({ navigation }) {
       [questionId]: optionIndex,
     }));
   };
+
   const handleSubmit = (isAutoSubmit = false) => {
     const unanswered = testLevels.filter(
       (q) => selectedOptions[q.id] === undefined
@@ -106,6 +111,12 @@ export default function TestLevelScreen({ navigation }) {
     const calculatedScore = Math.round((correct / testLevels.length) * 10);
     setCorrectCount(correct);
     setScore(calculatedScore);
+
+    // ✅ Cập nhật isAssess = true
+    if (pupilId) {
+      dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+    }
+
     setShowModal(true);
   };
 
@@ -265,8 +276,10 @@ export default function TestLevelScreen({ navigation }) {
       fontSize: 16,
     },
   });
+
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
+      {/* Header */}
       <LinearGradient
         colors={theme.colors.gradientBluePrimary}
         style={styles.header}
@@ -283,30 +296,30 @@ export default function TestLevelScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.title}>Test Level</Text>
         <View style={styles.timerContainer}>
-          {
-            <Image
-              source={theme.icons.time}
-              style={styles.clockIcon}
-              resizeMode="contain"
-            />
-          }
+          <Image
+            source={theme.icons.time}
+            style={styles.clockIcon}
+            resizeMode="contain"
+          />
           <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
         </View>
       </LinearGradient>
+
+      {/* Info + Progress */}
       <View style={styles.leftText}>
         <Text style={styles.text}>Class: 3</Text>
         <Text style={styles.text}>Question total: {testLevels.length}</Text>
-        <View>
-          <Text style={styles.text}>
-            Answered: {Object.keys(selectedOptions).length}/{testLevels.length}
-          </Text>
-          <ProgressBar
-            progress={Object.keys(selectedOptions).length / testLevels.length}
-            color={theme.colors.green}
-            style={styles.ProgressBar}
-          />
-        </View>
+        <Text style={styles.text}>
+          Answered: {Object.keys(selectedOptions).length}/{testLevels.length}
+        </Text>
+        <ProgressBar
+          progress={Object.keys(selectedOptions).length / testLevels.length}
+          color={theme.colors.green}
+          style={styles.ProgressBar}
+        />
       </View>
+
+      {/* Questions */}
       <FlatList
         data={testLevels}
         keyExtractor={(item) => item.id.toString()}
@@ -345,7 +358,9 @@ export default function TestLevelScreen({ navigation }) {
           );
         }}
       />
-      <TouchableOpacity onPress={() => handleSubmit()}>
+
+      {/* Submit */}
+      <TouchableOpacity onPress={handleSubmit}>
         <LinearGradient
           style={styles.submitButton}
           colors={theme.colors.gradientBlue}
@@ -355,7 +370,7 @@ export default function TestLevelScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Result Modal */}
-      <Modal visible={showModal} transparent={true} animationType="slide">
+      <Modal visible={showModal} transparent animationType="slide">
         <View style={styles.modalBackground}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Your Score: {score}/10</Text>

@@ -15,11 +15,22 @@ export const getLessonsByGradeAndType = createAsyncThunk(
     }
   }
 );
-
+export const getLessonById = createAsyncThunk(
+  "lesson/getById",
+  async (lessonId, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/lesson/${lessonId}`);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const lessonSlice = createSlice({
   name: "lesson",
   initialState: {
     lessons: [],
+    lessonDetail: null,
     loading: false,
     error: null,
   },
@@ -35,6 +46,18 @@ const lessonSlice = createSlice({
         state.lessons = action.payload;
       })
       .addCase(getLessonsByGradeAndType.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getLessonById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getLessonById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.lessonDetail = action.payload;
+      })
+      .addCase(getLessonById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

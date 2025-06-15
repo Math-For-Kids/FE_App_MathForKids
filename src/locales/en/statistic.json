@@ -1,0 +1,31 @@
+{
+  "hello": "Hello!",
+  "selectPupil": "Select Pupil",
+  "This week": "This week",
+  "Last week": "Last week",
+  "This month": "This month",
+  "Last month": "Last month",
+  "academicProgress": "Academic progress",
+  "lastMonth": "Last month",
+  "thisMonth": "This month",
+  "comment": "Comment",
+  "summary": "Summary",
+  "trueFalseRatio": "True/False Ratio",
+  "true": "True",
+  "false": "False",
+  "improvedBy": "Increase {{value}}%. Keep it up.",
+  "droppedBy": "Decrease {{value}}%. Need to review.",
+  "noChange": "No change. Keep practicing regularly.",
+  "summaryChange": "{{from}}% → {{to}}%",
+  "excellentAccuracy": "Excellent accuracy ({{correct}}% correct). Keep it up.",
+  "goodAccuracy": "Pretty good accuracy ({{correct}}% correct), but {{incorrect}}% incorrect. Need more practice.",
+  "lowAccuracy": "Low accuracy ({{correct}}% correct). Need to review carefully and practice more.",
+  "summaryTF": "{{true}}% correct, {{false}}% incorrect",
+  "skillComments": "Skill comments",
+  "skill": {
+    "add": "Add",
+    "sub": "Subtract",
+    "mul": "Multiply",
+    "div": "Divide"
+  }
+}

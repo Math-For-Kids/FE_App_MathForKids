@@ -29,7 +29,7 @@ export const updateProfile = createAsyncThunk(
   }
 );
 
-// Upload avatar người dùng
+// Upload avatar người dùng lên S3 và lưu URL vào Firestore
 export const uploadAvatar = createAsyncThunk(
   "profile/uploadAvatar",
   async ({ id, uri }, { rejectWithValue }) => {
@@ -38,19 +38,19 @@ export const uploadAvatar = createAsyncThunk(
       const fileName = uri.split("/").pop();
       const fileType = fileName.split(".").pop();
 
-      formData.append("avatar", {
+      formData.append("image", {
         uri,
         name: fileName,
         type: `image/${fileType}`,
       });
 
-      const res = await Api.post(`/user/${id}/avatar`, formData, {
+      const res = await Api.patch(`/user/updateImageProfile/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      return res.data.avatar;
+      return res.data.image;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || err.message || "Upload failed"
@@ -159,7 +159,9 @@ const profileSlice = createSlice({
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.loading = false;
-        if (state.info) Object.assign(state.info, action.payload);
+        if (state.info && action.payload.pin) {
+          state.info.pin = action.payload.pin;
+        }
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
@@ -172,7 +174,7 @@ const profileSlice = createSlice({
       })
       .addCase(uploadAvatar.fulfilled, (state, action) => {
         state.loading = false;
-        if (state.info) state.info.avatar = action.payload;
+        if (state.info) state.info.image = action.payload;
       })
       .addCase(uploadAvatar.rejected, (state, action) => {
         state.loading = false;
@@ -199,7 +201,9 @@ const profileSlice = createSlice({
       })
       .addCase(updatePupilProfile.fulfilled, (state, action) => {
         state.loading = false;
-        if (state.info) Object.assign(state.info, action.payload);
+        if (state.info && action.payload.pin) {
+          state.info.pin = action.payload.pin;
+        }
       })
       .addCase(updatePupilProfile.rejected, (state, action) => {
         state.loading = false;

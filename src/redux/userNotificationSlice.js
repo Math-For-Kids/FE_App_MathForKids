@@ -34,7 +34,7 @@ export const updateNotification = createAsyncThunk(
   "notifications/update",
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const res = await Api.put(`/usernotification/${id}`, data);
+      const res = await Api.patch(`/usernotification/${id}`, data);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

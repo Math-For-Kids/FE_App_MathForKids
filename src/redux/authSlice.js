@@ -42,10 +42,10 @@ export const createUser = createAsyncThunk(
 // Gửi OTP qua số điện thoại
 export const sendOTPByPhone = createAsyncThunk(
   "auth/sendOTPByPhone",
-  async ({ userId, phoneNumber, role = "user" }, { rejectWithValue }) => {
+  async ({ userId, phoneNumber }, { rejectWithValue }) => {
     try {
       const res = await Api.post(
-        `/auth/sendOtpByPhone/${phoneNumber}/${role}`,
+        `/auth/sendOtpByPhone/${phoneNumber}`,
         {},
         {
           headers: { Authorization: userId },
@@ -61,10 +61,10 @@ export const sendOTPByPhone = createAsyncThunk(
 // Gửi OTP qua email
 export const sendOTPByEmail = createAsyncThunk(
   "auth/sendOTPByEmail",
-  async ({ userId, email, role = "user" }, { rejectWithValue }) => {
+  async ({ userId, email }, { rejectWithValue }) => {
     try {
       const res = await Api.post(
-        `/auth/sendOtpByEmail/${email}/${role}`,
+        `/auth/sendOtpByEmail/${email}`,
         {},
         {
           headers: { Authorization: userId },
@@ -96,7 +96,7 @@ export const verifyOTP = createAsyncThunk(
         language,
         mode,
         pin,
-        pupilId, // nếu có
+        pupilId,
       } = res.data;
 
       return {
@@ -116,6 +116,18 @@ export const verifyOTP = createAsyncThunk(
     }
   }
 );
+// Xác minh OTP không cần đăng nhập
+export const verifyOnlyOTP = createAsyncThunk(
+  "auth/verifyOnlyOTP",
+  async ({ userId, otpCode }, { rejectWithValue }) => {
+    try {
+      const res = await Api.post(`/auth/verifyOTP/${userId}`, { otpCode });
+      return res.data; // chỉ là message
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 
 // Cập nhật thông tin người dùng
 export const updateUser = createAsyncThunk(
@@ -130,6 +142,19 @@ export const updateUser = createAsyncThunk(
   }
 );
 
+//Logout
+export const logoutUser = createAsyncThunk(
+  "auth/logoutUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      // với axios instance có withCredentials = true để gửi cookie
+      await Api.post("/auth/logout", {}, { withCredentials: true });
+      return; // không cần data
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -147,7 +172,6 @@ const authSlice = createSlice({
         state.user.pupilId = action.payload;
       }
     },
-
     logout: (state) => {
       state.user = null;
       state.pupilId = null;
@@ -240,16 +264,24 @@ const authSlice = createSlice({
           mode: action.payload.mode,
           pin: action.payload.pin,
           pupilId: action.payload.pupilId,
+          email: action.payload.email,
         };
-        if (action.payload.pupilId) {
-          state.pupilId = action.payload.pupilId;
-        }
       })
       .addCase(verifyOTP.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
+      .addCase(verifyOnlyOTP.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyOnlyOTP.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(verifyOnlyOTP.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(updateUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -264,6 +296,18 @@ const authSlice = createSlice({
         }
       })
       .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      }).addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.pupilId = null;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

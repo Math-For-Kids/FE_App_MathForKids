@@ -11,9 +11,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
 export default function PrivacyManagementScreen({ navigation }) {
   const { theme } = useTheme();
-
+  const { t } = useTranslation("privacy");
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -78,7 +79,7 @@ export default function PrivacyManagementScreen({ navigation }) {
       >
         <TouchableOpacity
           style={styles.backContainer}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("StatisticScreen")}
         >
           <Image
             source={theme.icons.back}
@@ -86,7 +87,7 @@ export default function PrivacyManagementScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Privacy management</Text>
+        <Text style={styles.title}>{t("title")}</Text>
       </LinearGradient>
       <ScrollView contentContainerStyle={styles.scrollcontainer}>
         <View style={styles.buttonContainer}>
@@ -100,7 +101,7 @@ export default function PrivacyManagementScreen({ navigation }) {
                 style={styles.buttonImage}
                 resizeMode="contain"
               />
-              <Text style={styles.buttonText}>View profile</Text>
+              <Text style={styles.buttonText}>{t("viewProfile")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.button}
@@ -111,7 +112,7 @@ export default function PrivacyManagementScreen({ navigation }) {
                 style={styles.buttonImage}
                 resizeMode="contain"
               />
-              <Text style={styles.buttonText}>Change email</Text>
+              <Text style={styles.buttonText}>{t("changeEmail")}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.wrapContainer}>
@@ -124,7 +125,7 @@ export default function PrivacyManagementScreen({ navigation }) {
                 style={styles.buttonImage}
                 resizeMode="contain"
               />
-              <Text style={styles.buttonText}>Change phone</Text>
+              <Text style={styles.buttonText}>{t("changePhone")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.button}
@@ -135,7 +136,7 @@ export default function PrivacyManagementScreen({ navigation }) {
                 style={styles.buttonImage}
                 resizeMode="contain"
               />
-              <Text style={styles.buttonText}>Change pin</Text>
+              <Text style={styles.buttonText}>{t("changePin")}</Text>
             </TouchableOpacity>
           </View>
         </View>

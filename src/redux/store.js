@@ -11,6 +11,7 @@ import profileReducer from "./profileSlice";
 import lessonReducer from "./lessonSlice";
 import exerciseReducer from "./exerciseSlice";
 import LessonDetailReducer from "./lessonDetailSlice";
+import settingsReducer from "./settingsSlice";
 const rootReducer = combineReducers({
   auth: authReducer,
   pupil: pupilReducer,
@@ -20,13 +21,14 @@ const rootReducer = combineReducers({
   lesson: lessonReducer,
   exercise: exerciseReducer,
   lessonDetail: LessonDetailReducer,
+  settings: settingsReducer,
   // thêm các reducer khác nếu cần
 });
 
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["auth", "pupil"],
+  whitelist: ["auth", "pupil", "settings"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

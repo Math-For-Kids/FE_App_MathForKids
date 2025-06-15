@@ -38,12 +38,24 @@ export const pupilById = createAsyncThunk(
     }
   }
 );
+export const updatePupilProfile = createAsyncThunk(
+  "pupil/updateProfile",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      await Api.patch(`/pupil/updateProfile/${id}`, data); // Đúng route bạn mô tả
+      return { id, ...data };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const pupilSlice = createSlice({
   name: "pupil",
   initialState: {
     loading: false,
     error: null,
     pupils: [],
+    nextPageToken: null,
     pupil: null,
   },
   reducers: {},
@@ -69,7 +81,8 @@ const pupilSlice = createSlice({
       })
       .addCase(getAllPupils.fulfilled, (state, action) => {
         state.loading = false;
-        state.pupils = action.payload;
+        state.pupils = action.payload.data || [];
+        state.nextPageToken = action.payload.nextPageToken || null;
       })
       .addCase(getAllPupils.rejected, (state, action) => {
         state.loading = false;
@@ -85,6 +98,25 @@ const pupilSlice = createSlice({
         state.pupil = action.payload;
       })
       .addCase(pupilById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // updatePupilProfile
+      .addCase(updatePupilProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatePupilProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.pupil && state.pupil.id === action.payload.id) {
+          state.pupil = { ...state.pupil, ...action.payload };
+        }
+        state.pupils = state.pupils.map((p) =>
+          p.id === action.payload.id ? { ...p, ...action.payload } : p
+        );
+      })
+      .addCase(updatePupilProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

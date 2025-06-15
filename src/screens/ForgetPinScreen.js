@@ -1,4 +1,3 @@
-// ForgetPinScreen.js with vertical step indicator and connecting lines
 import React, { useRef, useState } from "react";
 import {
   View,
@@ -14,23 +13,27 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
+import { sendOTPByPhone, verifyOnlyOTP, updateUser } from "../redux/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const steps = [
-  { title: "Enter Contact" },
+  { title: "Confirm phone number" },
   { title: "Verify OTP" },
   { title: "Create PIN" },
 ];
 
 export default function ForgetPinScreen({ navigation }) {
   const { theme } = useTheme();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
   const [currentStep, setCurrentStep] = useState(0);
-
-  const [contact, setContact] = useState("");
+  const [contact] = useState(user?.phoneNumber || "");
   const [otp, setOtp] = useState("");
   const [newPin, setNewPin] = useState(["", "", "", ""]);
   const [confirmPin, setConfirmPin] = useState(["", "", "", ""]);
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
+
   const otpInputs = useRef([]);
   const inputs = useRef([]);
   const confirmInputs = useRef([]);
@@ -40,32 +43,76 @@ export default function ForgetPinScreen({ navigation }) {
     updated[index] = val.replace(/[^0-9]/g, "");
     isConfirm ? setConfirmPin(updated) : setNewPin(updated);
   };
+  console.log("userId", user?.id);
+  const handleSendOTP = () => {
+    if (!contact || !user?.id) {
+      Alert.alert("Notice", "Missing user ID or phone number.");
+      return;
+    }
+
+    dispatch(sendOTPByPhone({ userId: user?.id, phoneNumber: contact }))
+      .unwrap()
+      .then(() => {
+        Alert.alert("Success", "OTP has been sent.");
+        setCurrentStep(1);
+      })
+      .catch((err) => {
+        Alert.alert("Error", err || "Failed to send OTP.");
+      });
+  };
+
+  const handleVerifyOTP = () => {
+    if (!user?.id || otp.length !== 4) {
+      Alert.alert("Invalid", "Missing user ID or invalid OTP.");
+      return;
+    }
+
+    dispatch(verifyOnlyOTP({ userId: user?.id, otpCode: otp }))
+      .unwrap()
+      .then(() => {
+        setCurrentStep(2);
+      })
+      .catch((err) => {
+        Alert.alert("Invalid OTP", err || "Please check again.");
+      });
+  };
+
+  const handleResetPin = () => {
+    const np = newPin.join("");
+    const cp = confirmPin.join("");
+
+    if (np.length !== 4 || cp.length !== 4) {
+      Alert.alert("Error", "PIN must be 4 digits.");
+      return;
+    }
+
+    if (np !== cp) {
+      Alert.alert("Error", "PINs do not match.");
+      return;
+    }
+
+    dispatch(updateUser({ id: user?.id, data: { pin: np } }))
+      .unwrap()
+      .then(() => {
+        Alert.alert("Success", "PIN has been reset.");
+        navigation.navigate("AccountScreen");
+      })
+      .catch((err) => {
+        Alert.alert("Error", err?.message || "Something went wrong.");
+      });
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
         return (
           <View style={styles.cardContent}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter email or phone number"
-              placeholderTextColor="#ccc"
-              value={contact}
-              onChangeText={setContact}
-            />
+            <Text style={styles.input}>{contact}</Text>
             <LinearGradient
               colors={theme.colors.gradientBlue}
               style={styles.button}
             >
-              <TouchableOpacity
-                onPress={() => {
-                  if (!contact) {
-                    Alert.alert("Notice", "Please enter your contact info.");
-                    return;
-                  }
-                  setCurrentStep(1);
-                }}
-              >
+              <TouchableOpacity onPress={handleSendOTP}>
                 <Text style={styles.buttonText}>Send OTP</Text>
               </TouchableOpacity>
             </LinearGradient>
@@ -87,7 +134,6 @@ export default function ForgetPinScreen({ navigation }) {
                     const newOtp = otp.split("");
                     newOtp[index] = numeric;
                     setOtp(newOtp.join(""));
-
                     if (numeric && index < 3) {
                       otpInputs.current[index + 1]?.focus();
                     }
@@ -112,21 +158,12 @@ export default function ForgetPinScreen({ navigation }) {
               colors={theme.colors.gradientBlue}
               style={styles.button}
             >
-              <TouchableOpacity
-                onPress={() => {
-                  if (otp === "1234") {
-                    setCurrentStep(2);
-                  } else {
-                    Alert.alert("Invalid OTP", "Please check again.");
-                  }
-                }}
-              >
+              <TouchableOpacity onPress={handleVerifyOTP}>
                 <Text style={styles.buttonText}>Confirm</Text>
               </TouchableOpacity>
             </LinearGradient>
           </View>
         );
-
       case 2:
         return (
           <View style={styles.cardContent}>
@@ -215,26 +252,12 @@ export default function ForgetPinScreen({ navigation }) {
                 />
               </TouchableOpacity>
             </View>
+
             <LinearGradient
               colors={theme.colors.gradientBlue}
               style={styles.button}
             >
-              <TouchableOpacity
-                onPress={() => {
-                  const np = newPin.join("");
-                  const cp = confirmPin.join("");
-                  if (np.length !== 4 || cp.length !== 4) {
-                    Alert.alert("Error", "PIN must be 4 digits.");
-                    return;
-                  }
-                  if (np !== cp) {
-                    Alert.alert("Error", "PINs do not match.");
-                    return;
-                  }
-                  Alert.alert("Success", "PIN has been reset.");
-                  navigation.navigate("AccountScreen");
-                }}
-              >
+              <TouchableOpacity onPress={handleResetPin}>
                 <Text style={styles.buttonText}>Confirm</Text>
               </TouchableOpacity>
             </LinearGradient>
