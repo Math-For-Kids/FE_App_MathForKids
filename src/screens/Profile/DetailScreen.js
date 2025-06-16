@@ -47,9 +47,11 @@ export default function DetailScreen({ navigation }) {
   }, [isFocused, users?.id]);
 
   useEffect(() => {
-    const formattedDate = profile?.dateOfBirth?.seconds
-      ? new Date(profile.dateOfBirth.seconds * 1000).toISOString().split("T")[0]
-      : "";
+    const dobSeconds = profile?.dateOfBirth?.seconds || 0;
+    const formattedDate =
+      dobSeconds && dobSeconds > 0
+        ? new Date(dobSeconds * 1000).toLocaleDateString("vi-VN")
+        : "";
 
     setEditedProfile({
       fullName: profile.fullName || "none",
@@ -501,11 +503,7 @@ export default function DetailScreen({ navigation }) {
                                 },
                               ]}
                             >
-                              {editedProfile.dateOfBirth
-                                ? new Date(
-                                    editedProfile.dateOfBirth
-                                  ).toLocaleDateString("vi-VN")
-                                : "Select date"}
+                              {editedProfile.dateOfBirth || "Select date"}
                             </Text>
                           </TouchableOpacity>
 

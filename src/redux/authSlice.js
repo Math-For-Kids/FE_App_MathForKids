@@ -1,7 +1,39 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import jwtDecode from "jwt-decode";
 import Api from "../api/api";
 
-//getAll
+//check token expiration
+export const checkTokenExpiration = createAsyncThunk(
+  "auth/checkTokenExpiration",
+  async (_, { dispatch }) => {
+    try {
+      const persistedState = await AsyncStorage.getItem("persist:root");
+      if (!persistedState) return false;
+
+      const parsed = JSON.parse(persistedState);
+      const auth = parsed.auth ? JSON.parse(parsed.auth) : null;
+      const token = auth?.user?.token;
+
+      if (token) {
+        const decoded = jwtDecode(token);
+        const isExpired = decoded.exp * 1000 < Date.now();
+
+        if (isExpired) {
+          dispatch(logout());
+          await AsyncStorage.clear();
+          return true;
+        }
+      }
+      return false;
+    } catch (err) {
+      console.error("Token check error:", err);
+      return false;
+    }
+  }
+);
+
+// Get all users
 export const getAllUser = createAsyncThunk(
   "profile/fetchAllUser",
   async (_, { rejectWithValue }) => {
@@ -13,6 +45,7 @@ export const getAllUser = createAsyncThunk(
     }
   }
 );
+
 // Get user by userId
 export const getUserById = createAsyncThunk(
   "auth/getUserById",
@@ -26,7 +59,7 @@ export const getUserById = createAsyncThunk(
   }
 );
 
-// Tạo người dùng mới
+// Create user
 export const createUser = createAsyncThunk(
   "auth/createUser",
   async (userData, { rejectWithValue }) => {
@@ -39,7 +72,7 @@ export const createUser = createAsyncThunk(
   }
 );
 
-// Gửi OTP qua số điện thoại
+// Send OTP by phone
 export const sendOTPByPhone = createAsyncThunk(
   "auth/sendOTPByPhone",
   async ({ userId, phoneNumber }, { rejectWithValue }) => {
@@ -58,7 +91,7 @@ export const sendOTPByPhone = createAsyncThunk(
   }
 );
 
-// Gửi OTP qua email
+// Send OTP by email
 export const sendOTPByEmail = createAsyncThunk(
   "auth/sendOTPByEmail",
   async ({ userId, email }, { rejectWithValue }) => {
@@ -77,7 +110,7 @@ export const sendOTPByEmail = createAsyncThunk(
   }
 );
 
-// Xác minh OTP
+// Verify OTP
 export const verifyOTP = createAsyncThunk(
   "auth/verifyOTP",
   async ({ userId, otpCode }, { rejectWithValue }) => {
@@ -109,27 +142,28 @@ export const verifyOTP = createAsyncThunk(
         language,
         mode,
         pin,
-        pupilId,
+        ...(role !== "user" && { pupilId }),
       };
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
-// Xác minh OTP không cần đăng nhập
+
+// Verify OTP without authentication
 export const verifyOnlyOTP = createAsyncThunk(
   "auth/verifyOnlyOTP",
   async ({ userId, otpCode }, { rejectWithValue }) => {
     try {
       const res = await Api.post(`/auth/verifyOTP/${userId}`, { otpCode });
-      return res.data; // chỉ là message
+      return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
 
-// Cập nhật thông tin người dùng
+// Update user
 export const updateUser = createAsyncThunk(
   "auth/updateUser",
   async ({ id, data }, { rejectWithValue }) => {
@@ -142,19 +176,19 @@ export const updateUser = createAsyncThunk(
   }
 );
 
-//Logout
+// Logout user
 export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, { rejectWithValue }) => {
     try {
-      // với axios instance có withCredentials = true để gửi cookie
       await Api.post("/auth/logout", {}, { withCredentials: true });
-      return; // không cần data
+      return;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -172,6 +206,13 @@ const authSlice = createSlice({
         state.user.pupilId = action.payload;
       }
     },
+    clearPupilId: (state) => {
+      if (state.user) {
+        delete state.user.pupilId;
+      }
+      state.pupilId = null;
+    },
+
     logout: (state) => {
       state.user = null;
       state.pupilId = null;
@@ -271,17 +312,19 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
       .addCase(verifyOnlyOTP.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(verifyOnlyOTP.fulfilled, (state, action) => {
+      .addCase(verifyOnlyOTP.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(verifyOnlyOTP.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+
       .addCase(updateUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -298,7 +341,9 @@ const authSlice = createSlice({
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      }).addCase(logoutUser.pending, (state) => {
+      })
+
+      .addCase(logoutUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -314,5 +359,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, setUser, setPupilId } = authSlice.actions;
+export const { logout, setUser, setPupilId, clearPupilId } = authSlice.actions;
 export default authSlice.reducer;

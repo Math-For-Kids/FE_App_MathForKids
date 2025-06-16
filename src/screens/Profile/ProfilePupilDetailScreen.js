@@ -62,7 +62,7 @@ export default function ProfilePupilScreen({ navigation }) {
 
     const formattedDate =
       dobSeconds && dobSeconds > 0
-        ? new Date(dobSeconds * 1000).toISOString().split("T")[0]
+        ? new Date(dobSeconds * 1000).toLocaleDateString("vi-VN")
         : "";
 
     setEditedProfile({
@@ -127,8 +127,7 @@ export default function ProfilePupilScreen({ navigation }) {
         Alert.alert("Lỗi", "Tuổi không được vượt quá 100.");
         return;
       }
-
-      handleChange(currentDateField, selectedDate.toISOString().split("T")[0]);
+      handleChange(currentDateField, selectedDate.toISOString());
     }
   };
 
@@ -173,7 +172,7 @@ export default function ProfilePupilScreen({ navigation }) {
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      marginBottom: 40,
+      marginBottom: 10,
     },
     backContainer: {
       position: "absolute",
@@ -191,11 +190,10 @@ export default function ProfilePupilScreen({ navigation }) {
     },
     scrollViewContainer: {
       alignItems: "center",
-      paddingTop: 20,
     },
     imageWrapper: {
       alignItems: "center",
-      marginBottom: 20,
+      marginBottom: 10,
     },
     avatarContainer: {
       backgroundColor: theme.colors.cardBackground,
@@ -206,9 +204,9 @@ export default function ProfilePupilScreen({ navigation }) {
       elevation: 3,
     },
     avatarImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
+      width: 60,
+      height: 60,
+      borderRadius: 50,
     },
     fieldWrapper: {
       width: "80%",
@@ -240,10 +238,10 @@ export default function ProfilePupilScreen({ navigation }) {
       borderTopRightRadius: 50,
     },
     modalContainer: {
-      marginHorizontal: 20,
+      marginHorizontal: 30,
       padding: 20,
       borderRadius: 20,
-      maxHeight: "90%",
+      maxHeight: "98%",
       backgroundColor: theme.colors.cardBackground,
       elevation: 3,
     },
@@ -319,6 +317,7 @@ export default function ProfilePupilScreen({ navigation }) {
       backgroundColor: theme.colors.inputBoxModal,
       elevation: 3,
       overflow: "hidden",
+      width: "100%",
     },
     inputTextBox: {
       padding: 10,
@@ -366,15 +365,14 @@ export default function ProfilePupilScreen({ navigation }) {
     },
     avatarWrapperModel: {
       marginVertical: 10,
-      padding: 10,
       borderWidth: 2,
-      borderColor: theme.colors.grayLight,
+      borderColor: theme.colors.white,
       borderRadius: 50,
       backgroundColor: theme.colors.cardBackground,
       elevation: 5,
       alignSelf: "center",
     },
-    avatar: { width: 50, height: 50 },
+    avatar: { width: 70, height: 70, borderRadius: 40 },
     iconCamera: {
       position: "absolute",
       top: 50,

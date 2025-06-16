@@ -7,7 +7,7 @@ import { useSound } from "./audio/SoundContext";
 import { useTheme } from "./themes/ThemeContext";
 import i18n from "./i18n";
 import { applySettings } from "./components/applySettings";
-
+import AuthChecker from "../src/components/AuthChecker";
 // Screens
 import LoadingScreen from "./screens/LoadingScreen";
 import LoadingProgressScreen from "./screens/LoadingProgressScreen";
@@ -87,7 +87,6 @@ export default function AppNavigator() {
   ]);
 
   return (
-    <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="LoadingScreen" component={LoadingScreen} />
         <Stack.Screen
@@ -164,6 +163,5 @@ export default function AppNavigator() {
         <Stack.Screen name="TestScreen" component={TestScreen} />
         <Stack.Screen name="StepByStepScreen" component={StepByStepScreen} />
       </Stack.Navigator>
-    </NavigationContainer>
   );
 }

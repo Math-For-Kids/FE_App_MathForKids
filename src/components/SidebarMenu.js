@@ -13,7 +13,6 @@ import { Fonts } from "../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../redux/authSlice";
 import { logoutUser } from "../redux/authSlice";
 const SidebarMenu = () => {
   const { theme } = useTheme();
@@ -23,8 +22,8 @@ const SidebarMenu = () => {
   const dispatch = useDispatch();
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
   const userId = useSelector((state) => state.auth.user?.id);
+  const user = useSelector((state) => state.auth.user);
   const skillName = route.params?.skillName;
-
   const isPupil = Boolean(pupilId);
   const isParent = !pupilId;
   const handleLogout = async () => {

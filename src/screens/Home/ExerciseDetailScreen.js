@@ -252,7 +252,7 @@ export default function ExerciseScreen({ navigation, route }) {
         </TouchableOpacity>
         <Text
           style={styles.headerText}
-          numberOfLines={1}
+          numberOfLines={2}
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
