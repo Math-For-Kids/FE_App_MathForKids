@@ -261,7 +261,7 @@ export default function StatisticScreen({ navigation }) {
 
     dropdownDay: {
       position: "absolute",
-      top: 210,
+      top: 200,
       right: 20,
       width: "40%",
       backgroundColor: theme.colors.cardBackground,

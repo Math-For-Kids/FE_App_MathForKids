@@ -11,7 +11,9 @@ import { Provider as PaperProvider } from "react-native-paper";
 import { ActivityIndicator } from "react-native";
 import "./src/i18n";
 import i18n from "./src/i18n";
-
+import { NavigationContainer } from "@react-navigation/native";
+import AuthChecker from "./src/components/AuthChecker";
+import { navigationRef } from "./src/components/navigationRef";
 SplashScreen.preventAutoHideAsync();
 
 function LanguageInitializer({ children }) {
@@ -65,7 +67,10 @@ export default function App() {
           <ThemeProvider>
             <PaperProvider>
               <SoundProvider>
-                <AppNavigator />
+                <NavigationContainer ref={navigationRef}>
+                  <AuthChecker />
+                  <AppNavigator />
+                </NavigationContainer>
               </SoundProvider>
             </PaperProvider>
           </ThemeProvider>

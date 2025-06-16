@@ -38,7 +38,7 @@ export default function ProfileScreen({ navigation }) {
   const achievements = [
     { icon: theme.icons.achievement, label: t("top"), value: "1" },
     { icon: theme.icons.point, label: t("point"), value: "1500" },
-    { icon: theme.icons.time, label: t("time"), value: "2h" },
+    // { icon: theme.icons.time, label: t("time"), value: "2h" },
     { icon: theme.icons.badge, label: t("badge"), value: "3" },
   ];
 

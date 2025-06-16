@@ -33,7 +33,7 @@ export default function RegisterScreen({ navigation }) {
   const [showPin, setShowPin] = useState(false);
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState(new Date(2000, 0, 1));
+  const [dateOfBirth, setDateOfBirth] = useState();
   const [showPicker, setShowPicker] = useState(false);
 
   const handlePinChange = (value, index) => {
@@ -44,14 +44,22 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const handleSend = async () => {
-    const pinCode = pin.join("");
-    if (!/^\d{4}$/.test(pinCode)) {
-      return Alert.alert(t("invalidTitle"), t("invalidPin"));
+    const pinCode = pin.join("").trim();
+    if (!fullName.trim()) {
+      return Alert.alert(t("invalidTitle"), t("emptyFullName"));
     }
     if (!/^[0-9]{9,15}$/.test(phone)) {
       return Alert.alert(t("invalidTitle"), t("invalidPhone"));
     }
-
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return Alert.alert(t("invalidTitle"), t("invalidEmail"));
+    }
+    if (!/^\d{4}$/.test(pinCode)) {
+      return Alert.alert(t("invalidTitle"), t("invalidPin"));
+    }
+    if (!dateOfBirth || dateOfBirth > new Date()) {
+      return Alert.alert(t("invalidTitle"), t("invalidDob"));
+    }
     const userData = {
       fullName,
       gender,
@@ -148,7 +156,6 @@ export default function RegisterScreen({ navigation }) {
     },
     inputDateOfBirth: {
       fontSize: 16,
-      color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
     checkboxGroup: {
@@ -309,13 +316,24 @@ export default function RegisterScreen({ navigation }) {
               focusedField === "dob" && styles.inputWrapperFocused,
             ]}
           >
-            <Text style={styles.inputDateOfBirth}>
-              {dateOfBirth.toISOString().split("T")[0]}
+            <Text
+              style={[
+                styles.inputDateOfBirth,
+                {
+                  color: dateOfBirth
+                    ? theme.colors.blueDark
+                    : theme.colors.grayMedium,
+                },
+              ]}
+            >
+              {dateOfBirth
+                ? dateOfBirth.toLocaleDateString("vi-VN")
+                : t("selectDob")}
             </Text>
           </TouchableOpacity>
           {showPicker && (
             <DateTimePicker
-              value={dateOfBirth}
+              value={new Date()}
               mode="date"
               display="default"
               onChange={(_, d) => {
@@ -386,7 +404,7 @@ export default function RegisterScreen({ navigation }) {
             </View>
             <View style={styles.checkboxItem}>
               <Checkbox
-                value={gender === "male"} 
+                value={gender === "male"}
                 onValueChange={() => setGender("male")}
                 color={
                   gender === "male"

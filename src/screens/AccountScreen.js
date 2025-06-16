@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllPupils, pupilById } from "../redux/pupilSlice";
-import { getUserById, setPupilId } from "../redux/authSlice";
+import { getUserById, setPupilId, clearPupilId } from "../redux/authSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useSound } from "../audio/SoundContext";
 import { useTranslation } from "react-i18next";
@@ -36,6 +36,7 @@ export default function AccountScreen({ navigation }) {
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
 
   const user = useSelector((state) => state.auth.user);
+  console.log("user", user);
   // const pupils = useSelector((state) => state.pupil.pupils || []);
   const pupils = useSelector((state) => state.pupil.pupils);
   const userId = user?.id;
@@ -113,6 +114,7 @@ export default function AccountScreen({ navigation }) {
 
   const handleParentSelect = () => {
     setPin(["", "", "", ""]);
+    dispatch(clearPupilId());
     setModalVisible(true);
   };
   const handleAddPupil = () => {

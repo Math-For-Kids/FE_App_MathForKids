@@ -78,6 +78,36 @@ export default function NotificationScreen({ navigation, route }) {
     }
     setExpandedId((prev) => (prev === id ? null : id));
   };
+  // xem lai date 
+  const formatDate = (value) => {
+    if (!value) return "Invalid Date";
+
+    let date = null;
+
+    if (typeof value === "string") {
+      // Check if it's a custom string format like "HH:mm:ss DD/MM/YYYY"
+      const customDateTimePattern =
+        /^(\d{2}):(\d{2}):(\d{2}) (\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+      const match = value.match(customDateTimePattern);
+      if (match) {
+        const [, hour, minute, second, day, month, year] = match.map(Number);
+        date = new Date(year, month - 1, day, hour, minute, second);
+      } else {
+        // Try normal ISO string
+        date = new Date(value);
+      }
+    } else if (typeof value === "number") {
+      date = new Date(value);
+    } else if (typeof value.toDate === "function") {
+      date = value.toDate();
+    } else if (value instanceof Date) {
+      date = value;
+    }
+
+    return date && !isNaN(date.getTime())
+      ? date.toLocaleDateString("en-GB")
+      : "Invalid Date";
+  };
 
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
@@ -193,9 +223,7 @@ export default function NotificationScreen({ navigation, route }) {
                 {item.title?.en || "No title"}
               </Text>
               <Text style={styles.notificationDateEnd}>
-                {new Date(
-                  item.dateEnd?.seconds * 1000 || item.dateEnd
-                ).toLocaleDateString("en-GB")}
+                {formatDate(item.createdAt)}
               </Text>
             </View>
 

@@ -20,6 +20,8 @@ import { getEnabledByLesson } from "../../redux/lessonDetailSlice";
 import { getLessonById } from "../../redux/lessonSlice";
 import { useTranslation } from "react-i18next";
 import * as Speech from "expo-speech";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 import LottieView from "lottie-react-native";
 import swipeGifLeft from "../../../assets/animations/swipe.gif/1.json";
 import swipeGifRight from "../../../assets/animations/swipe.gif/2.json";
@@ -62,11 +64,13 @@ export default function LessonDetailScreen({ navigation, route }) {
     }
   }, [lessonId]);
 
-  useEffect(() => {
-    return () => {
-      Speech.stop();
-    };
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        Speech.stop();
+      };
+    }, [])
+  );
 
   useEffect(() => {
     currentIndexRef.current = currentIndex;
@@ -270,7 +274,7 @@ export default function LessonDetailScreen({ navigation, route }) {
         </TouchableOpacity>
         <Text
           style={styles.headerText}
-          numberOfLines={1}
+          numberOfLines={2}
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >

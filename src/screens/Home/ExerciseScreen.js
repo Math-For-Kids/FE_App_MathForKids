@@ -188,7 +188,7 @@ export default function ExerciseScreen({ navigation, route }) {
             <TouchableOpacity
               key={item.id}
               onPress={() => {
-                navigation.navigate("LessonDetailScreen", {
+                navigation.navigate("ExerciseDetailScreen", {
                   skillName,
                   title,
                   lessonId: item.id,

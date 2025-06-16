@@ -16,5 +16,9 @@
   "registerButton": "Đăng ký",
   "haveAccount": "Bạn đã có tài khoản chưa?",
   "loginLink": "Đăng nhập",
-  "errorTitle": "Lỗi"
+  "emptyFullName": "Vui lòng nhập họ và tên.",
+  "invalidEmail": "Email không đúng định dạng.",
+  "invalidDob": "Ngày sinh không hợp lệ.",
+  "errorTitle": "Lỗi",
+  "selectDob": "Chọn ngày sinh"
 }
