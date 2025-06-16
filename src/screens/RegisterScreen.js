@@ -18,6 +18,7 @@ import { useDispatch } from "react-redux";
 import { createUser, sendOTPByPhone } from "../redux/authSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { RadioButton } from "react-native-paper";
 
 export default function RegisterScreen({ navigation }) {
   const { theme } = useTheme();
@@ -162,9 +163,30 @@ export default function RegisterScreen({ navigation }) {
       flexDirection: "row",
       width: "100%",
       justifyContent: "space-between",
-      marginBottom: 20,
-      marginTop: 10,
+      marginBottom: 10,
     },
+    radioItem: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    radioOuter: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 6,
+    },
+
+    radioInner: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: theme.colors.checkBoxBackground,
+    },
+
     checkboxItem: {
       flexDirection: "row",
       alignItems: "center",
@@ -389,32 +411,24 @@ export default function RegisterScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.checkboxGroup}>
-            <View style={styles.checkboxItem}>
-              <Checkbox
-                value={gender === "female"}
-                onValueChange={() => setGender("female")}
-                color={
-                  gender === "female"
-                    ? theme.colors.checkBoxBackground
-                    : undefined
-                }
-              />
-              <Text style={styles.checkboxLabel}>{t("female")}</Text>
+          <RadioButton.Group onValueChange={setGender} value={gender}>
+            <View style={styles.checkboxGroup}>
+              <View style={styles.checkboxItem}>
+                <RadioButton
+                  value="female"
+                  color={theme.colors.checkBoxBackground}
+                />
+                <Text style={styles.checkboxLabel}>{t("female")}</Text>
+              </View>
+              <View style={styles.checkboxItem}>
+                <RadioButton
+                  value="male"
+                  color={theme.colors.checkBoxBackground}
+                />
+                <Text style={styles.checkboxLabel}>{t("male")}</Text>
+              </View>
             </View>
-            <View style={styles.checkboxItem}>
-              <Checkbox
-                value={gender === "male"}
-                onValueChange={() => setGender("male")}
-                color={
-                  gender === "male"
-                    ? theme.colors.checkBoxBackground
-                    : undefined
-                }
-              />
-              <Text style={styles.checkboxLabel}>{t("male")}</Text>
-            </View>
-          </View>
+          </RadioButton.Group>
 
           <TouchableOpacity
             activeOpacity={0.8}
