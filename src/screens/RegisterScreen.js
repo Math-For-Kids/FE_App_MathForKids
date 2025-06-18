@@ -63,7 +63,7 @@ export default function RegisterScreen({ navigation }) {
     }
     const userData = {
       fullName,
-      gender,
+      gender: gender?.toLowerCase() ?? "female",
       dateOfBirth: dateOfBirth.toISOString().split("T")[0],
       address,
       pin: pinCode,
