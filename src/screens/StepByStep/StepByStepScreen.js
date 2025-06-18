@@ -419,33 +419,36 @@ export default function StepByStepScreen({ navigation, route }) {
           </View>
         )}
 
-        {stepIndex > 0 && (
-          <View style={styles.stepBox}>
-            <View style={styles.titleContainer}>
-              <LinearGradient
-                colors={getGradient()}
-                style={styles.soundContainer}
-              >
-                <TouchableOpacity>
-                  <Ionicons
-                    name="volume-medium"
-                    size={30}
-                    color={theme.colors.white}
-                  />
-                </TouchableOpacity>
-              </LinearGradient>
-              <Text
-                style={styles.subText}
-                numberOfLines={100}
-                adjustsFontSizeToFit
-                minimumFontScale={0.5}
-                color={theme.colors.black}
-              >
-                {currentStep.subText}
-              </Text>
+        {stepIndex > 0 &&
+          (stepIndex !== 2 || operator !== '+') && (
+            <View style={styles.stepBox}>
+              <View style={styles.titleContainer}>
+                <LinearGradient
+                  colors={getGradient()}
+                  style={styles.soundContainer}
+                >
+                  <TouchableOpacity>
+                    <Ionicons
+                      name="volume-medium"
+                      size={30}
+                      color={theme.colors.white}
+                    />
+                  </TouchableOpacity>
+                </LinearGradient>
+
+                <Text
+                  style={styles.subText}
+                  numberOfLines={100}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                  color={theme.colors.black}
+                >
+                  {currentStep.subText}
+                </Text>
+              </View>
             </View>
-          </View>
-        )}
+          )}
+
 
         {stepIndex === 3 && (
           <View style={styles.resultTextContainer}>
