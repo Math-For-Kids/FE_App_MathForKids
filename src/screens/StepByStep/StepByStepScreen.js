@@ -70,19 +70,19 @@ export default function StepByStepScreen({ navigation, route }) {
   }, [autoNumber1, autoNumber2]);
 
   //sau khi number1/number2 được cập nhật
-  useEffect(() => {
-    console.log("number1 (after set):", number1);
-    console.log("number2 (after set):", number2);
-  }, [number1, number2]);
-  useEffect(() => {
-    console.log("autoNumber1 type:", typeof autoNumber1);
-    console.log("autoNumber2 type:", typeof autoNumber2);
-  }, [autoNumber1, autoNumber2]);
+  // useEffect(() => {
+  //   console.log("number1 (after set):", number1);
+  //   console.log("number2 (after set):", number2);
+  // }, [number1, number2]);
+  // useEffect(() => {
+  //   console.log("autoNumber1 type:", typeof autoNumber1);
+  //   console.log("autoNumber2 type:", typeof autoNumber2);
+  // }, [autoNumber1, autoNumber2]);
 
-  useEffect(() => {
-    console.log("operator:", operator);
-    console.log("skillName:", skillName);
-  }, [operator, skillName]);
+  // useEffect(() => {
+  //   console.log("operator:", operator);
+  //   console.log("skillName:", skillName);
+  // }, [operator, skillName]);
   useEffect(() => {
     if (!isFromRouteRef.current) {
       setNumber1("");
