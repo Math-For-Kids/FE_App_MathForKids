@@ -101,7 +101,7 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
             key={`spacer-${i}`}
             style={[
               styles.num2Text,
-              i === steps[2].digits2.length - 1 && { marginRight: 50 }  
+              i === steps[2].digits2.length - 1 && { marginRight: 50 }
             ]}
           >
             {i === steps[2].digits2.length - 1 ? '+' : ' '}
@@ -158,22 +158,48 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
         </>
       )}
 
-      {currentStep < totalSteps && (
-        <TouchableOpacity onPress={() => setCurrentStep(prev => prev + 1)}>
-          <Text style={{
-            marginTop: 16,
-            backgroundColor: "#4CAF50",
-            color: "white",
-            paddingVertical: 10,
-            paddingHorizontal: 25,
-            borderRadius: 10,
-            fontSize: 18,
-            fontFamily: Fonts.NUNITO_BLACK,
-          }}>
-            Next
-          </Text>
-        </TouchableOpacity>
-      )}
+      <View style={{ flexDirection: "row", marginTop: 16, gap: 12 }}>
+        {currentStep > 0 && (
+          <TouchableOpacity
+            onPress={() => setCurrentStep((prev) => Math.max(prev - 1, 0))}
+          >
+            <Text
+              style={{
+                backgroundColor: "#f44336",
+                color: "white",
+                paddingVertical: 10,
+                paddingHorizontal: 25,
+                borderRadius: 10,
+                fontSize: 18,
+                fontFamily: Fonts.NUNITO_BLACK,
+              }}
+            >
+              Back
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {currentStep < totalSteps - 1 && (
+          <TouchableOpacity
+            onPress={() => setCurrentStep((prev) => prev + 1)}
+          >
+            <Text
+              style={{
+                backgroundColor: "#4CAF50",
+                color: "white",
+                paddingVertical: 10,
+                paddingHorizontal: 25,
+                borderRadius: 10,
+                fontSize: 18,
+                fontFamily: Fonts.NUNITO_BLACK,
+              }}
+            >
+              Next
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
     </View>
   );
 };
