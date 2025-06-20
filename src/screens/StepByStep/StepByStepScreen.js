@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -18,61 +18,112 @@ import { SubtractionStepView } from "./StepView/SubtractionStepView";
 import { MultiplicationStepView } from "./StepView/MultiplicationStepView";
 import { DivisionStepView } from "./StepView/DivisionStepView";
 import * as Speech from "expo-speech";
-
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
 export default function StepByStepScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName } = route.params;
+  const {
+    skillName,
+    number1: autoNumber1 = "",
+    number2: autoNumber2 = "",
+    operator: routeOperator,
+  } = route.params || {};
+
+  const getOperatorFromSkillName = (skill) => {
+    switch (skill) {
+      case "Addition":
+        return "+";
+      case "Subtraction":
+        return "-";
+      case "Multiplication":
+        return "×";
+      case "Division":
+        return "÷";
+      default:
+        return "+";
+    }
+  };
+
+  const [operator, setOperator] = useState(
+    routeOperator || getOperatorFromSkillName(skillName)
+  );
   const [stepIndex, setStepIndex] = useState(0);
   const [number1, setNumber1] = useState("");
   const [number2, setNumber2] = useState("");
   const [remember, setRemember] = useState("");
-  const [operator, setOperator] = useState("+");
   const [subStepIndex, setSubStepIndex] = useState(0);
   const [currentRowIndex, setCurrentRowIndex] = useState(0);
   const [revealedDigits, setRevealedDigits] = useState(0);
   const [revealedResultDigits, setRevealedResultDigits] = useState(0);
+  const [steps, setSteps] = useState([]);
+  const [columnStepIndex, setColumnStepIndex] = useState(0);
+  const isFromRouteRef = useRef(false);
+  const { t, i18n } = useTranslation("stepbystep");
+  //nhận params và gán giá trị
+  useEffect(() => {
+    if (autoNumber1 !== undefined && autoNumber2 !== undefined) {
+      console.log("Setting number from route:", autoNumber1, autoNumber2);
+      setNumber1(String(autoNumber1));
+      setNumber2(String(autoNumber2));
+      isFromRouteRef.current = true;
+    }
+  }, [autoNumber1, autoNumber2]);
 
-  const [steps, setSteps] = useState([
-    {
-      title: "Enter any 2 positive integers",
-      description: "",
-      result: "",
-    },
-    {
-      title: "Step 1: Write straight calculation",
-      description:
-        "place the numbers 17 and 25 so that the digits in the same row and column are aligned:",
-      subText:
-        "The units place is in line with the units place, the tens place is in line with the tens place.",
-    },
-    {
-      title: "Step 2: Add the digits in the units digit: ",
-      description:
-        "Add the digits in the units digit: 7 + 5 = 12 Write 2 in the units column, carry 1 to the tens column.",
-      result: "",
-    },
-    {
-      title: "Step 3: Final Result",
-      description: "The final calculated result.",
-      result: "",
-    },
-  ]);
+  //sau khi number1/number2 được cập nhật
+  useEffect(() => {
+    console.log("number1 (after set):", number1);
+    console.log("number2 (after set):", number2);
+  }, [number1, number2]);
+  useEffect(() => {
+    console.log("autoNumber1 type:", typeof autoNumber1);
+    console.log("autoNumber2 type:", typeof autoNumber2);
+  }, [autoNumber1, autoNumber2]);
+
+  useEffect(() => {
+    console.log("operator:", operator);
+    console.log("skillName:", skillName);
+  }, [operator, skillName]);
+  useEffect(() => {
+    if (!isFromRouteRef.current) {
+      setNumber1("");
+      setNumber2("");
+      console.log("Reset vì đổi operator và không nhận từ route");
+    } else {
+      console.log("Không reset vì vừa nhận từ route");
+    }
+
+    isFromRouteRef.current = false;
+  }, [operator]);
+
+  useEffect(() => {
+    Speech.speak(`You've selected ${operator}. Please enter new numbers`, {
+      language: i18n.language === "vi" ? "vi-VN" : "en-US",
+      pitch: 1,
+      rate: 0.9,
+    });
+  }, [operator, i18n.language]);
+
+  const speakText = (text) => {
+    Speech.stop();
+    Speech.speak(text, {
+      language: i18n.language === "vi" ? "vi-VN" : "en-US",
+      pitch: 1,
+      rate: 0.95,
+    });
+  };
   const getMaxLength = (inputIndex) => {
     switch (operator) {
       case "+":
       case "-":
         return 6;
       case "×":
-        return inputIndex === 1 ? 3 : 2;
+        return inputIndex === 1 ? 5 : 2;
       case "÷":
         return inputIndex === 1 ? 2 : 1;
       default:
         return 6;
     }
   };
-
-  const currentStep = steps[stepIndex]; // Bây giờ sẽ không còn undefined nữa
   const getGradient = () => {
     switch (skillName) {
       case "Addition":
@@ -94,33 +145,7 @@ export default function StepByStepScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
   };
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      setStepIndex(0);
-      setNumber1("");
-      setNumber2("");
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
-    setNumber1("");
-    setNumber2("");
-    Speech.speak(`You've selected ${operator}. Please enter new numbers`, {
-      language: "en-US",
-      pitch: 1,
-      rate: 0.9,
-    });
-  }, [operator]);
-
-  const speakText = (text) => {
-    Speech.stop(); // Stop any previous speech
-    Speech.speak(text, {
-      language: "en-US", // Or change to "vi-VN" for Vietnamese
-      pitch: 1,
-      rate: 0.95,
-    });
-  };
+  const currentStep = steps[stepIndex];
 
   const styles = StyleSheet.create({
     container: {
@@ -168,7 +193,7 @@ export default function StepByStepScreen({ navigation, route }) {
       borderColor: theme.colors.white,
     },
     title: {
-      fontSize: 20,
+      fontSize: 18,
       color: theme.colors.black,
       fontFamily: Fonts.NUNITO_BLACK,
       marginBottom: 10,
@@ -327,26 +352,29 @@ export default function StepByStepScreen({ navigation, route }) {
   };
 
   const placeLabels = [
-    "Units",
-    "Tens",
-    "Hundreds",
-    "Thousands",
-    "Ten thousands",
-    "Hundred thousands",
-    "Millions",
-    "Ten millions",
-    "Hundred millions",
-    "Billions",
+    t("place.units"),
+    t("place.tens"),
+    t("place.hundreds"),
+    t("place.thousands"),
+    t("place.ten_thousands"),
+    t("place.hundred_thousands"),
+    t("place.millions"),
+    t("place.ten_millions"),
+    t("place.hundred_millions"),
+    t("place.billions"),
   ];
   useEffect(() => {
     if (stepIndex === 0) return;
 
     const step = steps[stepIndex];
+
     if (stepIndex === 2 && Array.isArray(step.subSteps)) {
       // Đọc substep hiện tại trong step 2
       speakText(step.subSteps[subStepIndex] || "");
+    } else if (stepIndex === 3 && step.subText) {
+      // Đọc subText khi đến bước 3 (kết quả cuối)
+      speakText(step.subText);
     } else {
-      // Đọc title + description hoặc subText
       const fullText = `${step.title || ""}. ${
         step.description || step.subText || ""
       }`;
@@ -356,6 +384,9 @@ export default function StepByStepScreen({ navigation, route }) {
 
   const handleNext = () => {
     Speech.stop();
+    console.log("[handleNext] stepIndex:", stepIndex);
+    console.log("[handleNext] currentRowIndex:", currentRowIndex);
+    // Step 0: Initial number input
     if (stepIndex === 0) {
       console.log("Đang ở bước nhập số ban đầu");
       handleStepZero({
@@ -367,8 +398,19 @@ export default function StepByStepScreen({ navigation, route }) {
         setStepIndex,
         setSteps,
         stepIndex,
+        t,
       });
       return;
+    }
+
+    // Subtraction logic: reveal each result digit and subStep
+    if (operator === "-" && stepIndex === 2) {
+      const totalLength = steps[2].resultDigits?.length || 0;
+      if (revealedResultDigits < totalLength) {
+        setRevealedResultDigits((prev) => prev + 1);
+        setSubStepIndex((prev) => prev + 1);
+        return;
+      }
     }
 
     if (operator === "×" && stepIndex === 2) {
@@ -421,14 +463,30 @@ export default function StepByStepScreen({ navigation, route }) {
         setCurrentRowIndex((prev) => prev + 1);
         setRevealedDigits(0);
       }
-      // Dòng cuối → hiện kết quả từng chữ số
-      else {
+      //Nếu dưới 1 dòng nhân thì hiển thị dòng cuối -> hiển thị kết quả và chuyển sang steps[3]
+      else if (!isLastPartial) {
+        console.log("Chuyển dòng mới");
+        setCurrentRowIndex((prev) => prev + 1);
+        setRevealedDigits(0);
+      } else {
         const totalLength = steps[3].result.length;
+
+        const isOnlyOnePartial = steps[2].partials.length === 1;
+        const isPartialFullyRevealed = revealedDigits >= fullLength;
+
+        if (isOnlyOnePartial && isPartialFullyRevealed) {
+          console.log(
+            "Chỉ có 1 dòng partial → bỏ qua reveal kết quả → chuyển bước"
+          );
+          setStepIndex((prev) => prev + 1);
+          return;
+        }
+
         if (revealedResultDigits < totalLength) {
           console.log("Hiện từng chữ số của kết quả");
           setRevealedResultDigits((prev) => prev + 1);
         } else {
-          console.log("Chuyển sang bước cuối");
+          console.log("Đã hiện xong kết quả → chuyển bước");
           setStepIndex((prev) => prev + 1);
         }
       }
@@ -441,7 +499,6 @@ export default function StepByStepScreen({ navigation, route }) {
       setStepIndex((prev) => prev + 1);
     }
   };
-
   return (
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
@@ -454,12 +511,34 @@ export default function StepByStepScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Calculation</Text>
+        <Text style={styles.headerText}>{t("calculation")}</Text>
       </LinearGradient>
 
       <View style={styles.titleContainer}>
         <LinearGradient colors={getGradient()} style={styles.soundContainer}>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              Speech.stop();
+
+              if (stepIndex === 0) {
+                Speech.speak(t("instruction.enter_numbers"), {
+                  language: i18n.language === "vi" ? "vi-VN" : "en-US",
+                  pitch: 1,
+                  rate: 0.9,
+                });
+              } else if (currentStep?.title || currentStep?.description) {
+                const speechText = `${currentStep.title || ""}. ${
+                  currentStep.description || ""
+                }`;
+
+                Speech.speak(speechText, {
+                  language: i18n.language === "vi" ? "vi-VN" : "en-US",
+                  pitch: 1,
+                  rate: 0.9,
+                });
+              }
+            }}
+          >
             <Ionicons
               name="volume-medium"
               size={30}
@@ -467,16 +546,23 @@ export default function StepByStepScreen({ navigation, route }) {
             />
           </TouchableOpacity>
         </LinearGradient>
-        <Text
-          style={styles.title}
-          numberOfLines={3}
-          adjustsFontSizeToFit
-          minimumFontScale={0.5}
-        >
-          {currentStep.title}
-          {"\n"}
-          {currentStep.description}
-        </Text>
+
+        {stepIndex === 0 ? (
+          <Text style={styles.title}>{t("instruction.enter_numbers")}</Text>
+        ) : (
+          currentStep?.title && (
+            <Text
+              style={styles.title}
+              numberOfLines={3}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
+              {currentStep.title}
+              {"\n"}
+              {currentStep.description}
+            </Text>
+          )
+        )}
       </View>
 
       {stepIndex === 0 && (
@@ -637,6 +723,10 @@ export default function StepByStepScreen({ navigation, route }) {
             steps={steps}
             placeLabels={placeLabels}
             skillName={skillName}
+            revealedResultDigits={revealedResultDigits}
+            setRevealedResultDigits={setRevealedResultDigits}
+            subStepIndex={subStepIndex}
+            t={t}
           />
         )}
         {operator === "×" && stepIndex === 2 && (
@@ -652,6 +742,9 @@ export default function StepByStepScreen({ navigation, route }) {
             setRevealedResultDigits={setRevealedResultDigits}
             multiplier1={number1}
             multiplier2={number2}
+            subStepIndex={subStepIndex}
+            columnStepIndex={columnStepIndex}
+            setColumnStepIndex={setColumnStepIndex}
           />
         )}
 
@@ -690,7 +783,7 @@ export default function StepByStepScreen({ navigation, route }) {
         end={{ x: 0, y: 0 }}
       >
         <TouchableOpacity onPress={handleNext}>
-          <Text style={styles.nextText}>Next</Text>
+          <Text style={styles.nextText}>{t("button.next")}</Text>
         </TouchableOpacity>
       </LinearGradient>
       <FloatingMenu />

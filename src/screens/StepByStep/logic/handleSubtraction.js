@@ -1,90 +1,88 @@
-// Hàm thực hiện phép trừ từng bước, lưu dữ liệu chi tiết vào steps[2], kết quả vào steps[3]
-export const handleSubtraction = (n1, n2, steps, setRemember) => {
-  // Nếu số bị trừ nhỏ hơn số trừ ⇒ không hỗ trợ kết quả âm
-  if (n1 < n2) {
-    steps[2] = {
-      ...steps[2],
-      subText: "Cannot subtract: the minuend is smaller than the subtrahend.", // Thông báo lỗi
-      digits1: [],
-      digits2: [],
-      resultDigits: [],
-      borrowFlags: [],
-    };
-    if (setRemember) setRemember(""); // Xóa ghi nhớ nếu có
-    return; // Dừng xử lý
-  }
-  // Căn độ dài của 2 số (thêm 0 ở đầu nếu cần)
+export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
   const strA = n1
     .toString()
     .padStart(Math.max(n1.toString().length, n2.toString().length), "0");
   const strB = n2.toString().padStart(strA.length, "0");
-  // Tách từng chữ số và đảo ngược để xử lý từ đơn vị
-  const digitsA = strA.split("").reverse(); // Số bị trừ
-  const digitsB = strB.split("").reverse(); // Số trừ
-  let resultDigits = []; // Kết quả từng chữ số
-  let borrowFlags = []; // Cờ đánh dấu đã mượn
-  let payBackFlags = []; // Cờ đánh dấu đã trả 1 đơn vị mượn từ bước trước
-  let borrow = 0; // Số mượn hiện tại
-  let subSteps = []; // Mảng mô tả từng bước trừ
-  // Danh sách vị trí tên gọi (đơn vị, chục, trăm,...)
+  const digitsA = strA.split("").reverse();
+  const digitsB = strB.split("").reverse();
+  let resultDigits = [];
+  let borrowFlags = [];
+  let payBackFlags = [];
+  let borrow = 0;
+  let subSteps = [];
+
   const labelMap = [
-    "Units",
-    "Tens",
-    "Hundreds",
-    "Thousands",
-    "Ten thousands",
-    "Millions",
-    "Ten millions",
-    "Hundred millions",
-    "Billions",
+    t("place.units"),
+    t("place.tens"),
+    t("place.hundreds"),
+    t("place.thousands"),
+    t("place.ten_thousands"),
+    t("place.hundred_thousands"),
+    t("place.millions"),
+    t("place.ten_millions"),
+    t("place.hundred_millions"),
+    t("place.billions"),
   ];
-  // Bắt đầu trừ từng cột từ phải sang trái
+  subSteps.push(t("subtraction.step_intro"));
+
   for (let i = 0; i < digitsA.length; i++) {
-    const originalDigitA = parseInt(digitsA[i]); // chữ số của số bị trừ
-    const digitB = parseInt(digitsB[i]); // chữ số của số trừ
-    let adjustedA = originalDigitA - borrow; // điều chỉnh A nếu có mượn
-    const payBack = borrow > 0; // đánh dấu nếu đang phải trả mượn từ bước trước
-    payBackFlags.push(payBack); // lưu trạng thái trả mượn
-    let stepText = `Step ${i + 1}: Subtract ${
-      labelMap[i] || `10^${i}`
-    } digits: `;
+    const originalDigitA = parseInt(digitsA[i]);
+    const digitB = parseInt(digitsB[i]);
+    let adjustedA = originalDigitA - borrow;
+    const payBack = borrow > 0;
+    payBackFlags.push(payBack);
+    let stepText = "";
+
     if (adjustedA < digitB) {
-      // Nếu không đủ để trừ thì mượn 10
       adjustedA += 10;
       borrow = 1;
-      borrowFlags.push(true); // Đánh dấu đã mượn
-      stepText += `(${originalDigitA} + 10) - ${digitB} = ${
-        adjustedA - digitB
-      } (borrow 1)`;
+      borrowFlags.push(true);
+      stepText = t("subtraction.step_borrow", {
+        step: i + 1,
+        label: labelMap[i] || `10^${i}`,
+        a: originalDigitA,
+        b: digitB,
+        result: adjustedA - digitB,
+      });
     } else {
-      // Không cần mượn
       borrow = 0;
       borrowFlags.push(false);
-      stepText += `${adjustedA} - ${digitB} = ${adjustedA - digitB}`;
+      stepText = t("subtraction.step_normal", {
+        step: i + 1,
+        label: labelMap[i] || `10^${i}`,
+        a: adjustedA,
+        b: digitB,
+        result: adjustedA - digitB,
+      });
     }
+
     if (payBack) {
-      stepText += `, (pay 1 back from previous borrow)`; // Ghi chú việc hoàn trả
+      stepText += " " + t("subtraction.step_payback");
     }
-    resultDigits.push(adjustedA - digitB); // Lưu kết quả từng cột
-    subSteps.push(stepText); // Lưu mô tả từng bước
+
+    resultDigits.push(adjustedA - digitB);
+    subSteps.push(stepText);
   }
-  // Tính kết quả cuối cùng và loại bỏ các số 0 ở đầu
+
   const finalResult =
     resultDigits.slice().reverse().join("").replace(/^0+/, "") || "0";
-  // Ghi kết quả vào steps[2] để hiển thị từng dòng trên UI
-  steps[2].digits1 = [...digitsA].reverse(); // Số bị trừ (A)
-  steps[2].digits2 = [...digitsB].reverse(); // Số trừ (B)
-  steps[2].resultDigits = [...resultDigits].reverse(); // Kết quả từng chữ số
-  steps[2].borrowFlags = [...borrowFlags].reverse(); // Cờ mượn theo thứ tự hiển thị
-  steps[2].payBackFlags = [...payBackFlags].reverse(); // Cờ trả mượn
-  steps[2].subText = subSteps.join("\n"); // Chuỗi mô tả từng bước
-  // Ghi kết quả tổng kết vào steps[3]
+
+  steps[2].digits1 = [...digitsA].reverse();
+  steps[2].digits2 = [...digitsB].reverse();
+  steps[2].resultDigits = [...resultDigits].reverse();
+  steps[2].borrowFlags = [...borrowFlags].reverse();
+  steps[2].payBackFlags = [...payBackFlags].reverse();
+  steps[2].subText = subSteps.join("\n");
+  steps[2].subSteps = subSteps;
+
   steps[3].result = finalResult;
-  steps[3].subText = `Final result: ${n1} - ${n2} = ${finalResult}`;
-  // Ghi chú trạng thái mượn nếu có
-  if (borrowFlags.includes(true)) {
-    setRemember?.("Borrowing occurred"); // Dùng optional chaining để tránh lỗi
-  } else {
-    setRemember?.("");
-  }
+  steps[3].subText = t("subtraction.final_result", {
+    number1: n1,
+    number2: n2,
+    result: finalResult,
+  });
+
+  setRemember?.(
+    borrowFlags.includes(true) ? t("subtraction.remember_borrowing") : ""
+  );
 };
