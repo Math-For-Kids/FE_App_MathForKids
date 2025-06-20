@@ -281,8 +281,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       justifyContent: "center",
       alignItems: "center",
       position: "absolute",
-      top: 350,
-      left: 160,
+      top: -90,
+      left: 180,
       fontSize: 16,
     },
     linkText: {
