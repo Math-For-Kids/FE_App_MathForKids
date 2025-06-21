@@ -107,11 +107,10 @@ export default function ProfileScreen({ navigation }) {
       backgroundColor: theme.colors.cardBackground,
       borderWidth: 1,
       borderColor: theme.colors.blueDark,
-      padding: 10,
       borderRadius: 50,
       elevation: 3,
     },
-    avatar: { width: 30, height: 30 },
+    avatar: { width: 60, height: 60, borderRadius: 50 },
     name: {
       fontSize: 18,
       fontFamily: Fonts.NUNITO_BOLD,
@@ -234,7 +233,7 @@ export default function ProfileScreen({ navigation }) {
       <ScrollView>
         <View style={styles.userInfo}>
           <View style={styles.avatarContainer}>
-            <Image source={avatar} style={styles.avatar} resizeMode="contain" />
+            <Image source={avatar} style={styles.avatar} resizeMode="cover" />
           </View>
           <View>
             <Text style={styles.name}>{pupil?.fullName}</Text>

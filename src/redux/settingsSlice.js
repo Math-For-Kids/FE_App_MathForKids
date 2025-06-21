@@ -2,8 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   theme: 1,
-  mode: "light",
-  // language: "en",
+  mode: null,
+  language: "vi",
   volume: 100,
 };
 

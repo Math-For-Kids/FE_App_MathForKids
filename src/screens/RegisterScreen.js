@@ -58,8 +58,24 @@ export default function RegisterScreen({ navigation }) {
     if (!/^\d{4}$/.test(pinCode)) {
       return Alert.alert(t("invalidTitle"), t("invalidPin"));
     }
+    // Kiểm tra ngày hợp lệ
     if (!dateOfBirth || dateOfBirth > new Date()) {
       return Alert.alert(t("invalidTitle"), t("invalidDob"));
+    }
+
+    // Tính tuổi
+    const today = new Date();
+    const birth = new Date(dateOfBirth);
+    const age = today.getFullYear() - birth.getFullYear();
+    const hasHadBirthdayThisYear =
+      today.getMonth() > birth.getMonth() ||
+      (today.getMonth() === birth.getMonth() &&
+        today.getDate() >= birth.getDate());
+    const finalAge = hasHadBirthdayThisYear ? age : age - 1;
+
+    // Kiểm tra tuổi hợp lệ (18–100)
+    if (finalAge < 18 || finalAge > 100) {
+      return Alert.alert(t("invalidTitle"), t("invalidAgeRange"));
     }
     const userData = {
       fullName,

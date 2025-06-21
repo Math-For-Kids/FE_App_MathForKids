@@ -30,13 +30,14 @@ import { useFocusEffect } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
 import swipeGifLeft from "../../../assets/animations/swipe.gif/1.json";
 import swipeGifRight from "../../../assets/animations/swipe.gif/2.json";
-
+import { WebView } from "react-native-webview";
+import { useWindowDimensions } from "react-native";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, lessonId } = route.params;
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation("lesson");
-
+  const { width } = useWindowDimensions();
   const screenWidth = Dimensions.get("window").width;
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentIndexRef = useRef(0);
@@ -180,6 +181,7 @@ export default function LessonDetailScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redLight;
     return theme.colors.pinkLight;
   };
+  console.log("dịch:", t("go_to_step_by_step"));
 
   const styles = StyleSheet.create({
     container: {
@@ -282,16 +284,16 @@ export default function LessonDetailScreen({ navigation, route }) {
       alignItems: "center",
       position: "absolute",
       top: -90,
-      left: 180,
+      left: 120,
       fontSize: 16,
     },
     linkText: {
+      width: "70%",
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueDark,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.blueDark,
     },
-    linkIcon: { paddingLeft: 10 },
     imageContainer: { alignItems: "center", marginBottom: 16 },
     image: { width: 200, height: 200, resizeMode: "contain", borderRadius: 12 },
   });
@@ -350,8 +352,34 @@ export default function LessonDetailScreen({ navigation, route }) {
         <Text style={styles.lessonTitleTextList}>
           {tabTitles?.[currentIndex] || ""}
         </Text>
-        <ScrollView style={styles.lessonTextListContainer}>
+        {/* <ScrollView style={styles.lessonTextListContainer}>
           <Text style={styles.lessonTextList}>{content}</Text>
+          {imageUrl && (
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: imageUrl }} style={styles.image} />
+            </View>
+          )}
+        </ScrollView> */}
+        <ScrollView style={styles.lessonTextListContainer}>
+          {typeof content === "string" && content.trim().length > 0 ? (
+            <View style={{ width: width - 40, height: 300 }}>
+              <WebView
+                originWhitelist={["*"]}
+                source={{ html: content }}
+                style={{
+                  backgroundColor: "transparent",
+                  width: width - 70,
+                  textAlign: "center",
+                }}
+                scrollEnabled={false}
+                scalesPageToFit={false}
+                javaScriptEnabled
+              />
+            </View>
+          ) : (
+            <Text style={styles.lessonTextList}>Không có nội dung</Text>
+          )}
+
           {imageUrl && (
             <View style={styles.imageContainer}>
               <Image source={{ uri: imageUrl }} style={styles.image} />
@@ -378,7 +406,11 @@ export default function LessonDetailScreen({ navigation, route }) {
               }
             }}
           >
-            <Text style={styles.linkText}>{t("calculation_steps")}</Text>
+            <Text style={styles.linkText}>
+              {currentIndex === 1
+                ? t("go_to_step_by_step")
+                : t("practice_custom_problem")}
+            </Text>
             <Ionicons
               name="arrow-forward"
               size={24}

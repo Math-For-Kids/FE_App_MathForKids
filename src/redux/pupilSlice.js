@@ -38,6 +38,18 @@ export const pupilById = createAsyncThunk(
     }
   }
 );
+export const pupilByUserId = createAsyncThunk(
+  "pupil/fetchByUserId",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/pupil/getEnabledPupil/${id}`);
+
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 export const updatePupilProfile = createAsyncThunk(
   "pupil/updateProfile",
   async ({ id, data }, { rejectWithValue }) => {
@@ -101,7 +113,19 @@ const pupilSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
+      //get by userid
+      .addCase(pupilByUserId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(pupilByUserId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pupils = action.payload || [];
+      })
+      .addCase(pupilByUserId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // updatePupilProfile
       .addCase(updatePupilProfile.pending, (state) => {
         state.loading = true;

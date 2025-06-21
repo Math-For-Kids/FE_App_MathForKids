@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile, profileById } from "../../redux/profileSlice";
+import { updateEmail, profileById } from "../../redux/profileSlice";
 import { sendOTPByEmail } from "../../redux/authSlice";
 import { verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
@@ -36,44 +36,63 @@ export default function ChangeEmailScreen({ navigation }) {
   }, [user?.id, dispatch]);
 
   const handleConfirmPin = async () => {
-    if (!/^\d{4}$/.test(pin)) {
+    const joinedPin = pin.join("");
+
+    if (!/^\d{4}$/.test(joinedPin)) {
       Alert.alert("Invalid PIN", "PIN must be exactly 4 digits.");
       return;
     }
+
     try {
       await dispatch(
-        verifyOnlyOTP({ userId: user?.id, otpCode: pin })
-      ).unwrap();
-      await dispatch(
-        updateProfile({ id: user?.id, data: { email: newEmail } })
+        verifyOnlyOTP({ userId: user?.id, otpCode: joinedPin })
       ).unwrap();
 
-      dispatch(profileById(user?.id));
+      await dispatch(
+        updateEmail({ id: user?.id, data: { newEmail: newEmail } }) // chỉ cập nhật khi OTP đúng
+      ).unwrap();
+
+      await dispatch(profileById(user?.id)).unwrap();
       Alert.alert("Success", "Email updated successfully!");
       setPinModalVisible(false);
-      setPin("");
+      setPin(["", "", "", ""]);
       navigation.navigate("PrivacyScreen");
     } catch (error) {
       Alert.alert(
         "Error",
-        typeof error === "string" ? error : "Failed to update email."
+        typeof error === "string"
+          ? error
+          : "OTP verification failed or update failed."
       );
     }
   };
+
   const handleOpenPinModal = async () => {
     if (!validateEmail(newEmail)) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
 
+    if (newEmail.trim().toLowerCase() === profile.email?.trim().toLowerCase()) {
+      Alert.alert("Email trùng", "Email mới phải khác email hiện tại.");
+      return;
+    }
+
     try {
-      await dispatch(sendOTPByEmail({ email: profile.email })).unwrap();
-      Alert.alert("OTP Sent", "An OTP has been sent to your current email.");
+      // chỉ kiểm tra email trùng phía server — KHÔNG update
+      await dispatch(
+        sendOTPByEmail({ email: profile.email }) // gửi đến email hiện tại
+      ).unwrap();
       setPinModalVisible(true);
     } catch (error) {
-      Alert.alert("Error", "Failed to send OTP.");
+      const msg =
+        typeof error === "string"
+          ? error
+          : error?.message || "Failed to send OTP.";
+      Alert.alert("Lỗi gửi mã", msg);
     }
   };
+
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -289,7 +308,7 @@ export default function ChangeEmailScreen({ navigation }) {
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => {
-                  setPin("");
+                  setPin(["", "", "", ""]);
                   setPinModalVisible(false);
                 }}
               >

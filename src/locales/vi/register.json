@@ -20,5 +20,6 @@
   "invalidEmail": "Email không đúng định dạng.",
   "invalidDob": "Ngày sinh không hợp lệ.",
   "errorTitle": "Lỗi",
-  "selectDob": "Chọn ngày sinh"
+  "selectDob": "Chọn ngày sinh",
+  "invalidAgeRange": "Tuổi phải từ 18 đến 100."
 }
