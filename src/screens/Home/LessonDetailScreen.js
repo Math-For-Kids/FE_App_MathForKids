@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -21,16 +27,17 @@ import { getLessonById } from "../../redux/lessonSlice";
 import { useTranslation } from "react-i18next";
 import * as Speech from "expo-speech";
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
 import LottieView from "lottie-react-native";
 import swipeGifLeft from "../../../assets/animations/swipe.gif/1.json";
 import swipeGifRight from "../../../assets/animations/swipe.gif/2.json";
+import { WebView } from "react-native-webview";
+import { useWindowDimensions } from "react-native";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, title, lessonId } = route.params;
+  const { skillName, lessonId } = route.params;
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation("lesson");
-  const [lessonName, setLessonName] = useState("");
+  const { width } = useWindowDimensions();
   const screenWidth = Dimensions.get("window").width;
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentIndexRef = useRef(0);
@@ -38,31 +45,46 @@ export default function LessonDetailScreen({ navigation, route }) {
   const isAnimating = useRef(false);
 
   const enabledList = useSelector((state) => state.lessonDetail.enabledList);
-
+  const [lessonName, setLessonName] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
-
-  const [showSwipeHint, setShowSwipeHint] = useState(true);
+  const [autoNumber1, setAutoNumber1] = useState("");
+  const [autoNumber2, setAutoNumber2] = useState("");
   const [currentOrder, setCurrentOrder] = useState(null);
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+
+  const getOperatorFromSkillName = (skill) => {
+    switch (skill) {
+      case "Addition":
+        return "+";
+      case "Subtraction":
+        return "-";
+      case "Multiplication":
+        return "×";
+      case "Division":
+        return "÷";
+      default:
+        return "+";
+    }
+  };
+  console.log("autoNumber1", autoNumber1);
+  console.log("autoNumber2", autoNumber2);
+  console.log("getOperatorFromSkillName", getOperatorFromSkillName);
   useEffect(() => {
     if (lessonId) {
       dispatch(getLessonById(lessonId)).then((res) => {
         const data = res.payload;
         setLessonName(data?.name?.[i18n.language] || data?.name?.en || "");
       });
+      dispatch(getEnabledByLesson(lessonId));
     }
   }, [lessonId, i18n.language]);
+
   useEffect(() => {
     setShowSwipeHint(true);
     const timeout = setTimeout(() => setShowSwipeHint(false), 4000);
     return () => clearTimeout(timeout);
   }, [currentIndex]);
-
-  useEffect(() => {
-    if (lessonId) {
-      dispatch(getEnabledByLesson(lessonId));
-    }
-  }, [lessonId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -75,18 +97,30 @@ export default function LessonDetailScreen({ navigation, route }) {
   useEffect(() => {
     currentIndexRef.current = currentIndex;
     const found = enabledList?.find((item) => item.order === currentIndex + 1);
-    console.log("enabledList", found);
-    setContent(found?.content?.[i18n.language] || "");
+    const contentText = found?.content?.[i18n.language] || "";
+    setContent(contentText);
     setImageUrl(found?.image || null);
     setCurrentOrder(found?.order || null);
+
+    const lines = contentText.split("\n");
+    const firstExampleLine = lines.find((line) =>
+      /(\d+)\s*[\+\-\×\÷]\s*(\d+)/.test(line)
+    );
+    if (firstExampleLine) {
+      const match = firstExampleLine.match(/(\d+)\s*[\+\-\×\÷]\s*(\d+)/);
+      if (match) {
+        setAutoNumber1(match[1]);
+        setAutoNumber2(match[2]);
+      }
+    }
   }, [currentIndex, enabledList, i18n.language]);
 
   const tabTitles = useMemo(() => {
     return Array.isArray(enabledList)
       ? enabledList
-          .slice()
-          .sort((a, b) => a.order - b.order)
-          .map((item) => item.title?.[i18n.language] || "")
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((item) => item.title?.[i18n.language] || "")
       : [];
   }, [enabledList, i18n.language]);
 
@@ -99,8 +133,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       direction === "left" && indexNow < maxIndex
         ? indexNow + 1
         : direction === "right" && indexNow > 0
-        ? indexNow - 1
-        : null;
+          ? indexNow - 1
+          : null;
 
     if (newIndex === null) return;
 
@@ -147,6 +181,7 @@ export default function LessonDetailScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redLight;
     return theme.colors.pinkLight;
   };
+  console.log("dịch:", t("go_to_step_by_step"));
 
   const styles = StyleSheet.create({
     container: {
@@ -248,17 +283,17 @@ export default function LessonDetailScreen({ navigation, route }) {
       justifyContent: "center",
       alignItems: "center",
       position: "absolute",
-      top: 350,
-      left: 160,
+      top: -90,
+      left: 120,
       fontSize: 16,
     },
     linkText: {
+      width: "70%",
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.blueDark,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.blueDark,
     },
-    linkIcon: { paddingLeft: 10 },
     imageContainer: { alignItems: "center", marginBottom: 16 },
     image: { width: 200, height: 200, resizeMode: "contain", borderRadius: 12 },
   });
@@ -301,7 +336,7 @@ export default function LessonDetailScreen({ navigation, route }) {
           <LottieView
             source={currentOrder === 3 ? swipeGifRight : swipeGifLeft}
             autoPlay
-            loop={true}
+            loop
             style={styles.swipeHintImage}
           />
           <View style={styles.swipeHintTextContainer}>
@@ -317,9 +352,34 @@ export default function LessonDetailScreen({ navigation, route }) {
         <Text style={styles.lessonTitleTextList}>
           {tabTitles?.[currentIndex] || ""}
         </Text>
-
-        <ScrollView style={styles.lessonTextListContainer}>
+        {/* <ScrollView style={styles.lessonTextListContainer}>
           <Text style={styles.lessonTextList}>{content}</Text>
+          {imageUrl && (
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: imageUrl }} style={styles.image} />
+            </View>
+          )}
+        </ScrollView> */}
+        <ScrollView style={styles.lessonTextListContainer}>
+          {typeof content === "string" && content.trim().length > 0 ? (
+            <View style={{ width: width - 40, height: 300, flexGrow: 1 }}>
+              <WebView
+                originWhitelist={["*"]}
+                source={{ html: content }}
+                style={{
+                  backgroundColor: "transparent",
+                  width: width - 80,
+                  textAlign:"center",
+                }}
+                scrollEnabled={false}
+                scalesPageToFit={false}
+                javaScriptEnabled
+              />
+            </View>
+          ) : (
+            <Text style={styles.lessonTextList}>Không có nội dung</Text>
+          )}
+
           {imageUrl && (
             <View style={styles.imageContainer}>
               <Image source={{ uri: imageUrl }} style={styles.image} />
@@ -327,14 +387,30 @@ export default function LessonDetailScreen({ navigation, route }) {
           )}
         </ScrollView>
 
-        {currentIndex === 2 && (
+        {[1, 2].includes(currentIndex) && (
           <TouchableOpacity
             style={[styles.linkButton, styles.linkTextContainer]}
-            onPress={() =>
-              navigation.navigate("StepByStepScreen", { skillName })
-            }
+            onPress={() => {
+              const operator = getOperatorFromSkillName(skillName);
+              const baseParams = { skillName };
+
+              if (currentIndex === 1 && autoNumber1 && autoNumber2) {
+                navigation.navigate("StepByStepScreen", {
+                  ...baseParams,
+                  number1: autoNumber1,
+                  number2: autoNumber2,
+                  operator,
+                });
+              } else if (currentIndex === 2) {
+                navigation.navigate("StepByStepScreen", baseParams);
+              }
+            }}
           >
-            <Text style={styles.linkText}>{t("calculation_steps")}</Text>
+            <Text style={styles.linkText}>
+              {currentIndex === 1
+                ? t("go_to_step_by_step")
+                : t("practice_custom_problem")}
+            </Text>
             <Ionicons
               name="arrow-forward"
               size={24}
