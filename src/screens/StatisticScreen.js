@@ -153,16 +153,17 @@ export default function StatisticScreen({ navigation }) {
       gap: 10,
     },
     avatarContainer: {
-      backgroundColor: theme.colors.cardBackground,
+      marginVertical: 10,
       borderRadius: 50,
-      elevation: 3,
       borderWidth: 1,
-      borderColor: theme.colors.grayBorder,
-      padding: 5,
+      borderColor: theme.colors.white,
+      backgroundColor: theme.colors.avatartBackground,
+      elevation: 3,
     },
     avatar: {
-      width: 40,
-      height: 40,
+      width: 60,
+      height: 60,
+      resizeMode: "cover",
       borderRadius: 50,
     },
     greeting: {
@@ -182,6 +183,8 @@ export default function StatisticScreen({ navigation }) {
       borderRadius: 50,
       padding: 10,
       elevation: 3,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
     },
     badge: {
       position: "absolute",
@@ -193,6 +196,8 @@ export default function StatisticScreen({ navigation }) {
       borderRadius: 9,
       justifyContent: "center",
       alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.colors.white,
     },
     badgeText: {
       color: theme.colors.white,
@@ -218,12 +223,12 @@ export default function StatisticScreen({ navigation }) {
 
     dropdown: {
       position: "absolute",
-      top: 145,
+      top: 175,
       left: 20,
       width: "89%",
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
-      // elevation: 3,
+      elevation: 3,
       paddingVertical: 5,
     },
 
@@ -261,12 +266,12 @@ export default function StatisticScreen({ navigation }) {
 
     dropdownDay: {
       position: "absolute",
-      top: 200,
+      top: 230,
       right: 20,
       width: "40%",
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 5,
-      // elevation: 3,
+      elevation: 3,
       overflow: "hidden",
     },
 

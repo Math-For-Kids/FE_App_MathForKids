@@ -38,9 +38,11 @@ export default function PrivacyManagementScreen({ navigation }) {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 20,
+      fontSize: 24,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
+      width: "50%",
+      textAlign: "center",
     },
     scrollcontainer: { paddingVertical: 40 },
     buttonContainer: {

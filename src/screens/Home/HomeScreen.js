@@ -59,7 +59,12 @@ export default function HomeScreen({ navigation, route }) {
   const skills = (() => {
     if (selectedGrade === "1") {
       return [
-        { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
+        {
+          icon: theme.icons.addition,
+          label: "Addition",
+          route: "SkillScreen",
+          borderColor: theme.colors.greenDark,
+        },
         {
           icon: theme.icons.subtraction,
           label: "Subtraction",
@@ -97,7 +102,13 @@ export default function HomeScreen({ navigation, route }) {
       </View>
     );
   }
-
+  const getTab = (label) => {
+    if (label === "Addition") return theme.colors.greenLight;
+    if (label === "Subtraction") return theme.colors.purpleLight;
+    if (label === "Multiplication") return theme.colors.orangeLight;
+    if (label === "Division") return theme.colors.redLight;
+    return theme.colors.pinkLight;
+  };
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -117,12 +128,19 @@ export default function HomeScreen({ navigation, route }) {
       gap: 10,
     },
     avatarContainer: {
-      backgroundColor: theme.colors.cardBackground,
+      marginVertical: 10,
       borderRadius: 50,
-      padding: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
+      backgroundColor: theme.colors.avatartBackground,
       elevation: 3,
     },
-    avatar: { width: 40, height: 40 },
+    avatar: {
+      width: 60,
+      height: 60,
+      resizeMode: "cover",
+      borderRadius: 50,
+    },
     greeting: {
       color: theme.colors.white,
       fontSize: 16,
@@ -139,6 +157,8 @@ export default function HomeScreen({ navigation, route }) {
       borderRadius: 50,
       padding: 10,
       elevation: 3,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
     },
     badge: {
       position: "absolute",
@@ -150,6 +170,8 @@ export default function HomeScreen({ navigation, route }) {
       borderRadius: 9,
       justifyContent: "center",
       alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.colors.white,
     },
     badgeText: {
       color: theme.colors.white,
@@ -159,7 +181,7 @@ export default function HomeScreen({ navigation, route }) {
     notificationIcon: { width: 30, height: 30 },
     gradeWrapper: {
       position: "absolute",
-      top: 120,
+      top: 140,
       left: 20,
       flexDirection: "row",
       gap: 10,
@@ -170,6 +192,8 @@ export default function HomeScreen({ navigation, route }) {
       backgroundColor: theme.colors.cardBackground,
       elevation: 3,
       width: 100,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
     },
     grade: {
       fontSize: 14,
@@ -213,7 +237,7 @@ export default function HomeScreen({ navigation, route }) {
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "space-around",
-      paddingHorizontal: 20,
+      paddingHorizontal: 10,
     },
     skillBox: {
       backgroundColor: theme.colors.background,
@@ -224,6 +248,7 @@ export default function HomeScreen({ navigation, route }) {
       margin: 10,
       justifyContent: "center",
       alignItems: "center",
+      borderWidth: 2,
     },
     skillIcon: { width: 100, height: 100 },
     skillText: {
@@ -322,7 +347,10 @@ export default function HomeScreen({ navigation, route }) {
         {skills.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.skillBox}
+            style={[
+              styles.skillBox,
+              { borderColor: getTab(item.label) }, 
+            ]}
             onPress={() =>
               navigation.navigate(item.route, {
                 skillName: item.label,

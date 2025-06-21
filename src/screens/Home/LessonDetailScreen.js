@@ -362,14 +362,14 @@ export default function LessonDetailScreen({ navigation, route }) {
         </ScrollView> */}
         <ScrollView style={styles.lessonTextListContainer}>
           {typeof content === "string" && content.trim().length > 0 ? (
-            <View style={{ width: width - 40, height: 300, flexGrow: 1 }}>
+            <View style={{ width: width - 40, height: 300 }}>
               <WebView
                 originWhitelist={["*"]}
                 source={{ html: content }}
                 style={{
                   backgroundColor: "transparent",
-                  width: width - 80,
-                  textAlign:"center",
+                  width: width - 70,
+                  textAlign: "center",
                 }}
                 scrollEnabled={false}
                 scalesPageToFit={false}

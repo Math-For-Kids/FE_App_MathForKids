@@ -15,6 +15,17 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import FloatingMenu from "../components/FloatingMenu";
+import { getAllPupils, pupilById, pupilByUserId } from "../redux/pupilSlice";
+import { getLessonsByGradeAndType } from "../redux/lessonSlice";
+import { getEnabledRewards } from "../redux/rewardSlice";
+import { createGoal } from "../redux/goalSlice";
+import { useIsFocused } from "@react-navigation/native";
+import { createPupilNotification } from "../redux/pupilNotificationSlice";
+import { createUserNotification } from "../redux/userNotificationSlice"; // nếu bạn cũng cần gửi cho user
+import { serverTimestamp } from "firebase/firestore";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import i18n from "../i18n";
 export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -31,14 +42,101 @@ export default function GoalScreen() {
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
+  const dispatch = useDispatch();
+  const { pupils } = useSelector((state) => state.pupil);
+  const { user } = useSelector((state) => state.auth);
+  const { lessons } = useSelector((state) => state.lesson);
+  const { rewards } = useSelector((state) => state.reward);
+  console.log("userId", user.id);
+  useEffect(() => {
+    dispatch(getEnabledRewards());
+    dispatch(pupilByUserId(user?.id));
+  }, [dispatch, user?.id]);
+  console.log("rewards", rewards);
+  console.log("pupils", pupils);
+  useEffect(() => {
+    const selectedPupil = pupils.find((p) => p.id === selectedAccount);
+    console.log("selectedPupil", selectedPupil);
+    if (selectedPupil && skillType) {
+      dispatch(
+        getLessonsByGradeAndType({
+          grade: selectedPupil.grade,
+          type: skillType.toLowerCase(),
+        })
+      );
+    }
+  }, [skillType, selectedAccount]);
+  console.log("lessons", lessons);
+  const rewardOptions = rewards.map((r) => ({
+    label: r.name?.[i18n.language] || r.name?.en || "Unnamed",
+    value: r.name?.[i18n.language] || r.name?.en || "Unnamed",
+    image: r.image ? { uri: r.image } : undefined,
+  }));
+  const handleSaveGoal = () => {
+    if (!selectedAccount || !skillType || !lesson || !exercise || !reward) {
+      alert("Please complete all fields before saving!");
+      return;
+    }
 
-  const user = {
-    pupils: [
-      "Nguyen Thi Hoa",
-      "Nguyen Thi Hong",
-      "Tran Hoa Hong",
-      "Lam Hoai Man",
-    ],
+    const goalData = {
+      pupilId: selectedAccount,
+      skillType,
+      lesson,
+      exercise,
+      reward,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+
+    dispatch(createGoal(goalData))
+      .unwrap()
+      .then(() => {
+        const now = new Date();
+        const createdAt = now.toISOString();
+        const updatedAt = now.toISOString();
+
+        // Gửi cho phụ huynh
+        dispatch(
+          createUserNotification({
+            userId: user.id,
+            title: {
+              en: "Goal Created Successfully",
+              vi: "Tạo mục tiêu thành công",
+            },
+            content: {
+              en: `You just created a goal in ${skillType} - ${lesson}`,
+              vi: `Bạn vừa tạo mục tiêu cho kỹ năng ${skillType} - ${lesson}`,
+            },
+            isRead: false,
+            createdAt,
+            updatedAt,
+          })
+        );
+
+        // Gửi cho học sinh
+        dispatch(
+          createPupilNotification({
+            pupilId: selectedAccount,
+            title: {
+              en: "New Goal Assigned",
+              vi: "Có mục tiêu mới",
+            },
+            content: {
+              en: `You have a new goal in ${skillType} - ${lesson}`,
+              vi: `Bạn có mục tiêu mới cho kỹ năng ${skillType} - ${lesson}`,
+            },
+            isRead: false,
+            createdAt,
+            updatedAt,
+          })
+        );
+
+        alert("Goal saved and notifications sent!");
+        navigation.goBack();
+      })
+      .catch((err) => {
+        alert(`Failed to save goal: ${err}`);
+      });
   };
 
   const styles = StyleSheet.create({
@@ -107,6 +205,7 @@ export default function GoalScreen() {
     dateInput: { flex: 0.45 },
     input: {
       flexDirection: "row",
+      alignItems: "center",
       justifyContent: "space-between",
       backgroundColor: theme.colors.cardBackground,
       padding: 10,
@@ -173,46 +272,26 @@ export default function GoalScreen() {
       paddingVertical: 10,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
+    labelValueContainer: {
+      flexDirection: "column",
+      flex: 1,
+    },
+
     rewardContainer: {
       flexDirection: "row",
-      justifyContent: "center",
       alignItems: "center",
+      justifyContent: "space-around",
       padding: 10,
+      gap: 10,
     },
-    rewardImage: { width: 32, height: 32, marginRight: 10 },
+    rewardImage: {
+      width: 40,
+      height: 40,
+      marginRight: 10,
+      marginLeft: 20,
+      borderRadius: 8,
+    },
   });
-  const lessonOptions = {
-    Addition: [
-      { label: "Lesson 1: Add 1-digit", value: "Lesson 1" },
-      { label: "Lesson 2: Add with carry", value: "Lesson 2" },
-    ],
-    Subtraction: [
-      { label: "Lesson 1: Subtract 1-digit", value: "Lesson 1" },
-      { label: "Lesson 2: Subtract with borrow", value: "Lesson 2" },
-    ],
-    Multiplication: [
-      { label: "Lesson 1: Multiply by 1", value: "Lesson 1" },
-      { label: "Lesson 2: Multiply by 2", value: "Lesson 2" },
-    ],
-    Division: [
-      { label: "Lesson 1: Divide by 1", value: "Lesson 1" },
-      { label: "Lesson 2: Divide evenly", value: "Lesson 2" },
-    ],
-    "Multiplications table": [
-      { label: "Lesson 1: Table 2", value: "Lesson 1" },
-      { label: "Lesson 2: Table 3", value: "Lesson 2" },
-    ],
-  };
-  const exerciseOptions = {
-    "Lesson 1": [
-      { label: "Exercise A", value: "Exercise A" },
-      { label: "Exercise B", value: "Exercise B" },
-    ],
-    "Lesson 2": [
-      { label: "Exercise C", value: "Exercise C" },
-      { label: "Exercise D", value: "Exercise D" },
-    ],
-  };
   const renderOptionModal = (title, options, onSelect, onClose) => (
     <TouchableOpacity
       style={styles.modalOverlay}
@@ -242,7 +321,9 @@ export default function GoalScreen() {
                     resizeMode="contain"
                   />
                 )}
-                <Text style={styles.modalButtonText}>{item.label}</Text>
+                <View style={styles.labelValueContainer}>
+                  <Text style={styles.modalButtonText}>{item.label}</Text>
+                </View>
               </TouchableOpacity>
             </LinearGradient>
           ))}
@@ -276,22 +357,22 @@ export default function GoalScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.accountScrollContainer}
         >
-          {user.pupils.map((pupil) => (
+          {pupils.map((pupil) => (
             <TouchableOpacity
-              key={pupil}
+              key={pupil.id}
               style={[
                 styles.accountButton,
-                selectedAccount === pupil && styles.selectedAccount,
+                selectedAccount === pupil.id && styles.selectedAccount,
               ]}
-              onPress={() => setSelectedAccount(pupil)}
+              onPress={() => setSelectedAccount(pupil.id)}
             >
               <Text
                 style={[
                   styles.accountText,
-                  selectedAccount === pupil && styles.selectedAccountText,
+                  selectedAccount === pupil.id && styles.selectedAccountText,
                 ]}
               >
-                {pupil}
+                {pupil.fullName}
               </Text>
             </TouchableOpacity>
           ))}
@@ -336,8 +417,19 @@ export default function GoalScreen() {
                 display="default"
                 onChange={(event, selectedDate) => {
                   setShowEndPicker(false);
-                  if (event.type === "set" && selectedDate)
+                  if (event.type === "set" && selectedDate) {
+                    const maxEndDate = new Date(startDate);
+                    maxEndDate.setDate(startDate.getDate() + 14);
+
+                    if (selectedDate > maxEndDate) {
+                      alert(
+                        "You can only set a goal within 14 days from the start date."
+                      );
+                      return;
+                    }
+
                     setEndDate(selectedDate);
+                  }
                 }}
               />
             )}
@@ -421,7 +513,7 @@ export default function GoalScreen() {
         colors={theme.colors.gradientBlue}
         style={styles.saveButton}
       >
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleSaveGoal}>
           <Text style={styles.saveText}>Save</Text>
         </TouchableOpacity>
       </LinearGradient>
@@ -443,7 +535,10 @@ export default function GoalScreen() {
       {showLessonModal &&
         renderOptionModal(
           "Select Lesson",
-          lessonOptions[skillType] || [],
+          lessons.map((l) => ({
+            label: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+            value: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+          })),
           setLesson,
           () => setShowLessonModal(false)
         )}
@@ -451,49 +546,19 @@ export default function GoalScreen() {
       {showExerciseModal &&
         renderOptionModal(
           "Select Exercise",
-          exerciseOptions[lesson] || [],
+          lessons.map((l) => ({
+            label: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+            value: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+          })),
           setExercise,
           () => setShowExerciseModal(false)
         )}
 
       {showRewardModal &&
-        renderOptionModal(
-          "Select Reward",
-          [
-            {
-              label: "Capypara",
-              value: "Capypara",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Starfish",
-              value: "Starfish",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Hippocampus",
-              value: "Hippocampus",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Whale",
-              value: "Whale",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Super hero",
-              value: "Super hero",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Mask",
-              value: "Mask",
-              image: theme.icons.characterSandwich,
-            },
-          ],
-          setReward,
-          () => setShowRewardModal(false)
+        renderOptionModal("Select Reward", rewardOptions, setReward, () =>
+          setShowRewardModal(false)
         )}
+
       <FloatingMenu />
     </LinearGradient>
   );

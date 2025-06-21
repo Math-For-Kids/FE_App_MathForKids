@@ -20,5 +20,6 @@
   "invalidEmail": "Email is in the wrong format.",
   "invalidDob": "Invalid date of birth.",
   "errorTitle": "Error",
-  "selectDob": "Select date of birth"
+  "selectDob": "Select date of birth",
+  "invalidAgeRange": "Age form 18 to 100."
 }

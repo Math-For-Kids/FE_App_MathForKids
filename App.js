@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Provider, useSelector } from "react-redux";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import { store, persistor } from "./src/redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./src/AppNavigator";
@@ -10,23 +10,10 @@ import { ThemeProvider } from "./src/themes/ThemeContext";
 import { Provider as PaperProvider } from "react-native-paper";
 import { ActivityIndicator } from "react-native";
 import "./src/i18n";
-import i18n from "./src/i18n";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthChecker from "./src/components/AuthChecker";
 import { navigationRef } from "./src/components/navigationRef";
 SplashScreen.preventAutoHideAsync();
-
-function LanguageInitializer({ children }) {
-  const language = useSelector((state) => state.settings.language);
-  console.log("language", language);
-  useEffect(() => {
-    if (i18n.language !== language) {
-      i18n.changeLanguage(language);
-    }
-  }, [language]);
-  return <>{children}</>;
-}
-
 export default function App() {
   const [fontsLoaded] = useFonts({
     "Nunito-Black": require("./assets/fonts/Nunito-Black.ttf"),
@@ -63,18 +50,16 @@ export default function App() {
         loading={<ActivityIndicator size="large" />}
         persistor={persistor}
       >
-        <LanguageInitializer>
-          <ThemeProvider>
-            <PaperProvider>
-              <SoundProvider>
-                <NavigationContainer ref={navigationRef}>
-                  <AuthChecker />
-                  <AppNavigator />
-                </NavigationContainer>
-              </SoundProvider>
-            </PaperProvider>
-          </ThemeProvider>
-        </LanguageInitializer>
+        <ThemeProvider>
+          <PaperProvider>
+            <SoundProvider>
+              <NavigationContainer ref={navigationRef}>
+                <AuthChecker />
+                <AppNavigator />
+              </NavigationContainer>
+            </SoundProvider>
+          </PaperProvider>
+        </ThemeProvider>
       </PersistGate>
     </Provider>
   );

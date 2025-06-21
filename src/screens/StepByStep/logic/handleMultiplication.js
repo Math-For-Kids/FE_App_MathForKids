@@ -1,6 +1,6 @@
 // Hàm xử lý phép nhân từng bước giữa hai số nguyên n1 và n2
 // Ghi dữ liệu hiển thị chi tiết vào steps[2], kết quả vào steps[3]
-export const handleMultiplication = (n1, n2, steps, setRemember) => {
+export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
   // Chuyển hai số thành chuỗi để dễ thao tác từng chữ số
   const str1 = n1.toString();
   const str2 = n2.toString();
@@ -12,13 +12,16 @@ export const handleMultiplication = (n1, n2, steps, setRemember) => {
   let subTextLines = []; // Mảng lưu mô tả từng bước
   // Danh sách tên vị trí chữ số (units, tens, ...)
   const positionLabels = [
-    "Units",
-    "Tens",
-    "Hundreds",
-    "Thousands",
-    "Ten Thousands",
-    "Hundred Thousands",
-    "Millions",
+    t("place.units"),
+    t("place.tens"),
+    t("place.hundreds"),
+    t("place.thousands"),
+    t("place.ten_thousands"),
+    t("place.hundred_thousands"),
+    t("place.millions"),
+    t("place.ten_millions"),
+    t("place.hundred_millions"),
+    t("place.billions"),
   ];
   // Lặp qua từng chữ số của số nhân (từng dòng nhân)
   digits2.forEach((d2, rowIndex) => {
@@ -43,14 +46,16 @@ export const handleMultiplication = (n1, n2, steps, setRemember) => {
 
       if (!shouldSkipExplain) {
         lineExplain.push(
-          `Multiply ${d2} (${
-            positionLabels[rowIndex] || `10^${rowIndex}`
-          } of multiplier)` +
-            ` × ${d1} (${
-              positionLabels[colIndex] || `10^${colIndex}`
-            } of multiplicand): ` +
-            `${d2} × ${d1} + ${carry} = ${product} → write ${digit}` +
-            (nextCarry > 0 ? `, carry ${nextCarry}` : "")
+          t("multiplication.step_detail", {
+            rowLabel: positionLabels[rowIndex] || `10^${rowIndex}`,
+            colLabel: positionLabels[colIndex] || `10^${colIndex}`,
+            d2,
+            d1,
+            carry,
+            product,
+            digit,
+            nextCarry,
+          })
         );
       }
 
@@ -75,15 +80,14 @@ export const handleMultiplication = (n1, n2, steps, setRemember) => {
     carryRows.push(fullCarryRow);
 
     subTextLines.push(
-      `▶ Step ${rowIndex + 1}: Multiply the (${
-        positionLabels[rowIndex] || `10^${rowIndex}`
-      }) digit of the multiplier by the multiplicand in order from right to left.`
+      t("multiplication.step_intro", {
+        step: rowIndex + 1,
+        label: positionLabels[rowIndex] || `10^${rowIndex}`,
+      })
     );
 
     if (rowIndex + 1 >= 2) {
-      subTextLines.push(
-        `When multiplying two two-digit numbers, adding a zero to the end of the units digit of the result multiplied by the tens digit of the second number is to ensure that the digits in the final result are placed correctly according to their decimal values.`
-      );
+      subTextLines.push(t("multiplication.step_zero_rule"));
     }
 
     // Ghi từng phép nhân chi tiết (nếu còn lại)
@@ -114,29 +118,38 @@ export const handleMultiplication = (n1, n2, steps, setRemember) => {
       const placeName =
         columnLabels[maxLen - 1 - col] || `10^${maxLen - 1 - col}`;
       verticalSteps.push(
-        `Column ${placeName}: ${columnDigits.join(
-          " + "
-        )} + carry ${carry} = ${columnSum} → write ${digit}${
-          nextCarry > 0 ? `, carry ${nextCarry}` : ""
-        }`
+        t("multiplication.step_add_column", {
+          label: placeName,
+          digits: columnDigits.join(" + "),
+          carry,
+          sum: columnSum,
+          digit,
+          nextCarry,
+        })
       );
       carry = nextCarry;
     }
 
     if (carry > 0) {
-      verticalSteps.push(`Final carry: write ${carry} at the highest digit`);
+      verticalSteps.push(t("multiplication.step_final_carry", { carry }));
     }
 
-    summaryLines.push(
-      `▶ Final Step: Add all the partial products together column by column:\n${verticalSteps[0]}`
-    );
+    summaryLines.push(t("multiplication.step_final_title"));
     verticalSteps.slice(1).forEach((line) => summaryLines.push(line));
 
     summaryLines.push(
-      `→ Final Result: ${partials.join(" + ")} = ${finalResult}`
+      t("multiplication.final_result", {
+        expression: partials.join(" + "),
+        result: finalResult,
+      })
     );
   } else {
-    summaryLines = [`→ Final Result: ${partials[0]}`];
+    summaryLines = [
+      t("multiplication.final_result", {
+        expression: partials[0],
+        result: partials[0],
+      }),
+    ];
   }
 
   // Ghi dữ liệu cho bước hiển thị từng dòng (steps[2])
@@ -148,11 +161,13 @@ export const handleMultiplication = (n1, n2, steps, setRemember) => {
   steps[2].subSteps = [...subTextLines, ...summaryLines]; // Mảng mô tả từng bước
   // Ghi kết quả tổng hợp cuối cùng (steps[3])
   steps[3].result = finalResult.toString();
-  steps[3].subText =
-    "To find the final result, add up all the partial products:\n" +
-    partials.map((p, i) => `Partial ${i + 1}: ${p}`).join("\n") +
-    `\n→ ${partials.join(" + ")} = ${finalResult}`;
-
+  steps[3].subText = t("multiplication.summary", {
+    partials: partials
+      .map((p, i) => `${t("multiplication.partial")} ${i + 1}: ${p}`)
+      .join("\n"),
+    expression: partials.join(" + "),
+    result: finalResult,
+  });
   const finalResultDigits = finalResult.toString().length;
   const fullPositionLabels = Array.from({ length: finalResultDigits }).map(
     (_, i) =>

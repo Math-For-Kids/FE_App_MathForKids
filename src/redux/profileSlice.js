@@ -28,7 +28,42 @@ export const updateProfile = createAsyncThunk(
     }
   }
 );
-
+// Cập nhật email
+export const updateEmail = createAsyncThunk(
+  "profile/updatemail",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await Api.patch(`/user/updateEmail/${id}`, data);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+); 
+// Cập nhật phone
+export const updatePhone = createAsyncThunk(
+  "profile/updatephone",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await Api.patch(`/user/updatePhone/${id}`, data);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+// Cập nhật pin
+export const updatePin = createAsyncThunk(
+  "profile/updatepin",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await Api.patch(`/user/updatePin/${id}`, data);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 // Upload avatar người dùng lên S3 và lưu URL vào Firestore
 export const uploadAvatar = createAsyncThunk(
   "profile/uploadAvatar",
@@ -167,7 +202,53 @@ const profileSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // Cập nhật Email
+      .addCase(updateEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateEmail.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.info && action.payload.email) {
+          state.info.email = action.payload.email;
+        }
+      })
+      .addCase(updateEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
+      // Cập nhật Phone
+      .addCase(updatePhone.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatePhone.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.info && action.payload.phone) {
+          state.info.phone = action.payload.phone;
+        }
+      })
+      .addCase(updatePhone.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Cập nhật Pin
+      .addCase(updatePin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatePin.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.info && action.payload.pin) {
+          state.info.pin = action.payload.pin;
+        }
+      })
+      .addCase(updatePin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(uploadAvatar.pending, (state) => {
         state.loading = true;
         state.error = null;

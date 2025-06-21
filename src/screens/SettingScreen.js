@@ -9,7 +9,13 @@ import FloatingMenu from "../components/FloatingMenu";
 import { updateProfile, updatePupilProfile } from "../redux/profileSlice";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { setLanguage } from "../redux/settingsSlice";
+import {
+  setLanguage,
+  setMode,
+  setTheme,
+  setVolume,
+} from "../redux/settingsSlice";
+
 export default function SettingScreen({ navigation }) {
   const { theme, isDarkMode, themeKey, toggleThemeMode, switchThemeKey } =
     useTheme();
@@ -35,12 +41,8 @@ export default function SettingScreen({ navigation }) {
     else decreaseVolume();
 
     const volumeNumber = Math.round(newVolume * 100);
+    dispatch(setVolume(volumeNumber));
     updateUserOrPupil({ volume: volumeNumber });
-  };
-
-  const switchLanguage = async (newLang) => {
-    await i18n.changeLanguage(newLang);
-    updateUserOrPupil({ language: newLang });
   };
 
   const toggleLanguage = () => {
@@ -53,6 +55,7 @@ export default function SettingScreen({ navigation }) {
   const handleToggleMode = () => {
     const newMode = isDarkMode ? "light" : "dark";
     toggleThemeMode();
+    dispatch(setMode(newMode));
     updateUserOrPupil({ mode: newMode });
   };
 
@@ -77,9 +80,12 @@ export default function SettingScreen({ navigation }) {
         : "theme1";
 
     switchThemeKey(nextThemeKey);
+
     const themeNumber = themeKeyToNumber(nextThemeKey);
+    dispatch(setTheme(themeNumber));
     updateUserOrPupil({ theme: themeNumber });
   };
+
   if (!profile) return null;
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
