@@ -17,7 +17,7 @@ export const LightColors = {
   yellowLight: "#FBD54C",
   orangeLight: "#FD8550",
   cyanLight: "#E9FDFE",
-  beigeLight: "#EBE0D9",
+  beigeLight: "#fff5ef",
   shadowDark: "#000000",
   skyBlue: "#00BFFF",
   brown: "#6b1515",

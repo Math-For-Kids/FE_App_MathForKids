@@ -112,7 +112,7 @@ export default function TestLevelScreen({ navigation, route }) {
     setCorrectCount(correct);
     setScore(calculatedScore);
 
-    // ✅ Cập nhật isAssess = true
+    // Cập nhật isAssess = true
     if (pupilId) {
       dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
     }
@@ -295,14 +295,14 @@ export default function TestLevelScreen({ navigation, route }) {
           />
         </TouchableOpacity>
         <Text style={styles.title}>Test Level</Text>
-        <View style={styles.timerContainer}>
+        {/* <View style={styles.timerContainer}>
           <Image
             source={theme.icons.time}
             style={styles.clockIcon}
             resizeMode="contain"
           />
           <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
-        </View>
+        </View> */}
       </LinearGradient>
 
       {/* Info + Progress */}

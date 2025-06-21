@@ -7,7 +7,7 @@ export const notificationsByPupilId = createAsyncThunk(
   async (pupilId, { rejectWithValue }) => {
     try {
       const res = await Api.get(
-        `/pupilnotification/getWithin30Days/${pupilId}`,
+        `/pupilnotification/getWithin30Days/${pupilId}`
         // {
         //   headers: {
         //     "Cache-Control": "no-cache",
@@ -33,13 +33,24 @@ export const notificationById = createAsyncThunk(
     }
   }
 );
-
+// Tao thông báo
+export const createPupilNotification = createAsyncThunk(
+  "pupilnotifications/create",
+  async (notificationData, { rejectWithValue }) => {
+    try {
+      const res = await Api.post("/pupilnotification", notificationData);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 // Cập nhật thông báo
 export const updatePupilNotification = createAsyncThunk(
   "pupilnotifications/update",
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const res = await Api.put(`/pupilnotification/${id}`, data);
+      const res = await Api.patch(`/pupilnotification/${id}`, data);
       return { id, ...data }; // Trả về để cập nhật state.list nếu cần
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -86,6 +97,20 @@ const notificationSlice = createSlice({
         state.current = action.payload;
       })
       .addCase(notificationById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Create
+      .addCase(createPupilNotification.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPupilNotification.fulfilled, (state, action) => {
+        state.loading = false;
+        // Optional: nếu API trả về notification object
+        state.list.unshift(action.payload);
+      })
+      .addCase(createPupilNotification.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

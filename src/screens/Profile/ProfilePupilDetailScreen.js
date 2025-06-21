@@ -59,17 +59,13 @@ export default function ProfilePupilScreen({ navigation }) {
 
   useEffect(() => {
     const dobSeconds = pupil?.dateOfBirth?.seconds;
-
-    const formattedDate =
-      dobSeconds && dobSeconds > 0
-        ? new Date(dobSeconds * 1000).toLocaleDateString("vi-VN")
-        : "";
-
+    const dobDate = dobSeconds ? new Date(dobSeconds * 1000) : null;
+    const formattedBirthday = dobDate ? dobDate.toISOString() : "";
     setEditedProfile({
       fullName: pupil.fullName || "none",
       nickName: pupil.nickName || "none",
       Grade: pupil.grade || "none",
-      dateOfBirth: formattedDate,
+      dateOfBirth: formattedBirthday,
       gender: pupil.gender || "none",
       grade: pupil.grade || "none",
     });
@@ -197,15 +193,14 @@ export default function ProfilePupilScreen({ navigation }) {
     },
     avatarContainer: {
       backgroundColor: theme.colors.cardBackground,
-      borderColor: theme.colors.grayMedium,
+      borderColor: theme.colors.white,
       borderWidth: 1,
       borderRadius: 50,
-      padding: 5,
       elevation: 3,
     },
     avatarImage: {
-      width: 60,
-      height: 60,
+      width: 80,
+      height: 80,
       borderRadius: 50,
     },
     fieldWrapper: {
@@ -376,7 +371,7 @@ export default function ProfilePupilScreen({ navigation }) {
     iconCamera: {
       position: "absolute",
       top: 50,
-      left: 130,
+      left: 120,
       elevation: 5,
     },
   });
@@ -419,7 +414,9 @@ export default function ProfilePupilScreen({ navigation }) {
             <Text style={styles.fieldLabel}>{field.label}</Text>
             <View style={styles.fieldBox}>
               <Text style={styles.fieldText}>
-                {editedProfile[field.fieldName]}
+                {field.type === "date"
+                  ? formatDateString(editedProfile[field.fieldName])
+                  : editedProfile[field.fieldName]}
               </Text>
             </View>
           </View>

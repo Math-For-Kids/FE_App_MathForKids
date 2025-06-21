@@ -1,3 +1,10 @@
+import {
+  setTheme,
+  setMode,
+  setLanguage,
+  setVolume,
+} from "../redux/settingsSlice";
+
 export const applySettings = ({
   theme,
   mode,
@@ -6,8 +13,9 @@ export const applySettings = ({
   switchThemeKey,
   toggleThemeMode,
   isDarkMode,
-  setVolume,
+  setVolume: setAppVolume,
   i18n,
+  dispatch,
 }) => {
   const themeKey =
     theme === 1
@@ -26,6 +34,14 @@ export const applySettings = ({
   }
 
   if (typeof volume === "number") {
-    setVolume(volume / 100);
+    setAppVolume(volume / 100);
+  }
+
+  //Đồng bộ Redux global settings
+  if (dispatch) {
+    if (theme) dispatch(setTheme(theme));
+    if (mode) dispatch(setMode(mode));
+    if (language) dispatch(setLanguage(language));
+    if (typeof volume === "number") dispatch(setVolume(volume));
   }
 };

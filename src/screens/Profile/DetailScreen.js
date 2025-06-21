@@ -155,9 +155,11 @@ export default function DetailScreen({ navigation }) {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 36,
+      fontSize: 28,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
+      width: "50%",
+      textAlign: "center",
     },
     scrollViewContainer: {
       alignItems: "center",
@@ -168,15 +170,14 @@ export default function DetailScreen({ navigation }) {
     },
     avatarContainer: {
       backgroundColor: theme.colors.cardBackground,
-      borderColor: theme.colors.grayMedium,
+      borderColor: theme.colors.white,
       borderWidth: 1,
       borderRadius: 50,
-      padding: 5,
       elevation: 3,
     },
     avatarImage: {
-      width: 60,
-      height: 60,
+      width: 80,
+      height: 80,
       borderRadius: 50,
     },
     fieldWrapper: {
@@ -347,7 +348,7 @@ export default function DetailScreen({ navigation }) {
     iconCamera: {
       position: "absolute",
       top: 50,
-      left: 130,
+      left: 120,
       elevation: 5,
     },
   });

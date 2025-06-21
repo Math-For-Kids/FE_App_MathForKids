@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile, profileById } from "../../redux/profileSlice";
+import { updatePhone, profileById } from "../../redux/profileSlice";
 import { sendOTPByPhone, verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
 export default function ChangePhoneScreen({ navigation }) {
@@ -32,20 +32,23 @@ export default function ChangePhoneScreen({ navigation }) {
   const validatePhone = (phone) => /^\d{10,11}$/.test(phone);
 
   const handleConfirmPin = async () => {
-    if (!/^\d{4}$/.test(pin)) {
+    const joinedPin = pin.join("");
+    if (!/^\d{4}$/.test(joinedPin)) {
       Alert.alert("Invalid PIN", "PIN must be exactly 4 digits.");
       return;
     }
     try {
-      await dispatch(verifyOnlyOTP({ userId: user.id, otpCode: pin })).unwrap();
       await dispatch(
-        updateProfile({ id: user.id, data: { phoneNumber: newPhone } })
+        verifyOnlyOTP({ userId: user.id, otpCode: joinedPin })
+      ).unwrap();
+      await dispatch(
+        updatePhone({ id: user.id, data: { newPhoneNumber: newPhone } })
       ).unwrap();
 
       dispatch(profileById(user.id));
       Alert.alert("Success", "Phone number updated successfully!");
+      setPin(["", "", "", ""]);
       setPinModalVisible(false);
-      setPin("");
       navigation.navigate("PrivacyScreen");
     } catch (error) {
       Alert.alert(
@@ -61,11 +64,17 @@ export default function ChangePhoneScreen({ navigation }) {
       return;
     }
 
+    if (newPhone === profile?.phoneNumber) {
+      Alert.alert(
+        "Phone Number Exists",
+        "Phone number must be different from the current one."
+      );
+      return;
+    }
     try {
       await dispatch(
-        sendOTPByPhone({ userId: user.id, phoneNumber: profile.phoneNumber })
+        sendOTPByPhone({ userId: user.id, phoneNumber: user.phoneNumber })
       ).unwrap();
-      Alert.alert("OTP Sent", "An OTP has been sent to your current phone.");
       setPinModalVisible(true);
     } catch (error) {
       Alert.alert("Error", "Failed to send OTP.");
@@ -95,9 +104,11 @@ export default function ChangePhoneScreen({ navigation }) {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 26,
+      fontSize: 28,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
+      width: "40%",
+      textAlign: "center",
     },
     formContainer: {
       paddingHorizontal: 20,
@@ -285,7 +296,7 @@ export default function ChangePhoneScreen({ navigation }) {
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => {
-                  setPin("");
+                  setPin(["", "", "", ""]);
                   setPinModalVisible(false);
                 }}
               >
