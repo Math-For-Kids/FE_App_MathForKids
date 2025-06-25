@@ -20,7 +20,7 @@ import * as Speech from "expo-speech";
 
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, grade } = route.params;
+  const { skillName, grade, pupilId } = route.params;
   const { t } = useTranslation("lesson");
   const { t: c } = useTranslation("common");
   const dispatch = useDispatch();
@@ -35,7 +35,7 @@ export default function LessonScreen({ navigation, route }) {
   } = useSelector((state) => state.lesson);
 
   useEffect(() => {
-    dispatch(getLessonsByGradeAndType({ grade, type: normalizedSkillName }));
+    dispatch(getLessonsByGradeAndType({ grade, type: normalizedSkillName, pupilId }));
   }, []);
 
   const filteredLessons = lessons.filter(
@@ -131,6 +131,18 @@ export default function LessonScreen({ navigation, route }) {
       fontFamily: Fonts.NUNITO_MEDIUM,
       textAlign: "center",
     },
+    lockOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 20,
+    },
+    lockText: {
+      color: theme.colors.white,
+      fontSize: 16,
+      marginTop: 5,
+      fontFamily: Fonts.NUNITO_BOLD,
+    },
   });
 
   if (lessonLoading) return <Text>Loading...</Text>;
@@ -162,16 +174,21 @@ export default function LessonScreen({ navigation, route }) {
             <TouchableOpacity
               key={item.id}
               onPress={() => {
+                if (item.isBlock) {
+                  alert(t("lockedLesson"));
+                  return;
+                }
                 navigation.navigate("LessonDetailScreen", {
                   skillName,
                   title,
                   lessonId: item.id,
                 });
               }}
+              activeOpacity={item.isBlock ? 1 : 0.7}
             >
               <LinearGradient
                 colors={getGradient()}
-                style={styles.lessonCard}
+                style={[styles.lessonCard, item.isBlock && { opacity: 0.5 }]}
                 start={{ x: 1, y: 0 }}
                 end={{ x: 0, y: 0 }}
               >
@@ -195,6 +212,16 @@ export default function LessonScreen({ navigation, route }) {
                   <View style={styles.lessonTextContainer}>
                     <Text style={styles.lessonText}>{title}</Text>
                   </View>
+
+                  {item.isBlock && (
+                    <View style={styles.lockOverlay}>
+                      <Ionicons
+                        name="lock-closed"
+                        size={40}
+                        color={theme.colors.white}
+                      />
+                    </View>
+                  )}
                 </View>
               </LinearGradient>
             </TouchableOpacity>

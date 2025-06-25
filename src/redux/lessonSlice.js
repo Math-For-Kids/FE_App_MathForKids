@@ -3,13 +3,13 @@ import Api from "../api/api";
 
 // Thunk: Lấy danh sách bài học theo khối và loại
 export const getLessonsByGradeAndType = createAsyncThunk(
-  "lesson/getByGradeAndType",
-  async ({ grade, type }, { rejectWithValue }) => {
+  "completedlesson/getAll",
+  async ({ grade, type, pupilId }, { rejectWithValue }) => {
     try {
-      const res = await Api.get("/lesson/getByGradeAndType", {
-        params: { grade, type },
+      const res = await Api.get("/completedlesson/getAll?pageSize=30", {
+        params: { grade, type, pupilId },
       });
-      return res.data;
+      return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }

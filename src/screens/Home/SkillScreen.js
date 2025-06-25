@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade } = route.params;
+  const { skillName, skillIcon, grade, pupilId } = route.params;
   const { t } = useTranslation("common");
 
   const actions = [
@@ -134,6 +134,7 @@ export default function SkillScreen({ navigation, route }) {
                   navigation.navigate("LessonScreen", {
                     skillName,
                     grade,
+                    pupilId,
                   });
                 } else if (action.label === "exercise") {
                   navigation.navigate("ExerciseScreen", {
