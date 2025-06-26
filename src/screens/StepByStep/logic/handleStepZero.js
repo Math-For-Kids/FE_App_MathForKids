@@ -49,11 +49,15 @@ export const handleStepZero = ({
       },
       {
         title: t("step3_title"),
-        description: t("step3_description"),
+        description: t("step3_description", {
+          n1Str,
+          n2Str,
+          operator,
+        }),
         result: "",
         subText: "",
-        number1: n1Str,
-        number2: n2Str,
+        n1Str,
+        n2Str,
       },
     ];
 

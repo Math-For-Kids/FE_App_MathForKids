@@ -1,359 +1,409 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import * as Speech from "expo-speech";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../../themes/ThemeContext";
 import { Fonts } from "../../../../constants/Fonts";
+function getVisibleCharsFromRight(paddedChars, revealCount) {
+  const visibleChars = [...paddedChars];
+  let revealed = 0;
+
+  for (let j = paddedChars.length - 1; j >= 0; j--) {
+    const char = paddedChars[j];
+    if (char.trim() === "") continue;
+
+    if (revealed < revealCount) {
+      revealed++;
+    } else {
+      visibleChars[j] = "?";
+    }
+  }
+
+  return visibleChars;
+}
 
 export const MultiplicationStepView = ({
+  subStepIndex,
   steps,
-  stepIndex,
-  skillName,
+  visibleDigitsMap = {},
+  visibleCarryMap = {},
   currentRowIndex,
-  setCurrentRowIndex,
   revealedDigits,
-  setRevealedDigits,
-  revealedResultDigits,
-  setRevealedResultDigits,
-  multiplier1,
-  multiplier2,
-  columnStepIndex,
-  setColumnStepIndex,
+  skillName,
 }) => {
   const { theme } = useTheme();
-  const positionLabels = steps[2]?.positionLabels || [];
-  const resultChars = steps[3].result.split("");
-  const len1 = multiplier1?.length || 1;
-  const len2 = multiplier2?.length || 1;
-  const maxLength = Math.max(len1, len2);
-  // Tính margin dựa vào số dài hơn
-  const dynamicMarginRight = Math.min(150, 20 + maxLength * 40);
-  const getPlaceColor = (indexFromRight) => {
-    switch (indexFromRight) {
-      case 0:
-        return theme.colors.red;
-      case 1:
-        return theme.colors.orangeLight;
-      case 2:
-        return theme.colors.greenDark;
-      case 3:
-        return theme.colors.blueDark;
-      case 4:
-        return theme.colors.yellowLight;
-      default:
-        return theme.colors.black;
-    }
-  };
+  const { i18n } = useTranslation("stepbystep");
+  const subSteps = steps?.[2]?.subSteps || [];
+  const subStepsMeta = steps?.[2]?.subStepsMeta || [];
+  const explanation = subSteps[subStepIndex] || "";
+  const meta = subStepsMeta[subStepIndex] || {};
+  const digits = steps?.[2]?.digits || [];
+  const multiplierDigits = steps?.[2]?.multiplierDigits || [];
+  const partials = steps?.[2]?.partials || [];
+  const carryRows = steps?.[2]?.carryRows || [];
+  const result = steps?.[3]?.result || "";
 
-  if (!(stepIndex === 2 && steps[2]?.partials)) return null;
-
-  const maxRowLength = Math.max(
-    ...steps[2].partials.map((p) => p.length),
-    steps[2].carryRows.map((r) => r.length).reduce((a, b) => Math.max(a, b), 0),
-    steps[2].digits.length + 1,
-    steps[2].multiplierDigits.length + 1
+  const maxLen = Math.max(
+    digits.length,
+    multiplierDigits.length + 1,
+    ...partials.map((p) => p.length),
+    result.length
   );
+  const padLeft = (arr, length) => {
+    const pad = Array(length - arr.length).fill(" ");
+    return pad.concat(arr);
+  };
+  const getHighlightValueIndexes = () => {
+    const indexes = {
+      digits: [],
+      multiplier: [],
+      result: [],
+      column: [],
+    };
 
-  const allRowLengths = [
-    ...(steps[2]?.partials?.map((p) => p.length) ?? []),
-    ...(steps[2]?.carryRows?.map((r) => r.length) ?? []),
-    steps[2]?.digits?.length ?? 0,
-    steps[2]?.multiplierDigits?.length ?? 0,
-    steps[3]?.result?.length ?? 0,
-  ];
+    if (typeof meta.d1 === "number") {
+      const digitIndexFromRight = meta.colIndex ?? 0;
+      const digitHighlightIdx = maxLen - 1 - digitIndexFromRight;
+      indexes.digits.push(digitHighlightIdx);
+    }
 
-  const maxLen = Math.max(...allRowLengths);
-  const digits = steps[2].digits;
-  const multiplierDigits = steps[2].multiplierDigits;
-  const carryRows = steps[2].carryRows;
-  const padResult = Math.max(maxLen - resultChars.length, 0);
-  // console.log("maxLen", maxLen);
-  // console.log("resultLen", steps[3].result.length);
-  // console.log("padResult", padResult);
-  // console.log("maxRowLength", maxRowLength);
-  const getSkillColor = () => {
+    if (typeof meta.d2 === "number") {
+      const multiplierIndexFromRight = meta.rowIndex ?? 0;
+      const multiplierHighlightIdx = maxLen - 1 - multiplierIndexFromRight;
+      indexes.multiplier.push(multiplierHighlightIdx);
+    }
+
+    const originalPartialStr = partials[meta.rowIndex] || "";
+
+    const displayStr =
+      meta.type === "carry_add" && typeof meta.product === "number"
+        ? String(meta.product).padStart(originalPartialStr.length, "0")
+        : originalPartialStr;
+
+    const paddedPartial = padLeft(displayStr.split(""), maxLen);
+    const partialLen = displayStr.length;
+
+    if (typeof meta.product === "number") {
+      if (meta.type === "detail" || meta.type === "detail_final_digit") {
+        const idxFromRight = (meta.colIndex ?? 0) + (meta.rowIndex ?? 0);
+        const idx = maxLen - partialLen + (partialLen - 1 - idxFromRight);
+        if (idx >= 0 && idx < maxLen) {
+          indexes.result.push(idx);
+        }
+      }
+
+      if (meta.type === "reveal_digits") {
+        const digitsToReveal =
+          meta.digitsToReveal || String(meta.product).length;
+        for (let i = 0; i < digitsToReveal; i++) {
+          const idxFromRight = (meta.colIndex ?? 0) + (meta.rowIndex ?? 0) + i;
+          const idx = maxLen - partialLen + (partialLen - 1 - idxFromRight);
+          if (idx >= 0 && idx < maxLen) {
+            indexes.result.push(idx);
+          }
+        }
+      }
+    }
+
+    if (meta.type === "zero_rule" || meta.type === "shift") {
+      const lastZeroIndex = paddedPartial.lastIndexOf("0");
+      if (lastZeroIndex !== -1) {
+        indexes.result.push(lastZeroIndex);
+      }
+    }
+    // Highlight cho bước cộng dọc
+    if (meta.type === "vertical_add" && typeof meta.column === "number") {
+      const colFromRight = meta.column; // ví dụ: 2 → cột trăm
+      const colIdx = maxLen - 1 - colFromRight;
+      // Partial rows
+      partials.forEach((partial, i) => {
+        const padded = padLeft(partial.split(""), maxLen);
+        if (padded[colIdx] !== " ") {
+          indexes.result.push(colIdx);
+        }
+      });
+      // Carry rows
+      carryRows.forEach((carryRow, i) => {
+        const padded = padLeft(carryRow, maxLen);
+        if (padded[colIdx] !== " ") {
+          indexes.result.push(colIdx);
+        }
+      });
+      // Final result
+      const paddedResult = padLeft(result.split(""), maxLen);
+      if (paddedResult[colIdx] !== " ") {
+        indexes.result.push(colIdx);
+      }
+      indexes.columnHighlights = [colIdx];
+    }
+
+    return indexes;
+  };
+  useEffect(() => {
+    const explanation = subSteps[subStepIndex];
+    if (!explanation) {
+      // console.log(" Không có explanation để đọc");
+      return;
+    }
+    Speech.stop();
+    Speech.speak(explanation, {
+      language: i18n.language === "vi" ? "vi-VN" : "en-US",
+      pitch: 1,
+      rate: 0.9,
+    });
+  }, [subStepIndex, i18n.language]);
+  const {
+    digits: digitHighlights,
+    multiplier: multiplierHighlights,
+    result: resultHighlights,
+    columnHighlights,
+  } = getHighlightValueIndexes();
+
+  // console.log("[DEBUG] highlightValueIndexes:", {
+  //   digitHighlights,
+  //   multiplierHighlights,
+  //   resultHighlights,
+  //   columnHighlights,
+  // });
+
+  const renderRow = (
+    label,
+    arr,
+    highlightIdx = [],
+    type = "normal",
+    colHighlights = []
+  ) => (
+    <View style={styles.rowContainer}>
+      <Text style={styles.label}>{label}</Text>
+      {arr.map((char, i) => {
+        const isCellHighlighted =
+          (highlightIdx.includes(i) || colHighlights.includes(i)) &&
+          char !== " ";
+        return (
+          <Text
+            key={i}
+            style={[
+              styles.cell,
+              isCellHighlighted && styles.highlight, //dùng cho cả row và col
+              type === "carry" && styles.carryText,
+              type === "result" && styles.resultText,
+              type === "multiplier" &&
+                highlightIdx.includes(i) &&
+                styles.highlightOrange,
+            ]}
+          >
+            {char}
+          </Text>
+        );
+      })}
+    </View>
+  );
+  const getBorderBox = () => {
     if (skillName === "Addition") return theme.colors.GreenDark;
     if (skillName === "Subtraction") return theme.colors.purpleDark;
     if (skillName === "Multiplication") return theme.colors.orangeDark;
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
   };
-
-  const getPartialRowColor = () => {
-    if (skillName === "Addition") return theme.colors.greenLight;
-    if (skillName === "Subtraction") return theme.colors.purpleLight;
-    if (skillName === "Multiplication") return theme.colors.orangeLight;
-    if (skillName === "Division") return theme.colors.redLight;
-    return theme.colors.pinkLight;
-  };
-
-  const renderRow = (
-    values,
-    pad,
-    onPressRow = null,
-    offsetLeft = 0,
-    style = styles.defaultText
-  ) => {
-    const rowContent = (
-      <View style={[styles.rowContainer, { left: offsetLeft }]}>
-        {Array.from({ length: pad }).map((_, i) => (
-          <Text key={`pad-${i}`} style={styles.charWidth} />
-        ))}
-        {values.map((val, i) => {
-          const indexFromRight = values.length - 1 - i;
-          const digitColor = getPlaceColor(indexFromRight);
-          return (
-            <Text
-              key={`val-${i}`}
-              style={[styles.textBase, style, { color: digitColor }]}
-            >
-              {val}
-            </Text>
-          );
-        })}
-      </View>
-    );
-    return onPressRow ? (
-      <TouchableOpacity onPress={onPressRow}>{rowContent}</TouchableOpacity>
-    ) : (
-      rowContent
-    );
-  };
-
   const styles = StyleSheet.create({
     container: {
-      alignItems: "center",
-      marginTop: 10,
+      flex: 1,
+      padding: 16,
+      backgroundColor: theme.colors.cardBackground,
+    },
+    explanationBox: {
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      maxHeight: 140,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
+    },
+    explanationText: {
+      fontSize: 17,
+      lineHeight: 24,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: getBorderBox(),
+    },
+    rowsBox: {
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
     },
     rowContainer: {
       flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginVertical: 3,
     },
-    charWidth: {
-      width: 50,
-    },
-    textBase: {
-      width: 50,
+    label: {
+      width: 24,
+      fontFamily: Fonts.NUNITO_BOLD,
+      fontSize: 18,
       textAlign: "center",
-      fontFamily: Fonts.NUNITO_BLACK,
+      color: theme.colors.grayDark,
     },
-    digitsRow: {
-      width: 50,
+    cell: {
+      width: 28,
       textAlign: "center",
-      fontSize: 22,
-      color: theme.colors.black,
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
-    carryRow: {
-      fontSize: 12,
-      color: theme.colors.blueGray,
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
-    partialRow: {
-      fontSize: 22,
-      color: getPartialRowColor(),
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
-    resultRow: {
-      fontSize: 22,
-      color: getSkillColor(),
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
-    multiplySign: {
       fontSize: 20,
-      textAlign: "left",
-      marginRight: dynamicMarginRight,
-      width: 50,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.black,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: theme.colors.grayDark,
     },
-    multiplierDigit: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 22,
-      color: theme.colors.black,
-      fontFamily: Fonts.NUNITO_BLACK,
+    carryText: {
+      fontSize: 14,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: theme.colors.grayDark,
     },
-    divider: {
+    resultText: {
+      fontFamily: Fonts.NUNITO_BOLD,
+    },
+    highlight: {
+      backgroundColor: getBorderBox(),
+      borderRadius: 6,
+      color: theme.colors.white,
+    },
+    highlightOrange: {
+      backgroundColor: getBorderBox(),
+      borderRadius: 6,
+      color: theme.colors.white,
+    },
+    colHighlight: {
+      backgroundColor: getBorderBox(),
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
+      color: theme.colors.white,
+    },
+    divider: (maxLen) => ({
+      alignSelf: "center",
+      width: maxLen * 30,
       height: 2,
       backgroundColor: theme.colors.grayDark,
-      marginVertical: 4,
-    },
-    defaultText: {
-      fontSize: 22,
-      color: getSkillColor(),
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
-    navButtonText: {
-      fontSize: 16,
-      color: theme.colors.blueDark,
-      marginTop: 12,
-    },
-    positionLabel: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 12,
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
+      marginVertical: 6,
+    }),
   });
-
   return (
     <View style={styles.container}>
-      {/* Hàng label vị trí chữ số (hiển thị phía trên) */}
-      <View style={styles.rowContainer}>
-        {Array.from({ length: maxLen - steps[3].result.length }).map((_, i) => (
-          <Text key={`pad-label-${i}`} style={styles.charWidth} />
-        ))}
-        {steps[3].result.split("").map((_, i) => {
-          const labelIndex = positionLabels.length - steps[3].result.length + i;
-          const label =
-            positionLabels[labelIndex] ||
-            `10^${steps[3].result.length - 1 - i}`;
-          const labelColor = getPlaceColor(steps[3].result.length - 1 - i);
-          return (
-            <Text
-              key={`label-${i}`}
-              style={[styles.positionLabel, { color: labelColor }]}
-            >
-              {label}
-            </Text>
-          );
-        })}
-      </View>
+      <ScrollView style={styles.explanationBox}>
+        <Text style={styles.explanationText}>{explanation}</Text>
+      </ScrollView>
 
-      {/* Dòng 1: Số bị nhân */}
-      <View style={styles.rowContainer}>
-        {Array.from({ length: maxLen - digits.length }).map((_, i) => (
-          <Text key={`pad-digit-${i}`} style={styles.charWidth} />
-        ))}
-        {digits.map((d, i) => (
-          <Text key={`digit-${i}`} style={styles.digitsRow}>
-            {d}
-          </Text>
-        ))}
-      </View>
-
-      {/* Dòng 2: dấu × */}
-      <View style={{ width: maxLen * 50 }}>
-        <Text style={styles.multiplySign}>×</Text>
-      </View>
-
-      {/* Dòng 3: Số nhân */}
-      <View style={styles.rowContainer}>
-        {Array.from({ length: maxLen - multiplierDigits.length }).map(
-          (_, i) => (
-            <Text key={`pad-mul-${i}`} style={styles.charWidth} />
-          )
+      <View style={styles.rowsBox}>
+        {renderRow(
+          " ",
+          padLeft(digits, maxLen),
+          digitHighlights,
+          "normal",
+          " "
         )}
-        {multiplierDigits.map((d, i) => (
-          <Text key={`mul-${i}`} style={styles.multiplierDigit}>
-            {d}
-          </Text>
-        ))}
-      </View>
+        {renderRow(
+          "×",
+          padLeft([" ", ...multiplierDigits], maxLen),
+          multiplierHighlights,
+          "multiplier",
+          " "
+        )}
+        <View style={styles.divider(maxLen)} />
 
-      <View style={[styles.divider, { width: maxLen * 50 }]} />
-
-      {/* Các dòng nhân và số nhớ */}
-      {steps[2].partials.map((partial, i) => {
-        {
-          /* if (steps[2].partials.length === 1) return null; */
-        }
-        const fullChars = partial.split("");
-        const subSteps = steps[2]?.subText || [];
-        const shiftLeft = 1;
-        const padPartial = Math.max(
-          0,
-          maxLen -
-            fullChars.length -
-            (steps[2].partials.length - 1 - i) -
-            shiftLeft
-        );
-
-        const offsetCarryLeft =
-          (maxLen - carryRows[i].length - 1 - shiftLeft) * 50;
-
-        {
-          /* console.log("Dòng:", i);
-        console.log("fullChars", fullChars);
-        console.log("padPartial", padPartial);
-        console.log("carryRowLen", carryRows[i].length);
-        console.log("offsetCarryLeft", offsetCarryLeft); */
-        }
-
-        const partialChars =
-          i < currentRowIndex
-            ? fullChars
-            : i === currentRowIndex
-            ? fullChars.map((char, idx) =>
-                idx >= fullChars.length - revealedDigits ? char : "?"
-              )
-            : fullChars.map(() => "?");
-
-        const carryRow = carryRows[i].map((val, idx) => {
-          const digitIndexFromRight = carryRows[i].length - 1 - idx;
-          const isVisible =
-            i < currentRowIndex ||
-            (i === currentRowIndex && digitIndexFromRight < revealedDigits);
-          return val !== " " && Number(val) > 0 && isVisible ? val : " ";
-        });
-
-        return (
-          <View key={`line-${i}`}>
-            {/* HÀNG CARRY */}
-            <View
-              style={{
-                width: maxLen * 50,
-                alignItems: "flex-end",
-                marginLeft: -50 * shiftLeft,
-              }}
-            >
-              {renderRow(carryRow, padPartial, null, 0, styles.carryRow)}
-            </View>
-
-            {/* HÀNG PARTIAL */}
-            <View style={{ width: maxLen * 50, alignItems: "flex-end" }}>
-              {renderRow(
-                partialChars,
-                padPartial,
-                () => {
-                  const stepToRead = subSteps[i];
-                  if (stepToRead) {
-                    Speech.speak(stepToRead, {
-                      language: "en-US",
-                      pitch: 1.2,
-                      rate: 0.8,
-                    });
-                  }
-                },
-                0,
-                styles.partialRow
+        {partials.map((partial, i) => (
+          <React.Fragment key={i}>
+            {carryRows[i] &&
+              renderRow(
+                " ",
+                (() => {
+                  const rawCarryRow = carryRows[i] ?? [];
+                  //Chuẩn hóa carryArray rồi pad trái ===
+                  const carryArray =
+                    typeof rawCarryRow === "string"
+                      ? rawCarryRow.split("")
+                      : [...rawCarryRow];
+                  // Đảm bảo độ dài chuẩn rồi thêm " " vào cuối cho dời trái
+                  const padSize = maxLen - carryArray.length;
+                  const paddedLeft = [
+                    ...Array(padSize).fill(" "),
+                    ...carryArray,
+                  ];
+                  const padded = [...paddedLeft.slice(1), " "]; // shift left 1 ô
+                  const revealCount = visibleCarryMap[`carry_${i}`] ?? 0;
+                  // Dùng lại function
+                  const visibleChars = getVisibleCharsFromRight(
+                    padded,
+                    revealCount
+                  );
+                  return visibleChars;
+                })(),
+                [],
+                "carry"
               )}
-            </View>
 
-            {/* DẤU + */}
-            {i < steps[2].partials.length - 1 && (
-              <View style={{ width: maxLen * 50 }}>
-                <Text style={styles.multiplySign}>+</Text>
-              </View>
-            )}
-          </View>
-        );
-      })}
+            {(() => {
+              const rawChars = partial.split("");
+              const padded = padLeft(rawChars, maxLen); // đảm bảo length = maxLen
+              const visibleChars = padded.map((char, idx) => {
+                const isZeroRuleStep =
+                  meta.type === "zero_rule" || meta.type === "shift";
+                const isVisible =
+                  i < currentRowIndex ||
+                  (i === currentRowIndex && idx >= maxLen - revealedDigits) ||
+                  (typeof visibleDigitsMap[`row_${i}`] === "number" &&
+                    idx >= maxLen - visibleDigitsMap[`row_${i}`]) ||
+                  (isZeroRuleStep &&
+                    typeof meta.rowIndex === "number" &&
+                    i === meta.rowIndex &&
+                    resultHighlights.includes(idx));
 
-      {/* Dòng tổng kết quả */}
-      {steps[2].partials.length > 1 ? (
-        <>
-          <View style={[styles.divider, { width: maxLen * 50 }]} />
-          {renderRow(
-            resultChars.map((char, idx) =>
-              idx >= resultChars.length - revealedResultDigits ? char : "?"
-            ),
-            padResult,
-            null,
-            0,
-            styles.resultRow
-          )}
-        </>
-      ) : null}
+                const displayChar = isVisible
+                  ? char
+                  : char.trim() === ""
+                  ? " "
+                  : "?";
+                return displayChar;
+              });
+              return renderRow(
+                i === 0 ? " " : "+",
+                visibleChars,
+                i === meta.rowIndex ? resultHighlights : [],
+                "normal",
+                columnHighlights
+              );
+            })()}
+          </React.Fragment>
+        ))}
+        {partials.length >= 2 && (
+          <>
+            <View style={styles.divider(maxLen)} />
+
+            {(() => {
+              const paddedResult = padLeft(result.split(""), maxLen);
+              const revealCount = visibleDigitsMap["result"] ?? 0;
+              const startRevealIdx = maxLen - revealCount;
+              const visibleChars = paddedResult.map((char, idx) => {
+                const isVisible = idx >= startRevealIdx && char !== " ";
+                return isVisible ? char : "?";
+              });
+
+              return renderRow(
+                " ",
+                visibleChars,
+                [], // Nếu muốn highlight, truyền resultHighlights
+                "result",
+                columnHighlights
+              );
+            })()}
+          </>
+        )}
+      </View>
     </View>
   );
 };

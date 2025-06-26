@@ -58,11 +58,20 @@ export default function LoginScreen({ navigation }) {
         isLogin: true,
       });
     } catch (err) {
-      console.error("Login Error:", err);
-      Alert.alert(
-        t("loginFailedTitle"),
-        typeof err?.message === "string" ? err.message : t("errorSendOtp")
-      );
+      let msg = t("errorSendOtp");
+
+      if (err && typeof err === "object") {
+        if (err.vi || err.en) {
+          msg = err.vi || err.en || msg;
+        } else if (typeof err.message === "object") {
+          msg = err.message.vi || err.message.en || msg;
+        } else if (typeof err.message === "string") {
+          msg = err.message;
+        }
+      } else if (typeof err === "string") {
+        msg = err;
+      }
+      Alert.alert(t("loginFailedTitle"), msg);
     }
   };
 

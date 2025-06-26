@@ -37,7 +37,7 @@ export default function AccountScreen({ navigation }) {
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
 
   const user = useSelector((state) => state.auth.user);
-  console.log("user", user);
+  // console.log("user", user);
   // const pupils = useSelector((state) => state.pupil.pupils || []);
   const pupils = useSelector((state) => state.pupil.pupils);
 
@@ -45,7 +45,7 @@ export default function AccountScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(userId)
   );
-  console.log("filteredPupils", filteredPupils);
+  // console.log("filteredPupils", filteredPupils);
   useEffect(() => {
     if (isFocused && userId) {
       dispatch(getAllPupils())
@@ -203,7 +203,7 @@ export default function AccountScreen({ navigation }) {
       flexWrap: "wrap",
       justifyContent: "space-around",
       paddingHorizontal: 10,
-      paddingBottom: 80,
+      paddingBottom: 60,
     },
     userCard: {
       width: "45%",
@@ -228,8 +228,8 @@ export default function AccountScreen({ navigation }) {
       elevation: 3,
     },
     avatar: {
-      width: 80,
-      height: 80,
+      width: 60,
+      height: 60,
       resizeMode: "cover",
       borderRadius: 50,
     },

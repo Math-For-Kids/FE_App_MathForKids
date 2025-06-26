@@ -14,6 +14,7 @@ import LessonDetailReducer from "./lessonDetailSlice";
 import settingsReducer from "./settingsSlice";
 import goalReducer from "./goalSlice";
 import rewardReducer from "./rewardSlice";
+import ownedRewardReducer from "./owned_rewardSlice";
 const rootReducer = combineReducers({
   auth: authReducer,
   pupil: pupilReducer,
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   settings: settingsReducer,
   goal: goalReducer,
   reward: rewardReducer,
+  owned_reward: ownedRewardReducer,
   // thêm các reducer khác nếu cần
 });
 

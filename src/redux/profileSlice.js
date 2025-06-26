@@ -28,30 +28,38 @@ export const updateProfile = createAsyncThunk(
     }
   }
 );
-// Cập nhật email
-export const updateEmail = createAsyncThunk(
-  "profile/updatemail",
-  async ({ id, data }, { rejectWithValue }) => {
+//Gửi OTP khi cập nhật số điện thoại
+export const sendOtpToUpdatePhone = createAsyncThunk(
+  "profile/sendOtpToUpdatePhone",
+  async ({ id, phoneNumber, newPhoneNumber }, { rejectWithValue }) => {
     try {
-      const res = await Api.patch(`/user/updateEmail/${id}`, data);
-      return res.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || err.message);
-    }
-  }
-); 
-// Cập nhật phone
-export const updatePhone = createAsyncThunk(
-  "profile/updatephone",
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const res = await Api.patch(`/user/updatePhone/${id}`, data);
+      const res = await Api.post(
+        `/auth/sendOtpToUpdatePhone/${id}/${phoneNumber}`,
+        {
+          newPhoneNumber,
+        }
+      );
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
+//Gửi OTP khi cập nhật email
+export const sendOtpToUpdateEmail = createAsyncThunk(
+  "profile/sendOtpToUpdateEmail",
+  async ({ id, email, newEmail }, { rejectWithValue }) => {
+    try {
+      const res = await Api.post(`/auth/sendOtpToUpdateEmail/${id}/${email}`, {
+        newEmail,
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 // Cập nhật pin
 export const updatePin = createAsyncThunk(
   "profile/updatepin",
@@ -202,38 +210,18 @@ const profileSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Cập nhật Email
-      .addCase(updateEmail.pending, (state) => {
+      // Gửi OTP cập nhật email
+      .addCase(sendOtpToUpdateEmail.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateEmail.fulfilled, (state, action) => {
+      .addCase(sendOtpToUpdateEmail.fulfilled, (state) => {
         state.loading = false;
-        if (state.info && action.payload.email) {
-          state.info.email = action.payload.email;
-        }
       })
-      .addCase(updateEmail.rejected, (state, action) => {
+      .addCase(sendOtpToUpdateEmail.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      // Cập nhật Phone
-      .addCase(updatePhone.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updatePhone.fulfilled, (state, action) => {
-        state.loading = false;
-        if (state.info && action.payload.phone) {
-          state.info.phone = action.payload.phone;
-        }
-      })
-      .addCase(updatePhone.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
       // Cập nhật Pin
       .addCase(updatePin.pending, (state) => {
         state.loading = true;

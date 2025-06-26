@@ -13,10 +13,27 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
-import { updateEmail, profileById } from "../../redux/profileSlice";
-import { sendOTPByEmail } from "../../redux/authSlice";
+import {
+  updateProfile,
+  profileById,
+  sendOtpToUpdateEmail,
+} from "../../redux/profileSlice";
 import { verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
+
+// Helper để xử lý lỗi
+const parseErrorMessage = (error, t, fallbackKey = "unknownError") => {
+  if (typeof error === "object") {
+    if (error.vi || error.en) return error;
+    if (error.message && (error.message.vi || error.message.en))
+      return error.message;
+  }
+  if (typeof error === "string") {
+    return { vi: error, en: error };
+  }
+  return { vi: t(fallbackKey), en: t(fallbackKey) };
+};
+
 export default function ChangeEmailScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useTranslation("profile");
@@ -29,17 +46,17 @@ export default function ChangeEmailScreen({ navigation }) {
   const [pinModalVisible, setPinModalVisible] = useState(false);
 
   const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
   useEffect(() => {
     if (user?.id) {
-      dispatch(profileById(user.id));
+      dispatch(profileById(user?.id));
     }
   }, [user?.id, dispatch]);
 
   const handleConfirmPin = async () => {
     const joinedPin = pin.join("");
-
     if (!/^\d{4}$/.test(joinedPin)) {
-      Alert.alert("Invalid PIN", "PIN must be exactly 4 digits.");
+      Alert.alert(t("invalidPinTitle"), t("invalidPinMessage"));
       return;
     }
 
@@ -47,49 +64,45 @@ export default function ChangeEmailScreen({ navigation }) {
       await dispatch(
         verifyOnlyOTP({ userId: user?.id, otpCode: joinedPin })
       ).unwrap();
-
       await dispatch(
-        updateEmail({ id: user?.id, data: { newEmail: newEmail } }) // chỉ cập nhật khi OTP đúng
+        updateProfile({ id: user?.id, data: { email: newEmail } })
       ).unwrap();
-
       await dispatch(profileById(user?.id)).unwrap();
-      Alert.alert("Success", "Email updated successfully!");
+
+      Alert.alert(t("successTitle"), t("emailUpdateSuccess"));
       setPinModalVisible(false);
       setPin(["", "", "", ""]);
       navigation.navigate("PrivacyScreen");
     } catch (error) {
-      Alert.alert(
-        "Error",
-        typeof error === "string"
-          ? error
-          : "OTP verification failed or update failed."
-      );
+      const { vi } = parseErrorMessage(error, t, "otpOrUpdateFailed");
+      Alert.alert(t("errorTitle"), vi);
     }
   };
 
   const handleOpenPinModal = async () => {
     if (!validateEmail(newEmail)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      Alert.alert(t("invalidEmailTitle"), t("invalidEmailMessage"));
       return;
     }
 
     if (newEmail.trim().toLowerCase() === profile.email?.trim().toLowerCase()) {
-      Alert.alert("Email trùng", "Email mới phải khác email hiện tại.");
+      Alert.alert(t("emailDuplicateTitle"), t("emailDuplicateMessage"));
       return;
     }
 
     try {
-      // chỉ kiểm tra email trùng phía server — KHÔNG update
       await dispatch(
-        sendOTPByEmail({ email: profile.email }) // gửi đến email hiện tại
+        sendOtpToUpdateEmail({ id: user?.id, email: user?.email, newEmail })
       ).unwrap();
       setPinModalVisible(true);
     } catch (error) {
-      const msg =
-        typeof error === "string"
-          ? error
-          : error?.message || "Failed to send OTP.";
-      Alert.alert("Lỗi gửi mã", msg);
+      const { vi, en } = parseErrorMessage(error, t, "sendOtpFailed");
+
+      if (vi.includes("đã được sử dụng") || en.includes("already used")) {
+        Alert.alert(t("emailAlreadyExists"), vi);
+      } else {
+        Alert.alert(t("sendOtpFailedTitle"), vi);
+      }
     }
   };
 
@@ -228,6 +241,7 @@ export default function ChangeEmailScreen({ navigation }) {
       color: theme.colors.white,
     },
   });
+
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <LinearGradient
@@ -260,14 +274,13 @@ export default function ChangeEmailScreen({ navigation }) {
           <Text style={styles.descriptionText}>
             {t("changeEmailInstruction")}
           </Text>
-
           <Text style={styles.label}>{t("newEmail")}</Text>
           <TextInput
             style={styles.input}
             value={newEmail}
             onChangeText={setNewEmail}
             keyboardType="email-address"
-            placeholder="e.g. yourname@example.com"
+            placeholder={t("emailPlaceholder")}
             placeholderTextColor={theme.colors.grayMedium}
             color={theme.colors.blueDark}
           />
@@ -278,7 +291,6 @@ export default function ChangeEmailScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.pinModalContainer}>
             <Text style={styles.modalTitle}>{t("enterPin")}</Text>
-
             <View style={styles.pinRow}>
               {pin.map((digit, index) => (
                 <TextInput
@@ -289,13 +301,8 @@ export default function ChangeEmailScreen({ navigation }) {
                     const newPin = [...pin];
                     newPin[index] = val;
                     setPin(newPin);
-
-                    if (val && index < 3) {
-                      pinRefs[index + 1].current.focus();
-                    }
-                    if (!val && index > 0) {
-                      pinRefs[index - 1].current.focus();
-                    }
+                    if (val && index < 3) pinRefs[index + 1].current.focus();
+                    if (!val && index > 0) pinRefs[index - 1].current.focus();
                   }}
                   keyboardType="number-pad"
                   maxLength={1}
@@ -303,7 +310,6 @@ export default function ChangeEmailScreen({ navigation }) {
                 />
               ))}
             </View>
-
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
                 style={styles.cancelButton}
