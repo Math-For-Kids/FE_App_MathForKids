@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import * as Speech from "expo-speech";
 import { useTheme } from "../../../themes/ThemeContext";
 import { Fonts } from "../../../../constants/Fonts";
-
+import { useTranslation } from "react-i18next";
 export const SubtractionStepView = ({
   steps,
   placeLabels,
@@ -14,15 +14,8 @@ export const SubtractionStepView = ({
   t,
 }) => {
   const { theme } = useTheme();
+  const { i18n } = useTranslation("stepbystep");
   if (!steps[2]?.resultDigits) return null;
-
-  const speakLine = (i) => {
-    const lines = steps[2].subText.split("\n");
-    const toSpeak = lines[steps[2].resultDigits.length - 1 - i];
-    if (toSpeak) {
-      Speech.speak(toSpeak, { language: "en-US" });
-    }
-  };
 
   const reversedLabels = [...placeLabels]
     .slice(0, steps[2].resultDigits.length)
@@ -35,22 +28,47 @@ export const SubtractionStepView = ({
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
   };
-  const getPlaceColor = (indexFromRight) => {
-    switch (indexFromRight) {
-      case 0:
-        return theme.colors.red;
-      case 1:
-        return theme.colors.orangeLight;
-      case 2:
-        return theme.colors.greenDark;
-      case 3:
-        return theme.colors.blueDark;
-      case 4:
-        return theme.colors.yellowLight;
-      default:
-        return theme.colors.black;
-    }
+
+  const getActiveColor = (indexFromRight) => {
+    const activeColumnIndex = steps[2].subStepsMeta?.[subStepIndex] ?? -2; // mỗi 2 bước là 1 cột
+    // console.log(
+    //   "indexFromRight:",
+    //   indexFromRight,
+    //   "| active:",
+    //   revealedResultDigits - 1
+    // );
+    return indexFromRight === activeColumnIndex
+      ? getSkillColor()
+      : theme.colors.grayDark;
   };
+
+  useEffect(() => {
+    const currentText = steps[2].subSteps?.[subStepIndex];
+    if (currentText) {
+      const lang = i18n.language; // "vi" or "en"
+      let toSpeakClean = currentText;
+
+      if (lang === "vi") {
+        toSpeakClean = toSpeakClean
+          .replace(/ - /g, " trừ ")
+          .replace(/ \+ /g, " cộng ")
+          .replace(/ × /g, " nhân ")
+          .replace(/ ÷ /g, " chia ")
+          .replace(/ = /g, " bằng ");
+      } else if (lang === "en") {
+        toSpeakClean = toSpeakClean
+          .replace(/ - /g, " minus ")
+          .replace(/ \+ /g, " plus ")
+          .replace(/ × /g, " times ")
+          .replace(/ ÷ /g, " divided by ")
+          .replace(/ = /g, " equals ");
+      }
+
+      Speech.speak(toSpeakClean, {
+        language: lang === "vi" ? "vi-VN" : "en-US",
+      });
+    }
+  }, [subStepIndex]);
 
   const styles = StyleSheet.create({
     container: {
@@ -65,88 +83,126 @@ export const SubtractionStepView = ({
       width: 55,
       textAlign: "center",
       fontSize: 10,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.grayDark,
     },
     paybackText: {
       width: 55,
       textAlign: "center",
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.grayDark,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     minuendText: {
       width: 55,
       textAlign: "center",
       fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.black,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     subtrahendText: {
       width: 55,
       textAlign: "center",
       fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.black,
-    },
-    lineRow: {
-      marginTop: 2,
-    },
-    lineText: {
-      width: 55,
-      textAlign: "center",
-      fontSize: 20,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.grayDark,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     resultText: {
       width: 55,
       textAlign: "center",
       fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: getSkillColor(),
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     operatorSymbol: {
       fontSize: 24,
       textAlign: "left",
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
     },
   });
+
   return (
     <View style={styles.container}>
-      {/* Hàng nhãn đơn vị */}
+      {/* Giải thích bước hiện tại */}
+      {steps[2].subSteps?.[subStepIndex] && (
+        <View style={{ marginVertical: 8, paddingHorizontal: 12 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontFamily: Fonts.NUNITO_MEDIUM,
+              color: getSkillColor(),
+              textAlign: "center",
+            }}
+          >
+            {steps[2].subSteps[subStepIndex]}
+          </Text>
+        </View>
+      )}
+
+      {/* Hàng nhãn vị trí */}
       <View style={styles.row}>
         {steps[2].resultDigits.map((_, i) => {
           const indexFromRight = steps[2].resultDigits.length - 1 - i;
           return (
-            <Text
-              key={`label-sub-${i}`}
-              style={[
-                styles.labelText,
-                { color: getPlaceColor(indexFromRight) },
-              ]}
-            >
+            <Text key={`label-sub-${i}`} style={styles.labelText}>
               {reversedLabels[i] || `10^${i}`}
             </Text>
           );
         })}
       </View>
 
-      {/* Dòng hoàn trả */}
+      {/* Dòng số bị trừ (minuend) */}
+      <View style={styles.row}>
+        {steps[2].digits1.map((digit, i) => {
+          const indexFromRight = steps[2].digits1.length - 1 - i;
+          return (
+            <Text
+              key={`minuend-${i}`}
+              style={[
+                styles.minuendText,
+                { color: getActiveColor(indexFromRight) },
+              ]}
+            >
+              {digit}
+            </Text>
+          );
+        })}
+      </View>
+
+      {/* Dấu trừ */}
+      <View style={styles.row}>
+        <Text
+          style={[
+            styles.operatorSymbol,
+            { width: steps[2].digits1.length * 55 },
+          ]}
+        >
+          -
+        </Text>
+      </View>
+
+      {/* Dòng hoàn trả nếu có */}
       <View style={styles.row}>
         {steps[2].payBackFlags?.map((pay, i) => {
           const indexFromRight = steps[2].payBackFlags.length - 1 - i;
+
+          // Tìm bước cuối cùng (subStepIndex) của cột TRƯỚC ĐÓ
+          const previousColumn = indexFromRight - 2;
+          const previousMeta = steps[2].subStepsMeta
+            .map((colIndex, idx) => ({ idx, colIndex }))
+            .filter((m) => m.colIndex === previousColumn)
+            .map((m) => m.idx)
+            .pop(); //Bước cuối cùng của cột trước đó
+
+          //Chỉ hiển thị nếu đã vượt qua bước cuối cùng của cột trước đó
           const shouldReveal =
-            i + 1 >= steps[2].payBackFlags.length - subStepIndex; // Bấm Next mới hiện từng ô
+            previousMeta !== undefined && subStepIndex > previousMeta;
+
           return (
             <Text
               key={`payback-${i}`}
               style={[
                 styles.paybackText,
                 {
-                  color: getPlaceColor(indexFromRight),
-                  opacity: shouldReveal ? 1 : 0, // Ẩn hoàn toàn khi chưa tới lượt
+                  color: theme.colors.grayDark,
+                  opacity: shouldReveal ? 1 : 0,
                 },
               ]}
             >
@@ -156,38 +212,7 @@ export const SubtractionStepView = ({
         })}
       </View>
 
-      {/* Số bị trừ */}
-      <View style={styles.row}>
-        {steps[2].digits1.map((digit, i) => {
-          const indexFromRight = steps[2].digits1.length - 1 - i;
-          return (
-            <Text
-              key={`minuend-${i}`}
-              style={[
-                styles.minuendText,
-                { color: getPlaceColor(indexFromRight) },
-              ]}
-            >
-              {digit}
-            </Text>
-          );
-        })}
-      </View>
-      {/* Dòng chứa dấu "-" */}
-      <View style={styles.row}>
-        <Text
-          style={[
-            styles.operatorSymbol,
-            {
-              width: steps[2].digits1.length * 55,
-              color: theme.colors.black,
-            },
-          ]}
-        >
-          -
-        </Text>
-      </View>
-      {/* Số trừ */}
+      {/* Dòng số trừ (subtrahend) */}
       <View style={styles.row}>
         {steps[2].digits2.map((digit, i) => {
           const indexFromRight = steps[2].digits2.length - 1 - i;
@@ -196,7 +221,7 @@ export const SubtractionStepView = ({
               key={`subtrahend-${i}`}
               style={[
                 styles.subtrahendText,
-                { color: getPlaceColor(indexFromRight) },
+                { color: getActiveColor(indexFromRight) },
               ]}
             >
               {digit}
@@ -210,12 +235,10 @@ export const SubtractionStepView = ({
         style={{
           height: 2,
           backgroundColor: theme.colors.grayDark,
-          width: steps[2].digits1.length * 55, // hoặc maxLen * 55 nếu cần
+          width: steps[2].digits1.length * 55,
           marginVertical: 6,
         }}
       />
-
-      {/* Kết quả */}
       <View style={styles.row}>
         {steps[2].resultDigits.map((digit, i) => {
           const indexFromRight = steps[2].resultDigits.length - 1 - i;
@@ -225,20 +248,19 @@ export const SubtractionStepView = ({
             <TouchableOpacity
               key={`result-digit-${i}`}
               onPress={() => {
-                const lines = steps[2].subText.split("\n");
-                const toSpeak = lines[subStepIndex]; // dùng subStepIndex
+                const toSpeak = steps[2].subSteps?.[subStepIndex];
                 if (
                   i === steps[2].resultDigits.length - revealedResultDigits &&
                   toSpeak
                 ) {
-                  Speech.speak(toSpeak, { language: "en-US" });
+                  Speech.speak(toSpeak, { language: "vi-VN" });
                 }
               }}
             >
               <Text
                 style={[
                   styles.resultText,
-                  { color: getPlaceColor(indexFromRight) },
+                  { color: getActiveColor(indexFromRight) },
                 ]}
               >
                 {shouldReveal ? digit : "?"}

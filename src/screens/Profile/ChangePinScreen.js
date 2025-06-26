@@ -12,9 +12,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile, profileById } from "../../redux/profileSlice";
+import { updatePin, profileById } from "../../redux/profileSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+
 export default function ChangePinScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useTranslation("profile");
@@ -40,12 +41,8 @@ export default function ChangePinScreen({ navigation }) {
     const newValues = [...pin];
     newValues[index] = value.replace(/[^0-9]/g, "");
     setPin(newValues);
-    if (value && index < 3) {
-      refs[index + 1].current.focus();
-    }
-    if (!value && index > 0) {
-      refs[index - 1].current.focus();
-    }
+    if (value && index < 3) refs[index + 1].current.focus();
+    if (!value && index > 0) refs[index - 1].current.focus();
   };
 
   const renderPinInputs = (pin, setPin, refs, show, setShow) => (
@@ -87,27 +84,29 @@ export default function ChangePinScreen({ navigation }) {
     const confirm = confirmPin.join("");
 
     if (![current, newCode, confirm].every((code) => /^\d{4}$/.test(code))) {
-      Alert.alert("Invalid PIN", "Each PIN must be exactly 4 digits.");
+      Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
       return;
     }
     if (newCode !== confirm) {
-      Alert.alert("Mismatch", "New PIN and confirmation do not match.");
-      return;
-    }
-    if (profile.pin && current !== profile.pin) {
-      Alert.alert("Incorrect PIN", "Your current PIN is incorrect.");
+      Alert.alert(t("mismatchPinTitle"), t("mismatchPinMsg"));
       return;
     }
 
     try {
       await dispatch(
-        updateProfile({ id: user.id, data: { pin: newCode } })
+        updatePin({ id: user.id, data: { oldPin: current, newPin: newCode } })
       ).unwrap();
       dispatch(profileById(user.id));
-      Alert.alert("Success", "PIN updated successfully!");
+      Alert.alert(t("success"), t("updateSuccess"));
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Error", "Failed to update PIN.");
+      const msg =
+        typeof error === "object"
+          ? error?.vi || error?.en || t("updateFailed")
+          : typeof error === "string"
+          ? error
+          : t("updateFailed");
+      Alert.alert(t("incorrectPinTitle"), msg);
     }
   };
 
