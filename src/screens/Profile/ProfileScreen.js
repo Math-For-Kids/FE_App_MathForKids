@@ -237,7 +237,9 @@ export default function ProfileScreen({ navigation }) {
           </View>
           <View>
             <Text style={styles.name}>{pupil?.fullName}</Text>
-            <Text style={styles.text}>Grade: {pupil?.grade}</Text>
+            <Text style={styles.text}>
+              {t("grade")}: {pupil?.grade}
+            </Text>
           </View>
         </View>
         <View style={styles.achievementTagContainer}>

@@ -41,5 +41,20 @@
   "newPinHint": "Đặt mã PIN 4 chữ số mới.",
   "confirmPin": "Xác nhận mã PIN mới",
   "confirmPinHint": "Nhập lại để xác nhận.",
-  "update": "Cập nhật"
+  "update": "Cập nhật",
+  "sendOtpFailed": "Gửi OTP thất bại.",
+  "sendOtpFailedTitle": "Lỗi gửi mã",
+  "emailAlreadyExists": "Email đã tồn tại",
+  "emailPlaceholder": "ví dụ: yourname@email.com",
+  "emailDuplicateTitle": "Email trùng",
+  "emailDuplicateMessage": "Email mới phải khác email hiện tại.",
+  "phoneAlreadyExistsTitle": "Số điện thoại đã tồn tại",
+  "phoneAlreadyExistsMsg": "Số điện thoại mới phải khác số hiện tại.",
+  "success": "Thành công",
+  "invalidPinTitle": "PIN không hợp lệ",
+  "invalidPinMsg": "Mỗi mã PIN phải gồm đúng 4 chữ số.",
+  "mismatchPinTitle": "Mã PIN không khớp",
+  "mismatchPinMsg": "Mã PIN mới và xác nhận không giống nhau.",
+  "incorrectPinTitle": "Sai mã PIN",
+  "incorrectPinMsg": "Mã PIN hiện tại của bạn không đúng."
 }

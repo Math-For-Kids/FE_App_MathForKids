@@ -4,7 +4,11 @@
   "test": "Kiểm tra",
   "game": "Trò chơi",
   "mission": "Nhiệm vụ",
-
+  "Addition": "Phép cộng",
+  "Subtraction": "Phép trừ",
+  "Multiplication": "Phép nhân",
+  "Division": "Phép chia",
+  "Expression": "Bảng cửu chương",
   "edit": "Chỉnh sửa",
   "save": "Lưu",
   "cancel": "Hủy",
@@ -12,5 +16,6 @@
   "error": "Lỗi",
   "selectOption": "Chọn tùy chọn...",
   "male": "Nam",
-  "female": "Nữ"
+  "female": "Nữ",
+  "grade": "Lớp"
 }

@@ -20,12 +20,12 @@ import { getLessonsByGradeAndType } from "../redux/lessonSlice";
 import { getEnabledRewards } from "../redux/rewardSlice";
 import { createGoal } from "../redux/goalSlice";
 import { useIsFocused } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import { createPupilNotification } from "../redux/pupilNotificationSlice";
 import { createUserNotification } from "../redux/userNotificationSlice"; // nếu bạn cũng cần gửi cho user
 import { serverTimestamp } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import i18n from "../i18n";
 export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -47,16 +47,17 @@ export default function GoalScreen() {
   const { user } = useSelector((state) => state.auth);
   const { lessons } = useSelector((state) => state.lesson);
   const { rewards } = useSelector((state) => state.reward);
-  console.log("userId", user.id);
+  const { t, i18n } = useTranslation("goal");
+  // console.log("userId", user.id);
   useEffect(() => {
     dispatch(getEnabledRewards());
     dispatch(pupilByUserId(user?.id));
   }, [dispatch, user?.id]);
-  console.log("rewards", rewards);
-  console.log("pupils", pupils);
+  // console.log("rewards", rewards);
+  // console.log("pupils", pupils);
   useEffect(() => {
     const selectedPupil = pupils.find((p) => p.id === selectedAccount);
-    console.log("selectedPupil", selectedPupil);
+    // console.log("selectedPupil", selectedPupil);
     if (selectedPupil && skillType) {
       dispatch(
         getLessonsByGradeAndType({
@@ -66,15 +67,15 @@ export default function GoalScreen() {
       );
     }
   }, [skillType, selectedAccount]);
-  console.log("lessons", lessons);
+  // console.log("lessons", lessons);
   const rewardOptions = rewards.map((r) => ({
-    label: r.name?.[i18n.language] || r.name?.en || "Unnamed",
-    value: r.name?.[i18n.language] || r.name?.en || "Unnamed",
+    label: r.name?.[i18n.language] || r.name?.en || t("unnamed"),
+    value: r.name?.[i18n.language] || r.name?.en || t("unnamed"),
     image: r.image ? { uri: r.image } : undefined,
   }));
   const handleSaveGoal = () => {
     if (!selectedAccount || !skillType || !lesson || !exercise || !reward) {
-      alert("Please complete all fields before saving!");
+      alert(t("alertIncomplete"));
       return;
     }
 
@@ -100,12 +101,20 @@ export default function GoalScreen() {
           createUserNotification({
             userId: user.id,
             title: {
-              en: "Goal Created Successfully",
-              vi: "Tạo mục tiêu thành công",
+              en: t("notifyGoalCreatedTitle", { lng: "en" }),
+              vi: t("notifyGoalCreatedTitle", { lng: "vi" }),
             },
             content: {
-              en: `You just created a goal in ${skillType} - ${lesson}`,
-              vi: `Bạn vừa tạo mục tiêu cho kỹ năng ${skillType} - ${lesson}`,
+              en: t(
+                "notifyGoalCreatedContent",
+                { skill: skillType, lesson },
+                { lng: "en" }
+              ),
+              vi: t(
+                "notifyGoalCreatedContent",
+                { skill: skillType, lesson },
+                { lng: "vi" }
+              ),
             },
             isRead: false,
             createdAt,
@@ -118,12 +127,20 @@ export default function GoalScreen() {
           createPupilNotification({
             pupilId: selectedAccount,
             title: {
-              en: "New Goal Assigned",
-              vi: "Có mục tiêu mới",
+              en: t("notifyNewGoalTitle", { lng: "en" }),
+              vi: t("notifyNewGoalTitle", { lng: "vi" }),
             },
             content: {
-              en: `You have a new goal in ${skillType} - ${lesson}`,
-              vi: `Bạn có mục tiêu mới cho kỹ năng ${skillType} - ${lesson}`,
+              en: t(
+                "notifyNewGoalContent",
+                { skill: skillType, lesson },
+                { lng: "en" }
+              ),
+              vi: t(
+                "notifyNewGoalContent",
+                { skill: skillType, lesson },
+                { lng: "vi" }
+              ),
             },
             isRead: false,
             createdAt,
@@ -131,11 +148,11 @@ export default function GoalScreen() {
           })
         );
 
-        alert("Goal saved and notifications sent!");
+        alert(t("alertSuccess"));
         navigation.goBack();
       })
       .catch((err) => {
-        alert(`Failed to save goal: ${err}`);
+        alert(t("alertFail", { error: err }));
       });
   };
 
@@ -162,7 +179,7 @@ export default function GoalScreen() {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 36,
+      fontSize: 30,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
@@ -347,11 +364,11 @@ export default function GoalScreen() {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Set goal</Text>
+        <Text style={styles.title}>{t("setGoal")}</Text>
       </LinearGradient>
 
       <ScrollView>
-        <Text style={styles.labelTitle}>Selection account</Text>
+        <Text style={styles.labelTitle}>{t("selectAccount")}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -380,7 +397,7 @@ export default function GoalScreen() {
 
         <View style={styles.dateRow}>
           <View style={styles.dateInput}>
-            <Text style={styles.label}>Date start</Text>
+            <Text style={styles.label}>{t("dateStart")}</Text>
             <TouchableOpacity onPress={() => setShowStartPicker(true)}>
               <TextInput
                 value={startDate.toLocaleDateString()}
@@ -402,7 +419,7 @@ export default function GoalScreen() {
             )}
           </View>
           <View style={styles.dateInput}>
-            <Text style={styles.label}>Date end</Text>
+            <Text style={styles.label}>{t("dateEnd")}</Text>
             <TouchableOpacity onPress={() => setShowEndPicker(true)}>
               <TextInput
                 value={endDate.toLocaleDateString()}
@@ -422,9 +439,7 @@ export default function GoalScreen() {
                     maxEndDate.setDate(startDate.getDate() + 14);
 
                     if (selectedDate > maxEndDate) {
-                      alert(
-                        "You can only set a goal within 14 days from the start date."
-                      );
+                      alert(t("alertDateLimit"));
                       return;
                     }
 
@@ -436,7 +451,7 @@ export default function GoalScreen() {
           </View>
         </View>
 
-        <Text style={styles.label}>Skill type</Text>
+        <Text style={styles.label}>{t("selectSkillType")}</Text>
         <TouchableOpacity
           onPress={() => setShowSkillModal(true)}
           style={styles.input}
@@ -446,7 +461,7 @@ export default function GoalScreen() {
               color: skillType ? theme.colors.black : theme.colors.gray,
             }}
           >
-            {skillType || "Select skill type"}
+            {skillType || t("selectSkillType")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -455,7 +470,7 @@ export default function GoalScreen() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.label}>Lesson</Text>
+        <Text style={styles.label}>{t("lesson")}</Text>
         <TouchableOpacity
           onPress={() => setShowLessonModal(true)}
           style={styles.input}
@@ -465,7 +480,7 @@ export default function GoalScreen() {
               color: lesson ? theme.colors.black : theme.colors.gray,
             }}
           >
-            {lesson || "Select lesson"}
+            {lesson || t("selectLesson")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -474,7 +489,7 @@ export default function GoalScreen() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.label}>Exercise</Text>
+        <Text style={styles.label}>{t("exercise")}</Text>
         <TouchableOpacity
           onPress={() => setShowExerciseModal(true)}
           style={styles.input}
@@ -482,7 +497,7 @@ export default function GoalScreen() {
           <Text
             style={{ color: exercise ? theme.colors.black : theme.colors.gray }}
           >
-            {exercise || "Select exercise"}
+            {exercise || t("selectExercise")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -491,7 +506,7 @@ export default function GoalScreen() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.label}>Reward</Text>
+        <Text style={styles.label}>{t("reward")}</Text>
         <TouchableOpacity
           onPress={() => setShowRewardModal(true)}
           style={styles.input}
@@ -499,7 +514,7 @@ export default function GoalScreen() {
           <Text
             style={{ color: reward ? theme.colors.black : theme.colors.gray }}
           >
-            {reward || "Select reward"}
+            {reward || t("selectReward")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -514,19 +529,19 @@ export default function GoalScreen() {
         style={styles.saveButton}
       >
         <TouchableOpacity onPress={handleSaveGoal}>
-          <Text style={styles.saveText}>Save</Text>
+          <Text style={styles.saveText}>{t("save")}</Text>
         </TouchableOpacity>
       </LinearGradient>
 
       {showSkillModal &&
         renderOptionModal(
-          "Select Skill Type",
+          t("selectSkillTypeTitle"),
           [
-            { label: "Addition", value: "Addition" },
-            { label: "Subtraction", value: "Subtraction" },
-            { label: "Multiplication", value: "Multiplication" },
-            { label: "Division", value: "Division" },
-            { label: "Multiplications table", value: "Multiplications table" },
+            { label: t("skill_add"), value: "Addition" },
+            { label: t("skill_sub"), value: "Subtraction" },
+            { label: t("skill_mul"), value: "Multiplication" },
+            { label: t("skill_div"), value: "Division" },
+            { label: t("skill_table"), value: "Multiplications table" },
           ],
           setSkillType,
           () => setShowSkillModal(false)
@@ -536,8 +551,8 @@ export default function GoalScreen() {
         renderOptionModal(
           "Select Lesson",
           lessons.map((l) => ({
-            label: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
-            value: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+            label: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
+            value: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
           })),
           setLesson,
           () => setShowLessonModal(false)
@@ -545,7 +560,7 @@ export default function GoalScreen() {
 
       {showExerciseModal &&
         renderOptionModal(
-          "Select Exercise",
+          t("selectExercise"),
           lessons.map((l) => ({
             label: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
             value: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
@@ -555,7 +570,7 @@ export default function GoalScreen() {
         )}
 
       {showRewardModal &&
-        renderOptionModal("Select Reward", rewardOptions, setReward, () =>
+        renderOptionModal(t("selectReward"), rewardOptions, setReward, () =>
           setShowRewardModal(false)
         )}
 

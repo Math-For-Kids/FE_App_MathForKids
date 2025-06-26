@@ -13,9 +13,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
-import { updatePhone, profileById } from "../../redux/profileSlice";
-import { sendOTPByPhone, verifyOnlyOTP } from "../../redux/authSlice";
+import {
+  updateProfile,
+  profileById,
+  sendOtpToUpdatePhone,
+} from "../../redux/profileSlice";
+import { verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
+
 export default function ChangePhoneScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useTranslation("profile");
@@ -26,58 +31,66 @@ export default function ChangePhoneScreen({ navigation }) {
   const [newPhone, setNewPhone] = useState("");
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
   const [pin, setPin] = useState(["", "", "", ""]);
-
   const [pinModalVisible, setPinModalVisible] = useState(false);
 
   const validatePhone = (phone) => /^\d{10,11}$/.test(phone);
 
   const handleConfirmPin = async () => {
     const joinedPin = pin.join("");
+
     if (!/^\d{4}$/.test(joinedPin)) {
-      Alert.alert("Invalid PIN", "PIN must be exactly 4 digits.");
+      Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
       return;
     }
+
     try {
       await dispatch(
         verifyOnlyOTP({ userId: user.id, otpCode: joinedPin })
       ).unwrap();
       await dispatch(
-        updatePhone({ id: user.id, data: { newPhoneNumber: newPhone } })
+        updateProfile({ id: user.id, data: { phoneNumber: newPhone } })
       ).unwrap();
-
       dispatch(profileById(user.id));
-      Alert.alert("Success", "Phone number updated successfully!");
+      Alert.alert(t("success"), t("updateSuccess"));
       setPin(["", "", "", ""]);
       setPinModalVisible(false);
       navigation.navigate("PrivacyScreen");
     } catch (error) {
       Alert.alert(
-        "Error",
-        typeof error === "string" ? error : "OTP verification failed."
+        t("error"),
+        typeof error === "string" ? error : t("verifyOtpFailed")
       );
     }
   };
 
   const handleOpenPinModal = async () => {
     if (!validatePhone(newPhone)) {
-      Alert.alert("Invalid Phone Number", "Enter a valid phone number.");
+      Alert.alert(t("invalidPhoneTitle"), t("invalidPhoneMsg"));
       return;
     }
 
     if (newPhone === profile?.phoneNumber) {
-      Alert.alert(
-        "Phone Number Exists",
-        "Phone number must be different from the current one."
-      );
+      Alert.alert(t("phoneAlreadyExistsTitle"), t("phoneAlreadyExistsMsg"));
       return;
     }
+
     try {
       await dispatch(
-        sendOTPByPhone({ userId: user.id, phoneNumber: user.phoneNumber })
+        sendOtpToUpdatePhone({
+          id: user.id,
+          phoneNumber: user.phoneNumber,
+          newPhoneNumber: newPhone,
+        })
       ).unwrap();
       setPinModalVisible(true);
     } catch (error) {
-      Alert.alert("Error", "Failed to send OTP.");
+      let msg = t("sendOtpFailed");
+      if (typeof error === "object") {
+        msg = error.vi || error.en || msg;
+      } else if (typeof error === "string") {
+        msg = error;
+      }
+      Alert.alert(t("sendOtpFailedTitle"), msg);
     }
   };
 
@@ -278,13 +291,8 @@ export default function ChangePhoneScreen({ navigation }) {
                     const newPin = [...pin];
                     newPin[index] = val;
                     setPin(newPin);
-
-                    if (val && index < 3) {
-                      pinRefs[index + 1].current.focus();
-                    }
-                    if (!val && index > 0) {
-                      pinRefs[index - 1].current.focus();
-                    }
+                    if (val && index < 3) pinRefs[index + 1].current.focus();
+                    if (!val && index > 0) pinRefs[index - 1].current.focus();
                   }}
                   keyboardType="number-pad"
                   maxLength={1}
