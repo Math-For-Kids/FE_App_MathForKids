@@ -381,13 +381,14 @@ export default function StepByStepScreen({ navigation, route }) {
             >
               <TouchableOpacity
                 onPress={() => {
-                  if (stepIndex > 0) {
-                    setStepIndex((prev) => Math.max(prev - 1, 0));
-                    setCurrentRowIndex(0);
-                    setRevealedDigits(0);
-                    setRevealedResultDigits(0);
-                    //  setSubStepIndex(0); // nếu đang dùng substep hiển thị từng dòng mô tả
-                  }
+                  setStepIndex(0);
+                  setSubStepIndex(0);
+                  setCurrentRowIndex(0);
+                  setRevealedDigits(0);
+                  setRevealedResultDigits(0);
+                  if (setVisibleCarryMap) setVisibleCarryMap({});
+                  if (setVisibleDigitsMap) setVisibleDigitsMap({});
+                  if (setRemember) setRemember("");
                 }}
               >
                 <Ionicons
