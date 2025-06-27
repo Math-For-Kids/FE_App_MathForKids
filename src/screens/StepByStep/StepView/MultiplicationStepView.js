@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import * as Speech from "expo-speech";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../../themes/ThemeContext";
@@ -21,13 +15,12 @@ function getVisibleCharsFromRight(paddedChars, revealCount) {
     if (revealed < revealCount) {
       revealed++;
     } else {
-      visibleChars[j] = "?";
+      visibleChars[j] = " ";
     }
   }
 
   return visibleChars;
 }
-
 export const MultiplicationStepView = ({
   subStepIndex,
   steps,
@@ -46,9 +39,9 @@ export const MultiplicationStepView = ({
   const digits = steps?.[2]?.digits || [];
   const multiplierDigits = steps?.[2]?.multiplierDigits || [];
   const partials = steps?.[2]?.partials || [];
+  // console.log("partials", partials);
   const carryRows = steps?.[2]?.carryRows || [];
   const result = steps?.[3]?.result || "";
-
   const maxLen = Math.max(
     digits.length,
     multiplierDigits.length + 1,
@@ -66,29 +59,23 @@ export const MultiplicationStepView = ({
       result: [],
       column: [],
     };
-
     if (typeof meta.d1 === "number") {
       const digitIndexFromRight = meta.colIndex ?? 0;
       const digitHighlightIdx = maxLen - 1 - digitIndexFromRight;
       indexes.digits.push(digitHighlightIdx);
     }
-
     if (typeof meta.d2 === "number") {
       const multiplierIndexFromRight = meta.rowIndex ?? 0;
       const multiplierHighlightIdx = maxLen - 1 - multiplierIndexFromRight;
       indexes.multiplier.push(multiplierHighlightIdx);
     }
-
     const originalPartialStr = partials[meta.rowIndex] || "";
-
     const displayStr =
       meta.type === "carry_add" && typeof meta.product === "number"
         ? String(meta.product).padStart(originalPartialStr.length, "0")
         : originalPartialStr;
-
     const paddedPartial = padLeft(displayStr.split(""), maxLen);
     const partialLen = displayStr.length;
-
     if (typeof meta.product === "number") {
       if (meta.type === "detail" || meta.type === "detail_final_digit") {
         const idxFromRight = (meta.colIndex ?? 0) + (meta.rowIndex ?? 0);
@@ -97,7 +84,6 @@ export const MultiplicationStepView = ({
           indexes.result.push(idx);
         }
       }
-
       if (meta.type === "reveal_digits") {
         const digitsToReveal =
           meta.digitsToReveal || String(meta.product).length;
@@ -110,7 +96,6 @@ export const MultiplicationStepView = ({
         }
       }
     }
-
     if (meta.type === "zero_rule" || meta.type === "shift") {
       const lastZeroIndex = paddedPartial.lastIndexOf("0");
       if (lastZeroIndex !== -1) {
@@ -148,7 +133,6 @@ export const MultiplicationStepView = ({
   useEffect(() => {
     const explanation = subSteps[subStepIndex];
     if (!explanation) {
-      // console.log(" Không có explanation để đọc");
       return;
     }
     Speech.stop();
@@ -164,14 +148,6 @@ export const MultiplicationStepView = ({
     result: resultHighlights,
     columnHighlights,
   } = getHighlightValueIndexes();
-
-  // console.log("[DEBUG] highlightValueIndexes:", {
-  //   digitHighlights,
-  //   multiplierHighlights,
-  //   resultHighlights,
-  //   columnHighlights,
-  // });
-
   const renderRow = (
     label,
     arr,
@@ -298,7 +274,6 @@ export const MultiplicationStepView = ({
       <ScrollView style={styles.explanationBox}>
         <Text style={styles.explanationText}>{explanation}</Text>
       </ScrollView>
-
       <View style={styles.rowsBox}>
         {renderRow(
           " ",
@@ -315,7 +290,6 @@ export const MultiplicationStepView = ({
           " "
         )}
         <View style={styles.divider(maxLen)} />
-
         {partials.map((partial, i) => (
           <React.Fragment key={i}>
             {carryRows[i] &&
@@ -346,10 +320,9 @@ export const MultiplicationStepView = ({
                 [],
                 "carry"
               )}
-
             {(() => {
               const rawChars = partial.split("");
-              const padded = padLeft(rawChars, maxLen); // đảm bảo length = maxLen
+              const padded = padLeft(rawChars, maxLen);
               const visibleChars = padded.map((char, idx) => {
                 const isZeroRuleStep =
                   meta.type === "zero_rule" || meta.type === "shift";
@@ -383,7 +356,6 @@ export const MultiplicationStepView = ({
         {partials.length >= 2 && (
           <>
             <View style={styles.divider(maxLen)} />
-
             {(() => {
               const paddedResult = padLeft(result.split(""), maxLen);
               const revealCount = visibleDigitsMap["result"] ?? 0;
@@ -392,11 +364,10 @@ export const MultiplicationStepView = ({
                 const isVisible = idx >= startRevealIdx && char !== " ";
                 return isVisible ? char : "?";
               });
-
               return renderRow(
                 " ",
                 visibleChars,
-                [], // Nếu muốn highlight, truyền resultHighlights
+                [],
                 "result",
                 columnHighlights
               );

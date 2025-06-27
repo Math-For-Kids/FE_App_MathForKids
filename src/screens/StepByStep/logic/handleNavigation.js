@@ -32,6 +32,8 @@ export const handleNext = ({
   setVisibleDigitsMap,
   setVisibleCarryMap,
   visibleCarryMap,
+  setColumnStepIndex,
+  columnStepIndex,
 }) => {
   Speech.stop();
 
@@ -53,9 +55,23 @@ export const handleNext = ({
     });
     return;
   }
+  // PHÉP CỘNG
+  if (operator === "+" && stepIndex === 2) {
+    const totalSteps = steps[2]?.digitSums?.length || 0;
+
+    if (columnStepIndex < totalSteps) {
+      setColumnStepIndex((prev) => prev + 1);
+      return;
+    }
+
+    if (columnStepIndex === totalSteps) {
+      console.log("Đã hiện xong các bước cộng → chuyển bước");
+      setStepIndex((prev) => prev + 1);
+      return;
+    }
+  }
 
   // PHÉP TRỪ
-  // Nếu đang thực hiện phép trừ (operator === '-') và đang ở bước giải thích từng cột (stepIndex === 2)
   if (operator === "-" && stepIndex === 2) {
     const subSteps = step.subSteps || []; // Danh sách các câu giải thích
     const nextSubStepIndex = subStepIndex + 1;
@@ -271,11 +287,11 @@ export const handleNext = ({
           [carryKey]: newRevealCount,
         }));
 
-        console.log(
-          `[DETAIL] reveal carry one-by-one → row=${rowIndex}, col=${colIndex}, targetIdx=${targetIdx}, padded=${padded.join(
-            ""
-          )}, revealCount=${newRevealCount}`
-        );
+        // console.log(
+        //   `[DETAIL] reveal carry one-by-one → row=${rowIndex}, col=${colIndex}, targetIdx=${targetIdx}, padded=${padded.join(
+        //     ""
+        //   )}, revealCount=${newRevealCount}`
+        // );
         break;
       }
 
@@ -353,6 +369,16 @@ export const handleNext = ({
     return;
   }
 
+  if (operator === "÷" && stepIndex === 2) {
+    const totalSteps = steps[2]?.subSteps?.length || 0;
+
+    if (columnStepIndex < totalSteps - 1) {
+      console.log("Hiện thêm 1 bước chia");
+      setColumnStepIndex((prev) => prev + 1);
+      setSubStepIndex((prev) => prev + 1);
+      return;
+    }
+  }
   // ✅ Mặc định: chuyển sang bước tiếp theo nếu còn
   if (stepIndex < steps.length - 1) {
     setStepIndex((prev) => prev + 1);

@@ -120,7 +120,7 @@ export default function StepByStepScreen({ navigation, route }) {
       case "×":
         return inputIndex === 1 ? 5 : 2;
       case "÷":
-        return inputIndex === 1 ? 2 : 1;
+        return inputIndex === 1 ? 5 : 2;
       default:
         return 6;
     }
@@ -298,6 +298,7 @@ export default function StepByStepScreen({ navigation, route }) {
             steps={steps}
             placeLabels={placeLabels}
             skillName={skillName}
+            columnStepIndex={columnStepIndex} // ✅ TRUYỀN STEP ĐANG XEM
           />
         )}
 
@@ -334,6 +335,13 @@ export default function StepByStepScreen({ navigation, route }) {
             setVisibleDigitsMap={setVisibleDigitsMap}
             visibleCarryMap={visibleCarryMap}
             setVisibleCarryMap={setVisibleCarryMap}
+          />
+        )}
+        {operator === "÷" && stepIndex === 2 && (
+          <DivisionStepView
+            steps={steps}
+            skillName={skillName}
+            columnStepIndex={columnStepIndex}
           />
         )}
         <View style={styles.backStepContainer}>
@@ -422,6 +430,8 @@ export default function StepByStepScreen({ navigation, route }) {
               setVisibleDigitsMap,
               setVisibleCarryMap,
               visibleCarryMap,
+              setColumnStepIndex,
+              columnStepIndex,
             })
           }
         >

@@ -9,18 +9,14 @@ export const SubtractionStepView = ({
   placeLabels,
   skillName,
   revealedResultDigits,
-  setRevealedResultDigits,
   subStepIndex,
-  t,
 }) => {
   const { theme } = useTheme();
   const { i18n } = useTranslation("stepbystep");
   if (!steps[2]?.resultDigits) return null;
-
   const reversedLabels = [...placeLabels]
     .slice(0, steps[2].resultDigits.length)
     .reverse();
-
   const getSkillColor = () => {
     if (skillName === "Addition") return theme.colors.GreenDark;
     if (skillName === "Subtraction") return theme.colors.purpleDark;
@@ -28,48 +24,31 @@ export const SubtractionStepView = ({
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
   };
-
   const getActiveColor = (indexFromRight) => {
-    const activeColumnIndex = steps[2].subStepsMeta?.[subStepIndex] ?? -2; // mỗi 2 bước là 1 cột
-    // console.log(
-    //   "indexFromRight:",
-    //   indexFromRight,
-    //   "| active:",
-    //   revealedResultDigits - 1
-    // );
+    const activeColumnIndex = steps[2].subStepsMeta?.[subStepIndex] ?? -2;
     return indexFromRight === activeColumnIndex
       ? getSkillColor()
       : theme.colors.grayDark;
   };
-
   useEffect(() => {
     const currentText = steps[2].subSteps?.[subStepIndex];
     if (currentText) {
-      const lang = i18n.language; // "vi" or "en"
+      const lang = i18n.language;
       let toSpeakClean = currentText;
-
       if (lang === "vi") {
         toSpeakClean = toSpeakClean
           .replace(/ - /g, " trừ ")
-          .replace(/ \+ /g, " cộng ")
-          .replace(/ × /g, " nhân ")
-          .replace(/ ÷ /g, " chia ")
           .replace(/ = /g, " bằng ");
       } else if (lang === "en") {
         toSpeakClean = toSpeakClean
           .replace(/ - /g, " minus ")
-          .replace(/ \+ /g, " plus ")
-          .replace(/ × /g, " times ")
-          .replace(/ ÷ /g, " divided by ")
           .replace(/ = /g, " equals ");
       }
-
       Speech.speak(toSpeakClean, {
         language: lang === "vi" ? "vi-VN" : "en-US",
       });
     }
   }, [subStepIndex]);
-
   const styles = StyleSheet.create({
     container: {
       alignItems: "center",
@@ -117,7 +96,6 @@ export const SubtractionStepView = ({
       color: theme.colors.black,
     },
   });
-
   return (
     <View style={styles.container}>
       {/* Giải thích bước hiện tại */}
@@ -135,7 +113,6 @@ export const SubtractionStepView = ({
           </Text>
         </View>
       )}
-
       {/* Hàng nhãn vị trí */}
       <View style={styles.row}>
         {steps[2].resultDigits.map((_, i) => {
@@ -147,7 +124,6 @@ export const SubtractionStepView = ({
           );
         })}
       </View>
-
       {/* Dòng số bị trừ (minuend) */}
       <View style={styles.row}>
         {steps[2].digits1.map((digit, i) => {
@@ -165,7 +141,6 @@ export const SubtractionStepView = ({
           );
         })}
       </View>
-
       {/* Dấu trừ */}
       <View style={styles.row}>
         <Text
@@ -177,7 +152,6 @@ export const SubtractionStepView = ({
           -
         </Text>
       </View>
-
       {/* Dòng hoàn trả nếu có */}
       <View style={styles.row}>
         {steps[2].payBackFlags?.map((pay, i) => {

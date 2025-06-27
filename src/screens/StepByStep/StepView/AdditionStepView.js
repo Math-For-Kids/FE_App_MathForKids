@@ -1,29 +1,70 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import * as Speech from "expo-speech";
 import { useTheme } from "../../../themes/ThemeContext";
 import { Fonts } from "../../../../constants/Fonts";
-export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
+import { useTranslation } from "react-i18next";
+
+export const AdditionStepView = ({
+  steps,
+  placeLabels,
+  skillName,
+  columnStepIndex,
+}) => {
   const { theme } = useTheme();
+  const { i18n } = useTranslation("stepbystep");
+
+  const currentStep = columnStepIndex ?? 0;
   if (!steps[2]?.digitSums) return null;
-  const labels = placeLabels.slice(0, steps[2].digitSums.length).reverse();
-  console.log("Current column labels:", labels);
+  console.log("currentStep", currentStep);
+  const totalSteps = steps[2].digitSums.length + 1;
+  const labels = placeLabels.slice(0, steps[2].digitSums.length);
+  const subTextLines = Array.isArray(steps[2].subText) ? steps[2].subText : [];
+
+  const activeColor = theme.colors.orangeDark;
+  const defaultColor = theme.colors.black;
+  const carryColor = theme.colors.blueGray;
+
   const getSkillColor = () => {
-    if (skillName === "Addition") return theme.colors.GreenDark;
-    if (skillName === "Subtraction") return theme.colors.purpleDark;
-    if (skillName === "Multiplication") return theme.colors.orangeDark;
-    if (skillName === "Division") return theme.colors.redDark;
-    return theme.colors.pinkDark;
+    switch (skillName) {
+      case "Addition":
+        return theme.colors.GreenDark;
+      case "Subtraction":
+        return theme.colors.purpleDark;
+      case "Multiplication":
+        return theme.colors.orangeDark;
+      case "Division":
+        return theme.colors.redDark;
+      default:
+        return theme.colors.pinkDark;
+    }
   };
+
+  useEffect(() => {
+    const line = subTextLines[Math.max(0, currentStep)];
+    if (line) {
+      const lang = i18n.language === "vi" ? "vi-VN" : "en-US";
+      Speech.stop();
+      Speech.speak(line, { language: lang });
+    }
+  }, [currentStep]);
+
+  const speakCurrentLine = (stepIndex) => {
+    const line = subTextLines[Math.max(0, stepIndex)];
+    if (line) {
+      const lang = i18n.language === "vi" ? "vi-VN" : "en-US";
+      Speech.stop();
+      Speech.speak(line, { language: lang });
+    }
+  };
+
+  useEffect(() => {
+    speakCurrentLine(currentStep);
+  }, [currentStep]);
+
   const styles = StyleSheet.create({
-    container: {
-      alignItems: "center",
-      marginTop: 10,
-    },
-    row: {
-      flexDirection: "row",
-      marginBottom: 4,
-    },
+    container: { alignItems: "center" },
+    row: { flexDirection: "row-reverse", marginBottom: 4 },
     labelText: {
       width: 50,
       textAlign: "center",
@@ -36,105 +77,201 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
       textAlign: "center",
       fontSize: 14,
       fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.blueGray,
     },
     num1Text: {
       width: 50,
       textAlign: "center",
       fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.black,
     },
     num2Text: {
       width: 50,
       textAlign: "center",
       fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.black,
     },
-    lineRow: {
-      marginTop: 2,
-    },
-    lineText: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 20,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.grayDark,
-    },
+    lineRow: { marginTop: 2 },
     resultText: {
       width: 50,
       textAlign: "center",
       fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
-      color: getSkillColor(),
+    },
+    explanationText: {
+      fontSize: 14,
+      fontFamily: Fonts.NUNITO_BLACK,
+      color: theme.colors.grayDark,
+      marginTop: 8,
+      marginHorizontal: 12,
+      textAlign: "center",
+    },
+    finalResultText: {
+      fontSize: 32,
+      fontFamily: Fonts.NUNITO_BLACK,
+      color: "red",
+      marginTop: 10,
+    },
+    line: {
+      height: 2,
+      backgroundColor: theme.colors.grayDark,
+      marginTop: 2,
     },
   });
 
   return (
     <View style={styles.container}>
-      {/* Cột tên đơn vị */}
+      {/* Explanation text (intro or step) */}
+      {currentStep >= -1 && currentStep < totalSteps && (
+        <>
+          <Text style={styles.explanationText}>
+            {subTextLines[Math.max(0, currentStep)]}
+          </Text>
+        </>
+      )}
+
+      {/* Row 1: Place Labels */}
       <View style={styles.row}>
         {labels.map((label, i) => (
-          <Text key={`label-reverse-${i}`} style={styles.labelText}>
+          <Text key={`label-${i}`} style={styles.labelText}>
             {label}
           </Text>
         ))}
       </View>
 
-      {/* Dòng số nhớ */}
+      {/* Row 2: Carry Digits */}
       <View style={styles.row}>
-        {steps[2].carryDigits.map((carry, i) => (
-          <Text key={`carry-${i}`} style={styles.carryText}>
-            {carry > 0 ? carry : " "}
-          </Text>
-        ))}
+        {steps[2].carryDigits
+          .slice()
+          .reverse()
+          .map((carry, i) => {
+            const highlight = carry > 0 && currentStep >= i;
+            return (
+              <Text
+                key={`carry-${i}`}
+                style={[
+                  styles.carryText,
+                  { color: highlight ? activeColor : carryColor },
+                ]}
+              >
+                {highlight ? carry : " "}
+              </Text>
+            );
+          })}
       </View>
 
-      {/* Số thứ nhất */}
+      {/* Row 3: Number 1 Digits */}
       <View style={styles.row}>
-        {steps[2].digits1.map((digit, i) => (
-          <Text key={`num1-${i}`} style={styles.num1Text}>
-            {digit}
-          </Text>
-        ))}
+        {steps[2].digits1
+          .slice()
+          .reverse()
+          .map((digit, i) => (
+            <Text
+              key={`num1-${i}`}
+              style={[
+                styles.num1Text,
+                {
+                  color:
+                    currentStep >= 1 && currentStep - 1 === i
+                      ? getSkillColor()
+                      : defaultColor,
+                },
+              ]}
+            >
+              {digit}
+            </Text>
+          ))}
       </View>
 
-      {/* Số thứ hai */}
+      {/* Row 4: + symbol spacer */}
       <View style={styles.row}>
-        {steps[2].digits2.map((digit, i) => (
-          <Text key={`num2-${i}`} style={styles.num2Text}>
-            {digit}
-          </Text>
-        ))}
+        {steps[2].digits2
+          .slice()
+          .reverse()
+          .map((_, i) => (
+            <Text
+              key={`spacer-${i}`}
+              style={[
+                styles.num2Text,
+                i === steps[2].digits2.length - 1 && { marginRight: 50 },
+              ]}
+            >
+              {i === steps[2].digits2.length - 1 ? "+" : " "}
+            </Text>
+          ))}
       </View>
 
-      {/* Gạch ngang */}
-      <View style={[styles.row, styles.lineRow]}>
-        {steps[2].digitSums.map((_, i) => (
-          <Text key={`line-${i}`} style={styles.lineText}>
-            ―
-          </Text>
-        ))}
+      {/* Row 5: Number 2 Digits */}
+      <View style={styles.row}>
+        {steps[2].digits2
+          .slice()
+          .reverse()
+          .map((digit, i) => (
+            <Text
+              key={`num2-${i}`}
+              style={[
+                styles.num2Text,
+                {
+                  color:
+                    currentStep >= 1 && currentStep - 1 === i
+                      ? getSkillColor()
+                      : defaultColor,
+                },
+              ]}
+            >
+              {digit}
+            </Text>
+          ))}
       </View>
 
-      {/* Kết quả */}
+      {/* Row 6: Line */}
       <View style={styles.row}>
-        {steps[2].digitSums.map((digit, i) => (
-          <TouchableOpacity
-            key={`sum-${i}`}
-            onPress={() => {
-              const lines = steps[2].subText?.split("\n") || [];
-              const toSpeak = lines[lines.length - 1 - i];
-              if (toSpeak) {
-                Speech.speak(toSpeak, { language: "en-US" });
-              }
-            }}
-          >
-            <Text style={styles.resultText}>{digit}</Text>
-          </TouchableOpacity>
-        ))}
+        <View
+          style={[styles.line, { width: 50 * steps[2].digitSums.length }]}
+        />
       </View>
+
+      {/* Row 7: Result Sums */}
+      <View style={styles.row}>
+        {steps[2].digitSums
+          .slice()
+          .reverse()
+          .map((digit, i) => (
+            <TouchableOpacity
+              key={`sum-${i}`}
+              onPress={() => {
+                const toSpeak = subTextLines[i + 1];
+                if (toSpeak) {
+                  const lang = i18n.language === "vi" ? "vi-VN" : "en-US";
+                  Speech.speak(toSpeak, { language: lang });
+                }
+              }}
+            >
+              <Text
+                style={[
+                  styles.resultText,
+                  {
+                    color:
+                      currentStep >= 1 && currentStep - 1 === i
+                        ? getSkillColor()
+                        : theme.colors.black,
+                  },
+                ]}
+              >
+                {currentStep > i ? digit : "?"}
+              </Text>
+            </TouchableOpacity>
+          ))}
+      </View>
+
+      {/* Final result */}
+      {currentStep === totalSteps && (
+        <>
+          <Text style={styles.explanationText}>{steps[3].subText}</Text>
+          <Text style={styles.finalResultText}>
+            {steps[2].digitSums.join("")}
+          </Text>
+        </>
+      )}
     </View>
   );
 };

@@ -1,18 +1,14 @@
-// Hàm thực hiện phép cộng từng bước giống tiểu học, lưu dữ liệu vào steps[2] và steps[3]
-export const handleAddition = (n1, n2, steps, setRemember) => {
-  // Lấy độ dài lớn nhất giữa hai số
+export const handleAddition = (n1, n2, steps, setRemember, t) => {
   const maxLength = Math.max(n1.toString().length, n2.toString().length);
-  // Chuyển 2 số thành chuỗi và thêm số 0 ở đầu nếu cần để bằng độ dài
   const str1 = n1.toString().padStart(maxLength, "0");
   const str2 = n2.toString().padStart(maxLength, "0");
-  // Tách các chữ số và đảo ngược để cộng từ phải sang trái
   const digits1 = str1.split("").reverse();
   const digits2 = str2.split("").reverse();
-  const resultDigits = []; // Mảng lưu chữ số kết quả từng cột
-  const carryDigits = []; // Mảng lưu số nhớ tại mỗi cột
-  const subSteps = []; // Mảng mô tả từng bước
-  let carry = 0; // Số nhớ ban đầu
-  // Tên gọi vị trí các chữ số (hàng đơn vị, chục, trăm,...)
+  const resultDigits = [];
+  const carryDigits = [];
+  const subSteps = [t("addition.step_intro")];
+  let carry = 0;
+
   const labelMap = [
     "Units",
     "Tens",
@@ -25,49 +21,64 @@ export const handleAddition = (n1, n2, steps, setRemember) => {
     "Hundred millions",
     "Billions",
   ];
-  // Thực hiện cộng từng cột từ phải sang trái
+
   for (let i = 0; i < digits1.length; i++) {
     const d1 = parseInt(digits1[i]);
     const d2 = parseInt(digits2[i]);
-    const sum = d1 + d2 + carry; // Tổng = chữ số 1 + chữ số 2 + số nhớ
-    const resultDigit = sum % 10; // Lấy chữ số hàng đơn vị
-    const carryOut = Math.floor(sum / 10); // Lấy số nhớ (hàng chục trở lên)
-    carryDigits.push(carry); // Lưu số nhớ trước khi cộng
-    resultDigits.push(resultDigit); // Lưu chữ số kết quả
-    // Mô tả bước cộng hiện tại
+    const sum = d1 + d2 + carry;
+    let resultDigit = sum % 10;
+    let carryOut = Math.floor(sum / 10);
+
+    // if (i === digits1.length - 1 && carryOut > 0) {
+    //   resultDigit = sum; // hiển thị toàn bộ
+    //   carryOut = 0;
+    // }
+
+    carryDigits.push(carry);
+    resultDigits.push(resultDigit);
+
     const label = labelMap[i] || `10^${i}`;
     subSteps.push(
-      `Step ${i + 1}: Add ${label} digits: ${d1} + ${d2}` +
-        (carry > 0 ? ` + ${carry} (carry)` : "") +
-        ` = ${sum}, write ${resultDigit}` +
-        (carryOut > 0 ? `, carry ${carryOut}.` : ".")
+      t("addition.step_normal", {
+        step: i + 1,
+        label,
+        d1,
+        d2,
+        carryStr: carry > 0 ? ` + ${carry}` : "",
+        sum,
+        resultDigit,
+        carryOutStr: carryOut > 0 ? `, nhớ ${carryOut}` : "",
+      })
     );
-    carry = carryOut; // Cập nhật số nhớ cho bước sau
+
+    carry = carryOut;
   }
-  // Nếu còn dư số nhớ sau bước cuối thì thêm vào kết quả
+
   if (carry > 0) {
     resultDigits.push(carry);
-    carryDigits.push(0); // Vị trí này không có số nhớ mới nên ghi 0
+    carryDigits.push(0);
   }
-  // Đảo ngược mảng kết quả để hiển thị từ trái sang phải
+
   const finalDigits = [...resultDigits].reverse();
   const padLength = finalDigits.length;
-  // Hàm phụ trợ: thêm số 0 vào đầu mảng để đủ độ dài padLength
   const padArrayStart = (arr, len) =>
     Array(len - arr.length)
-      .fill(0)
+      .fill("")
       .concat(arr);
-  // Ghi dữ liệu vào steps[2] để hiển thị các dòng trên UI
-  steps[2].digits1 = padArrayStart([...digits1].reverse(), padLength); // Số thứ nhất
-  steps[2].digits2 = padArrayStart([...digits2].reverse(), padLength); // Số thứ hai
-  steps[2].carryDigits = padArrayStart([...carryDigits].reverse(), padLength); // Số nhớ
-  steps[2].digitSums = finalDigits; // Các chữ số kết quả
-  steps[2].result = finalDigits.join("").replace(/^0+/, "") || "0"; // Chuỗi kết quả (loại bỏ 0 ở đầu)
-  steps[2].subText = subSteps.join("\n"); // Chuỗi mô tả các bước
-  // Ghi kết quả tổng kết vào bước 3
+
+  steps[2].digits1 = padArrayStart([...digits1].reverse(), padLength);
+  steps[2].digits2 = padArrayStart([...digits2].reverse(), padLength);
+  steps[2].carryDigits = padArrayStart([...carryDigits].reverse(), padLength);
+  steps[2].digitSums = finalDigits;
+  steps[2].result = finalDigits.join("").replace(/^0+/, "") || "0";
+  steps[2].subText = subSteps;
   steps[3].result = (n1 + n2).toString();
-  steps[3].subText = `Final result: ${n1} + ${n2} = ${steps[3].result}`;
-  // Nếu có hàm setRemember thì truyền vào số nhớ cuối cùng (nếu có)
+  steps[3].subText = t("addition.final_result", {
+    num1: n1,
+    num2: n2,
+    result: steps[3].result,
+  });
+
   if (setRemember) {
     setRemember(carry > 0 ? carry.toString() : "");
   }

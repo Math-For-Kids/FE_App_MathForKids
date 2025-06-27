@@ -3,12 +3,10 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
   const str2 = n2.toString();
   const digits1 = str1.split("").map(Number).reverse();
   const digits2 = str2.split("").map(Number).reverse();
-
   const partials = [];
   const carryRows = [];
   const subSteps = [];
   const subStepsMeta = [];
-
   const positionLabels = [
     t("place.units"),
     t("place.tens"),
@@ -18,14 +16,11 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     t("place.hundred_thousands"),
     t("place.millions"),
   ];
-
   steps[2] = steps[2] || {};
   steps[2].rowSteps = [];
   steps[2].rowIntros = [];
-
   digits2.forEach((d2, rowIndex) => {
     const labelRow = positionLabels[rowIndex] || `10^${rowIndex}`;
-
     const intro = t("multiplication.step_intro", {
       step: rowIndex + 1,
       label: labelRow,
@@ -33,11 +28,9 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     subSteps.push(intro);
     subStepsMeta.push({ type: "row_intro", rowIndex });
     steps[2].rowIntros.push(intro);
-
     if (rowIndex > 0) {
       subSteps.push(t("multiplication.step_zero_rule"));
       subStepsMeta.push({ type: "zero_rule", rowIndex });
-
       subSteps.push(
         t("multiplication.shift_zero", {
           label: labelRow,
@@ -46,24 +39,21 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
       );
       subStepsMeta.push({ type: "shift", rowIndex });
     }
-
     let carry = 0;
     const rowRaw = [];
     const rowFinal = [];
     const carryRow = [];
-
     digits1.forEach((d1, colIndex) => {
       const product = d1 * d2;
       const sum = product + carry;
-      const digit = product % 10;
+      // const digit = product % 10;
+      const digit = sum % 10;
       const carryNow = Math.floor(product / 10);
       const nextCarry = Math.floor(sum / 10);
       const nextDigit = sum % 10;
       const isLast = digits1.length === 1 || colIndex === digits1.length - 1;
       console.log(`[DEBUG] carry = ${carry}, isLast = ${isLast}`);
-
       let explain = "";
-
       if (colIndex === 0 && nextCarry > 0) {
         // Vị trí đầu tiên, dùng nextCarry
         explain = t("multiplication.step_detail_with_next", {
@@ -93,7 +83,6 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
           digit,
         });
       }
-
       subSteps.push(explain);
       subStepsMeta.push({
         type: isLast ? "detail_final_digit" : "detail",
@@ -107,7 +96,6 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
         digit,
         nextCarry,
       });
-
       if (carry > 0) {
         let addCarry;
 
@@ -132,7 +120,6 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
             nextCarry,
           });
         }
-
         subSteps.push(addCarry);
         subStepsMeta.push({
           type: "carry_add",
@@ -146,7 +133,6 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
           isLast,
         });
       }
-
       subSteps.push(
         t("multiplication.reveal_digit", {
           d2,
@@ -164,7 +150,6 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
         product: sum,
         digitsToReveal: isLast ? String(sum).length : 1,
       });
-
       rowRaw.unshift(product);
       rowFinal.unshift(digit);
       if (!isLast) {
@@ -174,16 +159,13 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
       }
       carry = nextCarry;
     });
-
     if (carry > 0) {
       rowFinal.unshift(carry);
       carryRow.unshift(" ");
     }
-
     const shiftZeros = Array(rowIndex).fill(0);
     const fullRow = rowFinal.concat(shiftZeros);
     const fullCarry = carryRow.concat(Array(rowIndex).fill(" "));
-
     partials.push(fullRow.map(String).join(""));
     carryRows.push(fullCarry);
     steps[2].rowSteps.push({
@@ -192,14 +174,17 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
       carryRow: fullCarry,
     });
   });
-
   const finalResult = partials.reduce((acc, val) => acc + parseInt(val), 0);
-
   if (partials.length >= 2) {
     const maxLen = Math.max(...partials.map((p) => p.length));
     const padded = partials.map((p) =>
       p.padStart(maxLen, "0").split("").map(Number)
     );
+    console.log("[DEBUG] Partial Rows After Padding:");
+    padded.forEach((row, i) => {
+      console.log(`Row ${i + 1}: ${row.join(" ")}`);
+      6;
+    });
 
     let carry = 0;
     for (let col = maxLen - 1; col >= 0; col--) {
@@ -207,11 +192,15 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
       const colSum = colDigits.reduce((a, b) => a + b, 0) + carry;
       const digit = colSum % 10;
       const nextCarry = Math.floor(colSum / 10);
-
       const label =
         positionLabels[maxLen - 1 - col] || `10^${maxLen - 1 - col}`;
-
       const isFirstColumn = col === maxLen - 1;
+
+      console.log(
+        `[COLUMN ADD] Cột ${label}: ${colDigits.join(
+          " + "
+        )} + ${carry} = ${colSum} → viết ${digit}, nhớ ${nextCarry}`
+      );
       const stepText = t("multiplication.step_add_column", {
         label,
         digits: colDigits.join(" + "),
@@ -222,7 +211,6 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
         finalNote: isFirstColumn ? t("multiplication.first_add_note") : "",
       });
       subSteps.push(stepText);
-
       subStepsMeta.push({
         type: "vertical_add",
         column: maxLen - 1 - col,
@@ -231,15 +219,12 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
         digit,
         nextCarry,
       });
-
       carry = nextCarry;
     }
-
     if (carry > 0) {
       subSteps.push(t("multiplication.step_final_carry", { carry }));
       subStepsMeta.push({ type: "final_carry", carry });
     }
-
     subSteps.push(
       t("multiplication.final_result", {
         expression: partials.join(" + "),
@@ -256,22 +241,18 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     );
     subStepsMeta.push({ type: "final_result", result: finalResult });
   }
-
   steps[2].digits = str1.split("");
   steps[2].multiplierDigits = str2.split("");
   steps[2].partials = partials;
   steps[2].carryRows = carryRows;
   console.log("[DEBUG] carryRows =", JSON.stringify(carryRows));
-
   steps[2].subSteps = subSteps;
   steps[2].subStepsMeta = subStepsMeta;
-
   steps[2].positionLabels = Array.from({
     length: finalResult.toString().length,
   }).map(
     (_, i) => positionLabels[finalResult.toString().length - 1 - i] || `10^${i}`
   );
-
   steps[3] = steps[3] || {};
   steps[3].result = finalResult.toString();
   steps[3].subText = t("multiplication.summary", {

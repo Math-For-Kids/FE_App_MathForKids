@@ -1,65 +1,253 @@
-// export const handleDivision = (n1, n2, steps, setRemember) => {
-//   if (n2 === 0) {
-//     steps[3].result = "Không chia được";
-//     steps[2].subText = "Không thể chia cho 0.";
-//     return;
-//   }
+export const handleDivision = (n1, n2, steps, setRemember) => {
+  if (n2 === 0) {
+    steps[3].result = "Cannot divide";
+    steps[2].subText = "Cannot divide by 0.";
+    return;
+  }
 
-//   const dividendStr = n1.toString();
-//   const dividend = dividendStr.split("").map(Number);
-//   let current = 0;
-//   let quotient = "";
-//   let stepsDisplay = [];
+  const sign = Math.sign(n1) * Math.sign(n2);
+  const absN1 = Math.abs(n1);
+  const absN2 = Math.abs(n2);
 
-//   let started = false;
+  const dividendStr = absN1.toString();
+  const dividend = dividendStr.split("").map(Number);
+  let current = 0;
+  let quotient = "";
+  let stepsDisplay = [];
+  let subSteps = [];
+  let started = false;
+  let firstDividendLength = 0;
 
-//   for (let i = 0; i < dividend.length; i++) {
-//     current = current * 10 + dividend[i];
+  let stepCounter = 1;
+  let divisionCount = 0;
 
-//     if (!started) {
-//       if (current < n2) {
-//         quotient += "0"; // có thể ẩn nếu muốn
-//         continue;
-//       } else {
-//         started = true;
-//       }
-//     }
+  const adjustIndent = (baseIndent) => {
+    if (firstDividendLength === 1) return baseIndent - 1;
+    if (firstDividendLength === 3) return baseIndent + 1;
+    return baseIndent;
+  };
 
-//     const qDigit = Math.floor(current / n2);
-//     const sub = qDigit * n2;
-//     const remainder = current - sub;
+  for (let i = 0; i < dividend.length; i++) {
+    current = current * 10 + dividend[i];
 
-//     stepsDisplay.push({
-//       part: current.toString(),
-//       minus: sub.toString(),
-//       remainder: remainder.toString(),
-//       position: i,
-//     });
+    if (!started) {
+      if (current < absN2) {
+        subSteps.push({
+          key: "step_choose_number",
+          params: {
+            step: stepCounter++,
+            current,
+            divisor: absN2,
+            comparisonKey: "less",
+            explanationKey: "less",
+            indent: divisionCount,
+            visualIndent: divisionCount,
+          },
+        });
 
-//     quotient += qDigit.toString();
-//     current = remainder;
-//   }
+        if (i + 1 < dividend.length) {
+          subSteps.push({
+            key: "step_bring_down",
+            params: {
+              step: stepCounter++,
+              nextDigit: dividend[i + 1],
+              afterBringDown: current.toString() + dividend[i + 1].toString(),
+              indent: divisionCount,
+              visualIndent: divisionCount,
+            },
+          });
+        }
+        continue;
+      } else {
+        firstDividendLength = current.toString().length;
+        subSteps.push({
+          key: "step_choose_number",
+          params: {
+            step: stepCounter++,
+            current,
+            divisor: absN2,
+            comparisonKey: "greater_equal",
+            explanationKey: "greater_equal",
+            indent: divisionCount,
+            visualIndent: adjustIndent(divisionCount),
+          },
+        });
+        started = true;
+      }
+    }
 
-//   if (current !== 0) {
-//     stepsDisplay.push({
-//       part: current.toString(),
-//       minus: "0",
-//       remainder: current.toString(),
-//       position: dividend.length - 1,
-//     });
-//   }
+    if (!started) started = true;
 
-//   const remainder = current;
-//   const cleanedQuotient = quotient.replace(/^0+/, "") || "0";
+    const qDigit = Math.floor(current / absN2);
+    const sub = qDigit * absN2;
+    const remainder = current - sub;
 
-//   steps[2].divisionSteps = stepsDisplay;
-//   steps[2].quotient = cleanedQuotient;
-//   steps[2].dividend = dividendStr;
-//   steps[2].divisor = n2.toString();
-//   steps[2].remainder = remainder.toString();
-//   steps[2].subText = "Chia theo từng bước (chia cột)";
-//   steps[3].result = `${cleanedQuotient} dư ${remainder}`;
-//   steps[3].subText = `Kết quả cuối cùng là: ${cleanedQuotient} dư ${remainder}`;
+    subSteps.push({
+      key: "step_divide",
+      params: {
+        step: stepCounter++,
+        current,
+        divisor: absN2,
+        result: qDigit,
+        indent: divisionCount,
+        visualIndent: adjustIndent(divisionCount),
+      },
+    });
 
-//   setRemember(remainder > 0 ? `Dư ${remainder}` : "");
-// };
+    const productLength = sub.toString().length;
+    let productIndent;
+
+    // Xử lý đặc biệt khi bước đầu tiên có số đầu tiên là 3 chữ số
+    if (
+      divisionCount === 0 &&
+      firstDividendLength === 3 &&
+      productLength === 3
+    ) {
+      productIndent = divisionCount - 1;
+    } else if (
+      divisionCount === 1 &&
+      firstDividendLength === 3 &&
+      productLength === 3
+    ) {
+      productIndent = divisionCount - 1;
+    } else if (
+      divisionCount === 3 &&
+      firstDividendLength === 2 &&
+      productLength === 2
+    ) {
+      productIndent = divisionCount;
+    } else if (
+      (productLength === 3 &&
+        divisionCount === 3 &&
+        firstDividendLength === 2) ||
+      (productLength === 3 && divisionCount === 2)
+    ) {
+      productIndent = divisionCount - 1;
+    } else if (productLength === 2 && divisionCount === 3) {
+      productIndent = divisionCount + 1;
+    } else if (productLength === 1) {
+      productIndent = divisionCount + 1;
+    } else {
+      productIndent = divisionCount;
+    }
+
+    subSteps.push({
+      key: "step_multiply",
+      params: {
+        step: stepCounter++,
+        result: qDigit,
+        divisor: absN2,
+        product: sub,
+        indent: productIndent,
+        visualIndent: adjustIndent(productIndent),
+      },
+    });
+
+    const remainderLength = remainder.toString().length;
+    const remainderIndent =
+      remainderLength === 1 ? divisionCount + 1 : divisionCount;
+
+    subSteps.push({
+      key: "step_subtract",
+      params: {
+        step: stepCounter++,
+        current,
+        product: sub,
+        remainder,
+        indent: remainderIndent,
+        visualIndent: adjustIndent(remainderIndent),
+      },
+    });
+
+    if (i + 1 < dividend.length) {
+      const comparisonKey = remainder < absN2 ? "less" : "greater_equal";
+
+      subSteps.push({
+        key: "step_choose_number",
+        params: {
+          step: stepCounter++,
+          current: remainder,
+          divisor: absN2,
+          comparisonKey,
+          explanationKey: comparisonKey,
+          indent: divisionCount + 1,
+          visualIndent: adjustIndent(divisionCount + 1),
+        },
+      });
+
+      const bringDownIndent =
+        remainderLength === 1 ? divisionCount + 1 : divisionCount;
+
+      subSteps.push({
+        key: "step_bring_down",
+        params: {
+          step: stepCounter++,
+          nextDigit: dividend[i + 1],
+          afterBringDown: remainder.toString() + dividend[i + 1].toString(),
+          indent: bringDownIndent,
+          visualIndent: adjustIndent(bringDownIndent),
+        },
+      });
+    }
+
+    stepsDisplay.push({
+      part: current.toString(),
+      minus: sub.toString(),
+      remainder: remainder.toString(),
+      quotientDigit: qDigit.toString(),
+      position: i,
+      indent: divisionCount,
+      drawLine: true,
+      broughtDown: dividend[i + 1]?.toString(),
+      afterBringDown:
+        i + 1 < dividend.length
+          ? remainder.toString() + dividend[i + 1].toString()
+          : undefined,
+    });
+
+    current = remainder;
+    quotient += qDigit.toString();
+    divisionCount++;
+  }
+
+  if (!started) {
+    stepsDisplay.push({
+      part: absN1.toString(),
+      minus: "0",
+      remainder: absN1.toString(),
+      quotientDigit: "0",
+      position: 0,
+      indent: 0,
+      drawLine: false,
+    });
+
+    subSteps.push({
+      key: "step_cannot_divide",
+      params: {
+        step: 1,
+        dividend: absN1,
+        divisor: absN2,
+        indent: 0,
+        visualIndent: 0,
+      },
+    });
+
+    quotient = "0";
+  }
+
+  const remainder = current;
+  const cleanedQuotient = quotient.replace(/^0+/, "") || "0";
+  const finalQuotient = sign < 0 ? `-${cleanedQuotient}` : cleanedQuotient;
+
+  steps[2].dividend = absN1.toString();
+  steps[2].divisor = absN2.toString();
+  steps[2].quotient = finalQuotient;
+  steps[2].remainder = remainder.toString();
+  steps[2].divisionSteps = stepsDisplay;
+  steps[2].subSteps = subSteps;
+  steps[2].subText = "Step-by-step division (long division)";
+  steps[3].result = `${finalQuotient} remainder ${remainder}`;
+  steps[3].subText = `Final result: ${finalQuotient} remainder ${remainder}`;
+
+  setRemember(remainder > 0 ? `Remainder ${remainder}` : "");
+};
