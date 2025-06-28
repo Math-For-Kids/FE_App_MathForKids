@@ -4,5 +4,17 @@
   "quantity": "Quantity: {{count}} questions",
   "time": "Time: {{minutes}} min",
   "level": "Level: {{level}}",
-  "calculation_steps": "Calculation steps"
+  "calculation_steps": "Calculation steps",
+  "error": "Lỗi",
+  "ok": "Đồng ý",
+  "loadingExercises": "Đang tải bài tập...",
+  "errorLoadingExercises": "Không thể tải bài tập",
+  "pupilIdMissing": "Thiếu ID học sinh",
+  "failedToSubmitExercise": "Không thể nộp bài tập",
+  "chooseCorrectAnswer": "Chọn đáp án đúng",
+  "question": "Câu hỏi",
+  "submitting": "Đang nộp...",
+  "submit": "Nộp bài",
+  "confirmSubmission": "Xác nhận gửi",
+  "confirmSubmissionMessage": "Bạn có chắc chắn muốn gửi câu trả lời của mình không?"
 }

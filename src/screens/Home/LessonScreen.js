@@ -20,7 +20,7 @@ import * as Speech from "expo-speech";
 
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, grade, pupilId } = route.params;
+  const { skillName, grade, pupilId, skillIcon } = route.params;
   const { t } = useTranslation("lesson");
   const { t: c } = useTranslation("common");
   const dispatch = useDispatch();
@@ -90,6 +90,10 @@ export default function LessonScreen({ navigation, route }) {
       marginLeft: 20,
       padding: 8,
       borderRadius: 50,
+    },
+    backIcon: {
+      width: 24,
+      height: 24,
     },
     headerText: {
       fontSize: 32,
@@ -162,7 +166,7 @@ export default function LessonScreen({ navigation, route }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerText}>{t("lesson")}</Text>
       </LinearGradient>
@@ -178,10 +182,12 @@ export default function LessonScreen({ navigation, route }) {
                   alert(t("lockedLesson"));
                   return;
                 }
-                navigation.navigate("LessonDetailScreen", {
+                navigation.navigate("SkillScreen", {
                   skillName,
                   title,
+                  skillIcon: skillIcon,
                   lessonId: item.id,
+                  pupilId: pupilId,
                 });
               }}
               activeOpacity={item.isBlock ? 1 : 0.7}

@@ -62,29 +62,29 @@ export default function HomeScreen({ navigation, route }) {
         {
           icon: theme.icons.addition,
           label: "Addition",
-          route: "SkillScreen",
+          route: "LessonScreen",
           borderColor: theme.colors.greenDark,
         },
         {
           icon: theme.icons.subtraction,
           label: "Subtraction",
-          route: "SkillScreen",
+          route: "LessonScreen",
         },
       ];
     }
     return [
-      { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
+      { icon: theme.icons.addition, label: "Addition", route: "LessonScreen" },
       {
         icon: theme.icons.subtraction,
         label: "Subtraction",
-        route: "SkillScreen",
+        route: "LessonScreen",
       },
       {
         icon: theme.icons.multiplication,
         label: "Multiplication",
-        route: "SkillScreen",
+        route: "LessonScreen",
       },
-      { icon: theme.icons.division, label: "Division", route: "SkillScreen" },
+      { icon: theme.icons.division, label: "Division", route: "LessonScreen" },
       {
         icon: theme.icons.multiplicationTables,
         label: "Expression",
@@ -356,7 +356,7 @@ export default function HomeScreen({ navigation, route }) {
                 skillName: item.label,
                 skillIcon: item.icon,
                 grade: selectedGrade,
-                pupilId: pupilId, 
+                pupilId: pupilId,
               })
             }
           >
