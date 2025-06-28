@@ -409,6 +409,8 @@ export default function ExerciseScreen({ navigation, route }) {
           // const firstRowOptions = options.slice(0, midPoint);
           // const secondRowOptions = options.slice(midPoint);
 
+
+          
           return (
             <View key={q.id} style={styles.questionContainer}>
               <Text style={styles.questionText}>{t("question")} {ind + 1}</Text>
