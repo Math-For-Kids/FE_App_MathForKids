@@ -1,18 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import * as Speech from "expo-speech";
 import { useTheme } from "../../../themes/ThemeContext";
 import { Fonts } from "../../../../constants/Fonts";
+import { useTranslation } from "react-i18next";
 
-
-export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
+export const AdditionStepView = ({ steps, placeLabels, skillName, columnStepIndex }) => {
   const { theme } = useTheme();
-  const [currentStep, setCurrentStep] = useState(0);
+  const { t } = useTranslation("addition");
+  const currentStep = columnStepIndex ?? 0;
 
   if (!steps[2]?.digitSums) return null;
 
-  const totalSteps = steps[2].digitSums.length + 1; // Chỉ +1 để có bước final result
-  const labels = placeLabels.slice(0, steps[2].digitSums.length).reverse();
+  const totalSteps = steps[2].digitSums.length + 1;
+  const labels = placeLabels.slice(0, steps[2].digitSums.length);
+
+  const subTextLines = Array.isArray(steps[2].subText)
+    ? steps[2].subText.slice().reverse()
+    : [];
+
+  const activeColor = theme.colors.orangeDark;
+  const defaultColor = theme.colors.black;
+  const carryColor = theme.colors.blueGray;
 
   const getSkillColor = () => {
     switch (skillName) {
@@ -24,12 +33,8 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
     }
   };
 
-  const subTextLines = Array.isArray(steps[2].subText)
-    ? steps[2].subText.slice().reverse()
-    : [];
-
   const styles = StyleSheet.create({
-    container: { alignItems: "center", marginTop: 10 },
+    container: { alignItems: "center"},
     row: { flexDirection: "row-reverse", marginBottom: 4 },
     labelText: {
       width: 50, textAlign: "center", fontSize: 8,
@@ -37,24 +42,20 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
     },
     carryText: {
       width: 50, textAlign: "center", fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK, color: theme.colors.blueGray,
+      fontFamily: Fonts.NUNITO_BLACK,
     },
     num1Text: {
       width: 50, textAlign: "center", fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK, color: theme.colors.black,
+      fontFamily: Fonts.NUNITO_BLACK,
     },
     num2Text: {
       width: 50, textAlign: "center", fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK, color: theme.colors.black,
+      fontFamily: Fonts.NUNITO_BLACK,
     },
     lineRow: { marginTop: 2 },
-    lineText: {
-      width: 50, textAlign: "center", fontSize: 20,
-      fontFamily: Fonts.NUNITO_BLACK, color: theme.colors.grayDark,
-    },
     resultText: {
       width: 50, textAlign: "center", fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK, color: getSkillColor(),
+      fontFamily: Fonts.NUNITO_BLACK,
     },
     explanationText: {
       fontSize: 14, fontFamily: Fonts.NUNITO_BLACK,
@@ -65,36 +66,56 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
       fontSize: 32, fontFamily: Fonts.NUNITO_BLACK,
       color: "red", marginTop: 10,
     },
-    plusOverlay: {
-      position: "absolute", left: 120, top: 60,
-      fontSize: 20, fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.black, zIndex: 10,
-      width: 30, textAlign: "center",
+    line: {
+      height: 2,
+      backgroundColor: theme.colors.grayDark,
+      marginTop: 2,
     },
   });
 
   return (
     <View style={styles.container}>
+      {/* Row 1: Place Labels */}
       <View style={styles.row}>
         {labels.map((label, i) => (
-          <Text key={`label-${i}`} style={styles.labelText}>{label}</Text>
+          <Text key={`label-${i}`} style={styles.labelText}>{t(`label_${label.toLowerCase()}`)}</Text>
         ))}
       </View>
 
+      {/* Row 2: Carry Digits */}
       <View style={styles.row}>
-        {steps[2].carryDigits.slice().reverse().map((carry, i) => (
-          <Text key={`carry-${i}`} style={styles.carryText}>
-            {carry > 0 && currentStep > i + 1 ? carry : " "}
+        {steps[2].carryDigits.slice().reverse().map((carry, i) => {
+          const highlight = carry > 0 && currentStep > i + 1;
+          return (
+            <Text
+              key={`carry-${i}`}
+              style={[
+                styles.carryText,
+                { color: highlight ? activeColor : carryColor }
+              ]}
+            >
+              {highlight ? carry : " "}
+            </Text>
+          );
+        })}
+      </View>
+
+      {/* Row 3: Number 1 Digits */}
+      <View style={styles.row}>
+        {steps[2].digits1.slice().reverse().map((digit, i) => (
+          <Text
+            key={`num1-${i}`}
+            style={[
+              styles.num1Text,
+              { color: currentStep - 1 === i ? getSkillColor() : defaultColor }
+            ]}
+          >
+            {digit}
           </Text>
         ))}
       </View>
 
-      <View style={styles.row}>
-        {steps[2].digits1.slice().reverse().map((digit, i) => (
-          <Text key={`num1-${i}`} style={styles.num1Text}>{digit}</Text>
-        ))}
-      </View>
-
+      {/* Row 4: + symbol spacer */}
       <View style={styles.row}>
         {steps[2].digits2.slice().reverse().map((_, i) => (
           <Text
@@ -109,97 +130,76 @@ export const AdditionStepView = ({ steps, placeLabels, skillName }) => {
         ))}
       </View>
 
-
+      {/* Row 5: Number 2 Digits */}
       <View style={styles.row}>
         {steps[2].digits2.slice().reverse().map((digit, i) => (
-          <Text key={`num2-${i}`} style={styles.num2Text}>{digit}</Text>
+          <Text
+            key={`num2-${i}`}
+            style={[
+              styles.num2Text,
+              { color: currentStep - 1 === i ? getSkillColor() : defaultColor }
+            ]}
+          >
+            {digit}
+          </Text>
         ))}
       </View>
 
-
-
-      <View style={[styles.row, styles.lineRow]}>
-        {steps[2].digitSums.map((_, i) => (
-          <Text key={`line-${i}`} style={styles.lineText}>―</Text>
-        )).reverse()}
+      {/* Row 6: Line */}
+      <View style={styles.row}>
+        <View style={[styles.line, { width: 50 * steps[2].digitSums.length }]} />
       </View>
 
+      {/* Row 7: Result Sums */}
       <View style={styles.row}>
         {steps[2].digitSums.slice().reverse().map((digit, i) => (
           <TouchableOpacity
             key={`sum-${i}`}
             onPress={() => {
               const toSpeak = subTextLines[i];
-              if (toSpeak) Speech.speak(toSpeak, { language: "en-US" });
+              if (toSpeak) Speech.speak(t(toSpeak), { language: "en-US" });
             }}
           >
-            <Text style={styles.resultText}>
+            <Text
+              style={[
+                styles.resultText,
+                {
+                  color:
+                    currentStep < totalSteps && currentStep - 1 === i
+                      ? getSkillColor()
+                      : theme.colors.black
+
+                }
+              ]}
+            >
               {currentStep > i ? digit : "?"}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
+      {/* Explanation text */}
       {currentStep > 0 && currentStep <= subTextLines.length && (
         <Text style={styles.explanationText}>
-          {subTextLines[subTextLines.length - currentStep]}
+          {t(subTextLines[subTextLines.length - currentStep])}
         </Text>
       )}
 
-
+      {/* Final result */}
       {currentStep === totalSteps && (
         <>
           <Text style={styles.explanationText}>
-            Final result: {steps[2].digits1.join("")} + {steps[2].digits2.join("")} = {steps[2].digitSums.join("")}
+            {t("final_result", {
+              num1: steps[2].digits1.join(""),
+              num2: steps[2].digits2.join(""),
+              result: steps[2].digitSums.join("")
+            })}
           </Text>
           <Text style={styles.finalResultText}>
             {steps[2].digitSums.join("")}
           </Text>
         </>
       )}
-
-      <View style={{ flexDirection: "row", marginTop: 16, gap: 12 }}>
-        {currentStep > 0 && (
-          <TouchableOpacity
-            onPress={() => setCurrentStep((prev) => Math.max(prev - 1, 0))}
-          >
-            <Text
-              style={{
-                backgroundColor: "#f44336",
-                color: "white",
-                paddingVertical: 10,
-                paddingHorizontal: 25,
-                borderRadius: 10,
-                fontSize: 18,
-                fontFamily: Fonts.NUNITO_BLACK,
-              }}
-            >
-              Back
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {currentStep < totalSteps - 1 && (
-          <TouchableOpacity
-            onPress={() => setCurrentStep((prev) => prev + 1)}
-          >
-            <Text
-              style={{
-                backgroundColor: "#4CAF50",
-                color: "white",
-                paddingVertical: 10,
-                paddingHorizontal: 25,
-                borderRadius: 10,
-                fontSize: 18,
-                fontFamily: Fonts.NUNITO_BLACK,
-              }}
-            >
-              Next
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
     </View>
   );
 };

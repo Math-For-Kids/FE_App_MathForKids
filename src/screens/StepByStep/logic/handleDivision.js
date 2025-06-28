@@ -1,7 +1,7 @@
 export const handleDivision = (n1, n2, steps, setRemember) => {
   if (n2 === 0) {
-    steps[3].result = "Không chia được";
-    steps[2].subText = "Không thể chia cho 0.";
+    steps[3].result = "Cannot divide";
+    steps[2].subText = "Cannot divide by 0.";
     return;
   }
 
@@ -16,50 +16,64 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
   let stepsDisplay = [];
   let subSteps = [];
   let started = false;
+  let firstDividendLength = 0;
+
+  let stepCounter = 1;
+  let divisionCount = 0;
+
+  const adjustIndent = (baseIndent) => {
+    if (firstDividendLength === 1) return baseIndent - 1;
+    if (firstDividendLength === 3) return baseIndent + 1;
+    return baseIndent;
+  };
 
   for (let i = 0; i < dividend.length; i++) {
     current = current * 10 + dividend[i];
 
-    if (!started && current < absN2) {
-      quotient += "0";
-
-      if (i + 1 < dividend.length) {
-        const afterBringDown = current.toString() + dividend[i + 1].toString();
-
-        subSteps.push(
-          `Bước ${i + 1}: ${current} nhỏ hơn ${absN2}, không chia được. `
-          + `Hạ ${dividend[i + 1]} xuống tạo thành ${afterBringDown}.`
-        );
-
-        stepsDisplay.push({
-          part: current.toString(),
-          minus: "",
-          remainder: current.toString(),
-          quotientDigit: "0",
-          position: i,
-          indent: i,
-          drawLine: false,
-          broughtDown: dividend[i + 1].toString(),
-          afterBringDown,
+    if (!started) {
+      if (current < absN2) {
+        subSteps.push({
+          key: "step_choose_number",
+          params: {
+            step: stepCounter++,
+            current,
+            divisor: absN2,
+            comparisonKey: "less",
+            explanationKey: "less",
+            indent: divisionCount,
+            visualIndent: divisionCount,
+          },
         });
+
+        if (i + 1 < dividend.length) {
+          subSteps.push({
+            key: "step_bring_down",
+            params: {
+              step: stepCounter++,
+              nextDigit: dividend[i + 1],
+              afterBringDown: current.toString() + dividend[i + 1].toString(),
+              indent: divisionCount,
+              visualIndent: divisionCount,
+            },
+          });
+        }
+        continue;
       } else {
-        subSteps.push(
-          `Bước ${i + 1}: ${current} nhỏ hơn ${absN2}, không chia được. Viết 0 vào thương.`
-        );
-
-        stepsDisplay.push({
-          part: current.toString(),
-          partDigits: current.toString().split(""), // thêm dòng này
-          minus: "",
-          remainder: current.toString(),
-          quotientDigit: "0",
-          position: i,
-          indent: i,
-          drawLine: false,
+        firstDividendLength = current.toString().length;
+        subSteps.push({
+          key: "step_choose_number",
+          params: {
+            step: stepCounter++,
+            current,
+            divisor: absN2,
+            comparisonKey: "greater_equal",
+            explanationKey: "greater_equal",
+            indent: divisionCount,
+            visualIndent: adjustIndent(divisionCount),
+          },
         });
+        started = true;
       }
-
-      continue;
     }
 
     if (!started) started = true;
@@ -68,29 +82,111 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
     const sub = qDigit * absN2;
     const remainder = current - sub;
 
-    const step = {
+    subSteps.push({
+      key: "step_divide",
+      params: {
+        step: stepCounter++,
+        current,
+        divisor: absN2,
+        result: qDigit,
+        indent: divisionCount,
+        visualIndent: adjustIndent(divisionCount),
+      },
+    });
+
+    const productLength = sub.toString().length;
+    let productIndent;
+
+    // Xử lý đặc biệt khi bước đầu tiên có số đầu tiên là 3 chữ số
+    if (divisionCount === 0 && firstDividendLength === 3 && productLength === 3) {
+      productIndent = divisionCount - 1;
+    } else if (divisionCount === 1 && firstDividendLength === 3 && productLength === 3) {
+      productIndent = divisionCount - 1;
+    } else if (divisionCount === 3 && firstDividendLength === 2 && productLength === 2) {
+      productIndent = divisionCount;
+    } else if ((productLength === 3 && divisionCount === 3 && firstDividendLength === 2) || (productLength === 3 && divisionCount === 2)) {
+      productIndent = divisionCount - 1;
+    } else if (productLength === 2 && divisionCount === 3) {
+      productIndent = divisionCount + 1;
+    } else if (productLength === 1) {
+      productIndent = divisionCount + 1;
+    } else {
+      productIndent = divisionCount;
+    }
+
+
+    subSteps.push({
+      key: "step_multiply",
+      params: {
+        step: stepCounter++,
+        result: qDigit,
+        divisor: absN2,
+        product: sub,
+        indent: productIndent,
+        visualIndent: adjustIndent(productIndent),
+      },
+    });
+
+    const remainderLength = remainder.toString().length;
+    const remainderIndent = remainderLength === 1 ? divisionCount + 1 : divisionCount;
+
+    subSteps.push({
+      key: "step_subtract",
+      params: {
+        step: stepCounter++,
+        current,
+        product: sub,
+        remainder,
+        indent: remainderIndent,
+        visualIndent: adjustIndent(remainderIndent),
+      },
+    });
+
+    if (i + 1 < dividend.length) {
+      const comparisonKey = remainder < absN2 ? "less" : "greater_equal";
+
+      subSteps.push({
+        key: "step_choose_number",
+        params: {
+          step: stepCounter++,
+          current: remainder,
+          divisor: absN2,
+          comparisonKey,
+          explanationKey: comparisonKey,
+          indent: divisionCount + 1,
+          visualIndent: adjustIndent(divisionCount + 1),
+        },
+      });
+
+      const bringDownIndent = remainderLength === 1 ? divisionCount + 1 : divisionCount;
+
+      subSteps.push({
+        key: "step_bring_down",
+        params: {
+          step: stepCounter++,
+          nextDigit: dividend[i + 1],
+          afterBringDown: remainder.toString() + dividend[i + 1].toString(),
+          indent: bringDownIndent,
+          visualIndent: adjustIndent(bringDownIndent),
+        },
+      });
+    }
+
+    stepsDisplay.push({
       part: current.toString(),
       minus: sub.toString(),
       remainder: remainder.toString(),
       quotientDigit: qDigit.toString(),
       position: i,
-      indent: i,
+      indent: divisionCount,
       drawLine: true,
-    };
-
-    if (i + 1 < dividend.length) {
-      step.broughtDown = dividend[i + 1].toString();
-      step.afterBringDown = remainder.toString() + dividend[i + 1].toString();
-    }
-
-    stepsDisplay.push(step);
-    subSteps.push(
-      `Bước ${i + 1}: Lấy ${current} chia ${absN2} được ${qDigit}, viết ${qDigit} vào thương. `
-      + `${qDigit} × ${absN2} = ${sub}, trừ ra ${current} - ${sub} = ${remainder}.`
-    );
+      broughtDown: dividend[i + 1]?.toString(),
+      afterBringDown: i + 1 < dividend.length ? remainder.toString() + dividend[i + 1].toString() : undefined,
+    });
 
     current = remainder;
     quotient += qDigit.toString();
+    divisionCount++;
   }
 
   if (!started) {
@@ -103,7 +199,18 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
       indent: 0,
       drawLine: false,
     });
-    subSteps.push(`Bước 1: ${absN1} nhỏ hơn ${absN2}, không chia được, viết 0.`);
+
+    subSteps.push({
+      key: "step_cannot_divide",
+      params: {
+        step: 1,
+        dividend: absN1,
+        divisor: absN2,
+        indent: 0,
+        visualIndent: 0,
+      },
+    });
+
     quotient = "0";
   }
 
@@ -117,9 +224,9 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
   steps[2].remainder = remainder.toString();
   steps[2].divisionSteps = stepsDisplay;
   steps[2].subSteps = subSteps;
-  steps[2].subText = "Chia theo từng bước (chia cột)";
-  steps[3].result = `${finalQuotient} dư ${remainder}`;
-  steps[3].subText = `Kết quả cuối cùng là: ${finalQuotient} dư ${remainder}`;
+  steps[2].subText = "Step-by-step division (long division)";
+  steps[3].result = `${finalQuotient} remainder ${remainder}`;
+  steps[3].subText = `Final result: ${finalQuotient} remainder ${remainder}`;
 
-  setRemember(remainder > 0 ? `Dư ${remainder}` : "");
+  setRemember(remainder > 0 ? `Remainder ${remainder}` : "");
 };

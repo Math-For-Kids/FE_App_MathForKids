@@ -16,6 +16,8 @@ export const MultiplicationStepView = ({
   setRevealedResultDigits,
   multiplier1,
   multiplier2,
+  columnStepIndex,
+  setColumnStepIndex,
 }) => {
   const { theme } = useTheme();
   const positionLabels = steps[2]?.positionLabels || [];
@@ -64,10 +66,10 @@ export const MultiplicationStepView = ({
   const multiplierDigits = steps[2].multiplierDigits;
   const carryRows = steps[2].carryRows;
   const padResult = Math.max(maxLen - resultChars.length, 0);
-  console.log("maxLen", maxLen);
-  console.log("resultLen", steps[3].result.length);
-  console.log("padResult", padResult);
-  console.log("maxRowLength", maxRowLength);
+  // console.log("maxLen", maxLen);
+  // console.log("resultLen", steps[3].result.length);
+  // console.log("padResult", padResult);
+  // console.log("maxRowLength", maxRowLength);
   const getSkillColor = () => {
     if (skillName === "Addition") return theme.colors.GreenDark;
     if (skillName === "Subtraction") return theme.colors.purpleDark;
@@ -126,15 +128,15 @@ export const MultiplicationStepView = ({
       flexDirection: "row",
     },
     charWidth: {
-      width: 65,
+      width: 50,
     },
     textBase: {
-      width: 65,
+      width: 50,
       textAlign: "center",
       fontFamily: Fonts.NUNITO_BLACK,
     },
     digitsRow: {
-      width: 65,
+      width: 50,
       textAlign: "center",
       fontSize: 22,
       color: theme.colors.black,
@@ -159,12 +161,12 @@ export const MultiplicationStepView = ({
       fontSize: 20,
       textAlign: "left",
       marginRight: dynamicMarginRight,
-      width: 65,
+      width: 50,
       fontFamily: Fonts.NUNITO_BLACK,
       color: theme.colors.black,
     },
     multiplierDigit: {
-      width: 65,
+      width: 50,
       textAlign: "center",
       fontSize: 22,
       color: theme.colors.black,
@@ -186,7 +188,7 @@ export const MultiplicationStepView = ({
       marginTop: 12,
     },
     positionLabel: {
-      width: 65, // hoặc tính toán theo max label length * 8
+      width: 50,
       textAlign: "center",
       fontSize: 12,
       fontFamily: Fonts.NUNITO_BLACK,
@@ -230,7 +232,7 @@ export const MultiplicationStepView = ({
       </View>
 
       {/* Dòng 2: dấu × */}
-      <View style={{ width: maxLen * 65 }}>
+      <View style={{ width: maxLen * 50 }}>
         <Text style={styles.multiplySign}>×</Text>
       </View>
 
@@ -248,10 +250,13 @@ export const MultiplicationStepView = ({
         ))}
       </View>
 
-      <View style={[styles.divider, { width: maxLen * 65 }]} />
+      <View style={[styles.divider, { width: maxLen * 50 }]} />
 
       {/* Các dòng nhân và số nhớ */}
       {steps[2].partials.map((partial, i) => {
+        {
+          /* if (steps[2].partials.length === 1) return null; */
+        }
         const fullChars = partial.split("");
         const subSteps = steps[2]?.subText || [];
         const shiftLeft = 1;
@@ -264,13 +269,15 @@ export const MultiplicationStepView = ({
         );
 
         const offsetCarryLeft =
-          (maxLen - carryRows[i].length - 1 - shiftLeft) * 65;
+          (maxLen - carryRows[i].length - 1 - shiftLeft) * 50;
 
-        console.log("Dòng:", i);
+        {
+          /* console.log("Dòng:", i);
         console.log("fullChars", fullChars);
         console.log("padPartial", padPartial);
         console.log("carryRowLen", carryRows[i].length);
-        console.log("offsetCarryLeft", offsetCarryLeft);
+        console.log("offsetCarryLeft", offsetCarryLeft); */
+        }
 
         const partialChars =
           i < currentRowIndex
@@ -294,16 +301,16 @@ export const MultiplicationStepView = ({
             {/* HÀNG CARRY */}
             <View
               style={{
-                width: maxLen * 65,
+                width: maxLen * 50,
                 alignItems: "flex-end",
-                marginLeft: -65 * shiftLeft,
+                marginLeft: -50 * shiftLeft,
               }}
             >
               {renderRow(carryRow, padPartial, null, 0, styles.carryRow)}
             </View>
 
             {/* HÀNG PARTIAL */}
-            <View style={{ width: maxLen * 65, alignItems: "flex-end" }}>
+            <View style={{ width: maxLen * 50, alignItems: "flex-end" }}>
               {renderRow(
                 partialChars,
                 padPartial,
@@ -324,7 +331,7 @@ export const MultiplicationStepView = ({
 
             {/* DẤU + */}
             {i < steps[2].partials.length - 1 && (
-              <View style={{ width: maxLen * 65 }}>
+              <View style={{ width: maxLen * 50 }}>
                 <Text style={styles.multiplySign}>+</Text>
               </View>
             )}
@@ -333,10 +340,9 @@ export const MultiplicationStepView = ({
       })}
 
       {/* Dòng tổng kết quả */}
-      {steps[2].partials.length > 1 && (
+      {steps[2].partials.length > 1 ? (
         <>
-          <View style={[styles.divider, { width: maxLen * 65 }]} />
-
+          <View style={[styles.divider, { width: maxLen * 50 }]} />
           {renderRow(
             resultChars.map((char, idx) =>
               idx >= resultChars.length - revealedResultDigits ? char : "?"
@@ -347,7 +353,7 @@ export const MultiplicationStepView = ({
             styles.resultRow
           )}
         </>
-      )}
+      ) : null}
     </View>
   );
 };

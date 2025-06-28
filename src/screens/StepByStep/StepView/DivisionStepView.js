@@ -1,240 +1,182 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../../themes/ThemeContext";
-import { Fonts } from "../../../../constants/Fonts";
+import { useTranslation } from "react-i18next";
 
-export const DivisionStepView = ({ steps, skillName }) => {
-  const { theme } = useTheme();
-  const [currentStep, setCurrentStep] = useState(0);
+export const DivisionStepView = ({ steps, columnStepIndex }) => {
+  const { theme } = useTheme?.() || { theme: { text: "#000", background: "#fff" } };
+  const { t } = useTranslation("division") || { t: (key, params) => key };
 
-  if (!steps[2]?.divisionSteps) return null;
+  const subSteps = steps[2]?.subSteps || [];
+  const divisionSteps = steps[2]?.divisionSteps || [];
 
-  const divisionSteps = steps[2].divisionSteps;
-  const subSteps = steps[2].subSteps || [];
-  const quotientDigits = steps[2].quotient?.split("") || [];
-  const totalSteps = divisionSteps.length;
+  const dividend = steps[2]?.dividend ?? "";
+  const divisor = steps[2]?.divisor ?? "";
+  const quotient = steps[2]?.quotient ?? "";
+  const baseIndentOffset = steps[2]?.baseIndentOffset ?? 0;
 
-  const CELL_WIDTH = 20;
+  const currentStep = columnStepIndex ?? 0;
+  const step = subSteps[currentStep];
 
-  const styles = StyleSheet.create({
-    container: {
-      alignItems: "center",
-      marginTop: 20,
-    },
-    divisionContainer: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      marginVertical: 20,
-      paddingHorizontal: 10,
-    },
-    dividendColumn: {
-      alignItems: "flex-start",
-      marginRight: 10,
-    },
-    divisorText: {
-      fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
-      marginLeft: 20,
-    },
-    divisionBracket: {
-      position: "relative",
-      width: 80,
-      height: 90,
-      marginTop: -25,
-    },
-    verticalLine: {
-      position: "absolute",
-      left: 0,
-      top: 0,
-      width: 3,
-      height: "100%",
-      backgroundColor: "black",
-    },
-    horizontalLine: {
-      position: "absolute",
-      left: 0,
-      top: 20,
-      width: "100%",
-      height: 3,
-      backgroundColor: "black",
-    },
-    dividendText: {
-      fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
-    quotientRow: {
-      position: "absolute",
-      top: 35,
-      left: 20,
-      flexDirection: "row",
-    },
-    cell: {
-      fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
-      minWidth: CELL_WIDTH,
-      textAlign: "right",
-    },
-    minusLine: {
-      height: 2,
-      backgroundColor: "black",
-      width: 52,
-      marginVertical: 2,
-    },
-    explanationText: {
-      fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.grayDark,
-      marginTop: 10,
-      marginHorizontal: 12,
-      textAlign: "center",
-    },
-    navButton: {
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 10,
-      marginHorizontal: 8,
-    },
-    navButtonText: {
-      color: "white",
-      fontSize: 18,
-      fontFamily: Fonts.NUNITO_BLACK,
-    },
-  });
+  const renderExplanation = (step) => {
+    if (!step) return null;
+    const product =
+      step.params?.product ??
+      (step.params?.result != null && step.params?.divisor != null
+        ? step.params.result * step.params.divisor
+        : undefined);
+
+    if (step.key === "step_choose_number" && step.params?.comparisonKey) {
+      const explanation = t(`explanation.${step.params.comparisonKey}`);
+      return t(step.key, {
+        ...step.params,
+        comparison: t(`comparison.${step.params.comparisonKey}`),
+        explanation,
+        product,
+      });
+    }
+    return t(step.key, { ...step.params, product });
+  };
+
+  const renderMaskedValue = (value, maxVisibleDigits) => {
+    return value
+      .toString()
+      .split("")
+      .map((char, i) => (
+        <Text key={i} style={{ color: i < maxVisibleDigits ? "#000" : "#ccc" }}>
+          {i < maxVisibleDigits ? char : "?"}
+        </Text>
+      ));
+  };
+
+  const divideStepsDone = subSteps.filter((s, i) => s.key === "step_divide" && i <= currentStep).length;
+
+  const indentSpacing = 15;
+  const charWidth = 14;
 
   return (
     <View style={styles.container}>
-      {currentStep > 0 && currentStep <= subSteps.length && (
-        <Text style={styles.explanationText}>{subSteps[currentStep - 1]}</Text>
-      )}
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepText}>{renderExplanation(step)}</Text>
+      </View>
 
-      <View style={styles.divisionContainer}>
-        {/* Cột số bị chia + các bước chia */}
-        <View style={styles.dividendColumn}>
-          <Text style={styles.dividendText}>{steps[2].dividend}</Text>
+      <View style={styles.divisionBox}>
+        {/* CỘT TRÁI */}
+        <View style={[styles.leftBox, { marginLeft: 110 + baseIndentOffset * indentSpacing }]}>
+          <Text style={styles.dividend}>{dividend}</Text>
 
-          {divisionSteps.map((step, index) => {
-            const isVisible = index < currentStep;
+          {subSteps
+            .filter((s, i) =>
+              ["step_multiply", "step_subtract", "step_bring_down"].includes(s.key)
+            )
+            .map((s, idx) => {
+              const isVisible = subSteps.indexOf(s) <= currentStep;
+              const stepIndex = subSteps.indexOf(s);
+              const isCurrent = stepIndex === currentStep;
 
-            const displayValue = step.afterBringDown !== undefined
-              ? step.afterBringDown
-              : step.remainder;
+              const indent = typeof s.params?.visualIndent === "number"
+                ? s.params.visualIndent
+                : s.params?.indent ?? 0;
 
-            const displayDigits = isVisible
-              ? displayValue.split("")
-              : displayValue.split("").map(() => "?");
+              let value = "?";
+              if (s.key === "step_multiply") value = s.params.product;
+              if (s.key === "step_subtract") value = s.params.remainder;
+              if (s.key === "step_bring_down") value = s.params.afterBringDown;
 
-            const minusValue = isVisible
-              ? step.minus
-              : step.minus.replace(/./g, "?");
+              return (
+                <View key={`${s.key}-${idx}`} style={{ position: "relative" }}>
+                  <Text
+                    style={[
+                      styles.lineText,
+                      {
+                        color: isCurrent ? "#FD8550" : isVisible ? "#000" : "#ccc",
+                        marginLeft: indent * indentSpacing,
+                      },
+                    ]}
+                  >
+                    {isVisible ? value : "?"}
+                  </Text>
 
-            return (
-              <View key={index}>
-                {/* Số trừ */}
-                {step.minus !== "" && (
-                  <View style={{ flexDirection: "row" }}>
-                    {Array(step.indent).fill().map((_, i) => (
-                      <Text key={`indent-minus-${i}`} style={styles.cell}> </Text>
-                    ))}
+                  {s.key === "step_multiply" && isVisible && (
                     <Text
-                      style={[
-                        styles.cell,
-                        {
-                          color:
-                            index === currentStep - 1
-                              ? theme.colors.redDark
-                              : theme.colors.black,
-                        },
-                      ]}
+                      style={{
+                        position: "absolute",
+                        left: -15,
+                        top: -15,
+                        fontSize: 24,
+                        color: "#000",
+                      }}
                     >
-                      {minusValue}
+                      -
                     </Text>
-                  </View>
-                )}
+                  )}
 
-                {/* Gạch dưới */}
-                <View>
-                  <View style={styles.minusLine} />
+                  {s.key === "step_multiply" && isVisible && (
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: "#000",
+                        marginVertical: 2,
+                        width: `${(value || "").toString().length * 14}px`,
+                        marginLeft: indent * indentSpacing,
+                      }}
+                    />
+                  )}
                 </View>
-
-                {/* Remainder hoặc số mới sau khi kéo xuống */}
-                <View style={{ flexDirection: "row" }}>
-                  {Array(step.indent).fill().map((_, i) => (
-                    <Text key={`indent-rem-${i}`} style={styles.cell}> </Text>
-                  ))}
-                  {displayDigits.map((char, i) => (
-                    <Text
-                      key={`digit-${i}`}
-                      style={[
-                        styles.cell,
-                        {
-                          color:
-                            index === currentStep - 1
-                              ? theme.colors.redDark
-                              : theme.colors.black,
-                        },
-                      ]}
-                    >
-                      {char}
-                    </Text>
-                  ))}
-                </View>
-              </View>
-            );
-          })}
+              );
+            })}
         </View>
 
-        {/* Cột chia: số chia + thương */}
-        <View>
-          <Text style={styles.divisorText}>{steps[2].divisor}</Text>
-          <View style={styles.divisionBracket}>
-            <View style={styles.verticalLine} />
-            <View style={styles.horizontalLine} />
-          </View>
-
-          <View style={styles.quotientRow}>
-            {quotientDigits.map((digit, index) => (
-              <Text
-                key={index}
-                style={[
-                  styles.cell,
-                  {
-                    marginLeft:
-                      index === 0
-                        ? steps[2].divisionSteps[0].indent * CELL_WIDTH * 2
-                        : 0,
-                    color:
-                      index === currentStep - 1
-                        ? theme.colors.redDark
-                        : theme.colors.black,
-                  },
-                ]}
-              >
-                {index < currentStep ? digit : "?"}
-              </Text>
-            ))}
-          </View>
+        {/* CỘT PHẢI */}
+        <View style={styles.rightBox}>
+          <Text style={styles.divisor}>{divisor}</Text>
+          <Text style={styles.quotient}>{renderMaskedValue(quotient, divideStepsDone)}</Text>
         </View>
       </View>
 
-      {/* Nút điều hướng */}
-      <View style={{ flexDirection: "row", marginTop: 16 }}>
-        {currentStep > 0 && (
-          <TouchableOpacity
-            style={[styles.navButton, { backgroundColor: "#f44336" }]}
-            onPress={() => setCurrentStep((prev) => Math.max(prev - 1, 0))}
-          >
-            <Text style={styles.navButtonText}>Back</Text>
-          </TouchableOpacity>
-        )}
-        {currentStep < totalSteps && (
-          <TouchableOpacity
-            style={[styles.navButton, { backgroundColor: "#4CAF50" }]}
-            onPress={() => setCurrentStep((prev) => Math.min(prev + 1, totalSteps))}
-          >
-            <Text style={styles.navButtonText}>Next</Text>
-          </TouchableOpacity>
-        )}
-      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    margin: 10,
+  },
+  divisionBox: {
+    flexDirection: "row",
+  },
+  leftBox: {
+    borderRightWidth: 2,
+    borderRightColor: "#000",
+    paddingRight: 15,
+  },
+  rightBox: {
+    flex: 1,
+  },
+  dividend: {
+    fontSize: 24,
+  },
+  quotient: {
+    fontSize: 24,
+    color: "#4CAF50",
+    paddingLeft: 15,
+  },
+  divisor: {
+    fontSize: 24,
+    paddingLeft: 15,
+    borderBottomWidth: 2,
+    borderBottomColor: "#000",
+    width: 70,
+  },
+  lineText: {
+    fontSize: 24,
+  },
+  stepContainer: {
+    minHeight: 80,
+    marginTop: 12,
+  },
+  stepText: {
+    fontSize: 16,
+    color: "#444",
+  },
+});
+

@@ -26,6 +26,13 @@ import viAccount from "./locales/vi/account.json";
 import enAccount from "./locales/en/account.json";
 import viRegister from "./locales/vi/register.json";
 import enRegister from "./locales/en/register.json";
+import viStepByStep from "./locales/vi/stepbystep.json";
+import enStepByStep from "./locales/en/stepbystep.json";
+import vidivision from "./locales/vi/division.json";
+import endivision from "./locales/en/division.json";
+import viaddition from "./locales/vi/addition.json";
+import enaddition from "./locales/en/addition.json";
+
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en",
@@ -44,6 +51,9 @@ i18n.use(initReactI18next).init({
       login: enLogin,
       account: enAccount,
       register: enRegister,
+      stepbystep: enStepByStep,
+      division: endivision,
+      addition: enaddition,
     },
     vi: {
       setting: vi,
@@ -58,6 +68,9 @@ i18n.use(initReactI18next).init({
       login: viLogin,
       account: viAccount,
       register: viRegister,
+      stepbystep: viStepByStep,
+      division: vidivision,
+      addition: viaddition,
     },
   },
 

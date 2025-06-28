@@ -1,4 +1,3 @@
-// Hàm thực hiện phép cộng từng bước giống tiểu học, lưu dữ liệu vào steps[2] và steps[3]
 export const handleAddition = (n1, n2, steps, setRemember) => {
   const maxLength = Math.max(n1.toString().length, n2.toString().length);
   const str1 = n1.toString().padStart(maxLength, "0");
@@ -29,9 +28,9 @@ export const handleAddition = (n1, n2, steps, setRemember) => {
     const label = labelMap[i] || `10^${i}`;
     subSteps.push(
       `Step ${i + 1}: Add ${label} digits: ${d1} + ${d2}` +
-        (carry > 0 ? ` + ${carry} (carry)` : "") +
-        ` = ${sum}, write ${resultDigit}` +
-        (carryOut > 0 ? `, carry ${carryOut}.` : ".")
+      (carry > 0 ? ` + ${carry} (carry)` : "") +
+      ` = ${sum}, write ${resultDigit}` +
+      (carryOut > 0 ? `, carry ${carryOut}.` : ".")
     );
 
     carry = carryOut;
@@ -46,14 +45,14 @@ export const handleAddition = (n1, n2, steps, setRemember) => {
   const padLength = finalDigits.length;
 
   const padArrayStart = (arr, len) =>
-    Array(len - arr.length).fill(0).concat(arr);
+    Array(len - arr.length).fill("").concat(arr);
 
   steps[2].digits1 = padArrayStart([...digits1].reverse(), padLength);
   steps[2].digits2 = padArrayStart([...digits2].reverse(), padLength);
   steps[2].carryDigits = padArrayStart([...carryDigits].reverse(), padLength);
   steps[2].digitSums = finalDigits;
   steps[2].result = finalDigits.join("").replace(/^0+/, "") || "0";
-  steps[2].subText = subSteps; 
+  steps[2].subText = subSteps;
 
   steps[3].result = (n1 + n2).toString();
   steps[3].subText = `Final result: ${n1} + ${n2} = ${steps[3].result}`;
