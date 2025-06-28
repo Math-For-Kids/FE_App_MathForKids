@@ -120,7 +120,7 @@ export default function StepByStepScreen({ navigation, route }) {
       case "×":
         return inputIndex === 1 ? 5 : 2;
       case "÷":
-        return inputIndex === 1 ? 2 : 1;
+        return inputIndex === 1 ? 5 : 2;
       default:
         return 6;
     }
@@ -298,6 +298,7 @@ export default function StepByStepScreen({ navigation, route }) {
             steps={steps}
             placeLabels={placeLabels}
             skillName={skillName}
+            columnStepIndex={columnStepIndex} // ✅ TRUYỀN STEP ĐANG XEM
           />
         )}
 
@@ -334,6 +335,13 @@ export default function StepByStepScreen({ navigation, route }) {
             setVisibleDigitsMap={setVisibleDigitsMap}
             visibleCarryMap={visibleCarryMap}
             setVisibleCarryMap={setVisibleCarryMap}
+          />
+        )}
+        {operator === "÷" && stepIndex === 2 && (
+          <DivisionStepView
+            steps={steps}
+            skillName={skillName}
+            columnStepIndex={columnStepIndex}
           />
         )}
         <View style={styles.backStepContainer}>
@@ -373,13 +381,14 @@ export default function StepByStepScreen({ navigation, route }) {
             >
               <TouchableOpacity
                 onPress={() => {
-                  if (stepIndex > 0) {
-                    setStepIndex((prev) => Math.max(prev - 1, 0));
-                    setCurrentRowIndex(0);
-                    setRevealedDigits(0);
-                    setRevealedResultDigits(0);
-                    //  setSubStepIndex(0); // nếu đang dùng substep hiển thị từng dòng mô tả
-                  }
+                  setStepIndex(0);
+                  setSubStepIndex(0);
+                  setCurrentRowIndex(0);
+                  setRevealedDigits(0);
+                  setRevealedResultDigits(0);
+                  if (setVisibleCarryMap) setVisibleCarryMap({});
+                  if (setVisibleDigitsMap) setVisibleDigitsMap({});
+                  if (setRemember) setRemember("");
                 }}
               >
                 <Ionicons
@@ -422,6 +431,8 @@ export default function StepByStepScreen({ navigation, route }) {
               setVisibleDigitsMap,
               setVisibleCarryMap,
               visibleCarryMap,
+              setColumnStepIndex,
+              columnStepIndex,
             })
           }
         >

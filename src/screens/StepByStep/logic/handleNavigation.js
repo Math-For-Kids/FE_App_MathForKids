@@ -20,24 +20,19 @@ export const handleNext = ({
   setRevealedDigits,
   setSteps,
   setCurrentRowIndex,
-  currentRowIndex,
   steps,
   number1,
   number2,
   operator,
   t,
   setRemember,
-  revealedResultDigits,
-  visibleDigitsMap,
   setVisibleDigitsMap,
   setVisibleCarryMap,
   visibleCarryMap,
+  setColumnStepIndex,
+  columnStepIndex,
 }) => {
   Speech.stop();
-
-  // console.log("[handleNext] stepIndex:", stepIndex);
-  // console.log("[handleNext] currentRowIndex:", currentRowIndex);
-  // console.log("[handleNext] subStepIndex:", subStepIndex);
   const step = steps[stepIndex];
   if (stepIndex === 0) {
     handleStepZero({
@@ -53,9 +48,23 @@ export const handleNext = ({
     });
     return;
   }
+  // PHÉP CỘNG
+  if (operator === "+" && stepIndex === 2) {
+    const totalSteps = steps[2]?.digitSums?.length || 0;
+
+    if (columnStepIndex < totalSteps) {
+      setColumnStepIndex((prev) => prev + 1);
+      return;
+    }
+
+    if (columnStepIndex === totalSteps) {
+      console.log("Đã hiện xong các bước cộng → chuyển bước");
+      setStepIndex((prev) => prev + 1);
+      return;
+    }
+  }
 
   // PHÉP TRỪ
-  // Nếu đang thực hiện phép trừ (operator === '-') và đang ở bước giải thích từng cột (stepIndex === 2)
   if (operator === "-" && stepIndex === 2) {
     const subSteps = step.subSteps || []; // Danh sách các câu giải thích
     const nextSubStepIndex = subStepIndex + 1;
@@ -197,7 +206,7 @@ export const handleNext = ({
             chars[newStartIdx + i] = sumStr[i];
           }
 
-          // ❌ Không cập nhật visibleDigitsMap ở đây!
+          //Không cập nhật visibleDigitsMap ở đây!
         } else {
           const original = parseInt(chars[updateIdx] || "0", 10);
           const result = original + (carry || 0);
@@ -230,7 +239,7 @@ export const handleNext = ({
           [rowKey]: (prev[rowKey] ?? 0) + digitsToReveal,
         }));
 
-        // ❌ Không cần cập nhật visibleCarryMap ở đây nữa
+        // Không cần cập nhật visibleCarryMap ở đây nữa
         const carryKey = `carry_${rowIndex}`;
         const carryRows = steps?.[2]?.carryRows ?? [];
         const maxLen = steps?.[2]?.maxLen ?? 0;
@@ -243,7 +252,7 @@ export const handleNext = ({
 
         const padded = padLeft(carryArray, maxLen);
 
-        // 👉 Tính chỉ số cần hé lộ
+        //Tính chỉ số cần hé lộ
         let targetIdx;
         const targetColFromRight = colIndex + 1;
         if (rowIndex === 0) {
@@ -270,12 +279,6 @@ export const handleNext = ({
           ...prev,
           [carryKey]: newRevealCount,
         }));
-
-        console.log(
-          `[DETAIL] reveal carry one-by-one → row=${rowIndex}, col=${colIndex}, targetIdx=${targetIdx}, padded=${padded.join(
-            ""
-          )}, revealCount=${newRevealCount}`
-        );
         break;
       }
 
@@ -308,17 +311,8 @@ export const handleNext = ({
             (steps?.[2]?.carryRows?.[nextMeta.carryRowIndex] || "").split(""),
             steps?.[2]?.maxLen || 0
           );
-
           const idxFromRight = nextMeta.colIndex + (nextMeta.rowIndex ?? 0);
           const revealCount = padded.length - idxFromRight;
-
-          console.log(
-            "🟨 Reveal carry in reveal_digits:",
-            carryKey,
-            "→ revealIdx:",
-            idxFromRight
-          );
-
           setVisibleCarryMap((prev) => ({
             ...prev,
             [carryKey]: Math.max(prev[carryKey] || 0, revealCount),
@@ -346,14 +340,23 @@ export const handleNext = ({
         break;
 
       default:
-        console.warn("⚠️ handleNext chưa xử lý:", nextMeta?.type);
         break;
     }
 
     return;
   }
 
-  // ✅ Mặc định: chuyển sang bước tiếp theo nếu còn
+  if (operator === "÷" && stepIndex === 2) {
+    const totalSteps = steps[2]?.subSteps?.length || 0;
+
+    if (columnStepIndex < totalSteps - 1) {
+      console.log("Hiện thêm 1 bước chia");
+      setColumnStepIndex((prev) => prev + 1);
+      setSubStepIndex((prev) => prev + 1);
+      return;
+    }
+  }
+  // Mặc định: chuyển sang bước tiếp theo nếu còn
   if (stepIndex < steps.length - 1) {
     setStepIndex((prev) => prev + 1);
     setSubStepIndex(0);
