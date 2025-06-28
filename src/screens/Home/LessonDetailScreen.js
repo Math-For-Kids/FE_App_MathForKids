@@ -118,9 +118,9 @@ export default function LessonDetailScreen({ navigation, route }) {
   const tabTitles = useMemo(() => {
     return Array.isArray(enabledList)
       ? enabledList
-          .slice()
-          .sort((a, b) => a.order - b.order)
-          .map((item) => item.title?.[i18n.language] || "")
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((item) => item.title?.[i18n.language] || "")
       : [];
   }, [enabledList, i18n.language]);
 
@@ -133,8 +133,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       direction === "left" && indexNow < maxIndex
         ? indexNow + 1
         : direction === "right" && indexNow > 0
-        ? indexNow - 1
-        : null;
+          ? indexNow - 1
+          : null;
 
     if (newIndex === null) return;
 

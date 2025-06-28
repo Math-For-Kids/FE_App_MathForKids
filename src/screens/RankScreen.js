@@ -53,9 +53,7 @@ export default function RankScreen({ navigation }) {
 
   // Sort pupils by point in descending order
   // const sortedPupils = [...pupils].sort((a, b) => b.point - a.point);
-  const sortedPupils = [...pupils]
-    .sort((a, b) => b.point - a.point)
-    .slice(0, 5);
+  const sortedPupils = [...pupils].sort((a, b) => b.point - a.point).slice(0, 5);
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -79,7 +77,7 @@ export default function RankScreen({ navigation }) {
     },
     backIcon: {
       width: 24,
-      height: 24,
+      height: 24
     },
     title: {
       fontSize: 36,
@@ -88,7 +86,7 @@ export default function RankScreen({ navigation }) {
       textAlign: "left", // Căn trái tiêu đề
     },
     topContainer: {
-      paddingHorizontal: 10,
+      paddingHorizontal: 10
     },
     top23: {
       flexDirection: "row",
@@ -193,10 +191,7 @@ export default function RankScreen({ navigation }) {
 
   if (loading) {
     return (
-      <LinearGradient
-        colors={theme.colors.gradientBlue}
-        style={styles.container}
-      >
+      <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
         <Text style={styles.loadingText}>Loading...</Text>
       </LinearGradient>
     );
@@ -204,10 +199,7 @@ export default function RankScreen({ navigation }) {
 
   if (error) {
     return (
-      <LinearGradient
-        colors={theme.colors.gradientBlue}
-        style={styles.container}
-      >
+      <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
         <Text style={styles.errorText}>Error: {error}</Text>
       </LinearGradient>
     );
@@ -265,16 +257,7 @@ export default function RankScreen({ navigation }) {
             >
               <View style={styles.leftContainer}>
                 <View style={styles.avatarContainer}>
-                  <Image
-                    source={
-                      item?.image
-                        ? { uri: item?.image }
-                        : item?.gender === "female"
-                        ? theme.icons.avatarFemale
-                        : theme.icons.avatarMale
-                    }
-                    style={styles.avatar}
-                  />
+                  <Image src={item.image || 'https://i.pravatar.cc/100'} style={styles.avatar} />
                   {(index === 0 || index === 1 || index === 2) && (
                     <View style={styles.star}>
                       <AnimatedStar
@@ -282,8 +265,8 @@ export default function RankScreen({ navigation }) {
                           index === 0
                             ? theme.colors.starColor
                             : index === 1
-                            ? theme.colors.grayMedium
-                            : theme.colors.brown
+                              ? theme.colors.grayMedium
+                              : theme.colors.brown
                         }
                       />
                     </View>

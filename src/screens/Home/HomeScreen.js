@@ -62,29 +62,29 @@ export default function HomeScreen({ navigation, route }) {
         {
           icon: theme.icons.addition,
           label: "Addition",
-          route: "SkillScreen",
+          route: "LessonScreen",
           borderColor: theme.colors.greenDark,
         },
         {
           icon: theme.icons.subtraction,
           label: "Subtraction",
-          route: "SkillScreen",
+          route: "LessonScreen",
         },
       ];
     }
     return [
-      { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
+      { icon: theme.icons.addition, label: "Addition", route: "LessonScreen" },
       {
         icon: theme.icons.subtraction,
         label: "Subtraction",
-        route: "SkillScreen",
+        route: "LessonScreen",
       },
       {
         icon: theme.icons.multiplication,
         label: "Multiplication",
-        route: "SkillScreen",
+        route: "LessonScreen",
       },
-      { icon: theme.icons.division, label: "Division", route: "SkillScreen" },
+      { icon: theme.icons.division, label: "Division", route: "LessonScreen" },
       {
         icon: theme.icons.multiplicationTables,
         label: "Expression",
@@ -275,8 +275,8 @@ export default function HomeScreen({ navigation, route }) {
                   filteredPupils?.image
                     ? { uri: filteredPupils?.image }
                     : filteredPupils?.gender === "female"
-                    ? theme.icons.avatarFemale
-                    : theme.icons.avatarMale
+                      ? theme.icons.avatarFemale
+                      : theme.icons.avatarMale
                 }
                 style={styles.avatar}
               />
@@ -349,13 +349,14 @@ export default function HomeScreen({ navigation, route }) {
             key={index}
             style={[
               styles.skillBox,
-              { borderColor: getTab(item.label) }, 
+              { borderColor: getTab(item.label) },
             ]}
             onPress={() =>
               navigation.navigate(item.route, {
                 skillName: item.label,
                 skillIcon: item.icon,
                 grade: selectedGrade,
+                pupilId: pupilId,
               })
             }
           >

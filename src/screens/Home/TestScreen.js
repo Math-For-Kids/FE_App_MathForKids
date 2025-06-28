@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -15,50 +15,73 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
-import { Svg, Circle } from "react-native-svg";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { getRandomTests } from "../../redux/testSlice";
 
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName } = route.params;
-  const time = 30;
-  const quantity = 30;
+  const { t, i18n } = useTranslation("common");
+  const { skillName, lessonId } = route.params;
+  const dispatch = useDispatch();
+  const { tests, loading, error } = useSelector((state) => state.test);
   const windowWidth = Dimensions.get("window").width;
-
-  const [questions] = useState([
-    { id: 1, type: "image", image: theme.icons.question1, answer: 5 },
-    { id: 2, type: "text", text: "2788 + 37", answer: 5 },
-    { id: 3, type: "text", text: "2 + 3", answer: 5 },
-    { id: 4, type: "image", image: theme.icons.question1, answer: 5 },
-    { id: 5, type: "text", text: "2788 + 37", answer: 5 },
-  ]);
 
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const bearPosition = useRef(new Animated.Value(20)).current;
-  const [timer, setTimer] = useState(time * 60);
   const [correctCount, setCorrectCount] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
+  const [shuffledOptions, setShuffledOptions] = useState({});
   const [showResultModal, setShowResultModal] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const timerRef = useRef(null);
   const bearRotate = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, []);
+  // Hàm kiểm tra xem giá trị có phải là URL hình ảnh
+  const isImageUrl = (value) => typeof value === "string" && (value.startsWith("http") || value.startsWith("https"));
 
+  // Hàm render hình ảnh
+  const renderImage = (uri, style, key) => {
+    if (!uri || typeof uri !== "string") return <Text style={styles.errorText}>Invalid Image</Text>;
+    return <Image source={{ uri }} style={style} resizeMode="contain" key={key} />;
+  };
+
+  // Fetch exercises when component mounts
   useEffect(() => {
-    const totalMargin = (questions.length - 1) * 2;
+    dispatch(getRandomTests({ lessonId }));
+  }, [dispatch, lessonId]);
+
+  // Log exercises for debugging
+  useEffect(() => {
+    console.log("Exercises updated:", tests);
+    console.log("Current Question:", currentQuestion);
+    console.log("User Answers:", userAnswers);
+    console.log("Shuffled Options:", shuffledOptions);
+  }, [tests, currentQuestion, userAnswers, shuffledOptions]);
+
+  // Shuffle options once per question
+  useEffect(() => {
+    if (tests.length === 0) return;
+
+    const currentQ = tests[currentQuestion - 1];
+    if (!currentQ) return;
+
+    if (!shuffledOptions[currentQ.id]) {
+      const options = [...(currentQ.option || []), currentQ.answer].sort(
+        () => Math.random() - 0.5
+      );
+      setShuffledOptions((prev) => ({
+        ...prev,
+        [currentQ.id]: options,
+      }));
+    }
+  }, [tests, currentQuestion, shuffledOptions]);
+
+  // Animate bear icon when currentQuestion changes
+  useEffect(() => {
+    if (tests.length === 0) return;
+
+    const totalMargin = (tests.length - 1) * 2;
     const progressBarWidth = windowWidth - 40;
-    const segmentWidth = (progressBarWidth - totalMargin) / questions.length;
+    const segmentWidth = (progressBarWidth - totalMargin) / tests.length;
     const iconPositionX = 20 + (currentQuestion - 1) * (segmentWidth + 2);
 
     Animated.parallel([
@@ -84,98 +107,60 @@ export default function TestScreen({ navigation, route }) {
         }),
       ]),
     ]).start();
-  }, [currentQuestion]);
+  }, [currentQuestion, tests.length]);
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s < 10 ? "0" + s : s}`;
-  };
-
-  const generateOptions = (correctAnswer) => {
-    const options = new Set([correctAnswer]);
-    while (options.size < 4) {
-      const fake = correctAnswer + Math.floor(Math.random() * 5) - 2;
-      if (fake !== correctAnswer && fake > 0) options.add(fake);
-    }
-    return Array.from(options).sort(() => Math.random() - 0.5);
-  };
-
-  const currentQ = questions[currentQuestion - 1];
-  const options = useMemo(
-    () => generateOptions(currentQ.answer),
-    [currentQuestion]
-  );
-
+  // Handle answer selection
   const handleAnswer = (val) => {
+    if (!currentQ) return;
+    const isCorrect = val === currentQ.answer;
     setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
-    if (val === currentQ.answer) setCorrectCount((prev) => prev + 1);
-    if (currentQuestion < questions.length)
-      setCurrentQuestion(currentQuestion + 1);
+    if (isCorrect) setCorrectCount((prev) => prev + 1);
+    if (currentQuestion < tests.length) {
+      setTimeout(() => {
+        setCurrentQuestion(currentQuestion + 1);
+      }, 300);
+    }
   };
 
+  // Handle going back to previous question
   const handleBack = () => {
     if (currentQuestion > 1) {
-      const prevQuestion = questions[currentQuestion - 2];
+      const prevQuestion = tests[currentQuestion - 2];
       const prevAnswer = userAnswers[prevQuestion.id];
-      // Nếu đã chọn và đúng, giảm correctCount
       if (prevAnswer !== undefined && prevAnswer === prevQuestion.answer) {
         setCorrectCount((prev) => Math.max(0, prev - 1));
       }
-      // Xoá đáp án đã chọn khi back
-      setUserAnswers((prev) => {
-        const updated = { ...prev };
-        delete updated[prevQuestion.id];
-        return updated;
-      });
-
       setCurrentQuestion(currentQuestion - 1);
     }
   };
 
+  // Handle submit button
   const handleSubmit = () => {
     const answeredCount = Object.keys(userAnswers).length;
-    const usedTime = time * 60 - timer;
-    clearInterval(timerRef.current);
-    if (answeredCount < questions.length) {
+    if (answeredCount < tests.length) {
       Alert.alert(
-        "Warning",
-        `You have ${answeredCount}/${questions.length} unanswered questions. Do you still want to submit?`,
+        t("warning"),
+        t("youHaveAnswered"),
         [
           {
-            text: "Keep doing",
+            text: t("keepDoing"),
             style: "cancel",
-            onPress: () => {
-              timerRef.current = setInterval(() => {
-                setTimer((prev) => {
-                  if (prev <= 1) {
-                    clearInterval(timerRef.current);
-                    return 0;
-                  }
-                  return prev - 1;
-                });
-              }, 1000);
-            },
           },
           {
-            text: "Submit",
+            text: t("submit"),
             style: "destructive",
             onPress: () => {
-              setElapsedTime(usedTime);
               setShowResultModal(true);
             },
           },
         ]
       );
     } else {
-      setElapsedTime(usedTime);
       setShowResultModal(true);
     }
   };
 
-  const progress = Math.min(Math.max(timer / (time * 60), 0), 1);
-  const strokeDashoffset = 2 * Math.PI * 25 * (1 - progress);
-
+  // Gradient and color functions
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
@@ -203,12 +188,15 @@ export default function TestScreen({ navigation, route }) {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      paddingTop: 20,
       backgroundColor: theme.colors.background,
+    },
+    contentContainer: {
+      paddingTop: 20,
+      paddingBottom: 100,
     },
     header: {
       width: "100%",
-      height: "22%",
+      height: "35%",
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
@@ -242,7 +230,7 @@ export default function TestScreen({ navigation, route }) {
       color: theme.colors.black,
     },
     visualProgressBar: {
-      marginTop: 62,
+      marginTop: 20,
       marginHorizontal: 20,
       height: 20,
       backgroundColor: getProgressBackground(),
@@ -261,7 +249,7 @@ export default function TestScreen({ navigation, route }) {
     },
     bearIconWrapper: {
       position: "absolute",
-      top: 190,
+      top: 50,
       left: -5,
       elevation: 3,
     },
@@ -269,48 +257,31 @@ export default function TestScreen({ navigation, route }) {
       width: 30,
       height: 30,
     },
-    timerCircleContainer: {
-      position: "absolute",
-      top: 110,
-      right: 35,
-      alignItems: "center",
-      justifyContent: "center",
-      width: 60,
-      height: 60,
-      alignSelf: "center",
-      marginVertical: 20,
-      elevation: 3,
-    },
-    timerTextOverlay: {
-      position: "absolute",
-      fontFamily: Fonts.NUNITO_BOLD,
-      color: theme.colors.black,
-      fontSize: 14,
-    },
     questionContent: {
-      justifyContent: "center",
-      alignItems: "center",
+      justifyContent: "center", // Căn giữa theo chiều ngang
+      alignItems: "center",    // Căn giữa theo chiều dọc
       marginVertical: 20,
       flexDirection: "row",
       gap: 10,
     },
-    questionImage: {
-      width: 200,
-      height: 150,
-    },
     question: {
-      fontSize: 100,
+      fontSize: 36,            // Tăng kích thước font để nổi bật
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
-      maxWidth: "80%",
-      height: 150,
-      lineHeight: 150,
-      textAlignVertical: "center",
-      alignSelf: "center",
+      textAlign: "center",     // Căn giữa văn bản
+      paddingHorizontal: 20,   // Thêm padding để tránh bị chèn
+    },
+    questionImage: {
+      width: 300,
+      height: 150,  
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: "#000",
+      borderStyle: "solid",
     },
     backQuestion: {
       position: "absolute",
-      bottom: 130,
+      bottom: 0,
       left: 20,
       borderWidth: 1,
       borderColor: theme.colors.white,
@@ -320,27 +291,49 @@ export default function TestScreen({ navigation, route }) {
       elevation: 3,
     },
     answerOptions: {
+      position: "absolute",
+      top: 450,
       flexDirection: "row",
-      justifyContent: "space-around",
-      flexWrap: "wrap",
+      justifyContent: "center", // Căn giữa theo chiều ngang
+      alignItems: "center",    // Căn giữa theo chiều dọc
+      flexWrap: "wrap",        // Cho phép xuống dòng nếu cần
       paddingHorizontal: 20,
+      width: "100%",           // Đảm bảo chiều rộng đầy đủ
     },
     answerButton: {
       backgroundColor: visualProgressBar(),
-      paddingVertical: 5,
-      paddingHorizontal: 60,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
       borderRadius: 20,
       margin: 5,
       elevation: 3,
+      minWidth: (windowWidth - 60) / 2, // Đảm bảo các nút có chiều rộng tối thiểu
+      alignItems: "center",
+      justifyContent: "center", // Căn giữa nội dung trong nút
+      minHeight: 60,
+    },
+    answerSelectedButton: {
+      backgroundColor: getProgressBackground(),
     },
     answerText: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
-      fontSize: 32,
+      fontSize: 20,
+      textAlign: "center", // Căn giữa văn bản trong nút
     },
-    answerSelectedButton: { backgroundColor: getProgressBackground() },
+    answerImage: {
+      width: 50,
+      height: 50,
+      borderRadius: 10,
+      alignSelf: "center", // Căn giữa hình ảnh trong nút
+    },
+    submitButtonContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
     submitButton: {
-      marginTop: 20,
       paddingVertical: 10,
       borderTopLeftRadius: 50,
       borderTopRightRadius: 50,
@@ -400,192 +393,198 @@ export default function TestScreen({ navigation, route }) {
       borderColor: theme.colors.white,
       borderRadius: 50,
     },
+    loadingText: {
+      fontSize: 18,
+      textAlign: "center",
+      color: theme.colors.text,
+      marginTop: 20,
+    },
+    errorText: {
+      fontSize: 18,
+      textAlign: "center",
+      color: theme.colors.error,
+      marginTop: 20,
+    },
   });
 
+  // Handle loading and error states
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>{t("loading")}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (tests.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{t("noExercisesFound")}</Text>
+      </View>
+    );
+  }
+
+  const currentQ = tests[currentQuestion - 1];
+  if (!currentQ) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{t("noQuestionAvailable")}</Text>
+      </View>
+    );
+  }
+
+  const options = shuffledOptions[currentQ.id] || [];
+
   return (
-    <ScrollView style={styles.container}>
-      <LinearGradient colors={getGradient()} style={styles.header}>
-        <TouchableOpacity
-          onPress={() => {
-            Alert.alert("Confirm", "Want to skip the test?", [
-              {
-                text: "No",
-                style: "cancel",
-              },
-              {
-                text: "Yes",
-                style: "destructive",
-                onPress: () => {
-                  navigation.goBack();
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <LinearGradient colors={getGradient()} style={styles.header}>
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(t("confirm"), t("wantToSkipTest"), [
+                {
+                  text: t("no"),
+                  style: "cancel",
                 },
-              },
-            ]);
-          }}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
-        </TouchableOpacity>
-
-        <Text
-          style={styles.headerText}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.5}
-        >
-          Test
-        </Text>
-      </LinearGradient>
-      <View style={styles.subtitleContainer}>
-        <Text style={styles.subtitleText}>Total questions: {quantity}</Text>
-        <Text style={styles.subtitleText}>
-          Anwsers: {currentQuestion}/{quantity}
-        </Text>
-      </View>
-      <View style={styles.timerCircleContainer}>
-        <Svg width={60} height={60}>
-          <Circle
-            cx={30}
-            cy={30}
-            r={25}
-            stroke={theme.colors.graySoft}
-            strokeWidth={10}
-            fill="none"
-          />
-          <Circle
-            cx={30}
-            cy={30}
-            r={25}
-            stroke={getProgressBackground()}
-            strokeWidth={10}
-            strokeDasharray={2 * Math.PI * 25}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            fill="none"
-            rotation={-90}
-            origin="30, 30"
-          />
-        </Svg>
-        <Text style={styles.timerTextOverlay}>{formatTime(timer)}</Text>
-      </View>
-      <View style={styles.visualProgressBar}>
-        {questions.map((q, index) => (
-          <View
-            key={q.id}
-            style={[
-              styles.segmentBlock,
-              {
-                backgroundColor:
-                  index < currentQuestion
-                    ? visualProgressBar()
-                    : theme.colors.progressTestBackground,
-              },
-            ]}
-          />
-        ))}
-      </View>
-      <Animated.View
-        style={[
-          styles.bearIconWrapper,
-          {
-            transform: [
-              { translateX: bearPosition },
-              {
-                rotate: bearRotate.interpolate({
-                  inputRange: [-1, 0, 1],
-                  outputRange: ["-10deg", "0deg", "10deg"],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <Image source={theme.icons.test} style={styles.bearIcon} />
-      </Animated.View>
-
-      <View style={styles.questionContent}>
-        {currentQ.type === "image" ? (
-          <Image
-            source={currentQ.image}
-            style={styles.questionImage}
-            resizeMode="contain"
-          />
-        ) : (
+                {
+                  text: t("yes"),
+                  style: "destructive",
+                  onPress: () => {
+                    navigation.goBack();
+                  },
+                },
+              ]);
+            }}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          </TouchableOpacity>
           <Text
-            style={styles.question}
+            style={styles.headerText}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.5}
           >
-            {currentQ.text}
+            {t("exercise")}
           </Text>
-        )}
-      </View>
-      <TouchableOpacity
-        onPress={() => handleBack()}
-        style={styles.backQuestion}
-      >
-        <Ionicons name="play-back" size={24} color={theme.colors.white} />
-      </TouchableOpacity>
-      <View style={styles.answerOptions}>
-        {options.map((val) => (
-          <TouchableOpacity
-            key={val}
-            style={[
-              styles.answerButton,
-              userAnswers[currentQ.id] === val && styles.answerSelectedButton,
-            ]}
-            onPress={() => handleAnswer(val)}
-          >
-            <Text style={styles.answerText}>{val}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <LinearGradient
-        colors={getGradient()}
-        style={styles.submitButton}
-        start={{ x: 0, y: 1 }}
-        end={{ x: 0, y: 0 }}
-      >
-        <TouchableOpacity onPress={handleSubmit}>
-          <Text style={styles.submitText}>Submit</Text>
+        </LinearGradient>
+        <View style={styles.subtitleContainer}>
+          <Text style={styles.subtitleText}>
+            {t("totalQuestions")}: {tests.length}
+          </Text>
+          <Text style={styles.subtitleText}>
+            {t("answers")}: {currentQuestion}/{tests.length}
+          </Text>
+        </View>
+        <View style={styles.visualProgressBar}>
+          {tests.map((q, index) => (
+            <View
+              key={q.id}
+              style={[
+                styles.segmentBlock,
+                {
+                  backgroundColor:
+                    index < currentQuestion
+                      ? visualProgressBar()
+                      : theme.colors.progressTestBackground,
+                },
+              ]}
+            />
+          ))}
+        </View>
+        <View style={styles.questionContent}>
+          {currentQ.image ? (
+            <Image
+              source={{ uri: currentQ.image }}
+              style={styles.questionImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <Text
+              style={styles.question}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
+              {currentQ.question?.[i18n.language] || t("noQuestionAvailable")}
+            </Text>
+          )}
+        </View>
+        <TouchableOpacity
+          onPress={() => handleBack()}
+          style={styles.backQuestion}
+        >
+          <Ionicons name="play-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
-      </LinearGradient>
-      {/* Result Modal */}
+        <View style={styles.answerOptions}>
+          {options.map((val, index) => (
+            <TouchableOpacity
+              key={`${val}-${index}`}
+              style={[
+                styles.answerButton,
+                userAnswers[currentQ.id] === val ? styles.answerSelectedButton : null,
+                isImageUrl(val) && { paddingVertical: 5, paddingHorizontal: 5 },
+              ]}
+              onPress={() => handleAnswer(val)}
+            >
+              {isImageUrl(val) ? (
+                renderImage(val, styles.answerImage, `option-${currentQ.id}-${index}`)
+              ) : (
+                <Text style={styles.answerText}>{val}</Text>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+      <View style={styles.submitButtonContainer}>
+        <LinearGradient
+          colors={getGradient()}
+          style={styles.submitButton}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
+        >
+          <TouchableOpacity onPress={handleSubmit}>
+            <Text style={styles.submitText}>{t("submit")}</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
       <Modal visible={showResultModal} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalCardContainer}>
-            <Text style={styles.modalTitleText}>Result</Text>
+            <Text style={styles.modalTitleText}>{t("result")}</Text>
             <View style={styles.modalTextContainer}>
               <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Score:</Text>
+                <Text style={styles.modalText}>{t("score")}:</Text>
                 <Text style={styles.modalResultText}>
-                  {correctCount * (10 / questions.length).toFixed(1)}
+                  {(correctCount * (10 / tests.length)).toFixed(1)}
                 </Text>
               </View>
               <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Correct:</Text>
+                <Text style={styles.modalText}>{t("correct")}:</Text>
                 <Text style={styles.modalResultText}>{correctCount}</Text>
               </View>
               <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Wrong:</Text>
+                <Text style={styles.modalText}>{t("wrong")}:</Text>
                 <Text
                   style={[
                     styles.modalResultText,
                     {
                       color:
-                        questions.length - correctCount > 0
+                        tests.length - correctCount > 0
                           ? theme.colors.black
                           : theme.colors.white,
                     },
                   ]}
                 >
-                  {questions.length - correctCount}
-                </Text>
-              </View>
-              <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Time:</Text>
-                <Text style={styles.modalResultText}>
-                  {formatTime(elapsedTime)}
+                  {tests.length - correctCount}
                 </Text>
               </View>
             </View>
@@ -594,6 +593,10 @@ export default function TestScreen({ navigation, route }) {
               onPress={() => {
                 setShowResultModal(false);
                 navigation.goBack();
+                setUserAnswers({});
+                setCorrectCount(0);
+                setCurrentQuestion(1);
+                setShuffledOptions({});
               }}
             >
               <Ionicons name="close" size={20} color={theme.colors.white} />
@@ -601,6 +604,6 @@ export default function TestScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }

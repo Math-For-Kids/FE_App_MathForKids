@@ -2,19 +2,19 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import Api from "../api/api";
 
 // Thunk: Lấy danh sách bài tập theo khối và loại
-export const getExercisesByGradeAndType = createAsyncThunk(
-  "exercise/getByGradeAndType",
-  async ({ grade, type }, { rejectWithValue }) => {
+export const getRandomExercises = createAsyncThunk(
+  "exercise/randomExercises",
+  async ({ lessonId, levelIds }, { rejectWithValue }) => {
     try {
-      const res = await Api.get("/exercise/getByGradeAndType", {
-        params: { grade, type },
-      });
+      const res = await Api.post(`/exercise/randomExercises/${lessonId}`, { levelIds });
+      console.log("API response:", res.data);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
+
 
 const exerciseSlice = createSlice({
   name: "exercise",
@@ -26,18 +26,18 @@ const exerciseSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getExercisesByGradeAndType.pending, (state) => {
+      .addCase(getRandomExercises.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getExercisesByGradeAndType.fulfilled, (state, action) => {
+      .addCase(getRandomExercises.fulfilled, (state, action) => {
         state.loading = false;
         state.exercises = action.payload;
       })
-      .addCase(getExercisesByGradeAndType.rejected, (state, action) => {
+      .addCase(getRandomExercises.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
   },
 });
 
