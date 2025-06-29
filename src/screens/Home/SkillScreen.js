@@ -62,9 +62,17 @@ export default function SkillScreen({ navigation, route }) {
       alert(t("pleaseSelectLevel"));
       return;
     }
+    const sortedLevels = levels
+      .filter((level) => selectedLevels.includes(level.id))
+      .sort((a, b) => {
+        const levelA = parseInt(a.name?.[i18n.language] || "0");
+        const levelB = parseInt(b.name?.[i18n.language] || "0");
+        return levelA - levelB;
+      })
+      .map((level) => level.id); // Chỉ lấy id sau khi sắp xếp
     setModalVisible(false);
     navigation.navigate("ExerciseDetailScreen", {
-      levelIds: selectedLevels,
+      levelIds: sortedLevels,
       lessonId,
       skillName,
       title,

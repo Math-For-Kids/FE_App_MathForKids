@@ -61,7 +61,7 @@ export default function ExerciseScreen({ navigation, route }) {
   }));
 
   const isImageUrl = (value) => typeof value === "string" && (value.startsWith("http") || value.startsWith("https"));
-  const isExpression = (value) => typeof value === "string" && value.includes("+") && value.includes("=");
+  const isExpression = (value) => typeof value === "string" && value.includes("=") || value.length >= 6;
 
   const renderImage = (uri, style, key) => {
     if (!uri || typeof uri !== "string") return <Text style={styles.errorText}>Invalid Image</Text>;
@@ -127,19 +127,22 @@ export default function ExerciseScreen({ navigation, route }) {
     return { correct, wrong, score: Math.round(score * 10) / 10 };
   };
 
-  const getGradient = () => ({
-    Addition: theme.colors.gradientGreen,
-    Subtraction: theme.colors.gradientPurple,
-    Multiplication: theme.colors.gradientOrange,
-    Division: theme.colors.gradientRed,
-  }[skillName] || theme.colors.gradientPink);
+  const getGradient = () => {
+    if (skillName === "Addition") return theme.colors.gradientGreen;
+    if (skillName === "Subtraction") return theme.colors.gradientPurple;
+    if (skillName === "Multiplication") return theme.colors.gradientOrange;
+    if (skillName === "Division") return theme.colors.gradientRed;
+    return theme.colors.gradientPink;
+  }
 
-  const getOptionBackground = () => ({
-    Addition: theme.colors.greenLight,
-    Subtraction: theme.colors.purpleLight,
-    Multiplication: theme.colors.orangeLight,
-    Division: theme.colors.redLight,
-  }[skillName] || theme.colors.pinkLight);
+  const getOptionBackground = () => {
+    if (skillName === "Addition") return theme.colors.greenLight;
+    if (skillName === "Subtraction") return theme.colors.purpleLight;
+    if (skillName === "Multiplication") return theme.colors.orangeLight;
+    if (skillName === "Division") return theme.colors.redLight;
+    return theme.colors.gradientPink;
+
+  }
 
   const shouldUseSingleRow = (options) => options.every((opt) => !isImageUrl(opt) && opt.length <= 5);
 
@@ -258,8 +261,8 @@ export default function ExerciseScreen({ navigation, route }) {
       fontSize: 18
     },
     questionContainer: {
-      marginBottom: 30,
-      paddingHorizontal: 20
+      marginBottom: 15, // Giảm khoảng cách
+      paddingHorizontal: 10, // Giảm padding
     },
     questionImageContainer: {
       flexDirection: "row",
@@ -284,7 +287,7 @@ export default function ExerciseScreen({ navigation, route }) {
     optionsRow: {
       flexDirection: "row",
       justifyContent: "space-around",
-      marginTop: 10,
+      marginTop: 5,
       flexWrap: "wrap"
     },
     optionsContainer: {
@@ -299,7 +302,9 @@ export default function ExerciseScreen({ navigation, route }) {
       paddingHorizontal: 10,
       paddingVertical: 10,
       minWidth: 50,
-      minHeight: 50
+      minHeight: 50,
+      marginTop: 10,
+
     },
     optionText: {
       fontFamily: Fonts.NUNITO_BOLD,
@@ -408,12 +413,9 @@ export default function ExerciseScreen({ navigation, route }) {
           const midPoint = Math.ceil(options.length / 2);
           // const firstRowOptions = options.slice(0, midPoint);
           // const secondRowOptions = options.slice(midPoint);
-
-
-          
           return (
             <View key={q.id} style={styles.questionContainer}>
-              <Text style={styles.questionText}>{t("question")} {ind + 1}</Text>
+              <Text style={styles.questionText}>{t("question")} {ind + 1}: {q.question}</Text>
               <View style={styles.questionImageContainer}>
                 {q.type === "image" ? renderImage(q.image?.uri, styles.questionImage, `question-${q.id}`) : <Text style={styles.question}>{q.question}</Text>}
                 <View style={styles.selectedContainer}>
