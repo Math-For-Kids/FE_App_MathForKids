@@ -67,9 +67,9 @@ export default function LessonDetailScreen({ navigation, route }) {
         return "+";
     }
   };
-  console.log("autoNumber1", autoNumber1);
-  console.log("autoNumber2", autoNumber2);
-  console.log("getOperatorFromSkillName", getOperatorFromSkillName);
+  // console.log("autoNumber1", autoNumber1);
+  // console.log("autoNumber2", autoNumber2);
+  // console.log("getOperatorFromSkillName", getOperatorFromSkillName);
   useEffect(() => {
     if (lessonId) {
       dispatch(getLessonById(lessonId)).then((res) => {
@@ -181,7 +181,7 @@ export default function LessonDetailScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redLight;
     return theme.colors.pinkLight;
   };
-  console.log("dịch:", t("go_to_step_by_step"));
+  // console.log("dịch:", t("go_to_step_by_step"));
 
   const styles = StyleSheet.create({
     container: {

@@ -47,7 +47,7 @@ export default function VerifyOTP({ navigation, route }) {
 
     try {
       const result = await dispatch(verifyOTP({ userId, otpCode })).unwrap();
-      console.log("Verified user:", result);
+      // console.log("Verified user:", result);
       if (!isLogin) {
         await dispatch(updateUser({ id: result.id, data: { isVerify: true } }));
       }
