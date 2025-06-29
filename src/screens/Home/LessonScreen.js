@@ -203,8 +203,7 @@ export default function LessonScreen({ navigation, route }) {
                     <TouchableOpacity
                       onPress={() => {
                         const speakText =
-                          item.name?.[i18n.language] ||
-                          item.name?.en ||
+                          item.name?.[i18n.language]
                           item.title;
                         Speech.speak(speakText, { language: i18n.language });
                       }}

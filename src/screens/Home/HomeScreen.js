@@ -181,7 +181,7 @@ export default function HomeScreen({ navigation, route }) {
     notificationIcon: { width: 30, height: 30 },
     gradeWrapper: {
       position: "absolute",
-      top: 140,
+      top: 160,
       left: 20,
       flexDirection: "row",
       gap: 10,
@@ -194,6 +194,7 @@ export default function HomeScreen({ navigation, route }) {
       width: 100,
       borderWidth: 1,
       borderColor: theme.colors.white,
+      zIndex: 2000, // Tăng zIndex để đảm bảo ở trên
     },
     grade: {
       fontSize: 14,
@@ -207,13 +208,14 @@ export default function HomeScreen({ navigation, route }) {
     },
     dropdown: {
       position: "absolute",
-      top: 30,
+      top: 30, // Điều chỉnh vị trí để tránh bị che
       left: 0,
       marginTop: 5,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 5,
       elevation: 3,
       paddingVertical: 0,
+      zIndex: 2001, // Tăng zIndex để đảm bảo ở trên
     },
     dropdownItem: {
       paddingVertical: 6,
@@ -263,6 +265,7 @@ export default function HomeScreen({ navigation, route }) {
       <LinearGradient
         colors={theme.colors.gradientBluePrimary}
         style={styles.header}
+        pointerEvents="box-none"
       >
         <View style={styles.headerContent}>
           <View style={styles.userRow}>
@@ -307,39 +310,39 @@ export default function HomeScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.gradeWrapper}>
-          <TouchableOpacity
-            onPress={() => setShowDropdown(!showDropdown)}
-            style={styles.gradeRow}
-          >
-            <Text style={styles.grade}>
-              {t("grade", { value: selectedGrade })}
-            </Text>
-            <Ionicons
-              name={showDropdown ? "caret-up-outline" : "caret-down-outline"}
-              size={20}
-              color={theme.colors.blueDark}
-            />
-          </TouchableOpacity>
-
-          {showDropdown && (
-            <View style={styles.dropdown}>
-              {gradeOptions.map((grade, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => {
-                    setSelectedGrade(grade);
-                    setShowDropdown(false);
-                  }}
-                  style={styles.dropdownItem}
-                >
-                  <Text style={styles.dropdownItemText}>{grade}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
       </LinearGradient>
+      <View style={styles.gradeWrapper}>
+        <TouchableOpacity
+          onPress={() => setShowDropdown(!showDropdown)}
+          style={styles.gradeRow}
+        >
+          <Text style={styles.grade}>
+            {t("grade", { value: selectedGrade })}
+          </Text>
+          <Ionicons
+            name={showDropdown ? "caret-up-outline" : "caret-down-outline"}
+            size={20}
+            color={theme.colors.blueDark}
+          />
+        </TouchableOpacity>
+
+        {showDropdown && (
+          <View style={styles.dropdown}>
+            {gradeOptions.map((grade, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  setSelectedGrade(grade);
+                  setShowDropdown(false);
+                }}
+                style={styles.dropdownItem}
+              >
+                <Text style={styles.dropdownItemText}>{grade}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
 
       <Text style={styles.title}>{t("select_skill")}</Text>
 
