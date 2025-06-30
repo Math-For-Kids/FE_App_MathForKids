@@ -7,7 +7,7 @@ export const getRandomTests = createAsyncThunk(
     async ({ lessonId }, { rejectWithValue }) => {
         try {
             const res = await Api.get(`/exercise/randomTests/${lessonId}`);
-            console.log("API response:", res.data);
+            // console.log("API response:", res.data);
             return res.data;
         } catch (err) {
             return rejectWithValue(err.response?.data?.message || err.message);

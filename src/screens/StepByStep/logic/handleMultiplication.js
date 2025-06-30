@@ -46,13 +46,13 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     digits1.forEach((d1, colIndex) => {
       const product = d1 * d2;
       const sum = product + carry;
-      // const digit = product % 10;
+      const digitCarry = product % 10;
       const digit = sum % 10;
       const carryNow = Math.floor(product / 10);
       const nextCarry = Math.floor(sum / 10);
       const nextDigit = sum % 10;
       const isLast = digits1.length === 1 || colIndex === digits1.length - 1;
-      console.log(`[DEBUG] carry = ${carry}, isLast = ${isLast}`);
+      // console.log(`[DEBUG] carry = ${carry}, isLast = ${isLast}`);
       let explain = "";
       if (colIndex === 0 && nextCarry > 0) {
         // Vị trí đầu tiên, dùng nextCarry
@@ -73,6 +73,7 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
           digit,
           carry,
           carryNow,
+          digitCarry,
         });
       } else {
         // Không có gì để nhớ
@@ -180,9 +181,9 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     const padded = partials.map((p) =>
       p.padStart(maxLen, "0").split("").map(Number)
     );
-    console.log("[DEBUG] Partial Rows After Padding:");
+    // console.log("[DEBUG] Partial Rows After Padding:");
     padded.forEach((row, i) => {
-      console.log(`Row ${i + 1}: ${row.join(" ")}`);
+      // console.log(`Row ${i + 1}: ${row.join(" ")}`);
       6;
     });
 
@@ -196,11 +197,11 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
         positionLabels[maxLen - 1 - col] || `10^${maxLen - 1 - col}`;
       const isFirstColumn = col === maxLen - 1;
 
-      console.log(
-        `[COLUMN ADD] Cột ${label}: ${colDigits.join(
-          " + "
-        )} + ${carry} = ${colSum} → viết ${digit}, nhớ ${nextCarry}`
-      );
+      // console.log(
+      //   `[COLUMN ADD] Cột ${label}: ${colDigits.join(
+      //     " + "
+      //   )} + ${carry} = ${colSum} → viết ${digit}, nhớ ${nextCarry}`
+      // );
       const stepText = t("multiplication.step_add_column", {
         label,
         digits: colDigits.join(" + "),
@@ -245,7 +246,7 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
   steps[2].multiplierDigits = str2.split("");
   steps[2].partials = partials;
   steps[2].carryRows = carryRows;
-  console.log("[DEBUG] carryRows =", JSON.stringify(carryRows));
+  // console.log("[DEBUG] carryRows =", JSON.stringify(carryRows));
   steps[2].subSteps = subSteps;
   steps[2].subStepsMeta = subStepsMeta;
   steps[2].positionLabels = Array.from({

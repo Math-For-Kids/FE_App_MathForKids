@@ -18,14 +18,25 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { getRandomExercises } from "../../redux/exerciseSlice";
 import { getEnabledLevels } from "../../redux/levelSlice";
-import { createCompletedExercise, clearError } from "../../redux/completedexerciseSlice";
+import {
+  createCompletedExercise,
+  clearError,
+} from "../../redux/completedexerciseSlice";
 
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, lessonId, levelIds, pupilId, title } = route.params;
   const dispatch = useDispatch();
-  const { exercises, loading: exerciseLoading, error: exerciseError } = useSelector((state) => state.exercise);
-  const { completedExercise, loading: completedLoading, error: completedError } = useSelector((state) => state.completed_exercise);
+  const {
+    exercises,
+    loading: exerciseLoading,
+    error: exerciseError,
+  } = useSelector((state) => state.exercise);
+  const {
+    completedExercise,
+    loading: completedLoading,
+    error: completedError,
+  } = useSelector((state) => state.completed_exercise);
   const { levels } = useSelector((state) => state.level);
   const { t, i18n } = useTranslation("exercise");
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -60,11 +71,15 @@ export default function ExerciseScreen({ navigation, route }) {
     level: exercise.levelId,
   }));
 
-  const isImageUrl = (value) => typeof value === "string" && (value.startsWith("http") || value.startsWith("https"));
-  const isExpression = (value) => typeof value === "string" && value.includes("=") || value.length >= 6;
+  const isImageUrl = (value) =>
+    typeof value === "string" &&
+    (value.startsWith("http") || value.startsWith("https"));
+  const isExpression = (value) =>
+    (typeof value === "string" && value.includes("=")) || value.length >= 6;
 
   const renderImage = (uri, style, key) => {
-    if (!uri || typeof uri !== "string") return <Text style={styles.errorText}>Invalid Image</Text>;
+    if (!uri || typeof uri !== "string")
+      return <Text style={styles.errorText}>Invalid Image</Text>;
     return <Image source={{ uri }} style={style} resizeMode="contain" />;
   };
 
@@ -75,7 +90,10 @@ export default function ExerciseScreen({ navigation, route }) {
     if (optionRef && boxRef) {
       optionRef.measure((fx, fy, width, height, px, py) => {
         boxRef.measure((bx, by, bWidth, bHeight, bpx, bpy) => {
-          flyingAnim.setValue({ x: px + width / 2 - 25, y: py + height / 2 - 25 });
+          flyingAnim.setValue({
+            x: px + width / 2 - 25,
+            y: py + height / 2 - 25,
+          });
           setFlyingValue(value);
           setIsFlying(true);
           Animated.timing(flyingAnim, {
@@ -91,11 +109,17 @@ export default function ExerciseScreen({ navigation, route }) {
     }
   };
 
-  const shuffleArray = (array) => array.map((item) => ({ item, sort: Math.random() })).sort((a, b) => a.sort - b.sort).map(({ item }) => item);
+  const shuffleArray = (array) =>
+    array
+      .map((item) => ({ item, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ item }) => item);
 
   const generateOptions = (question) => {
     if (shuffledOptions[question.id]) return shuffledOptions[question.id];
-    const options = [...(question.options || []), question.answer].filter(Boolean);
+    const options = [...(question.options || []), question.answer].filter(
+      Boolean
+    );
     const shuffled = shuffleArray(options);
     setShuffledOptions((prev) => ({ ...prev, [question.id]: shuffled }));
     return shuffled;
@@ -108,7 +132,9 @@ export default function ExerciseScreen({ navigation, route }) {
     let maxScore = 0;
 
     questions.forEach((q) => {
-      const questionLevelObj = levels.find((level) => String(level.id) === String(q.level));
+      const questionLevelObj = levels.find(
+        (level) => String(level.id) === String(q.level)
+      );
       const questionLevel = questionLevelObj ? questionLevelObj.level : 1;
       maxScore += questionLevel;
 
@@ -124,7 +150,7 @@ export default function ExerciseScreen({ navigation, route }) {
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
-    return { correct, wrong, score: Math.round(score * 10) / 10 };
+    return { correct, wrong, score: Math.round(score) };
   };
 
   const getGradient = () => {
@@ -133,7 +159,7 @@ export default function ExerciseScreen({ navigation, route }) {
     if (skillName === "Multiplication") return theme.colors.gradientOrange;
     if (skillName === "Division") return theme.colors.gradientRed;
     return theme.colors.gradientPink;
-  }
+  };
 
   const getOptionBackground = () => {
     if (skillName === "Addition") return theme.colors.greenLight;
@@ -141,10 +167,10 @@ export default function ExerciseScreen({ navigation, route }) {
     if (skillName === "Multiplication") return theme.colors.orangeLight;
     if (skillName === "Division") return theme.colors.redLight;
     return theme.colors.gradientPink;
+  };
 
-  }
-
-  const shouldUseSingleRow = (options) => options.every((opt) => !isImageUrl(opt) && opt.length <= 5);
+  const shouldUseSingleRow = (options) =>
+    options.every((opt) => !isImageUrl(opt) && opt.length <= 5);
 
   const handleSubmit = async () => {
     if (!pupilId) {
@@ -167,7 +193,9 @@ export default function ExerciseScreen({ navigation, route }) {
             setIsSubmitting(true);
             const { correct, wrong, score } = calculateResults();
             try {
-              await dispatch(createCompletedExercise({ pupilId, lessonId, point: score })).unwrap();
+              await dispatch(
+                createCompletedExercise({ pupilId, lessonId, point: score })
+              ).unwrap();
               navigation.navigate("ExerciseResultScreen", {
                 skillName,
                 answers: selectedAnswers,
@@ -200,10 +228,20 @@ export default function ExerciseScreen({ navigation, route }) {
       <TouchableOpacity
         key={`q${questionId}-opt${optIndex}`}
         style={optionStyle}
-        ref={(ref) => (optionRefs.current[`q${questionId}-opt${optIndex}`] = ref)}
+        ref={(ref) =>
+          (optionRefs.current[`q${questionId}-opt${optIndex}`] = ref)
+        }
         onPress={() => handleSelect(questionId, value, optIndex)}
       >
-        {isImageUrl(value) ? renderImage(value, styles.selectedAnswerImage, `option-${questionId}-${optIndex}`) : <Text style={styles.optionText}>{value}</Text>}
+        {isImageUrl(value) ? (
+          renderImage(
+            value,
+            styles.selectedAnswerImage,
+            `option-${questionId}-${optIndex}`
+          )
+        ) : (
+          <Text style={styles.optionText}>{value}</Text>
+        )}
       </TouchableOpacity>
     );
   };
@@ -212,8 +250,7 @@ export default function ExerciseScreen({ navigation, route }) {
     container: {
       flex: 1,
       paddingTop: 20,
-      backgroundColor:
-        theme.colors.background
+      backgroundColor: theme.colors.background,
     },
     header: {
       width: "100%",
@@ -224,7 +261,7 @@ export default function ExerciseScreen({ navigation, route }) {
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      marginBottom: 20
+      marginBottom: 20,
     },
     backButton: {
       position: "absolute",
@@ -232,7 +269,7 @@ export default function ExerciseScreen({ navigation, route }) {
       backgroundColor: theme.colors.backBackgound,
       marginLeft: 20,
       padding: 8,
-      borderRadius: 50
+      borderRadius: 50,
     },
     backIcon: {
       width: 24,
@@ -243,22 +280,22 @@ export default function ExerciseScreen({ navigation, route }) {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       width: "60%",
-      textAlign: "center"
+      textAlign: "center",
     },
     requestContainer: {
       flexDirection: "row",
       justifyContent: "center",
       gap: 10,
-      alignItems: "center"
+      alignItems: "center",
     },
     soundOnIcon: {
       width: 40,
-      height: 40
+      height: 40,
     },
     requestText: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
-      fontSize: 18
+      fontSize: 18,
     },
     questionContainer: {
       marginBottom: 15, // Giảm khoảng cách
@@ -267,31 +304,31 @@ export default function ExerciseScreen({ navigation, route }) {
     questionImageContainer: {
       flexDirection: "row",
       justifyContent: "space-around",
-      alignItems: "center"
+      alignItems: "center",
     },
     questionImage: {
       width: 150,
-      height: 150
+      height: 150,
     },
     question: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 36,
-      maxWidth: "50%"
+      maxWidth: "50%",
     },
     selectedContainer: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 5
+      gap: 5,
     },
     optionsRow: {
       flexDirection: "row",
       justifyContent: "space-around",
       marginTop: 5,
-      flexWrap: "wrap"
+      flexWrap: "wrap",
     },
     optionsContainer: {
-      marginTop: 10
+      marginTop: 10,
     },
     option: {
       borderRadius: 25,
@@ -304,7 +341,6 @@ export default function ExerciseScreen({ navigation, route }) {
       minWidth: 50,
       minHeight: 50,
       marginTop: 10,
-
     },
     optionText: {
       fontFamily: Fonts.NUNITO_BOLD,
@@ -320,7 +356,7 @@ export default function ExerciseScreen({ navigation, route }) {
       justifyContent: "center",
       alignItems: "center",
       borderRadius: 10,
-      backgroundColor: theme.colors.cardBackground
+      backgroundColor: theme.colors.cardBackground,
     },
     selectedAnswerTextContainer: {
       backgroundColor: getOptionBackground(),
@@ -329,76 +365,88 @@ export default function ExerciseScreen({ navigation, route }) {
       justifyContent: "center",
       alignItems: "center",
       minWidth: 70,
-      minHeight: 70
+      minHeight: 70,
     },
     selectedAnswerText: {
       textAlign: "center",
       fontSize: 24,
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_BOLD
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     selectedAnswerImage: {
       width: 70,
       height: 70,
-      resizeMode: "contain"
+      resizeMode: "contain",
     },
     questionText: {
       fontFamily: Fonts.NUNITO_BOLD,
       fontSize: 16,
       marginTop: 10,
-      marginBottom: 5
+      marginBottom: 5,
     },
     submitButton: {
       marginTop: 20,
       paddingHorizontal: 40,
       paddingVertical: 10,
       borderTopLeftRadius: 50,
-      borderTopRightRadius: 50
+      borderTopRightRadius: 50,
     },
     submitText: {
       color: theme.colors.white,
       fontSize: 18,
       fontFamily: Fonts.NUNITO_BOLD,
-      textAlign: "center"
+      textAlign: "center",
     },
     isFlying: {
       position: "absolute",
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: getOptionBackground(),
-      elevation: 3
+      elevation: 3,
     },
     errorText: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.red,
       fontSize: 18,
-      textAlign: "center"
+      textAlign: "center",
     },
     loadingText: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 18,
       textAlign: "center",
-      marginTop: 20
+      marginTop: 20,
     },
   });
 
-  if (exerciseLoading && !isSubmitting) return
+  if (exerciseLoading && !isSubmitting) return;
   <View style={styles.container}>
     <Text style={styles.loadingText}>{t("loadingExercises")}</Text>
   </View>;
-  if (exerciseError && !isSubmitting) return
+  if (exerciseError && !isSubmitting) return;
   <View style={styles.container}>
-    <Text style={styles.errorText}>{t("errorLoadingExercises")}: {exerciseError}</Text>
+    <Text style={styles.errorText}>
+      {t("errorLoadingExercises")}: {exerciseError}
+    </Text>
   </View>;
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.5}>{title}</Text>
+        <Text
+          style={styles.headerText}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
+          {title}
+        </Text>
       </LinearGradient>
 
       <ScrollView>
@@ -415,14 +463,37 @@ export default function ExerciseScreen({ navigation, route }) {
           // const secondRowOptions = options.slice(midPoint);
           return (
             <View key={q.id} style={styles.questionContainer}>
-              <Text style={styles.questionText}>{t("question")} {ind + 1}: {q.question}</Text>
+              <Text style={styles.questionText}>
+                {t("question")} {ind + 1}: {q.question}
+              </Text>
               <View style={styles.questionImageContainer}>
-                {q.type === "image" ? renderImage(q.image?.uri, styles.questionImage, `question-${q.id}`) : <Text style={styles.question}>{q.question}</Text>}
+                {q.type === "image" ? (
+                  renderImage(
+                    q.image?.uri,
+                    styles.questionImage,
+                    `question-${q.id}`
+                  )
+                ) : (
+                  <Text style={styles.question}>{q.question}</Text>
+                )}
                 <View style={styles.selectedContainer}>
-                  <View style={styles.selectedAnswerBox} ref={(ref) => (boxRefs.current[`box${q.id}`] = ref)}>
+                  <View
+                    style={styles.selectedAnswerBox}
+                    ref={(ref) => (boxRefs.current[`box${q.id}`] = ref)}
+                  >
                     {selectedAnswers[q.id] !== undefined && (
                       <View style={styles.selectedAnswerTextContainer}>
-                        {isImageUrl(selectedAnswers[q.id]) ? renderImage(selectedAnswers[q.id], styles.selectedAnswerImage, `selected-${q.id}`) : <Text style={styles.selectedAnswerText}>{selectedAnswers[q.id]}</Text>}
+                        {isImageUrl(selectedAnswers[q.id]) ? (
+                          renderImage(
+                            selectedAnswers[q.id],
+                            styles.selectedAnswerImage,
+                            `selected-${q.id}`
+                          )
+                        ) : (
+                          <Text style={styles.selectedAnswerText}>
+                            {selectedAnswers[q.id]}
+                          </Text>
+                        )}
                       </View>
                     )}
                   </View>
@@ -431,25 +502,79 @@ export default function ExerciseScreen({ navigation, route }) {
 
               <View style={styles.optionsContainer}>
                 {useSingleRow ? (
-                  <View style={[styles.optionsRow, { justifyContent: 'space-around' }]}>
-                    {options.map((val, optIndex) => renderOption(q.id, val, optIndex, {
-                      ...(isImageUrl(val) && { width: 80, height: 80, borderRadius: 10 }),
-                      ...(isExpression(val) && { paddingHorizontal: 20, borderRadius: 10, width: 150 }),
-                    }))}
+                  <View
+                    style={[
+                      styles.optionsRow,
+                      { justifyContent: "space-around" },
+                    ]}
+                  >
+                    {options.map((val, optIndex) =>
+                      renderOption(q.id, val, optIndex, {
+                        ...(isImageUrl(val) && {
+                          width: 80,
+                          height: 80,
+                          borderRadius: 10,
+                        }),
+                        ...(isExpression(val) && {
+                          paddingHorizontal: 20,
+                          borderRadius: 10,
+                          width: 150,
+                        }),
+                      })
+                    )}
                   </View>
                 ) : (
                   <>
-                    <View style={[styles.optionsRow, { justifyContent: 'space-around' }]}>
-                      {options.slice(0, Math.ceil(options.length / 2)).map((val, optIndex) => renderOption(q.id, val, optIndex, {
-                        ...(isImageUrl(val) && { width: 80, height: 80, borderRadius: 10 }),
-                        ...(isExpression(val) && { paddingHorizontal: 20, borderRadius: 10, width: 150 }),
-                      }))}
+                    <View
+                      style={[
+                        styles.optionsRow,
+                        { justifyContent: "space-around" },
+                      ]}
+                    >
+                      {options
+                        .slice(0, Math.ceil(options.length / 2))
+                        .map((val, optIndex) =>
+                          renderOption(q.id, val, optIndex, {
+                            ...(isImageUrl(val) && {
+                              width: 80,
+                              height: 80,
+                              borderRadius: 10,
+                            }),
+                            ...(isExpression(val) && {
+                              paddingHorizontal: 20,
+                              borderRadius: 10,
+                              width: 150,
+                            }),
+                          })
+                        )}
                     </View>
-                    <View style={[styles.optionsRow, { justifyContent: 'space-around' }]}>
-                      {options.slice(Math.ceil(options.length / 2)).map((val, optIndex) => renderOption(q.id, val, optIndex + Math.ceil(options.length / 2), {
-                        ...(isImageUrl(val) && { width: 80, height: 80, borderRadius: 10 }),
-                        ...(isExpression(val) && { paddingHorizontal: 20, borderRadius: 10, width: 150 }),
-                      }))}
+                    <View
+                      style={[
+                        styles.optionsRow,
+                        { justifyContent: "space-around" },
+                      ]}
+                    >
+                      {options
+                        .slice(Math.ceil(options.length / 2))
+                        .map((val, optIndex) =>
+                          renderOption(
+                            q.id,
+                            val,
+                            optIndex + Math.ceil(options.length / 2),
+                            {
+                              ...(isImageUrl(val) && {
+                                width: 80,
+                                height: 80,
+                                borderRadius: 10,
+                              }),
+                              ...(isExpression(val) && {
+                                paddingHorizontal: 20,
+                                borderRadius: 10,
+                                width: 150,
+                              }),
+                            }
+                          )
+                        )}
                     </View>
                   </>
                 )}
@@ -461,7 +586,9 @@ export default function ExerciseScreen({ navigation, route }) {
 
       <LinearGradient colors={getGradient()} style={styles.submitButton}>
         <TouchableOpacity onPress={handleSubmit} disabled={isSubmitting}>
-          <Text style={styles.submitText}>{isSubmitting ? t("submitting") : t("submit")}</Text>
+          <Text style={styles.submitText}>
+            {isSubmitting ? t("submitting") : t("submit")}
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
 
@@ -470,11 +597,22 @@ export default function ExerciseScreen({ navigation, route }) {
           style={[
             styles.isFlying,
             { transform: flyingAnim.getTranslateTransform() },
-            isImageUrl(flyingValue) && { width: 80, height: 80, borderRadius: 10 },
-            isExpression(flyingValue) && { paddingHorizontal: 10, borderRadius: 10 },
+            isImageUrl(flyingValue) && {
+              width: 80,
+              height: 80,
+              borderRadius: 10,
+            },
+            isExpression(flyingValue) && {
+              paddingHorizontal: 10,
+              borderRadius: 10,
+            },
           ]}
         >
-          {isImageUrl(flyingValue) ? renderImage(flyingValue, styles.selectedAnswerImage, `flying`) : <Text style={styles.optionText}>{flyingValue}</Text>}
+          {isImageUrl(flyingValue) ? (
+            renderImage(flyingValue, styles.selectedAnswerImage, `flying`)
+          ) : (
+            <Text style={styles.optionText}>{flyingValue}</Text>
+          )}
         </Animated.View>
       )}
 

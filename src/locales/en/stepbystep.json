@@ -25,7 +25,7 @@
   "multiplication": {
     "step_intro": "Step {{step}}: Multiply the {{label}} digit of the multiplier by each digit of the multiplicand from right to left.",
     "step_zero_rule": "Each time we multiply, the result shifts one column to the right!",
-    "step_detail_with_carry": "{{d2}} × {{d1}} = {{product}} → write {{digit}}, carry {{nextCarry}}",
+    "step_detail_with_carry": "{{d2}} × {{d1}} = {{product}} → write {{digitCarry}}, carry {{nextCarry}}",
     "step_detail_with_next": "{{d2}} × {{d1}} = {{product}} → write {{digit}}, carry {{nextCarry}}",
     "step_detail_no_carry": "{{d2}} × {{d1}} = {{product}} → write {{digit}}",
     "remember": ", carry {{nextCarry}}",

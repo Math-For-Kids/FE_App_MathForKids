@@ -16,8 +16,14 @@ import FloatingMenu from "../../components/FloatingMenu";
 
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { answers, questions, score, correctCount, wrongCount, skillName } =
-    route.params;
+  const {
+    answers,
+    questions,
+    score,
+    correctCount,
+    wrongCount,
+    skillName,
+  } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
 
@@ -60,7 +66,10 @@ export default function ExerciseResultScreen({ navigation, route }) {
   };
 
   const isImageUrl = (value) => {
-    return typeof value === "string" && (value.startsWith("http") || value.startsWith("https"));
+    return (
+      typeof value === "string" &&
+      (value.startsWith("http") || value.startsWith("https"))
+    );
   };
 
   const renderImage = (uri, style, key) => {
@@ -73,7 +82,12 @@ export default function ExerciseResultScreen({ navigation, route }) {
         source={{ uri }}
         style={style}
         resizeMode="contain"
-        onError={(e) => console.warn(`Failed to load image ${uri} for key ${key}:`, e.nativeEvent.error)}
+        onError={(e) =>
+          console.warn(
+            `Failed to load image ${uri} for key ${key}:`,
+            e.nativeEvent.error
+          )
+        }
         onLoad={() => console.log(`Image loaded successfully: ${uri}`)}
       />
     );
@@ -88,7 +102,10 @@ export default function ExerciseResultScreen({ navigation, route }) {
     // Match patterns like "4 + 3 = 7" or "4 + 3" or "4+3=7" or "4+3"
     const match = answerText.match(/(\d+)\s*[\+\-\×\÷]\s*(\d+)/);
     if (match) {
-      console.log("Extracted numbers:", { number1: match[1], number2: match[2] }); // Debug log
+      console.log("Extracted numbers:", {
+        number1: match[1],
+        number2: match[2],
+      }); // Debug log
       return { number1: match[1], number2: match[2] };
     }
     console.warn("No numbers found in answerText:", answerText);
@@ -216,7 +233,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
       fontSize: 16,
       fontFamily: Fonts.NUNITO_BOLD,
     },
-     buttonClose: {
+    buttonClose: {
       color: theme.colors.white,
       fontSize: 16,
       fontFamily: Fonts.NUNITO_BOLD,
@@ -233,7 +250,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.pop(2)}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -299,19 +316,30 @@ export default function ExerciseResultScreen({ navigation, route }) {
                   Selected Answer: {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  Correct Answer: {selectedQuestion.answer}
+                  Correct Answer:{" "}
+                  {selectedQuestion.expression
+                    ? selectedQuestion.expression
+                    : selectedQuestion.answer}
                 </Text>
+
                 <TouchableOpacity
                   style={styles.stepByStepButton}
                   onPress={() => {
-                    const answerText = selectedQuestion.answer || "";
+                    const answerText =
+                      selectedQuestion.expression ||
+                      selectedQuestion.answer ||
+                      "";
+
                     const { number1, number2 } = extractNumbers(answerText);
                     if (!number1 || !number2) {
-                      console.warn("Navigation skipped: Invalid numbers extracted", {
-                        number1,
-                        number2,
-                        answerText,
-                      });
+                      console.warn(
+                        "Navigation skipped: Invalid numbers extracted",
+                        {
+                          number1,
+                          number2,
+                          answerText,
+                        }
+                      );
                       return;
                     }
                     setModalVisible(false);

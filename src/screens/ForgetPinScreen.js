@@ -43,7 +43,7 @@ export default function ForgetPinScreen({ navigation }) {
     updated[index] = val.replace(/[^0-9]/g, "");
     isConfirm ? setConfirmPin(updated) : setNewPin(updated);
   };
-  console.log("userId", user?.id);
+  // console.log("userId", user?.id);
   const handleSendOTP = () => {
     if (!contact || !user?.id) {
       Alert.alert("Notice", "Missing user ID or phone number.");

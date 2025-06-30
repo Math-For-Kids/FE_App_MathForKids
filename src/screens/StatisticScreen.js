@@ -31,7 +31,7 @@ export default function StatisticScreen({ navigation }) {
   const userNotifications = useSelector(
     (state) => state.notifications.list || []
   );
-  console.log("notification", userNotifications);
+  // console.log("notification", userNotifications);
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   useEffect(() => {

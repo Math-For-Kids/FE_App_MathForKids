@@ -17,14 +17,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import * as Speech from "expo-speech";
-
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, grade, pupilId, skillIcon } = route.params;
   const { t } = useTranslation("lesson");
   const { t: c } = useTranslation("common");
   const dispatch = useDispatch();
-
   const normalizedSkillName = skillName.toLowerCase();
   // const [activeTab] = useState("Lesson");
 
@@ -34,14 +34,18 @@ export default function LessonScreen({ navigation, route }) {
     error: lessonError,
   } = useSelector((state) => state.lesson);
 
-  useEffect(() => {
-    dispatch(getLessonsByGradeAndType({ grade, type: normalizedSkillName, pupilId }));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(
+        getLessonsByGradeAndType({ grade, type: normalizedSkillName, pupilId })
+      );
+    }, [dispatch, grade, normalizedSkillName, pupilId])
+  );
 
   const filteredLessons = lessons.filter(
     (item) => item.type?.toLowerCase() === normalizedSkillName
   );
-  console.log("filteredLessons", filteredLessons);
+  // console.log("filteredLessons", filteredLessons);
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;

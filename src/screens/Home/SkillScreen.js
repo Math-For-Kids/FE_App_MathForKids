@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  FlatList,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
@@ -12,13 +20,13 @@ import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId } = route.params;
+  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
+    route.params;
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, loading, error } = useSelector((state) => state.level);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLevels, setSelectedLevels] = useState([]);
-
   useEffect(() => {
     dispatch(getEnabledLevels());
   }, [dispatch]);
@@ -299,6 +307,7 @@ export default function SkillScreen({ navigation, route }) {
                     grade,
                     title,
                     lessonId,
+                    pupilId,
                   });
                 }
               }}
