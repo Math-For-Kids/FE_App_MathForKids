@@ -124,7 +124,7 @@ export default function ExerciseScreen({ navigation, route }) {
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
-    return { correct, wrong, score: Math.round(score * 10) / 10 };
+    return { correct, wrong, score: Math.round(score)};
   };
 
   const getGradient = () => {
@@ -329,7 +329,7 @@ export default function ExerciseScreen({ navigation, route }) {
       justifyContent: "center",
       alignItems: "center",
       minWidth: 70,
-      minHeight: 70
+      minHeight: 70,
     },
     selectedAnswerText: {
       textAlign: "center",
