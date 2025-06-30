@@ -16,10 +16,31 @@ import FloatingMenu from "../../components/FloatingMenu";
 
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { answers, questions, score, correctCount, wrongCount, skillName } =
-    route.params;
+  const {
+    answers,
+    questions,
+    score,
+    correctCount,
+    wrongCount,
+    skillName,
+  } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
+
+  const getOperatorFromSkillName = (skill) => {
+    switch (skill) {
+      case "Addition":
+        return "+";
+      case "Subtraction":
+        return "-";
+      case "Multiplication":
+        return "×";
+      case "Division":
+        return "÷";
+      default:
+        return "+";
+    }
+  };
 
   const getQuestionColor = (question) => {
     const selected = answers[question.id];
@@ -45,7 +66,10 @@ export default function ExerciseResultScreen({ navigation, route }) {
   };
 
   const isImageUrl = (value) => {
-    return typeof value === "string" && (value.startsWith("http") || value.startsWith("https"));
+    return (
+      typeof value === "string" &&
+      (value.startsWith("http") || value.startsWith("https"))
+    );
   };
 
   const renderImage = (uri, style, key) => {
@@ -58,10 +82,34 @@ export default function ExerciseResultScreen({ navigation, route }) {
         source={{ uri }}
         style={style}
         resizeMode="contain"
-        onError={(e) => console.warn(`Failed to load image ${uri} for key ${key}:`, e.nativeEvent.error)}
+        onError={(e) =>
+          console.warn(
+            `Failed to load image ${uri} for key ${key}:`,
+            e.nativeEvent.error
+          )
+        }
         onLoad={() => console.log(`Image loaded successfully: ${uri}`)}
       />
     );
+  };
+
+  const extractNumbers = (answerText) => {
+    console.log("Extracting numbers from answerText:", answerText); // Debug log
+    if (!answerText || typeof answerText !== "string") {
+      console.warn("Invalid answerText:", answerText);
+      return { number1: "", number2: "" };
+    }
+    // Match patterns like "4 + 3 = 7" or "4 + 3" or "4+3=7" or "4+3"
+    const match = answerText.match(/(\d+)\s*[\+\-\×\÷]\s*(\d+)/);
+    if (match) {
+      console.log("Extracted numbers:", {
+        number1: match[1],
+        number2: match[2],
+      }); // Debug log
+      return { number1: match[1], number2: match[2] };
+    }
+    console.warn("No numbers found in answerText:", answerText);
+    return { number1: "", number2: "" };
   };
 
   const styles = StyleSheet.create({
@@ -174,7 +222,18 @@ export default function ExerciseResultScreen({ navigation, route }) {
       backgroundColor: getCorrectBackground(),
       borderRadius: 5,
     },
-    closeButtonText: {
+    stepByStepButton: {
+      marginTop: 10,
+      padding: 10,
+      backgroundColor: theme.colors.primary,
+      borderRadius: 5,
+    },
+    buttonText: {
+      color: theme.colors.blueLight,
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_BOLD,
+    },
+    buttonClose: {
       color: theme.colors.white,
       fontSize: 16,
       fontFamily: Fonts.NUNITO_BOLD,
@@ -190,14 +249,8 @@ export default function ExerciseResultScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
-        {/* <TouchableOpacity
-          onPress={() => navigation.navigate("SkillScreen", {
-            skillName,
-          })}
-          style={styles.backButton}
-        > */}
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.pop(2)}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -253,20 +306,58 @@ export default function ExerciseResultScreen({ navigation, route }) {
                     ? "Image Question"
                     : selectedQuestion.question}
                 </Text>
-                {selectedQuestion.type === "image" && (
-                  renderImage(selectedQuestion.image?.uri, styles.modalImage, `modal-question-${selectedQuestion.id}`)
-                )}
+                {selectedQuestion.type === "image" &&
+                  renderImage(
+                    selectedQuestion.image?.uri,
+                    styles.modalImage,
+                    `modal-question-${selectedQuestion.id}`
+                  )}
                 <Text style={styles.modalAnswerText}>
                   Selected Answer: {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  Correct Answer: {selectedQuestion.answer}
+                  Correct Answer:{" "}
+                  {selectedQuestion.expression
+                    ? selectedQuestion.expression
+                    : selectedQuestion.answer}
                 </Text>
+
+                <TouchableOpacity
+                  style={styles.stepByStepButton}
+                  onPress={() => {
+                    const answerText =
+                      selectedQuestion.expression ||
+                      selectedQuestion.answer ||
+                      "";
+
+                    const { number1, number2 } = extractNumbers(answerText);
+                    if (!number1 || !number2) {
+                      console.warn(
+                        "Navigation skipped: Invalid numbers extracted",
+                        {
+                          number1,
+                          number2,
+                          answerText,
+                        }
+                      );
+                      return;
+                    }
+                    setModalVisible(false);
+                    navigation.navigate("StepByStepScreen", {
+                      skillName,
+                      number1,
+                      number2,
+                      operator: getOperatorFromSkillName(skillName),
+                    });
+                  }}
+                >
+                  <Text style={styles.buttonText}>Go to Step by Step</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={styles.closeButtonText}>Close</Text>
+                  <Text style={styles.buttonClose}>Close</Text>
                 </TouchableOpacity>
               </>
             )}
