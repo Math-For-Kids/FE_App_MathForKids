@@ -100,12 +100,17 @@ export default function ExerciseResultScreen({ navigation, route }) {
       return { number1: "", number2: "" };
     }
     // Match patterns like "4 + 3 = 7" or "4 + 3" or "4+3=7" or "4+3"
-    const match = answerText.match(/(\d+)\s*[\+\-\×\÷]\s*(\d+)/);
+    let match = answerText.match(/(\d+)\s*[\+\-\×\÷]\s*(\d+)/);
     if (match) {
       console.log("Extracted numbers:", {
         number1: match[1],
         number2: match[2],
       }); // Debug log
+      return { number1: match[1], number2: match[2] };
+    }
+    match = answerText.match(/(\d+)\s*và\s+(\d+)/i);
+    if (match) {
+      console.log("Extracted number:", { number1: match[1], number2: match[2] });
       return { number1: match[1], number2: match[2] };
     }
     console.warn("No numbers found in answerText:", answerText);

@@ -17,7 +17,7 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { getRandomTests } from "../../redux/testSlice";
+import { getRandomTests, createTest, createMultipleTestQuestions } from "../../redux/testSlice";
 import { updatePupilProfile, pupilById } from "../../redux/profileSlice";
 import { completeAndUnlockNextLesson } from "../../redux/completedLessonSlice";
 import { Svg, Circle } from "react-native-svg";
@@ -28,16 +28,15 @@ export default function TestScreen({ navigation, route }) {
   const { skillName, lessonId, pupilId } = route.params;
 
   const dispatch = useDispatch();
-  const { tests, loading, error } = useSelector((state) => state.test);
+  const { tests, loading, error, createdTest } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
   const windowWidth = Dimensions.get("window").width;
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const bearPosition = useRef(new Animated.Value(20)).current;
   const bearRotate = useRef(new Animated.Value(0)).current;
-  const [timer, setTimer] = useState(time * 60);
+  const [timer, setTimer] = useState(0); // Initialize to 0, set dynamically
   const timerRef = useRef(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-  // const [correctCount, setCorrectCount] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [shuffledOptions, setShuffledOptions] = useState({});
   const [showResultModal, setShowResultModal] = useState(false);
@@ -55,23 +54,24 @@ export default function TestScreen({ navigation, route }) {
       <Image source={{ uri }} style={style} resizeMode="contain" key={key} />
     );
   };
-  const [time, setTime] = useState(10);
-  useEffect(() => {
-    const totalQuestions = tests.length;
-    let newTime = 10;
 
-    if (totalQuestions > 10 && totalQuestions <= 20) {
+  // Consolidated timer logic
+  useEffect(() => {
+    if (!tests.length) return;
+
+    // Calculate initial time based on number of questions
+    let newTime = 10; // Default 10 minutes
+    if (tests.length > 10 && tests.length <= 20) {
       newTime = 20;
-    } else if (totalQuestions > 20 && totalQuestions <= 30) {
+    } else if (tests.length > 20 && tests.length <= 30) {
       newTime = 30;
     }
+    const totalSeconds = newTime * 60;
 
-    setTime(newTime);
-  }, [tests]);
-  useEffect(() => {
-    setTimer(time * 60);
-  }, [time]);
-  useEffect(() => {
+    // Initialize timer
+    setTimer(totalSeconds);
+
+    // Start timer
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
@@ -80,24 +80,14 @@ export default function TestScreen({ navigation, route }) {
           return 0;
         }
         if (prev === 60) {
-          Alert.alert("Thông báo", "Sắp hết giờ làm bài!");
+          Alert.alert(t("warning"), t("timeAlmostUp"));
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, []);
-  useEffect(() => {
-    if (timer === 60) {
-      Alert.alert(t("warning"), t("timeAlmostUp"));
-    }
-
-    if (timer === 0) {
-      clearInterval(timerRef.current);
-      handleTimeUp();
-    }
-  }, [timer]);
+  }, [tests.length, t]);
 
   useEffect(() => {
     dispatch(getRandomTests({ lessonId }));
@@ -152,17 +142,6 @@ export default function TestScreen({ navigation, route }) {
     ]).start();
   }, [currentQuestion, tests.length]);
 
-  // const handleAnswer = (val) => {
-  //   if (!currentQ) return;
-  //   const isCorrect = val === currentQ.answer;
-  //   setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
-  //   if (isCorrect) setCorrectCount((prev) => prev + 1);
-  //   if (currentQuestion < tests.length) {
-  //     setTimeout(() => {
-  //       setCurrentQuestion(currentQuestion + 1);
-  //     }, 300);
-  //   }
-  // };
   const handleAnswer = (val) => {
     if (!currentQ) return;
     setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
@@ -172,28 +151,13 @@ export default function TestScreen({ navigation, route }) {
       }, 300);
     }
   };
+
   const handleBack = () => {
     if (currentQuestion > 1) {
       setCurrentQuestion(currentQuestion - 1);
     }
   };
 
-  // const handleBack = () => {
-  //   if (currentQuestion > 1) {
-  //     const prevQuestion = tests[currentQuestion - 2];
-  //     const prevAnswer = userAnswers[prevQuestion.id];
-  //     if (prevAnswer !== undefined && prevAnswer === prevQuestion.answer) {
-  //       setCorrectCount((prev) => Math.max(0, prev - 1));
-  //     }
-  //     setCurrentQuestion(currentQuestion - 1);
-  //   }
-  // };
-  // const calculateScore = () => {
-  //   if (!tests.length) return 0;
-  //   const rawScore = (correctCount / tests.length) * 10;
-  //   const roundedScore = Math.round(rawScore);
-  //   return roundedScore;
-  // };
   const calculateScore = () => {
     if (!tests.length) return 0;
     const correctCount = tests.filter(
@@ -203,16 +167,17 @@ export default function TestScreen({ navigation, route }) {
     return Math.round(rawScore);
   };
 
-  // Hàm tính bonus point
   const calculateBonusPoint = (score) => {
     if (score >= 9) return 5;
     if (score >= 7 && score <= 8) return 3;
     if (score > 5) return 1;
     return 0;
   };
-  const handleSubmit = () => {
+
+  const handleSubmit = async () => {
     const answeredCount = Object.keys(userAnswers).length;
-    const usedTime = time * 60 - timer;
+    const totalTime = (tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60;
+    const usedTime = totalTime - timer;
     clearInterval(timerRef.current);
 
     const score = calculateScore();
@@ -220,19 +185,54 @@ export default function TestScreen({ navigation, route }) {
     const currentPoint = pupil?.point || 0;
     const newPoint = currentPoint + bonus;
 
-    // Action khi thực sự nộp bài
-    const doSubmit = () => {
-      setElapsedTime(usedTime);
-      setShowResultModal(true);
+    const doSubmit = async () => {
+      try {
+        // Create test
+        const testPayload = {
+          pupilId,
+          lessonId,
+          point: score,
+          duration: usedTime,
+        };
 
-      if (bonus > 0) {
-        dispatch(
-          updatePupilProfile({ id: pupilId, data: { point: newPoint } })
+        const testResult = await dispatch(createTest(testPayload)).unwrap();
+        console.log("ohuc", testResult?.message?.id);
+        const testId = testResult?.message?.id;
+
+        if (testId) {
+          // Prepare array of test questions
+          const questionPayloads = tests.map((question) => ({
+            testId,
+            exerciseId: question.id,
+            levelId: question.levelId || question.level,
+            question: question.question?.[i18n.language] || question.question,
+            image: question.image || null,
+            option: question.option || [],
+            correctAnswer: question.answer,
+            selectedAnswer: userAnswers[question.id] || null,
+          }));
+
+          // Create all test questions in one request
+          await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
+        }
+
+        setElapsedTime(usedTime);
+        setShowResultModal(true);
+
+        if (bonus > 0) {
+          dispatch(
+            updatePupilProfile({ id: pupilId, data: { point: newPoint } })
+          );
+        }
+
+        dispatch(completeAndUnlockNextLesson({ pupilId, lessonId }));
+      } catch (error) {
+        Alert.alert(
+          t("error"),
+          error.message || t("submissionFailed"),
+          [{ text: "OK" }]
         );
       }
-
-      // Gọi API mở khóa bài học tiếp theo
-      dispatch(completeAndUnlockNextLesson({ pupilId, lessonId }));
     };
 
     if (answeredCount < tests.length && timer > 0) {
@@ -241,13 +241,16 @@ export default function TestScreen({ navigation, route }) {
           text: t("keepDoing"),
           style: "cancel",
           onPress: () => {
-            // Nếu người dùng muốn tiếp tục làm, restart timer
+            // Restart timer
             timerRef.current = setInterval(() => {
               setTimer((prev) => {
                 if (prev <= 1) {
                   clearInterval(timerRef.current);
                   handleTimeUp();
                   return 0;
+                }
+                if (prev === 60) {
+                  Alert.alert(t("warning"), t("timeAlmostUp"));
                 }
                 return prev - 1;
               });
@@ -261,7 +264,7 @@ export default function TestScreen({ navigation, route }) {
         },
       ]);
     } else {
-      doSubmit();
+      await doSubmit();
     }
   };
 
@@ -276,9 +279,9 @@ export default function TestScreen({ navigation, route }) {
     return `${m}:${s < 10 ? "0" + s : s}`;
   };
 
-  const progress = Math.min(Math.max(timer / (time * 60), 0), 1);
+  const progress = Math.min(Math.max(timer / ((tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60), 0), 1);
   const strokeDashoffset = 2 * Math.PI * 25 * (1 - progress);
-  // Gradient and color functions
+
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
@@ -453,7 +456,7 @@ export default function TestScreen({ navigation, route }) {
       width: 50,
       height: 50,
       borderRadius: 10,
-      alignSelf: "center", // Căn giữa hình ảnh trong nút
+      alignSelf: "center",
     },
     submitButtonContainer: {
       position: "absolute",
@@ -535,7 +538,6 @@ export default function TestScreen({ navigation, route }) {
     },
   });
 
-  // Handle loading and error states
   if (loading) {
     return (
       <View style={styles.container}>
@@ -569,7 +571,6 @@ export default function TestScreen({ navigation, route }) {
   }
 
   const options = shuffledOptions[currentQ.id] || [];
-  // Hàm tính điểm trên thang 10
 
   return (
     <View style={styles.container}>

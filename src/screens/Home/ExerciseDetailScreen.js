@@ -150,7 +150,7 @@ export default function ExerciseScreen({ navigation, route }) {
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
-    return { correct, wrong, score: Math.round(score) };
+    return { correct, wrong, score: Math.round(score)};
   };
 
   const getGradient = () => {
