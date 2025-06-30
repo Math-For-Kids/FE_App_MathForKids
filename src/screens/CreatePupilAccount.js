@@ -23,7 +23,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const userId = useSelector((state) => state.auth.user?.id);
-  console.log("userId", userId);
+  // console.log("userId", userId);
   const [fullName, setFullName] = useState("");
   const [nickName, setNickName] = useState("");
   const [studentClass, setStudentClass] = useState("");

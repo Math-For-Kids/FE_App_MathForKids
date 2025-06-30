@@ -63,11 +63,11 @@ export default function RewardScreen({ navigation }) {
   );
 
   // Debug dữ liệu
-  console.log("Debug data:", { userId, pupilId, pupil, owned_rewards });
+  // console.log("Debug data:", { userId, pupilId, pupil, owned_rewards });
 
   // Monitor owned_rewards changes for debugging
   useEffect(() => {
-    console.log("owned_rewards updated:", owned_rewards);
+    // console.log("owned_rewards updated:", owned_rewards);
     const invalidEntries = owned_rewards.filter(
       (o) => !o || typeof o !== "object" || !o.rewardId || o.quantity == null
     );
@@ -178,7 +178,7 @@ export default function RewardScreen({ navigation }) {
 
   // Xử lý khi click vào ảnh phần thưởng
   const handleRewardPress = (item) => {
-    console.log("handleRewardPress called with rewardId:", item.id);
+    // console.log("handleRewardPress called with rewardId:", item.id);
     setSelectedReward(item);
   };
 
@@ -213,7 +213,7 @@ export default function RewardScreen({ navigation }) {
       try {
         const now = Date.now();
         const action = await dispatch(getByPupilId(pupilId)).unwrap();
-        console.log("fetchOwnedRewardsWithRetry response:", action);
+        // console.log("fetchOwnedRewardsWithRetry response:", action);
         lastSyncRef.current = now;
         return action;
       } catch (error) {
@@ -260,12 +260,12 @@ export default function RewardScreen({ navigation }) {
     const exchangePoint = parseInt(selectedReward.exchangePoint, 10);
     const exchangeReward = parseInt(selectedReward.exchangeReward, 10);
 
-    console.log("handleExchange called:", {
-      rewardId,
-      exchangeQuantity,
-      exchangePoint,
-      exchangeReward,
-    });
+    // console.log("handleExchange called:", {
+    //   rewardId,
+    //   exchangeQuantity,
+    //   exchangePoint,
+    //   exchangeReward,
+    // });
 
     if (!rewardId) {
       Alert.alert("Error", "Reward ID is missing!");
@@ -300,7 +300,7 @@ export default function RewardScreen({ navigation }) {
           })
         ).unwrap();
 
-        console.log("createOrUpdate called, fetching owned rewards...");
+        // console.log("createOrUpdate called, fetching owned rewards...");
         await fetchOwnedRewardsWithRetry(pupilId);
 
         const updatePupilAction = await dispatch(
@@ -347,7 +347,7 @@ export default function RewardScreen({ navigation }) {
           })
         ).unwrap();
 
-        console.log("createOrUpdate called, fetching owned rewards...");
+        // console.log("createOrUpdate called, fetching owned rewards...");
         await fetchOwnedRewardsWithRetry(pupilId);
 
         Alert.alert("Success", "Reward exchanged successfully!");
@@ -442,7 +442,7 @@ export default function RewardScreen({ navigation }) {
       (target) => target !== null && target?.id !== undefined
     );
 
-    console.log("allTargets computed:", result);
+    // console.log("allTargets computed:", result);
     return result;
   }, [rawRewardList, owned_rewards, pupil]);
 

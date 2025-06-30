@@ -24,12 +24,19 @@ export const SubtractionStepView = ({
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
   };
-  const getActiveColor = (indexFromRight) => {
+  const getActiveBackgroundColor = (indexFromRight) => {
     const activeColumnIndex = steps[2].subStepsMeta?.[subStepIndex] ?? -2;
     return indexFromRight === activeColumnIndex
       ? getSkillColor()
+      : "transparent"; 
+  };
+  const getActiveTextColor = (indexFromRight) => {
+    const activeColumnIndex = steps[2].subStepsMeta?.[subStepIndex] ?? -2;
+    return indexFromRight === activeColumnIndex
+      ? theme.colors.white 
       : theme.colors.grayDark;
   };
+
   useEffect(() => {
     const currentText = steps[2].subSteps?.[subStepIndex];
     if (currentText) {
@@ -133,7 +140,10 @@ export const SubtractionStepView = ({
               key={`minuend-${i}`}
               style={[
                 styles.minuendText,
-                { color: getActiveColor(indexFromRight) },
+                {
+                  backgroundColor: getActiveBackgroundColor(indexFromRight),
+                  color: getActiveTextColor(indexFromRight),
+                },
               ]}
             >
               {digit}
@@ -141,6 +151,7 @@ export const SubtractionStepView = ({
           );
         })}
       </View>
+
       {/* Dấu trừ */}
       <View style={styles.row}>
         <Text
@@ -194,8 +205,11 @@ export const SubtractionStepView = ({
             <Text
               key={`subtrahend-${i}`}
               style={[
-                styles.subtrahendText,
-                { color: getActiveColor(indexFromRight) },
+                styles.minuendText,
+                {
+                  backgroundColor: getActiveBackgroundColor(indexFromRight),
+                  color: getActiveTextColor(indexFromRight),
+                },
               ]}
             >
               {digit}
@@ -233,8 +247,11 @@ export const SubtractionStepView = ({
             >
               <Text
                 style={[
-                  styles.resultText,
-                  { color: getActiveColor(indexFromRight) },
+                  styles.minuendText,
+                  {
+                    backgroundColor: getActiveBackgroundColor(indexFromRight),
+                    color: getActiveTextColor(indexFromRight),
+                  },
                 ]}
               >
                 {shouldReveal ? digit : "?"}

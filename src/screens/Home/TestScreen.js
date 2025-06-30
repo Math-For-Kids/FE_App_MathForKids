@@ -18,52 +18,97 @@ import { Fonts } from "../../../constants/Fonts";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { getRandomTests } from "../../redux/testSlice";
+import { updatePupilProfile, pupilById } from "../../redux/profileSlice";
+import { completeAndUnlockNextLesson } from "../../redux/completedLessonSlice";
+import { Svg, Circle } from "react-native-svg";
 
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { t, i18n } = useTranslation("common");
-  const { skillName, lessonId } = route.params;
+  const { t, i18n } = useTranslation("test");
+  const { skillName, lessonId, pupilId } = route.params;
+
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
+  const pupil = useSelector((state) => state.profile.info);
   const windowWidth = Dimensions.get("window").width;
-
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const bearPosition = useRef(new Animated.Value(20)).current;
-  const [correctCount, setCorrectCount] = useState(0);
+  const bearRotate = useRef(new Animated.Value(0)).current;
+  const [timer, setTimer] = useState(time * 60);
+  const timerRef = useRef(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  // const [correctCount, setCorrectCount] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [shuffledOptions, setShuffledOptions] = useState({});
   const [showResultModal, setShowResultModal] = useState(false);
-  const bearRotate = useRef(new Animated.Value(0)).current;
 
-  // Hàm kiểm tra xem giá trị có phải là URL hình ảnh
-  const isImageUrl = (value) => typeof value === "string" && (value.startsWith("http") || value.startsWith("https"));
+  const currentQ = tests[currentQuestion - 1];
+  const totalQuestions = tests.length;
 
-  // Hàm render hình ảnh
+  const isImageUrl = (value) =>
+    typeof value === "string" &&
+    (value.startsWith("http") || value.startsWith("https"));
+
   const renderImage = (uri, style, key) => {
-    if (!uri || typeof uri !== "string") return <Text style={styles.errorText}>Invalid Image</Text>;
-    return <Image source={{ uri }} style={style} resizeMode="contain" key={key} />;
+    if (!uri || typeof uri !== "string") return <Text>Invalid Image</Text>;
+    return (
+      <Image source={{ uri }} style={style} resizeMode="contain" key={key} />
+    );
   };
+  const [time, setTime] = useState(10);
+  useEffect(() => {
+    const totalQuestions = tests.length;
+    let newTime = 10;
 
-  // Fetch exercises when component mounts
+    if (totalQuestions > 10 && totalQuestions <= 20) {
+      newTime = 20;
+    } else if (totalQuestions > 20 && totalQuestions <= 30) {
+      newTime = 30;
+    }
+
+    setTime(newTime);
+  }, [tests]);
+  useEffect(() => {
+    setTimer(time * 60);
+  }, [time]);
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          handleTimeUp();
+          return 0;
+        }
+        if (prev === 60) {
+          Alert.alert("Thông báo", "Sắp hết giờ làm bài!");
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, []);
+  useEffect(() => {
+    if (timer === 60) {
+      Alert.alert(t("warning"), t("timeAlmostUp"));
+    }
+
+    if (timer === 0) {
+      clearInterval(timerRef.current);
+      handleTimeUp();
+    }
+  }, [timer]);
+
   useEffect(() => {
     dispatch(getRandomTests({ lessonId }));
-  }, [dispatch, lessonId]);
+    dispatch(updatePupilProfile({ id: pupilId }));
+    if (pupilId) {
+      dispatch(pupilById(pupilId));
+    }
+  }, [dispatch, lessonId, pupilId]);
 
-  // Log exercises for debugging
   useEffect(() => {
-    console.log("Exercises updated:", tests);
-    console.log("Current Question:", currentQuestion);
-    console.log("User Answers:", userAnswers);
-    console.log("Shuffled Options:", shuffledOptions);
-  }, [tests, currentQuestion, userAnswers, shuffledOptions]);
-
-  // Shuffle options once per question
-  useEffect(() => {
-    if (tests.length === 0) return;
-
-    const currentQ = tests[currentQuestion - 1];
     if (!currentQ) return;
-
     if (!shuffledOptions[currentQ.id]) {
       const options = [...(currentQ.option || []), currentQ.answer].sort(
         () => Math.random() - 0.5
@@ -73,12 +118,10 @@ export default function TestScreen({ navigation, route }) {
         [currentQ.id]: options,
       }));
     }
-  }, [tests, currentQuestion, shuffledOptions]);
+  }, [currentQ]);
 
-  // Animate bear icon when currentQuestion changes
   useEffect(() => {
-    if (tests.length === 0) return;
-
+    if (!tests.length) return;
     const totalMargin = (tests.length - 1) * 2;
     const progressBarWidth = windowWidth - 40;
     const segmentWidth = (progressBarWidth - totalMargin) / tests.length;
@@ -109,57 +152,132 @@ export default function TestScreen({ navigation, route }) {
     ]).start();
   }, [currentQuestion, tests.length]);
 
-  // Handle answer selection
+  // const handleAnswer = (val) => {
+  //   if (!currentQ) return;
+  //   const isCorrect = val === currentQ.answer;
+  //   setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
+  //   if (isCorrect) setCorrectCount((prev) => prev + 1);
+  //   if (currentQuestion < tests.length) {
+  //     setTimeout(() => {
+  //       setCurrentQuestion(currentQuestion + 1);
+  //     }, 300);
+  //   }
+  // };
   const handleAnswer = (val) => {
     if (!currentQ) return;
-    const isCorrect = val === currentQ.answer;
     setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
-    if (isCorrect) setCorrectCount((prev) => prev + 1);
     if (currentQuestion < tests.length) {
       setTimeout(() => {
         setCurrentQuestion(currentQuestion + 1);
       }, 300);
     }
   };
-
-  // Handle going back to previous question
   const handleBack = () => {
     if (currentQuestion > 1) {
-      const prevQuestion = tests[currentQuestion - 2];
-      const prevAnswer = userAnswers[prevQuestion.id];
-      if (prevAnswer !== undefined && prevAnswer === prevQuestion.answer) {
-        setCorrectCount((prev) => Math.max(0, prev - 1));
-      }
       setCurrentQuestion(currentQuestion - 1);
     }
   };
 
-  // Handle submit button
+  // const handleBack = () => {
+  //   if (currentQuestion > 1) {
+  //     const prevQuestion = tests[currentQuestion - 2];
+  //     const prevAnswer = userAnswers[prevQuestion.id];
+  //     if (prevAnswer !== undefined && prevAnswer === prevQuestion.answer) {
+  //       setCorrectCount((prev) => Math.max(0, prev - 1));
+  //     }
+  //     setCurrentQuestion(currentQuestion - 1);
+  //   }
+  // };
+  // const calculateScore = () => {
+  //   if (!tests.length) return 0;
+  //   const rawScore = (correctCount / tests.length) * 10;
+  //   const roundedScore = Math.round(rawScore);
+  //   return roundedScore;
+  // };
+  const calculateScore = () => {
+    if (!tests.length) return 0;
+    const correctCount = tests.filter(
+      (q) => userAnswers[q.id] === q.answer
+    ).length;
+    const rawScore = (correctCount / tests.length) * 10;
+    return Math.round(rawScore);
+  };
+
+  // Hàm tính bonus point
+  const calculateBonusPoint = (score) => {
+    if (score >= 9) return 5;
+    if (score >= 7 && score <= 8) return 3;
+    if (score > 5) return 1;
+    return 0;
+  };
   const handleSubmit = () => {
     const answeredCount = Object.keys(userAnswers).length;
-    if (answeredCount < tests.length) {
-      Alert.alert(
-        t("warning"),
-        t("youHaveAnswered"),
-        [
-          {
-            text: t("keepDoing"),
-            style: "cancel",
-          },
-          {
-            text: t("submit"),
-            style: "destructive",
-            onPress: () => {
-              setShowResultModal(true);
-            },
-          },
-        ]
-      );
-    } else {
+    const usedTime = time * 60 - timer;
+    clearInterval(timerRef.current);
+
+    const score = calculateScore();
+    const bonus = calculateBonusPoint(score);
+    const currentPoint = pupil?.point || 0;
+    const newPoint = currentPoint + bonus;
+
+    // Action khi thực sự nộp bài
+    const doSubmit = () => {
+      setElapsedTime(usedTime);
       setShowResultModal(true);
+
+      if (bonus > 0) {
+        dispatch(
+          updatePupilProfile({ id: pupilId, data: { point: newPoint } })
+        );
+      }
+
+      // Gọi API mở khóa bài học tiếp theo
+      dispatch(completeAndUnlockNextLesson({ pupilId, lessonId }));
+    };
+
+    if (answeredCount < tests.length && timer > 0) {
+      Alert.alert(t("warning"), t("youHaveAnswered"), [
+        {
+          text: t("keepDoing"),
+          style: "cancel",
+          onPress: () => {
+            // Nếu người dùng muốn tiếp tục làm, restart timer
+            timerRef.current = setInterval(() => {
+              setTimer((prev) => {
+                if (prev <= 1) {
+                  clearInterval(timerRef.current);
+                  handleTimeUp();
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          },
+        },
+        {
+          text: t("submit"),
+          style: "destructive",
+          onPress: doSubmit,
+        },
+      ]);
+    } else {
+      doSubmit();
     }
   };
 
+  const handleTimeUp = () => {
+    Alert.alert(t("timeUp"), t("autoSubmit"));
+    handleSubmit();
+  };
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? "0" + s : s}`;
+  };
+
+  const progress = Math.min(Math.max(timer / (time * 60), 0), 1);
+  const strokeDashoffset = 2 * Math.PI * 25 * (1 - progress);
   // Gradient and color functions
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
@@ -190,20 +308,19 @@ export default function TestScreen({ navigation, route }) {
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    contentContainer: {
-      paddingTop: 20,
-      paddingBottom: 100,
+    skillsContainer: {
+      paddingBottom: 80,
     },
     header: {
       width: "100%",
-      height: "35%",
+      height: 120,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      marginBottom: 20,
+      paddingTop: 20,
     },
     backButton: {
       position: "absolute",
@@ -221,8 +338,10 @@ export default function TestScreen({ navigation, route }) {
       textAlign: "center",
     },
     subtitleContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginHorizontal: 20,
-      marginVertical: -10,
     },
     subtitleText: {
       fontSize: 14,
@@ -230,7 +349,6 @@ export default function TestScreen({ navigation, route }) {
       color: theme.colors.black,
     },
     visualProgressBar: {
-      marginTop: 20,
       marginHorizontal: 20,
       height: 20,
       backgroundColor: getProgressBackground(),
@@ -249,77 +367,87 @@ export default function TestScreen({ navigation, route }) {
     },
     bearIconWrapper: {
       position: "absolute",
-      top: 50,
+      top: -25,
       left: -5,
       elevation: 3,
     },
     bearIcon: {
-      width: 30,
-      height: 30,
+      width: 25,
+      height: 25,
+    },
+    timerCircleContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      width: 60,
+      height: 60,
+      alignSelf: "center",
+      marginVertical: 20,
+      elevation: 3,
+    },
+    timerTextOverlay: {
+      position: "absolute",
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.black,
+      fontSize: 14,
     },
     questionContent: {
-      justifyContent: "center", // Căn giữa theo chiều ngang
-      alignItems: "center",    // Căn giữa theo chiều dọc
-      marginVertical: 20,
-      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 20,
       gap: 10,
     },
     question: {
-      fontSize: 36,            // Tăng kích thước font để nổi bật
+      fontSize: 14,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
-      textAlign: "center",     // Căn giữa văn bản
-      paddingHorizontal: 20,   // Thêm padding để tránh bị chèn
+      textAlign: "center",
+      paddingHorizontal: 20,
     },
     questionImage: {
       width: 300,
-      height: 150,  
+      height: 150,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: "#000",
-      borderStyle: "solid",
+      borderColor: visualProgressBar(),
     },
     backQuestion: {
-      position: "absolute",
-      bottom: 0,
-      left: 20,
+      marginVertical: 20,
+      alignSelf: "flex-start",
       borderWidth: 1,
       borderColor: theme.colors.white,
       backgroundColor: visualProgressBar(),
       borderRadius: 50,
-      padding: 5,
+      padding: 10,
       elevation: 3,
+      marginLeft: 20,
     },
     answerOptions: {
-      position: "absolute",
-      top: 450,
       flexDirection: "row",
-      justifyContent: "center", // Căn giữa theo chiều ngang
-      alignItems: "center",    // Căn giữa theo chiều dọc
-      flexWrap: "wrap",        // Cho phép xuống dòng nếu cần
+      flexWrap: "wrap",
+      justifyContent: "center",
       paddingHorizontal: 20,
-      width: "100%",           // Đảm bảo chiều rộng đầy đủ
+      width: "100%",
+      gap: 20,
     },
     answerButton: {
       backgroundColor: visualProgressBar(),
       paddingVertical: 10,
       paddingHorizontal: 20,
       borderRadius: 20,
-      margin: 5,
       elevation: 3,
-      minWidth: (windowWidth - 60) / 2, // Đảm bảo các nút có chiều rộng tối thiểu
+      minWidth: (windowWidth - 60) / 2,
       alignItems: "center",
-      justifyContent: "center", // Căn giữa nội dung trong nút
-      minHeight: 60,
+      justifyContent: "center",
+      minHeight: 50,
     },
     answerSelectedButton: {
       backgroundColor: getProgressBackground(),
     },
     answerText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
-      fontSize: 20,
-      textAlign: "center", // Căn giữa văn bản trong nút
+      fontSize: 18,
+      textAlign: "center",
     },
     answerImage: {
       width: 50,
@@ -432,7 +560,6 @@ export default function TestScreen({ navigation, route }) {
     );
   }
 
-  const currentQ = tests[currentQuestion - 1];
   if (!currentQ) {
     return (
       <View style={styles.container}>
@@ -442,48 +569,77 @@ export default function TestScreen({ navigation, route }) {
   }
 
   const options = shuffledOptions[currentQ.id] || [];
+  // Hàm tính điểm trên thang 10
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <LinearGradient colors={getGradient()} style={styles.header}>
-          <TouchableOpacity
-            onPress={() => {
-              Alert.alert(t("confirm"), t("wantToSkipTest"), [
-                {
-                  text: t("no"),
-                  style: "cancel",
+      <LinearGradient colors={getGradient()} style={styles.header}>
+        <TouchableOpacity
+          onPress={() => {
+            Alert.alert(t("confirm"), t("wantToSkipTest"), [
+              {
+                text: t("no"),
+                style: "cancel",
+              },
+              {
+                text: t("yes"),
+                style: "destructive",
+                onPress: () => {
+                  navigation.goBack();
                 },
-                {
-                  text: t("yes"),
-                  style: "destructive",
-                  onPress: () => {
-                    navigation.goBack();
-                  },
-                },
-              ]);
-            }}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
-          </TouchableOpacity>
-          <Text
-            style={styles.headerText}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.5}
-          >
-            {t("exercise")}
-          </Text>
-        </LinearGradient>
-        <View style={styles.subtitleContainer}>
+              },
+            ]);
+          }}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+        </TouchableOpacity>
+        <Text
+          style={styles.headerText}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
+          {t("exercise")}
+        </Text>
+      </LinearGradient>
+      <View style={styles.subtitleContainer}>
+        <View>
           <Text style={styles.subtitleText}>
-            {t("totalQuestions")}: {tests.length}
+            {t("totalQuestions")}: {totalQuestions}
           </Text>
           <Text style={styles.subtitleText}>
             {t("answers")}: {currentQuestion}/{tests.length}
           </Text>
         </View>
+        <View style={styles.timerCircleContainer}>
+          <Svg width={60} height={60}>
+            <Circle
+              cx={30}
+              cy={30}
+              r={25}
+              stroke={theme.colors.graySoft}
+              strokeWidth={10}
+              fill="none"
+            />
+            <Circle
+              cx={30}
+              cy={30}
+              r={25}
+              stroke={getProgressBackground()}
+              strokeWidth={10}
+              strokeDasharray={2 * Math.PI * 25}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="none"
+              rotation={-90}
+              origin="30, 30"
+            />
+          </Svg>
+          <Text style={styles.timerTextOverlay}>{formatTime(timer)}</Text>
+        </View>
+      </View>
+      <View>
         <View style={styles.visualProgressBar}>
           {tests.map((q, index) => (
             <View
@@ -500,23 +656,46 @@ export default function TestScreen({ navigation, route }) {
             />
           ))}
         </View>
-        <View style={styles.questionContent}>
-          {currentQ.image ? (
-            <Image
-              source={{ uri: currentQ.image }}
-              style={styles.questionImage}
-              resizeMode="contain"
-            />
-          ) : (
-            <Text
-              style={styles.question}
-              numberOfLines={2}
-              adjustsFontSizeToFit
-              minimumFontScale={0.5}
-            >
-              {currentQ.question?.[i18n.language] || t("noQuestionAvailable")}
-            </Text>
-          )}
+        <Animated.View
+          style={[
+            styles.bearIconWrapper,
+            {
+              transform: [
+                { translateX: bearPosition },
+                {
+                  rotate: bearRotate.interpolate({
+                    inputRange: [-1, 0, 1],
+                    outputRange: ["-10deg", "0deg", "10deg"],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Image source={theme.icons.test} style={styles.bearIcon} />
+        </Animated.View>
+      </View>
+      <ScrollView contentContainerStyle={styles.skillsContainer}>
+        <View>
+          <View style={styles.questionContent}>
+            {currentQ.question?.[i18n.language] && (
+              <Text
+                style={styles.question}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {currentQ.question?.[i18n.language]}
+              </Text>
+            )}
+            {currentQ.image && (
+              <Image
+                source={{ uri: currentQ.image }}
+                style={styles.questionImage}
+                resizeMode="contain"
+              />
+            )}
+          </View>
         </View>
         <TouchableOpacity
           onPress={() => handleBack()}
@@ -530,13 +709,22 @@ export default function TestScreen({ navigation, route }) {
               key={`${val}-${index}`}
               style={[
                 styles.answerButton,
-                userAnswers[currentQ.id] === val ? styles.answerSelectedButton : null,
-                isImageUrl(val) && { paddingVertical: 5, paddingHorizontal: 5 },
+                userAnswers[currentQ.id] === val
+                  ? styles.answerSelectedButton
+                  : null,
+                isImageUrl(val) && {
+                  paddingVertical: 5,
+                  paddingHorizontal: 5,
+                },
               ]}
               onPress={() => handleAnswer(val)}
             >
               {isImageUrl(val) ? (
-                renderImage(val, styles.answerImage, `option-${currentQ.id}-${index}`)
+                renderImage(
+                  val,
+                  styles.answerImage,
+                  `option-${currentQ.id}-${index}`
+                )
               ) : (
                 <Text style={styles.answerText}>{val}</Text>
               )}
@@ -564,27 +752,26 @@ export default function TestScreen({ navigation, route }) {
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("score")}:</Text>
                 <Text style={styles.modalResultText}>
-                  {(correctCount * (10 / tests.length)).toFixed(1)}
+                  {calculateScore()}/10
                 </Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("correct")}:</Text>
-                <Text style={styles.modalResultText}>{correctCount}</Text>
+                <Text style={styles.modalResultText}>
+                  {tests.filter((q) => userAnswers[q.id] === q.answer).length}
+                </Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("wrong")}:</Text>
-                <Text
-                  style={[
-                    styles.modalResultText,
-                    {
-                      color:
-                        tests.length - correctCount > 0
-                          ? theme.colors.black
-                          : theme.colors.white,
-                    },
-                  ]}
-                >
-                  {tests.length - correctCount}
+                <Text style={styles.modalResultText}>
+                  {tests.length -
+                    tests.filter((q) => userAnswers[q.id] === q.answer).length}
+                </Text>
+              </View>
+              <View style={styles.modalRow}>
+                <Text style={styles.modalText}>Time:</Text>
+                <Text style={styles.modalResultText}>
+                  {formatTime(elapsedTime)}
                 </Text>
               </View>
             </View>
@@ -594,7 +781,6 @@ export default function TestScreen({ navigation, route }) {
                 setShowResultModal(false);
                 navigation.goBack();
                 setUserAnswers({});
-                setCorrectCount(0);
                 setCurrentQuestion(1);
                 setShuffledOptions({});
               }}

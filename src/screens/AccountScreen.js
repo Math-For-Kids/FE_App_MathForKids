@@ -190,7 +190,7 @@ export default function AccountScreen({ navigation }) {
       textAlign: "center",
     },
     parentCardContainer: {
-      width: "90%",
+      width: "75%",
       paddingVertical: 10,
       borderWidth: 1,
       borderColor: theme.colors.white,
@@ -206,18 +206,16 @@ export default function AccountScreen({ navigation }) {
       paddingBottom: 60,
     },
     userCard: {
-      width: "45%",
-      aspectRatio: 1,
-      backgroundColor: theme.colors.beigeLight,
+      width: "80%",
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.colors.paleBeige,
+      borderRadius: 12,
       borderWidth: 1,
       borderColor: theme.colors.white,
-      borderRadius: 12,
-      marginBottom: 15,
-      alignItems: "center",
-      justifyContent: "center",
-      elevation: 3,
-      paddingHorizontal: 10,
-      paddingVertical: 20,
+      padding: 5,
+      marginBottom: 20,
+      elevation: 4,
     },
     avatarContainer: {
       marginVertical: 10,
@@ -228,14 +226,15 @@ export default function AccountScreen({ navigation }) {
       elevation: 3,
     },
     avatar: {
-      width: 60,
-      height: 60,
+      width: 50,
+      height: 50,
       resizeMode: "cover",
       borderRadius: 50,
     },
     userName: {
       fontSize: 16,
-      fontWeight: "600",
+      width: "80%",
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.grayDark,
       textAlign: "center",
     },
@@ -358,9 +357,9 @@ export default function AccountScreen({ navigation }) {
               </View>
               <Text
                 style={styles.userName}
-                numberOfLines={1}
+                numberOfLines={2}
                 adjustsFontSizeToFit
-                minimumFontScale={0.7}
+                minimumFontScale={0.5}
               >
                 {pupil.fullName}
               </Text>

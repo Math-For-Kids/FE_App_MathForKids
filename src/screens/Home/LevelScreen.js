@@ -19,7 +19,7 @@ export default function LevelScreen({ navigation, route }) {
   const [selectedLevels, setSelectedLevels] = useState([]);
 
   useEffect(() => {
-    console.log("Dispatching getEnabledLevels...");
+    // console.log("Dispatching getEnabledLevels...");
     dispatch(getEnabledLevels());
   }, [dispatch]);
 

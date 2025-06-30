@@ -45,7 +45,7 @@ export default function HomeScreen({ navigation, route }) {
   const filteredPupils = pupils.find(
     (pupil) => String(pupil.id) === String(pupilId)
   );
-  console.log("filteredPupils", filteredPupils);
+  // console.log("filteredPupils", filteredPupils);
   useEffect(() => {
     if (filteredPupils?.grade) {
       setSelectedGrade(String(filteredPupils.grade));
@@ -119,7 +119,7 @@ export default function HomeScreen({ navigation, route }) {
     },
     headerContent: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "space-around",
       alignItems: "center",
     },
     userRow: {
@@ -136,19 +136,19 @@ export default function HomeScreen({ navigation, route }) {
       elevation: 3,
     },
     avatar: {
-      width: 60,
-      height: 60,
-      resizeMode: "cover",
+      width: 50,
+      height: 50,
       borderRadius: 50,
     },
     greeting: {
       color: theme.colors.white,
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     name: {
+      width: "80%",
       color: theme.colors.white,
-      fontSize: 18,
+      fontSize: 16,
       fontFamily: Fonts.NUNITO_BOLD,
     },
     notificationContainer: {
@@ -278,15 +278,22 @@ export default function HomeScreen({ navigation, route }) {
                   filteredPupils?.image
                     ? { uri: filteredPupils?.image }
                     : filteredPupils?.gender === "female"
-                      ? theme.icons.avatarFemale
-                      : theme.icons.avatarMale
+                    ? theme.icons.avatarFemale
+                    : theme.icons.avatarMale
                 }
                 style={styles.avatar}
               />
             </TouchableOpacity>
             <View>
               <Text style={styles.greeting}>{t("hello")}</Text>
-              <Text style={styles.name}>{filteredPupils?.fullName}</Text>
+              <Text
+                style={styles.name}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {filteredPupils?.fullName}
+              </Text>
             </View>
           </View>
           <TouchableOpacity
@@ -350,10 +357,7 @@ export default function HomeScreen({ navigation, route }) {
         {skills.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={[
-              styles.skillBox,
-              { borderColor: getTab(item.label) },
-            ]}
+            style={[styles.skillBox, { borderColor: getTab(item.label) }]}
             onPress={() =>
               navigation.navigate(item.route, {
                 skillName: item.label,

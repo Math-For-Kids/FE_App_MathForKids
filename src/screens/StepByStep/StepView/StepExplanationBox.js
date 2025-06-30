@@ -2,7 +2,29 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
-import { useTranslation } from "react-i18next"; // Đảm bảo import đúng
+import { useTranslation } from "react-i18next"; 
+
+const convertMathSymbolsToSpeech = (text, lang) => {
+  let converted = text;
+
+  if (lang === "vi") {
+    converted = converted
+      .replace(/\+/g, " cộng ")
+      .replace(/-/g, " trừ ")
+      .replace(/x/gi, " nhân ")
+      .replace(/÷/g, " chia ")
+      .replace(/=/g, " bằng ");
+  } else if (lang === "en") {
+    converted = converted
+      .replace(/\+/g, " plus ")
+      .replace(/-/g, " minus ")
+      .replace(/x/gi, " times ")
+      .replace(/÷/g, " divided by ")
+      .replace(/=/g, " equals ");
+  }
+
+  return converted;
+};
 
 export default function StepExplanationBox({
   stepIndex,
@@ -12,7 +34,7 @@ export default function StepExplanationBox({
   theme,
   t,
 }) {
-  const { i18n } = useTranslation(); // Đảm bảo lấy i18n từ hook useTranslation
+  const { i18n } = useTranslation();
 
   return (
     <View style={styles.titleContainer}>
@@ -28,9 +50,14 @@ export default function StepExplanationBox({
                 rate: 0.9,
               });
             } else if (currentStep?.title || currentStep?.description) {
-              const speechText = `${currentStep.title || ""}. ${
+              const rawText = `${currentStep.title || ""}. ${
                 currentStep.description || ""
               }`;
+
+              const speechText = convertMathSymbolsToSpeech(
+                rawText,
+                i18n.language
+              );
 
               Speech.speak(speechText, {
                 language: i18n.language === "vi" ? "vi-VN" : "en-US",

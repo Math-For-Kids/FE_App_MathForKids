@@ -43,6 +43,7 @@ export default function ProfilePupilScreen({ navigation }) {
   const [currentDateField, setCurrentDateField] = useState(null);
 
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  // console.log("pupilIdeeeeee", pupilId);
   const pupil = useSelector((state) => state.profile.info);
 
   useEffect(() => {
