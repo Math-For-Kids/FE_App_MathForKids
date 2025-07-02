@@ -10,7 +10,7 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
   let payBackFlags = [];
   let borrow = 0;
   let subSteps = [];
-
+  let subStepsMeta = [];
   const labelMap = [
     t("place.units"),
     t("place.tens"),
@@ -24,49 +24,79 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
     t("place.billions"),
   ];
   subSteps.push(t("subtraction.step_intro"));
-
+  subStepsMeta.push(-1); 
   for (let i = 0; i < digitsA.length; i++) {
     const originalDigitA = parseInt(digitsA[i]);
     const digitB = parseInt(digitsB[i]);
-    let adjustedA = originalDigitA - borrow;
+    const adjustedB = digitB + borrow;
+    let adjustedA = originalDigitA;
     const payBack = borrow > 0;
     payBackFlags.push(payBack);
-    let stepText = "";
-
-    if (adjustedA < digitB) {
+    if (adjustedA < adjustedB) {
       adjustedA += 10;
       borrow = 1;
       borrowFlags.push(true);
-      stepText = t("subtraction.step_borrow", {
+      const borrowExplain1 = t("subtraction.step_borrow_1", {
         step: i + 1,
         label: labelMap[i] || `10^${i}`,
         a: originalDigitA,
         b: digitB,
-        result: adjustedA - digitB,
+        adjustedA,
       });
+      subSteps.push(borrowExplain1);
+      subStepsMeta.push(i);
+      let borrowExplain2 = t("subtraction.step_borrow_2", {
+        adjustedA,
+        adjustedB,
+        result: adjustedA - adjustedB,
+      });
+      if (payBack) {
+        borrowExplain2 +=
+          " " +
+          t("subtraction.step_payback", {
+            label: labelMap[i] || `10^${i}`,
+            b: digitB,
+          });
+      }
+      subSteps.push(borrowExplain2);
+      subStepsMeta.push(i);
+      resultDigits.push(adjustedA - adjustedB);
     } else {
       borrow = 0;
       borrowFlags.push(false);
-      stepText = t("subtraction.step_normal", {
-        step: i + 1,
-        label: labelMap[i] || `10^${i}`,
-        a: adjustedA,
-        b: digitB,
-        result: adjustedA - digitB,
-      });
+      let stepText;
+      if (payBack) {
+        stepText = t("subtraction.step_normal_with_payback", {
+          step: i + 1,
+          label: labelMap[i] || `10^${i}`,
+          a: originalDigitA,
+          b: adjustedB,
+          result: adjustedA - adjustedB,
+        });
+      } else {
+        stepText = t("subtraction.step_normal", {
+          step: i + 1,
+          label: labelMap[i] || `10^${i}`,
+          a: originalDigitA,
+          b: digitB,
+          result: adjustedA - adjustedB,
+        });
+      }
+      if (payBack) {
+        stepText +=
+          " " +
+          t("subtraction.step_payback", {
+            label: labelMap[i] || `10^${i}`,
+            b: digitB,
+          });
+      }
+      resultDigits.push(adjustedA - adjustedB);
+      subSteps.push(stepText);
+      subStepsMeta.push(i);
     }
-
-    if (payBack) {
-      stepText += " " + t("subtraction.step_payback");
-    }
-
-    resultDigits.push(adjustedA - digitB);
-    subSteps.push(stepText);
   }
-
   const finalResult =
     resultDigits.slice().reverse().join("").replace(/^0+/, "") || "0";
-
   steps[2].digits1 = [...digitsA].reverse();
   steps[2].digits2 = [...digitsB].reverse();
   steps[2].resultDigits = [...resultDigits].reverse();
@@ -74,14 +104,13 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
   steps[2].payBackFlags = [...payBackFlags].reverse();
   steps[2].subText = subSteps.join("\n");
   steps[2].subSteps = subSteps;
-
+  steps[2].subStepsMeta = subStepsMeta;
   steps[3].result = finalResult;
   steps[3].subText = t("subtraction.final_result", {
     number1: n1,
     number2: n2,
     result: finalResult,
   });
-
   setRemember?.(
     borrowFlags.includes(true) ? t("subtraction.remember_borrowing") : ""
   );

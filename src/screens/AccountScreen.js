@@ -21,6 +21,7 @@ import { useSound } from "../audio/SoundContext";
 import { useTranslation } from "react-i18next";
 import { applySettings } from "../components/applySettings";
 import { Fonts } from "../../constants/Fonts";
+import { ScrollView } from "react-native";
 
 export default function AccountScreen({ navigation }) {
   const { theme, switchThemeKey, toggleThemeMode, isDarkMode } = useTheme();
@@ -36,13 +37,15 @@ export default function AccountScreen({ navigation }) {
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
 
   const user = useSelector((state) => state.auth.user);
-  console.log("user", user);
+  // console.log("user", user);
   // const pupils = useSelector((state) => state.pupil.pupils || []);
   const pupils = useSelector((state) => state.pupil.pupils);
+
   const userId = user?.id;
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(userId)
   );
+  // console.log("filteredPupils", filteredPupils);
   useEffect(() => {
     if (isFocused && userId) {
       dispatch(getAllPupils())
@@ -74,6 +77,7 @@ export default function AccountScreen({ navigation }) {
       isDarkMode,
       setVolume,
       i18n,
+      dispatch,
     });
   };
 
@@ -185,37 +189,55 @@ export default function AccountScreen({ navigation }) {
       fontSize: 18,
       textAlign: "center",
     },
-    userCard: {
-      width: "80%",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-around",
-      backgroundColor: theme.colors.paleBeige,
-      borderRadius: 12,
+    parentCardContainer: {
+      width: "90%",
+      paddingVertical: 10,
       borderWidth: 1,
       borderColor: theme.colors.white,
-      padding: 5,
+      borderRadius: 10,
       marginBottom: 20,
-      elevation: 4,
+      elevation: 3,
+    },
+    userCardContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-around",
+      paddingHorizontal: 10,
+      paddingBottom: 60,
+    },
+    userCard: {
+      width: "45%",
+      aspectRatio: 1,
+      backgroundColor: theme.colors.beigeLight,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
+      borderRadius: 12,
+      marginBottom: 15,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 3,
+      paddingHorizontal: 10,
+      paddingVertical: 20,
     },
     avatarContainer: {
-      backgroundColor: theme.colors.avatartBackground,
-      padding: 5,
+      marginVertical: 10,
       borderRadius: 50,
       borderWidth: 1,
       borderColor: theme.colors.white,
-      marginRight: 10,
-      elevation: 4,
+      backgroundColor: theme.colors.avatartBackground,
+      elevation: 3,
     },
     avatar: {
-      width: 30,
-      height: 30,
-      borderRadius: 18,
+      width: 60,
+      height: 60,
+      resizeMode: "cover",
+      borderRadius: 50,
     },
     userName: {
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.blueGray,
+      fontWeight: "600",
+      color: theme.colors.grayDark,
+      textAlign: "center",
     },
     addButton: {
       marginTop: 20,
@@ -309,32 +331,42 @@ export default function AccountScreen({ navigation }) {
           colors={theme.colors.gradientBluePrimary}
           start={{ x: 1, y: 0 }}
           end={{ x: 0, y: 0 }}
-          style={styles.button}
+          style={styles.parentCardContainer}
         >
           <TouchableOpacity onPress={handleParentSelect}>
             <Text style={styles.buttonText}>{t("parent")}</Text>
           </TouchableOpacity>
         </LinearGradient>
-
-        {filteredPupils.map((pupil) => (
-          <TouchableOpacity
-            key={pupil.id}
-            style={styles.userCard}
-            onPress={() => handlePupilSelect(pupil)}
-          >
-            <View style={styles.avatarContainer}>
-              <Image
-                source={
-                  pupil.gender === "female"
-                    ? theme.icons.avatarFemale
-                    : theme.icons.avatarMale
-                }
-                style={styles.avatar}
-              />
-            </View>
-            <Text style={styles.userName}>{pupil.fullName}</Text>
-          </TouchableOpacity>
-        ))}
+        <ScrollView contentContainerStyle={styles.userCardContainer}>
+          {filteredPupils.map((pupil) => (
+            <TouchableOpacity
+              key={pupil.id}
+              style={styles.userCard}
+              onPress={() => handlePupilSelect(pupil)}
+            >
+              <View style={styles.avatarContainer}>
+                <Image
+                  source={
+                    pupil?.image
+                      ? { uri: pupil?.image }
+                      : pupil?.gender === "female"
+                      ? theme.icons.avatarFemale
+                      : theme.icons.avatarMale
+                  }
+                  style={styles.avatar}
+                />
+              </View>
+              <Text
+                style={styles.userName}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                {pupil.fullName}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         <LinearGradient
           colors={theme.colors.gradientBluePrimary}

@@ -28,7 +28,50 @@ export const updateProfile = createAsyncThunk(
     }
   }
 );
+//Gửi OTP khi cập nhật số điện thoại
+export const sendOtpToUpdatePhone = createAsyncThunk(
+  "profile/sendOtpToUpdatePhone",
+  async ({ id, phoneNumber, newPhoneNumber }, { rejectWithValue }) => {
+    try {
+      const res = await Api.post(
+        `/auth/sendOtpToUpdatePhone/${id}/${phoneNumber}`,
+        {
+          newPhoneNumber,
+        }
+      );
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+//Gửi OTP khi cập nhật email
+export const sendOtpToUpdateEmail = createAsyncThunk(
+  "profile/sendOtpToUpdateEmail",
+  async ({ id, email, newEmail }, { rejectWithValue }) => {
+    try {
+      const res = await Api.post(`/auth/sendOtpToUpdateEmail/${id}/${email}`, {
+        newEmail,
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 
+// Cập nhật pin
+export const updatePin = createAsyncThunk(
+  "profile/updatepin",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await Api.patch(`/user/updatePin/${id}`, data);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 // Upload avatar người dùng lên S3 và lưu URL vào Firestore
 export const uploadAvatar = createAsyncThunk(
   "profile/uploadAvatar",
@@ -167,7 +210,33 @@ const profileSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
+      // Gửi OTP cập nhật email
+      .addCase(sendOtpToUpdateEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(sendOtpToUpdateEmail.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(sendOtpToUpdateEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cập nhật Pin
+      .addCase(updatePin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatePin.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.info && action.payload.pin) {
+          state.info.pin = action.payload.pin;
+        }
+      })
+      .addCase(updatePin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(uploadAvatar.pending, (state) => {
         state.loading = true;
         state.error = null;

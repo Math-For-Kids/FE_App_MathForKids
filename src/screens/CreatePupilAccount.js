@@ -10,11 +10,14 @@ import {
   Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Checkbox from "expo-checkbox";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { createPupil } from "../redux/pupilSlice";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Platform } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import { RadioButton } from "react-native-paper";
 
 export default function CreatePupilAccountScreen({ navigation }) {
   const { theme } = useTheme();
@@ -24,7 +27,8 @@ export default function CreatePupilAccountScreen({ navigation }) {
   const [fullName, setFullName] = useState("");
   const [nickName, setNickName] = useState("");
   const [studentClass, setStudentClass] = useState("");
-  const [birthday, setBirthday] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [birthdayDate, setBirthdayDate] = useState(null); // Date object
   const [gender, setGender] = useState("female");
   const [focusedField, setFocusedField] = useState(null);
   const onCreate = async () => {
@@ -34,22 +38,52 @@ export default function CreatePupilAccountScreen({ navigation }) {
         return;
       }
 
-      const formattedBirthday =
-        birthday.length === 4 ? `${birthday}-01-01` : birthday;
+      if (!fullName.trim()) {
+        Alert.alert("Validation Error", "Please enter the full name.");
+        return;
+      }
+
+      if (!studentClass) {
+        Alert.alert("Validation Error", "Please select a grade (1–3).");
+        return;
+      }
+
+      if (!birthdayDate) {
+        Alert.alert("Validation Error", "Please select a birthday.");
+        return;
+      }
+
+      const today = new Date();
+      const age =
+        today.getFullYear() -
+        birthdayDate.getFullYear() -
+        (today <
+        new Date(
+          today.getFullYear(),
+          birthdayDate.getMonth(),
+          birthdayDate.getDate()
+        )
+          ? 1
+          : 0);
+
+      if (age <= 1 || age >= 100) {
+        Alert.alert(
+          "Validation Error",
+          "Age must be between 1 and 100 years old."
+        );
+        return;
+      }
+
+      const formattedBirthday = birthdayDate.toISOString().split("T")[0];
 
       const data = {
         userId: userId,
-        fullName,
-        nickName,
+        fullName: fullName.trim(),
+        nickName: nickName.trim(), // optional
         image: "",
         gender,
         dateOfBirth: formattedBirthday,
         grade: studentClass,
-        point: 0,
-        volume: 100,
-        language: "en",
-        mode: "light",
-        theme: 1,
         isDisabled: false,
       };
 
@@ -108,13 +142,16 @@ export default function CreatePupilAccountScreen({ navigation }) {
     checkboxGroup: {
       width: "100%",
       flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: 24,
+      // justifyContent: "space-around",
+      alignItems: "center",
+      marginBottom: 10,
+      gap: 50,
     },
     checkboxItem: {
       flexDirection: "row",
       alignItems: "center",
     },
+
     checkboxLabel: {
       marginLeft: 6,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -207,21 +244,30 @@ export default function CreatePupilAccountScreen({ navigation }) {
               },
             ]}
           >
-            <TextInput
-              value={studentClass}
-              onChangeText={setStudentClass}
-              style={styles.input}
-              placeholder="Enter class"
-              placeholderTextColor={theme.colors.grayMedium}
-              keyboardType="numeric"
-              onFocus={() => setFocusedField("class")}
-              onBlur={() => setFocusedField(null)}
-            />
+            <Picker
+              selectedValue={studentClass}
+              onValueChange={(itemValue) => setStudentClass(itemValue)}
+              dropdownIconColor={theme.colors.grayDark}
+              style={[
+                styles.input,
+                { paddingLeft: 0 }, // Loại bỏ padding để chữ không bị lệch
+              ]}
+            >
+              <Picker.Item
+                label="Select grade"
+                value=""
+                color={theme.colors.grayMedium}
+              />
+              <Picker.Item label="Grade 1" value="1" />
+              <Picker.Item label="Grade 2" value="2" />
+              <Picker.Item label="Grade 3" value="3" />
+            </Picker>
           </View>
 
           {/* Birthday */}
           <Text style={styles.label}>Birthday</Text>
-          <View
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
             style={[
               styles.inputWrapper,
               focusedField === "birthday" && {
@@ -230,61 +276,63 @@ export default function CreatePupilAccountScreen({ navigation }) {
               },
             ]}
           >
-            <TextInput
-              value={birthday}
-              onChangeText={setBirthday}
-              style={styles.input}
-              placeholder="e.g. 2015-06-10 or 2015"
-              placeholderTextColor={theme.colors.grayMedium}
-              keyboardType="numeric"
-              onFocus={() => setFocusedField("birthday")}
-              onBlur={() => setFocusedField(null)}
-            />
-          </View>
+            <Text
+              style={[
+                styles.input,
+                {
+                  color: birthdayDate
+                    ? theme.colors.grayDark
+                    : theme.colors.grayMedium,
+                },
+              ]}
+            >
+              {birthdayDate
+                ? birthdayDate.toISOString().split("T")[0]
+                : "Select birthday"}
+            </Text>
+          </TouchableOpacity>
 
+          {showDatePicker && (
+            <DateTimePicker
+              value={birthdayDate || new Date(2015, 0, 1)}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              maximumDate={new Date()}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(Platform.OS === "ios");
+                if (selectedDate) {
+                  setBirthdayDate(selectedDate);
+                  setBirthday(selectedDate.toISOString().split("T")[0]);
+                }
+              }}
+            />
+          )}
           {/* Gender */}
           <Text style={styles.label}>Gender</Text>
-          <View style={styles.checkboxGroup}>
-            <View style={styles.checkboxItem}>
-              <Checkbox
-                value={gender === "female"}
-                onValueChange={() => setGender("female")}
-                color={
-                  gender === "female"
-                    ? theme.colors.checkBoxBackground
-                    : undefined
-                }
-              />
-              <Text style={styles.checkboxLabel}>Female</Text>
+          <RadioButton.Group
+            onValueChange={(value) => setGender(value)}
+            value={gender}
+          >
+            <View style={styles.checkboxGroup}>
+              <View style={styles.checkboxItem}>
+                <RadioButton
+                  value="female"
+                  color={theme.colors.checkBoxBackground}
+                />
+                <Text style={styles.checkboxLabel}>Female</Text>
+              </View>
+              <View style={styles.checkboxItem}>
+                <RadioButton
+                  value="male"
+                  color={theme.colors.checkBoxBackground}
+                />
+                <Text style={styles.checkboxLabel}>Male</Text>
+              </View>
             </View>
-            <View style={styles.checkboxItem}>
-              <Checkbox
-                value={gender === "male"}
-                onValueChange={() => setGender("male")}
-                color={
-                  gender === "male"
-                    ? theme.colors.checkBoxBackground
-                    : undefined
-                }
-              />
-              <Text style={styles.checkboxLabel}>Male</Text>
-            </View>
-          </View>
+          </RadioButton.Group>
 
           {/* Buttons */}
           <View style={styles.buttonRow}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.buttonWrapper}
-              onPress={onCreate}
-            >
-              <View
-                style={[styles.button, { backgroundColor: theme.colors.green }]}
-              >
-                <Text style={styles.buttonText}>Create</Text>
-              </View>
-            </TouchableOpacity>
-
             <TouchableOpacity
               activeOpacity={0.8}
               style={styles.buttonWrapper}
@@ -294,6 +342,17 @@ export default function CreatePupilAccountScreen({ navigation }) {
                 style={[styles.button, { backgroundColor: theme.colors.red }]}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.buttonWrapper}
+              onPress={onCreate}
+            >
+              <View
+                style={[styles.button, { backgroundColor: theme.colors.green }]}
+              >
+                <Text style={styles.buttonText}>Create</Text>
               </View>
             </TouchableOpacity>
           </View>

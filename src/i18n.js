@@ -28,11 +28,12 @@ import viRegister from "./locales/vi/register.json";
 import enRegister from "./locales/en/register.json";
 import viStepByStep from "./locales/vi/stepbystep.json";
 import enStepByStep from "./locales/en/stepbystep.json";
-import vidivision from "./locales/vi/division.json";
-import endivision from "./locales/en/division.json";
-import viaddition from "./locales/vi/addition.json";
-import enaddition from "./locales/en/addition.json";
-
+import viGoal from "./locales/vi/goal.json";
+import enGoal from "./locales/en/goal.json";
+import viNotification from "./locales/vi/notification.json";
+import enNotification from "./locales/en/notification.json";
+import viSideBar from "./locales/vi/sidebar.json";
+import enSideBar from "./locales/en/sidebar.json";
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en",
@@ -52,8 +53,9 @@ i18n.use(initReactI18next).init({
       account: enAccount,
       register: enRegister,
       stepbystep: enStepByStep,
-      division: endivision,
-      addition: enaddition,
+      goal: enGoal,
+      notification: enNotification,
+      sidebar: enSideBar,
     },
     vi: {
       setting: vi,
@@ -69,8 +71,9 @@ i18n.use(initReactI18next).init({
       account: viAccount,
       register: viRegister,
       stepbystep: viStepByStep,
-      division: vidivision,
-      addition: viaddition,
+      goal: viGoal,
+      notification: viNotification,
+      sidebar: viSideBar,
     },
   },
 

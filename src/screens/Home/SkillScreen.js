@@ -114,7 +114,7 @@ export default function SkillScreen({ navigation, route }) {
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Image source={skillIcon} style={styles.skillIcon} />
-          <Text style={styles.skillName}>{skillName}</Text>
+          <Text style={styles.skillName}>{t(skillName)}</Text>
         </View>
       </LinearGradient>
 

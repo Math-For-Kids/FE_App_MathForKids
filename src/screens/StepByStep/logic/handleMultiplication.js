@@ -1,16 +1,12 @@
-// Hàm xử lý phép nhân từng bước giữa hai số nguyên n1 và n2
-// Ghi dữ liệu hiển thị chi tiết vào steps[2], kết quả vào steps[3]
 export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
-  // Chuyển hai số thành chuỗi để dễ thao tác từng chữ số
   const str1 = n1.toString();
   const str2 = n2.toString();
-  // Đảo ngược chữ số để bắt đầu từ hàng đơn vị
-  const digits1 = str1.split("").map(Number).reverse(); // Số bị nhân (multiplicand)
-  const digits2 = str2.split("").map(Number).reverse(); // Số nhân (multiplier)
-  let partials = []; // Mảng lưu từng kết quả tạm (từng dòng nhân)
-  let carryRows = []; // Mảng lưu các dòng số nhớ
-  let subTextLines = []; // Mảng lưu mô tả từng bước
-  // Danh sách tên vị trí chữ số (units, tens, ...)
+  const digits1 = str1.split("").map(Number).reverse();
+  const digits2 = str2.split("").map(Number).reverse();
+  const partials = [];
+  const carryRows = [];
+  const subSteps = [];
+  const subStepsMeta = [];
   const positionLabels = [
     t("place.units"),
     t("place.tens"),
@@ -19,147 +15,245 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     t("place.ten_thousands"),
     t("place.hundred_thousands"),
     t("place.millions"),
-    t("place.ten_millions"),
-    t("place.hundred_millions"),
-    t("place.billions"),
   ];
-  // Lặp qua từng chữ số của số nhân (từng dòng nhân)
+  steps[2] = steps[2] || {};
+  steps[2].rowSteps = [];
+  steps[2].rowIntros = [];
   digits2.forEach((d2, rowIndex) => {
-    let carry = 0;
-    let row = [];
-    let carryRow = [];
-    let lineExplain = [];
-
-    const isSingleDigitBoth = digits1.length === 1 && digits2.length === 1;
-
-    digits1.forEach((d1, colIndex) => {
-      const product = d1 * d2 + carry;
-      const digit = product % 10;
-      const nextCarry = Math.floor(product / 10);
-
-      row.unshift(digit); //vẫn luôn ghi chữ số vào dòng kết quả
-      const isLastDigit = colIndex === digits1.length - 1;
-      carryRow.unshift(isLastDigit ? " " : nextCarry > 0 ? nextCarry : " ");
-
-      const isZeroMultiplication = d1 === 0 || d2 === 0;
-      const shouldSkipExplain = isSingleDigitBoth && isZeroMultiplication;
-
-      if (!shouldSkipExplain) {
-        lineExplain.push(
-          t("multiplication.step_detail", {
-            rowLabel: positionLabels[rowIndex] || `10^${rowIndex}`,
-            colLabel: positionLabels[colIndex] || `10^${colIndex}`,
-            d2,
-            d1,
-            carry,
-            product,
-            digit,
-            nextCarry,
-          })
-        );
-      }
-
-      carry = nextCarry;
+    const labelRow = positionLabels[rowIndex] || `10^${rowIndex}`;
+    const intro = t("multiplication.step_intro", {
+      step: rowIndex + 1,
+      label: labelRow,
     });
-
-    if (carry > 0) {
-      row.unshift(carry);
-      carryRow.unshift(" ");
-    }
-
-    while (carryRow.length < row.length) {
-      carryRow.unshift(" ");
-    }
-
-    const shiftZeros = Array(rowIndex).fill(0);
-    const fullRow = row.concat(shiftZeros);
-    const fullCarryRow = carryRow.concat(Array(rowIndex).fill(" "));
-
-    partials.push(fullRow.map(String).join(""));
-
-    carryRows.push(fullCarryRow);
-
-    subTextLines.push(
-      t("multiplication.step_intro", {
-        step: rowIndex + 1,
-        label: positionLabels[rowIndex] || `10^${rowIndex}`,
-      })
-    );
-
-    if (rowIndex + 1 >= 2) {
-      subTextLines.push(t("multiplication.step_zero_rule"));
-    }
-
-    // Ghi từng phép nhân chi tiết (nếu còn lại)
-    subTextLines.push(...lineExplain);
-  });
-
-  // Tính kết quả cuối cùng bằng cách cộng tất cả các dòng nhân tạm
-  // CỘNG THEO TỪNG CỘT (vertical addition)
-  let summaryLines = [];
-  const finalResult = partials.reduce((sum, val) => sum + parseInt(val), 0);
-
-  if (partials.length >= 2) {
-    const maxLen = Math.max(...partials.map((p) => p.length));
-    const paddedPartials = partials.map((p) =>
-      p.padStart(maxLen, "0").split("").map(Number)
-    );
-
-    let carry = 0;
-    const columnLabels = positionLabels;
-    const verticalSteps = [];
-
-    for (let col = maxLen - 1; col >= 0; col--) {
-      const columnDigits = paddedPartials.map((row) => row[col]);
-      const columnSum = columnDigits.reduce((a, b) => a + b, 0) + carry;
-      const digit = columnSum % 10;
-      const nextCarry = Math.floor(columnSum / 10);
-
-      const placeName =
-        columnLabels[maxLen - 1 - col] || `10^${maxLen - 1 - col}`;
-      verticalSteps.push(
-        t("multiplication.step_add_column", {
-          label: placeName,
-          digits: columnDigits.join(" + "),
-          carry,
-          sum: columnSum,
-          digit,
-          nextCarry,
+    subSteps.push(intro);
+    subStepsMeta.push({ type: "row_intro", rowIndex });
+    steps[2].rowIntros.push(intro);
+    if (rowIndex > 0) {
+      subSteps.push(t("multiplication.step_zero_rule"));
+      subStepsMeta.push({ type: "zero_rule", rowIndex });
+      subSteps.push(
+        t("multiplication.shift_zero", {
+          label: labelRow,
+          zeros: rowIndex,
         })
       );
+      subStepsMeta.push({ type: "shift", rowIndex });
+    }
+    let carry = 0;
+    const rowRaw = [];
+    const rowFinal = [];
+    const carryRow = [];
+    digits1.forEach((d1, colIndex) => {
+      const product = d1 * d2;
+      const sum = product + carry;
+      // const digit = product % 10;
+      const digit = sum % 10;
+      const carryNow = Math.floor(product / 10);
+      const nextCarry = Math.floor(sum / 10);
+      const nextDigit = sum % 10;
+      const isLast = digits1.length === 1 || colIndex === digits1.length - 1;
+      console.log(`[DEBUG] carry = ${carry}, isLast = ${isLast}`);
+      let explain = "";
+      if (colIndex === 0 && nextCarry > 0) {
+        // Vị trí đầu tiên, dùng nextCarry
+        explain = t("multiplication.step_detail_with_next", {
+          d1,
+          d2,
+          product,
+          digit,
+          nextCarry,
+          carryNow,
+        });
+      } else if (carry > 0) {
+        // Các vị trí khác, nếu có nhớ
+        explain = t("multiplication.step_detail_with_carry", {
+          d1,
+          d2,
+          product,
+          digit,
+          carry,
+          carryNow,
+        });
+      } else {
+        // Không có gì để nhớ
+        explain = t("multiplication.step_detail_no_carry", {
+          d1,
+          d2,
+          product,
+          digit,
+        });
+      }
+      subSteps.push(explain);
+      subStepsMeta.push({
+        type: isLast ? "detail_final_digit" : "detail",
+        rowIndex,
+        colIndex,
+        d1,
+        d2,
+        product,
+        carry,
+        carryNow,
+        digit,
+        nextCarry,
+      });
+      if (carry > 0) {
+        let addCarry;
+
+        if (isLast) {
+          addCarry = t("multiplication.step_carry_final_add_last", {
+            product,
+            carry,
+            sum,
+            nextDigit,
+            nextCarry,
+            rowIndex,
+            colIndex,
+            d2,
+            str1,
+          });
+        } else {
+          addCarry = t("multiplication.step_carry_final_add", {
+            product,
+            carry,
+            sum,
+            nextDigit,
+            nextCarry,
+          });
+        }
+        subSteps.push(addCarry);
+        subStepsMeta.push({
+          type: "carry_add",
+          rowIndex,
+          colIndex,
+          product,
+          carry,
+          sum,
+          nextDigit,
+          nextCarry,
+          isLast,
+        });
+      }
+      subSteps.push(
+        t("multiplication.reveal_digit", {
+          d2,
+          d1,
+          product: sum,
+        })
+      );
+      subStepsMeta.push({
+        type: "reveal_digits",
+        rowIndex,
+        colIndex,
+        carry: nextCarry,
+        d2,
+        d1,
+        product: sum,
+        digitsToReveal: isLast ? String(sum).length : 1,
+      });
+      rowRaw.unshift(product);
+      rowFinal.unshift(digit);
+      if (!isLast) {
+        carryRow.unshift(nextCarry > 0 ? String(nextCarry) : " ");
+      } else {
+        carryRow.unshift(" ");
+      }
+      carry = nextCarry;
+    });
+    if (carry > 0) {
+      rowFinal.unshift(carry);
+      carryRow.unshift(" ");
+    }
+    const shiftZeros = Array(rowIndex).fill(0);
+    const fullRow = rowFinal.concat(shiftZeros);
+    const fullCarry = carryRow.concat(Array(rowIndex).fill(" "));
+    partials.push(fullRow.map(String).join(""));
+    carryRows.push(fullCarry);
+    steps[2].rowSteps.push({
+      rowRaw: rowRaw.concat(shiftZeros),
+      rowFinal: fullRow,
+      carryRow: fullCarry,
+    });
+  });
+  const finalResult = partials.reduce((acc, val) => acc + parseInt(val), 0);
+  if (partials.length >= 2) {
+    const maxLen = Math.max(...partials.map((p) => p.length));
+    const padded = partials.map((p) =>
+      p.padStart(maxLen, "0").split("").map(Number)
+    );
+    console.log("[DEBUG] Partial Rows After Padding:");
+    padded.forEach((row, i) => {
+      console.log(`Row ${i + 1}: ${row.join(" ")}`);
+      6;
+    });
+
+    let carry = 0;
+    for (let col = maxLen - 1; col >= 0; col--) {
+      const colDigits = padded.map((row) => row[col]);
+      const colSum = colDigits.reduce((a, b) => a + b, 0) + carry;
+      const digit = colSum % 10;
+      const nextCarry = Math.floor(colSum / 10);
+      const label =
+        positionLabels[maxLen - 1 - col] || `10^${maxLen - 1 - col}`;
+      const isFirstColumn = col === maxLen - 1;
+
+      console.log(
+        `[COLUMN ADD] Cột ${label}: ${colDigits.join(
+          " + "
+        )} + ${carry} = ${colSum} → viết ${digit}, nhớ ${nextCarry}`
+      );
+      const stepText = t("multiplication.step_add_column", {
+        label,
+        digits: colDigits.join(" + "),
+        carry,
+        sum: colSum,
+        digit,
+        nextCarry,
+        finalNote: isFirstColumn ? t("multiplication.first_add_note") : "",
+      });
+      subSteps.push(stepText);
+      subStepsMeta.push({
+        type: "vertical_add",
+        column: maxLen - 1 - col,
+        colDigits,
+        carry,
+        digit,
+        nextCarry,
+      });
       carry = nextCarry;
     }
-
     if (carry > 0) {
-      verticalSteps.push(t("multiplication.step_final_carry", { carry }));
+      subSteps.push(t("multiplication.step_final_carry", { carry }));
+      subStepsMeta.push({ type: "final_carry", carry });
     }
-
-    summaryLines.push(t("multiplication.step_final_title"));
-    verticalSteps.slice(1).forEach((line) => summaryLines.push(line));
-
-    summaryLines.push(
+    subSteps.push(
       t("multiplication.final_result", {
         expression: partials.join(" + "),
         result: finalResult,
       })
     );
+    subStepsMeta.push({ type: "final_result", result: finalResult });
   } else {
-    summaryLines = [
+    subSteps.push(
       t("multiplication.final_result", {
         expression: partials[0],
-        result: partials[0],
-      }),
-    ];
+        result: finalResult,
+      })
+    );
+    subStepsMeta.push({ type: "final_result", result: finalResult });
   }
-
-  // Ghi dữ liệu cho bước hiển thị từng dòng (steps[2])
-  steps[2].partials = partials.map((p) => p.toString()); // Các dòng nhân
-  steps[2].digits = str1.split(""); // Các chữ số của số bị nhân
-  steps[2].multiplierDigits = str2.split(""); // Các chữ số của số nhân
-  steps[2].carryRows = carryRows; // Các dòng số nhớ
-  steps[2].subText = subTextLines.join("\n\n"); // Mô tả tất cả các bước
-  steps[2].subSteps = [...subTextLines, ...summaryLines]; // Mảng mô tả từng bước
-  // Ghi kết quả tổng hợp cuối cùng (steps[3])
+  steps[2].digits = str1.split("");
+  steps[2].multiplierDigits = str2.split("");
+  steps[2].partials = partials;
+  steps[2].carryRows = carryRows;
+  console.log("[DEBUG] carryRows =", JSON.stringify(carryRows));
+  steps[2].subSteps = subSteps;
+  steps[2].subStepsMeta = subStepsMeta;
+  steps[2].positionLabels = Array.from({
+    length: finalResult.toString().length,
+  }).map(
+    (_, i) => positionLabels[finalResult.toString().length - 1 - i] || `10^${i}`
+  );
+  steps[3] = steps[3] || {};
   steps[3].result = finalResult.toString();
   steps[3].subText = t("multiplication.summary", {
     partials: partials
@@ -168,14 +262,6 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     expression: partials.join(" + "),
     result: finalResult,
   });
-  const finalResultDigits = finalResult.toString().length;
-  const fullPositionLabels = Array.from({ length: finalResultDigits }).map(
-    (_, i) =>
-      positionLabels[finalResultDigits - 1 - i] ||
-      `10^${finalResultDigits - 1 - i}`
-  );
-  steps[2].positionLabels = fullPositionLabels;
 
-  // Xóa trạng thái nhớ (nếu có)
   if (setRemember) setRemember("");
 };

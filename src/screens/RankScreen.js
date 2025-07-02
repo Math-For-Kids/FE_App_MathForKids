@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllPupils } from "../redux/pupilSlice";
 
 const AnimatedStar = ({ color }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -39,38 +41,21 @@ const AnimatedStar = ({ color }) => {
     </Animated.View>
   );
 };
+
 export default function RankScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
-  const users = [
-    {
-      id: 1,
-      avatar: theme.images.avatarFemale,
-      name: "Nguyen Thi Hong",
-      point: 1250,
-      time: 100,
-    },
-    {
-      id: 2,
-      avatar: theme.images.avatarMale,
-      name: "Nguyen Van Hoai",
-      point: 1240,
-      time: 100,
-    },
-    {
-      id: 3,
-      avatar: theme.images.avatarMale,
-      name: "Nguyen Van Hung",
-      point: 1240,
-      time: 90,
-    },
-    {
-      id: 4,
-      avatar: theme.images.avatarFemale,
-      name: "Nguyen Thanh Thien",
-      point: 1230,
-      time: 90,
-    },
-  ];
+  const dispatch = useDispatch();
+  const { pupils, loading, error } = useSelector((state) => state.pupil);
+
+  useEffect(() => {
+    dispatch(getAllPupils());
+  }, [dispatch]);
+
+  // Sort pupils by point in descending order
+  // const sortedPupils = [...pupils].sort((a, b) => b.point - a.point);
+  const sortedPupils = [...pupils]
+    .sort((a, b) => b.point - a.point)
+    .slice(0, 5);
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -92,21 +77,30 @@ export default function RankScreen({ navigation }) {
       padding: 8,
       borderRadius: 50,
     },
-    backIcon: { width: 24, height: 24 },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     title: {
       fontSize: 36,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
+      textAlign: "left", // Căn trái tiêu đề
     },
-    topContainer: { paddingHorizontal: 10 },
-    top23: { flexDirection: "row", justifyContent: "space-between" },
+    topContainer: {
+      paddingHorizontal: 10,
+    },
+    top23: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    }, // Căn trái top 2, 3
     topUser: {
-      alignItems: "center",
+      alignItems: "center", // Căn trái nội dung trong topUser
       width: "30%",
     },
     topName: {
       marginTop: 5,
-      textAlign: "center",
+      textAlign: "left", // Căn trái tên top user
       fontSize: 12,
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
@@ -123,7 +117,7 @@ export default function RankScreen({ navigation }) {
     userCard: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "space-between", // Căn trái nội dung trong userCard
       marginHorizontal: 30,
       padding: 10,
       backgroundColor: theme.colors.cardBackground,
@@ -139,7 +133,6 @@ export default function RankScreen({ navigation }) {
       gap: 10,
     },
     avatarContainer: {
-      padding: 10,
       borderRadius: 50,
       borderWidth: 1,
       borderColor: theme.colors.white,
@@ -156,29 +149,70 @@ export default function RankScreen({ navigation }) {
       borderRadius: 50,
     },
     avatar: {
-      width: 40,
-      height: 40,
+      width: 50,
+      height: 50,
+      borderRadius: 50,
     },
     name: {
-      width: "50%",
+      width: "60%",
       fontSize: 16,
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
+      textAlign: "left", // Căn trái tên trong userCard
     },
     rightContainer: {
-      alignItems: "flex-end",
+      alignItems: "flex-start", // Căn trái nội dung trong rightContainer
     },
     point: {
       fontSize: 16,
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
+      textAlign: "left", // Căn trái điểm
     },
     time: {
       fontSize: 16,
       fontFamily: Fonts.NUNITO_REGULAR,
       color: theme.colors.white,
+      textAlign: "left", // Căn trái thời gian
+    },
+    loadingText: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_REGULAR,
+      color: theme.colors.white,
+      textAlign: "left", // Căn trái văn bản loading
+      marginTop: 20,
+    },
+    errorText: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_REGULAR,
+      color: theme.colors.red,
+      textAlign: "left", // Căn trái văn bản lỗi
+      marginTop: 20,
     },
   });
+
+  if (loading) {
+    return (
+      <LinearGradient
+        colors={theme.colors.gradientBlue}
+        style={styles.container}
+      >
+        <Text style={styles.loadingText}>Loading...</Text>
+      </LinearGradient>
+    );
+  }
+
+  if (error) {
+    return (
+      <LinearGradient
+        colors={theme.colors.gradientBlue}
+        style={styles.container}
+      >
+        <Text style={styles.errorText}>Error: {error}</Text>
+      </LinearGradient>
+    );
+  }
+
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <LinearGradient
@@ -201,20 +235,20 @@ export default function RankScreen({ navigation }) {
         <View style={styles.top23}>
           <View style={[styles.topUser, { marginTop: 20 }]}>
             <Image source={theme.icons.top2} style={styles.topIcon} />
-            <Text style={styles.topName}>{users[1]?.name}</Text>
+            <Text style={styles.topName}>{sortedPupils[1]?.fullName}</Text>
           </View>
           <View style={[styles.topUser, { marginTop: 0 }]}>
             <Image source={theme.icons.top1} style={styles.topIcon} />
-            <Text style={styles.topName}>{users[0]?.name}</Text>
+            <Text style={styles.topName}>{sortedPupils[0]?.fullName}</Text>
           </View>
           <View style={[styles.topUser, { marginTop: 20 }]}>
             <Image source={theme.icons.top3} style={styles.topIcon} />
-            <Text style={styles.topName}>{users[2]?.name}</Text>
+            <Text style={styles.topName}>{sortedPupils[2]?.fullName}</Text>
           </View>
         </View>
       </View>
       <FlatList
-        data={users}
+        data={sortedPupils}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
         renderItem={({ item, index }) => (
@@ -231,7 +265,16 @@ export default function RankScreen({ navigation }) {
             >
               <View style={styles.leftContainer}>
                 <View style={styles.avatarContainer}>
-                  <Image source={item.avatar} style={styles.avatar} />
+                  <Image
+                    source={
+                      item?.image
+                        ? { uri: item?.image }
+                        : item?.gender === "female"
+                        ? theme.icons.avatarFemale
+                        : theme.icons.avatarMale
+                    }
+                    style={styles.avatar}
+                  />
                   {(index === 0 || index === 1 || index === 2) && (
                     <View style={styles.star}>
                       <AnimatedStar
@@ -246,7 +289,7 @@ export default function RankScreen({ navigation }) {
                     </View>
                   )}
                 </View>
-                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.name}>{item.fullName}</Text>
               </View>
               <View style={styles.rightContainer}>
                 <Text style={styles.point}>{item.point}</Text>

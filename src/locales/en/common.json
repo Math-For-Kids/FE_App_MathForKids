@@ -4,7 +4,11 @@
   "test": "Test",
   "game": "Game",
   "mission": "Mission",
-
+  "Addition": "Addition",
+  "Subtraction": "Subtraction",
+  "Multiplication": "Multiplication",
+  "Division": "Division",
+  "Expression": "Expression",
   "edit": "Edit",
   "save": "Save",
   "cancel": "Cancel",
@@ -12,5 +16,6 @@
   "error": "Error",
   "selectOption": "Select option...",
   "male": "Male",
-  "female": "Female"
+  "female": "Female",
+  "grade": "Grade"
 }

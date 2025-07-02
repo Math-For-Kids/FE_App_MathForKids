@@ -41,5 +41,20 @@
   "newPinHint": "Set a new 4-digit PIN.",
   "confirmPin": "Confirm New PIN",
   "confirmPinHint": "Re-enter to confirm.",
-  "update": "Update"
+  "update": "Update",
+  "sendOtpFailed": "Failed to send OTP.",
+  "sendOtpFailedTitle": "Failed to send code",
+  "emailAlreadyExists": "Email already exists",
+  "emailPlaceholder": "e.g. yourname@email.com",
+  "emailDuplicateTitle": "Duplicate Email",
+  "emailDuplicateMessage": "New email must be different from current email.",
+  "phoneAlreadyExistsTitle": "Phone number already exists",
+  "phoneAlreadyExistsMsg": "The new phone number must be different from the current one.",
+  "success": "Success",
+  "invalidPinTitle": "Invalid PIN",
+  "invalidPinMsg": "Each PIN must be exactly 4 digits.",
+  "mismatchPinTitle": "Mismatch",
+  "mismatchPinMsg": "New PIN and confirmation do not match.",
+  "incorrectPinTitle": "Incorrect PIN",
+  "incorrectPinMsg": "That is not the correct PIN. Please try again."
 }

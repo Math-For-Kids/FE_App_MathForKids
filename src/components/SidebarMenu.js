@@ -14,8 +14,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../redux/authSlice";
+import { useTranslation } from "react-i18next";
+
 const SidebarMenu = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation("sidebar");
   const screenHeight = Dimensions.get("window").height;
   const navigation = useNavigation();
   const route = useRoute();
@@ -40,24 +43,24 @@ const SidebarMenu = () => {
     }
   };
   const menuItems = [
-    { label: "Home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
+    { label: "home", icon: theme.icons.characterLamp, screen: "HomeScreen" },
     {
-      label: "Statistics",
+      label: "statistics",
       icon: theme.icons.statistic,
       screen: "StatisticScreen",
     },
-    { label: "Privacy", icon: theme.icons.privacy, screen: "PrivacyScreen" },
-    { label: "Profile", icon: theme.icons.profile, screen: "ProfileScreen" },
+    { label: "privacy", icon: theme.icons.privacy, screen: "PrivacyScreen" },
+    { label: "profile", icon: theme.icons.profile, screen: "ProfileScreen" },
     {
-      label: "View profile",
+      label: "viewProfile",
       icon: theme.icons.profile,
       screen: "DetailScreen",
     },
-    { label: "Goals", icon: theme.icons.goal, screen: "GoalScreen" },
-    { label: "Rank", icon: theme.icons.rank, screen: "RankScreen" },
-    { label: "Target", icon: theme.icons.target, screen: "TargetScreen" },
+    { label: "goals", icon: theme.icons.goal, screen: "GoalScreen" },
+    { label: "rank", icon: theme.icons.rank, screen: "RankScreen" },
+    { label: "target", icon: theme.icons.target, screen: "TargetScreen" },
     {
-      label: "Notification",
+      label: "notification",
       icon: theme.icons.notification,
       screen: "NotificationScreen",
     },
@@ -66,26 +69,26 @@ const SidebarMenu = () => {
     //   icon: theme.icons.testLevel,
     //   screen: "TestLevelScreen",
     // },
-    { label: "Reward", icon: theme.icons.reward, screen: "RewardScreen" },
-    { label: "Setting", icon: theme.icons.setting, screen: "SettingScreen" },
-    { label: "Contact", icon: theme.icons.contact, screen: "ContactScreen" },
+    { label: "reward", icon: theme.icons.reward, screen: "RewardScreen" },
+    { label: "setting", icon: theme.icons.setting, screen: "SettingScreen" },
+    { label: "contact", icon: theme.icons.contact, screen: "ContactScreen" },
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
     if (isPupil) {
-      return !["Goals", "Statistics", "Privacy", "View profile"].includes(
+      return !["goals", "statistics", "privacy", "viewProfile"].includes(
         item.label
       );
     }
     if (isParent) {
       return ![
-        "Home",
-        "Rank",
-        "Reward",
-        "Target",
-        "Test level",
-        "Profile",
-        "View profile",
+        "home",
+        "rank",
+        "reward",
+        "target",
+        "test level",
+        "profile",
+        "viewProfile",
       ].includes(item.label);
     }
     return false;
@@ -188,7 +191,7 @@ const SidebarMenu = () => {
 
   return (
     <View style={styles.sidebar}>
-      <Text style={styles.title}>Menu</Text>
+      <Text style={styles.title}>{t("menu")}</Text>
       <View style={styles.menuContainer}>
         <ScrollView
           style={styles.menuScroll}
@@ -206,7 +209,7 @@ const SidebarMenu = () => {
               }}
             >
               <Image source={item.icon} style={styles.icon} />
-              <Text style={styles.label}>{item.label}</Text>
+              <Text style={styles.label}>{t(item.label)}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -224,7 +227,7 @@ const SidebarMenu = () => {
             // }}
             onPress={handleLogout}
           >
-            <Text style={styles.logoutButton}>Logout</Text>
+            <Text style={styles.logoutButton}>{t("logout")}</Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>

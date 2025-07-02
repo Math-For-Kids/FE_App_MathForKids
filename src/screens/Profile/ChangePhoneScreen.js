@@ -13,9 +13,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile, profileById } from "../../redux/profileSlice";
-import { sendOTPByPhone, verifyOnlyOTP } from "../../redux/authSlice";
+import {
+  updateProfile,
+  profileById,
+  sendOtpToUpdatePhone,
+} from "../../redux/profileSlice";
+import { verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
+
 export default function ChangePhoneScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useTranslation("profile");
@@ -26,49 +31,66 @@ export default function ChangePhoneScreen({ navigation }) {
   const [newPhone, setNewPhone] = useState("");
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
   const [pin, setPin] = useState(["", "", "", ""]);
-
   const [pinModalVisible, setPinModalVisible] = useState(false);
 
   const validatePhone = (phone) => /^\d{10,11}$/.test(phone);
 
   const handleConfirmPin = async () => {
-    if (!/^\d{4}$/.test(pin)) {
-      Alert.alert("Invalid PIN", "PIN must be exactly 4 digits.");
+    const joinedPin = pin.join("");
+
+    if (!/^\d{4}$/.test(joinedPin)) {
+      Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
       return;
     }
+
     try {
-      await dispatch(verifyOnlyOTP({ userId: user.id, otpCode: pin })).unwrap();
+      await dispatch(
+        verifyOnlyOTP({ userId: user.id, otpCode: joinedPin })
+      ).unwrap();
       await dispatch(
         updateProfile({ id: user.id, data: { phoneNumber: newPhone } })
       ).unwrap();
-
       dispatch(profileById(user.id));
-      Alert.alert("Success", "Phone number updated successfully!");
+      Alert.alert(t("success"), t("updateSuccess"));
+      setPin(["", "", "", ""]);
       setPinModalVisible(false);
-      setPin("");
       navigation.navigate("PrivacyScreen");
     } catch (error) {
       Alert.alert(
-        "Error",
-        typeof error === "string" ? error : "OTP verification failed."
+        t("error"),
+        typeof error === "string" ? error : t("verifyOtpFailed")
       );
     }
   };
 
   const handleOpenPinModal = async () => {
     if (!validatePhone(newPhone)) {
-      Alert.alert("Invalid Phone Number", "Enter a valid phone number.");
+      Alert.alert(t("invalidPhoneTitle"), t("invalidPhoneMsg"));
+      return;
+    }
+
+    if (newPhone === profile?.phoneNumber) {
+      Alert.alert(t("phoneAlreadyExistsTitle"), t("phoneAlreadyExistsMsg"));
       return;
     }
 
     try {
       await dispatch(
-        sendOTPByPhone({ userId: user.id, phoneNumber: profile.phoneNumber })
+        sendOtpToUpdatePhone({
+          id: user.id,
+          phoneNumber: user.phoneNumber,
+          newPhoneNumber: newPhone,
+        })
       ).unwrap();
-      Alert.alert("OTP Sent", "An OTP has been sent to your current phone.");
       setPinModalVisible(true);
     } catch (error) {
-      Alert.alert("Error", "Failed to send OTP.");
+      let msg = t("sendOtpFailed");
+      if (typeof error === "object") {
+        msg = error.vi || error.en || msg;
+      } else if (typeof error === "string") {
+        msg = error;
+      }
+      Alert.alert(t("sendOtpFailedTitle"), msg);
     }
   };
 
@@ -95,9 +117,11 @@ export default function ChangePhoneScreen({ navigation }) {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 26,
+      fontSize: 28,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
+      width: "40%",
+      textAlign: "center",
     },
     formContainer: {
       paddingHorizontal: 20,
@@ -267,13 +291,8 @@ export default function ChangePhoneScreen({ navigation }) {
                     const newPin = [...pin];
                     newPin[index] = val;
                     setPin(newPin);
-
-                    if (val && index < 3) {
-                      pinRefs[index + 1].current.focus();
-                    }
-                    if (!val && index > 0) {
-                      pinRefs[index - 1].current.focus();
-                    }
+                    if (val && index < 3) pinRefs[index + 1].current.focus();
+                    if (!val && index > 0) pinRefs[index - 1].current.focus();
                   }}
                   keyboardType="number-pad"
                   maxLength={1}
@@ -285,7 +304,7 @@ export default function ChangePhoneScreen({ navigation }) {
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => {
-                  setPin("");
+                  setPin(["", "", "", ""]);
                   setPinModalVisible(false);
                 }}
               >

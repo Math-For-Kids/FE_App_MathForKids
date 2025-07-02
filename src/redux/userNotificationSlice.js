@@ -28,7 +28,18 @@ export const notificationById = createAsyncThunk(
     }
   }
 );
-
+// Tao thông báo
+export const createUserNotification = createAsyncThunk(
+  "notifications/create",
+  async (notificationData, { rejectWithValue }) => {
+    try {
+      const res = await Api.post("/usernotification", notificationData);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 // Cập nhật thông báo
 export const updateNotification = createAsyncThunk(
   "notifications/update",
@@ -85,7 +96,20 @@ const notificationSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
+      // Create
+      .addCase(createUserNotification.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createUserNotification.fulfilled, (state, action) => {
+        state.loading = false;
+        // Optional: nếu API trả về notification object
+        state.list.unshift(action.payload);
+      })
+      .addCase(createUserNotification.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Update notification
       .addCase(updateNotification.pending, (state) => {
         state.loading = true;

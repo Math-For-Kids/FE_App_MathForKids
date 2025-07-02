@@ -22,13 +22,14 @@ import {
 } from "../redux/pupilNotificationSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-
+import { useTranslation } from "react-i18next";
 export default function NotificationScreen({ navigation, route }) {
   const { theme, isDarkMode } = useTheme();
   const { userId, pupilId } = route.params || {};
   console.log("userId", userId);
   const [expandedId, setExpandedId] = useState(null);
   const user = useSelector((state) => state.auth.user);
+  const { t, i18n } = useTranslation("notification");
   const userNotifications = useSelector(
     (state) => state.notifications.list || []
   );
@@ -78,7 +79,7 @@ export default function NotificationScreen({ navigation, route }) {
     }
     setExpandedId((prev) => (prev === id ? null : id));
   };
-  // xem lai date 
+  // xem lai date
   const formatDate = (value) => {
     if (!value) return "Invalid Date";
 
@@ -195,7 +196,7 @@ export default function NotificationScreen({ navigation, route }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Notification</Text>
+        <Text style={styles.title}>{t("notification")}</Text>
       </LinearGradient>
 
       <FlatList
@@ -220,7 +221,11 @@ export default function NotificationScreen({ navigation, route }) {
 
             <View>
               <Text style={styles.notificationTitle}>
-                {item.title?.en || "No title"}
+                <Text style={styles.notificationTitle}>
+                  {item.title?.[i18n.language] ||
+                    item.title?.en ||
+                    t("noTitle")}
+                </Text>
               </Text>
               <Text style={styles.notificationDateEnd}>
                 {formatDate(item.createdAt)}
@@ -230,7 +235,9 @@ export default function NotificationScreen({ navigation, route }) {
             {expandedId === item.id && (
               <View style={styles.notificationContentContainer}>
                 <Text style={styles.notificationContent}>
-                  {item.content?.en || "No content"}
+                  {item.content?.[i18n.language] ||
+                    item.content?.en ||
+                    t("noContent")}
                 </Text>
               </View>
             )}

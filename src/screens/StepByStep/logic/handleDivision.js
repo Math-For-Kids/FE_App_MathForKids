@@ -97,14 +97,40 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
     const productLength = sub.toString().length;
     let productIndent;
 
-    // Xử lý đặc biệt khi bước đầu tiên có số đầu tiên là 3 chữ số
-    if (divisionCount === 0 && firstDividendLength === 3 && productLength === 3) {
+    if (
+      divisionCount === 0 &&
+      firstDividendLength === 3 &&
+      productLength === 3
+    ) {
       productIndent = divisionCount - 1;
-    } else if (divisionCount === 1 && firstDividendLength === 3 && productLength === 3) {
+    } else if (
+      divisionCount === 1 &&
+      firstDividendLength === 3 &&
+      productLength === 3
+    ) {
       productIndent = divisionCount - 1;
-    } else if (divisionCount === 3 && firstDividendLength === 2 && productLength === 2) {
+    }
+
+    else if (
+      divisionCount === 1 &&
+      firstDividendLength === 2 &&
+      productLength === 3
+    ) {
+      productIndent = divisionCount - 1;
+    }
+
+    else if (
+      divisionCount === 3 &&
+      firstDividendLength === 2 &&
+      productLength === 2
+    ) {
       productIndent = divisionCount;
-    } else if ((productLength === 3 && divisionCount === 3 && firstDividendLength === 2) || (productLength === 3 && divisionCount === 2)) {
+    } else if (
+      (productLength === 3 &&
+        divisionCount === 3 &&
+        firstDividendLength === 2) ||
+      (productLength === 3 && divisionCount === 2)
+    ) {
       productIndent = divisionCount - 1;
     } else if (productLength === 2 && divisionCount === 3) {
       productIndent = divisionCount + 1;
@@ -128,7 +154,8 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
     });
 
     const remainderLength = remainder.toString().length;
-    const remainderIndent = remainderLength === 1 ? divisionCount + 1 : divisionCount;
+    const remainderIndent =
+      remainderLength === 1 ? divisionCount + 1 : divisionCount;
 
     subSteps.push({
       key: "step_subtract",
@@ -158,7 +185,8 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
         },
       });
 
-      const bringDownIndent = remainderLength === 1 ? divisionCount + 1 : divisionCount;
+      const bringDownIndent =
+        remainderLength === 1 ? divisionCount + 1 : divisionCount;
 
       subSteps.push({
         key: "step_bring_down",
@@ -181,7 +209,10 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
       indent: divisionCount,
       drawLine: true,
       broughtDown: dividend[i + 1]?.toString(),
-      afterBringDown: i + 1 < dividend.length ? remainder.toString() + dividend[i + 1].toString() : undefined,
+      afterBringDown:
+        i + 1 < dividend.length
+          ? remainder.toString() + dividend[i + 1].toString()
+          : undefined,
     });
 
     current = remainder;

@@ -49,11 +49,15 @@ export const handleStepZero = ({
       },
       {
         title: t("step3_title"),
-        description: t("step3_description"),
+        description: t("step3_description", {
+          n1Str,
+          n2Str,
+          operator,
+        }),
         result: "",
         subText: "",
-        number1: n1Str,
-        number2: n2Str,
+        n1Str,
+        n2Str,
       },
     ];
 
@@ -61,7 +65,7 @@ export const handleStepZero = ({
       case "+":
         newSteps[2].title = t("add_title");
         newSteps[2].description = t("add_description");
-        handleAddition(n1, n2, newSteps, setRemember);
+        handleAddition(n1, n2, newSteps, setRemember, t);
         break;
       case "-":
         newSteps[2].title = t("sub_title");
@@ -82,7 +86,7 @@ export const handleStepZero = ({
           number1: n1Str,
           number2: n2Str,
         });
-        handleDivision(n1, n2, newSteps, setRemember);
+        handleDivision(n1, n2, newSteps, setRemember, t);
         break;
       default:
         newSteps[2].title = t("invalid_title");

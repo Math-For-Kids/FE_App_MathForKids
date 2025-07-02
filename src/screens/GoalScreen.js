@@ -15,6 +15,17 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import FloatingMenu from "../components/FloatingMenu";
+import { getAllPupils, pupilById, pupilByUserId } from "../redux/pupilSlice";
+import { getLessonsByGradeAndType } from "../redux/lessonSlice";
+import { getEnabledRewards } from "../redux/rewardSlice";
+import { createGoal } from "../redux/goalSlice";
+import { useIsFocused } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
+import { createPupilNotification } from "../redux/pupilNotificationSlice";
+import { createUserNotification } from "../redux/userNotificationSlice"; // nếu bạn cũng cần gửi cho user
+import { serverTimestamp } from "firebase/firestore";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -31,14 +42,118 @@ export default function GoalScreen() {
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
+  const dispatch = useDispatch();
+  const { pupils } = useSelector((state) => state.pupil);
+  const { user } = useSelector((state) => state.auth);
+  const { lessons } = useSelector((state) => state.lesson);
+  const { rewards } = useSelector((state) => state.reward);
+  const { t, i18n } = useTranslation("goal");
+  // console.log("userId", user.id);
+  useEffect(() => {
+    dispatch(getEnabledRewards());
+    dispatch(pupilByUserId(user?.id));
+  }, [dispatch, user?.id]);
+  // console.log("rewards", rewards);
+  // console.log("pupils", pupils);
+  useEffect(() => {
+    const selectedPupil = pupils.find((p) => p.id === selectedAccount);
+    // console.log("selectedPupil", selectedPupil);
+    if (selectedPupil && skillType) {
+      dispatch(
+        getLessonsByGradeAndType({
+          grade: selectedPupil.grade,
+          type: skillType.toLowerCase(),
+        })
+      );
+    }
+  }, [skillType, selectedAccount]);
+  // console.log("lessons", lessons);
+  const rewardOptions = rewards.map((r) => ({
+    label: r.name?.[i18n.language] || r.name?.en || t("unnamed"),
+    value: r.name?.[i18n.language] || r.name?.en || t("unnamed"),
+    image: r.image ? { uri: r.image } : undefined,
+  }));
+  const handleSaveGoal = () => {
+    if (!selectedAccount || !skillType || !lesson || !exercise || !reward) {
+      alert(t("alertIncomplete"));
+      return;
+    }
 
-  const user = {
-    pupils: [
-      "Nguyen Thi Hoa",
-      "Nguyen Thi Hong",
-      "Tran Hoa Hong",
-      "Lam Hoai Man",
-    ],
+    const goalData = {
+      pupilId: selectedAccount,
+      skillType,
+      lesson,
+      exercise,
+      reward,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+
+    dispatch(createGoal(goalData))
+      .unwrap()
+      .then(() => {
+        const now = new Date();
+        const createdAt = now.toISOString();
+        const updatedAt = now.toISOString();
+
+        // Gửi cho phụ huynh
+        dispatch(
+          createUserNotification({
+            userId: user.id,
+            title: {
+              en: t("notifyGoalCreatedTitle", { lng: "en" }),
+              vi: t("notifyGoalCreatedTitle", { lng: "vi" }),
+            },
+            content: {
+              en: t(
+                "notifyGoalCreatedContent",
+                { skill: skillType, lesson },
+                { lng: "en" }
+              ),
+              vi: t(
+                "notifyGoalCreatedContent",
+                { skill: skillType, lesson },
+                { lng: "vi" }
+              ),
+            },
+            isRead: false,
+            createdAt,
+            updatedAt,
+          })
+        );
+
+        // Gửi cho học sinh
+        dispatch(
+          createPupilNotification({
+            pupilId: selectedAccount,
+            title: {
+              en: t("notifyNewGoalTitle", { lng: "en" }),
+              vi: t("notifyNewGoalTitle", { lng: "vi" }),
+            },
+            content: {
+              en: t(
+                "notifyNewGoalContent",
+                { skill: skillType, lesson },
+                { lng: "en" }
+              ),
+              vi: t(
+                "notifyNewGoalContent",
+                { skill: skillType, lesson },
+                { lng: "vi" }
+              ),
+            },
+            isRead: false,
+            createdAt,
+            updatedAt,
+          })
+        );
+
+        alert(t("alertSuccess"));
+        navigation.goBack();
+      })
+      .catch((err) => {
+        alert(t("alertFail", { error: err }));
+      });
   };
 
   const styles = StyleSheet.create({
@@ -64,7 +179,7 @@ export default function GoalScreen() {
     },
     backIcon: { width: 24, height: 24 },
     title: {
-      fontSize: 36,
+      fontSize: 30,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
@@ -107,6 +222,7 @@ export default function GoalScreen() {
     dateInput: { flex: 0.45 },
     input: {
       flexDirection: "row",
+      alignItems: "center",
       justifyContent: "space-between",
       backgroundColor: theme.colors.cardBackground,
       padding: 10,
@@ -173,46 +289,26 @@ export default function GoalScreen() {
       paddingVertical: 10,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
+    labelValueContainer: {
+      flexDirection: "column",
+      flex: 1,
+    },
+
     rewardContainer: {
       flexDirection: "row",
-      justifyContent: "center",
       alignItems: "center",
+      justifyContent: "space-around",
       padding: 10,
+      gap: 10,
     },
-    rewardImage: { width: 32, height: 32, marginRight: 10 },
+    rewardImage: {
+      width: 40,
+      height: 40,
+      marginRight: 10,
+      marginLeft: 20,
+      borderRadius: 8,
+    },
   });
-  const lessonOptions = {
-    Addition: [
-      { label: "Lesson 1: Add 1-digit", value: "Lesson 1" },
-      { label: "Lesson 2: Add with carry", value: "Lesson 2" },
-    ],
-    Subtraction: [
-      { label: "Lesson 1: Subtract 1-digit", value: "Lesson 1" },
-      { label: "Lesson 2: Subtract with borrow", value: "Lesson 2" },
-    ],
-    Multiplication: [
-      { label: "Lesson 1: Multiply by 1", value: "Lesson 1" },
-      { label: "Lesson 2: Multiply by 2", value: "Lesson 2" },
-    ],
-    Division: [
-      { label: "Lesson 1: Divide by 1", value: "Lesson 1" },
-      { label: "Lesson 2: Divide evenly", value: "Lesson 2" },
-    ],
-    "Multiplications table": [
-      { label: "Lesson 1: Table 2", value: "Lesson 1" },
-      { label: "Lesson 2: Table 3", value: "Lesson 2" },
-    ],
-  };
-  const exerciseOptions = {
-    "Lesson 1": [
-      { label: "Exercise A", value: "Exercise A" },
-      { label: "Exercise B", value: "Exercise B" },
-    ],
-    "Lesson 2": [
-      { label: "Exercise C", value: "Exercise C" },
-      { label: "Exercise D", value: "Exercise D" },
-    ],
-  };
   const renderOptionModal = (title, options, onSelect, onClose) => (
     <TouchableOpacity
       style={styles.modalOverlay}
@@ -242,7 +338,9 @@ export default function GoalScreen() {
                     resizeMode="contain"
                   />
                 )}
-                <Text style={styles.modalButtonText}>{item.label}</Text>
+                <View style={styles.labelValueContainer}>
+                  <Text style={styles.modalButtonText}>{item.label}</Text>
+                </View>
               </TouchableOpacity>
             </LinearGradient>
           ))}
@@ -266,32 +364,32 @@ export default function GoalScreen() {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Set goal</Text>
+        <Text style={styles.title}>{t("setGoal")}</Text>
       </LinearGradient>
 
       <ScrollView>
-        <Text style={styles.labelTitle}>Selection account</Text>
+        <Text style={styles.labelTitle}>{t("selectAccount")}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.accountScrollContainer}
         >
-          {user.pupils.map((pupil) => (
+          {pupils.map((pupil) => (
             <TouchableOpacity
-              key={pupil}
+              key={pupil.id}
               style={[
                 styles.accountButton,
-                selectedAccount === pupil && styles.selectedAccount,
+                selectedAccount === pupil.id && styles.selectedAccount,
               ]}
-              onPress={() => setSelectedAccount(pupil)}
+              onPress={() => setSelectedAccount(pupil.id)}
             >
               <Text
                 style={[
                   styles.accountText,
-                  selectedAccount === pupil && styles.selectedAccountText,
+                  selectedAccount === pupil.id && styles.selectedAccountText,
                 ]}
               >
-                {pupil}
+                {pupil.fullName}
               </Text>
             </TouchableOpacity>
           ))}
@@ -299,7 +397,7 @@ export default function GoalScreen() {
 
         <View style={styles.dateRow}>
           <View style={styles.dateInput}>
-            <Text style={styles.label}>Date start</Text>
+            <Text style={styles.label}>{t("dateStart")}</Text>
             <TouchableOpacity onPress={() => setShowStartPicker(true)}>
               <TextInput
                 value={startDate.toLocaleDateString()}
@@ -321,7 +419,7 @@ export default function GoalScreen() {
             )}
           </View>
           <View style={styles.dateInput}>
-            <Text style={styles.label}>Date end</Text>
+            <Text style={styles.label}>{t("dateEnd")}</Text>
             <TouchableOpacity onPress={() => setShowEndPicker(true)}>
               <TextInput
                 value={endDate.toLocaleDateString()}
@@ -336,15 +434,24 @@ export default function GoalScreen() {
                 display="default"
                 onChange={(event, selectedDate) => {
                   setShowEndPicker(false);
-                  if (event.type === "set" && selectedDate)
+                  if (event.type === "set" && selectedDate) {
+                    const maxEndDate = new Date(startDate);
+                    maxEndDate.setDate(startDate.getDate() + 14);
+
+                    if (selectedDate > maxEndDate) {
+                      alert(t("alertDateLimit"));
+                      return;
+                    }
+
                     setEndDate(selectedDate);
+                  }
                 }}
               />
             )}
           </View>
         </View>
 
-        <Text style={styles.label}>Skill type</Text>
+        <Text style={styles.label}>{t("selectSkillType")}</Text>
         <TouchableOpacity
           onPress={() => setShowSkillModal(true)}
           style={styles.input}
@@ -354,7 +461,7 @@ export default function GoalScreen() {
               color: skillType ? theme.colors.black : theme.colors.gray,
             }}
           >
-            {skillType || "Select skill type"}
+            {skillType || t("selectSkillType")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -363,7 +470,7 @@ export default function GoalScreen() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.label}>Lesson</Text>
+        <Text style={styles.label}>{t("lesson")}</Text>
         <TouchableOpacity
           onPress={() => setShowLessonModal(true)}
           style={styles.input}
@@ -373,7 +480,7 @@ export default function GoalScreen() {
               color: lesson ? theme.colors.black : theme.colors.gray,
             }}
           >
-            {lesson || "Select lesson"}
+            {lesson || t("selectLesson")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -382,7 +489,7 @@ export default function GoalScreen() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.label}>Exercise</Text>
+        <Text style={styles.label}>{t("exercise")}</Text>
         <TouchableOpacity
           onPress={() => setShowExerciseModal(true)}
           style={styles.input}
@@ -390,7 +497,7 @@ export default function GoalScreen() {
           <Text
             style={{ color: exercise ? theme.colors.black : theme.colors.gray }}
           >
-            {exercise || "Select exercise"}
+            {exercise || t("selectExercise")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -399,7 +506,7 @@ export default function GoalScreen() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.label}>Reward</Text>
+        <Text style={styles.label}>{t("reward")}</Text>
         <TouchableOpacity
           onPress={() => setShowRewardModal(true)}
           style={styles.input}
@@ -407,7 +514,7 @@ export default function GoalScreen() {
           <Text
             style={{ color: reward ? theme.colors.black : theme.colors.gray }}
           >
-            {reward || "Select reward"}
+            {reward || t("selectReward")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -421,20 +528,20 @@ export default function GoalScreen() {
         colors={theme.colors.gradientBlue}
         style={styles.saveButton}
       >
-        <TouchableOpacity>
-          <Text style={styles.saveText}>Save</Text>
+        <TouchableOpacity onPress={handleSaveGoal}>
+          <Text style={styles.saveText}>{t("save")}</Text>
         </TouchableOpacity>
       </LinearGradient>
 
       {showSkillModal &&
         renderOptionModal(
-          "Select Skill Type",
+          t("selectSkillTypeTitle"),
           [
-            { label: "Addition", value: "Addition" },
-            { label: "Subtraction", value: "Subtraction" },
-            { label: "Multiplication", value: "Multiplication" },
-            { label: "Division", value: "Division" },
-            { label: "Multiplications table", value: "Multiplications table" },
+            { label: t("skill_add"), value: "Addition" },
+            { label: t("skill_sub"), value: "Subtraction" },
+            { label: t("skill_mul"), value: "Multiplication" },
+            { label: t("skill_div"), value: "Division" },
+            { label: t("skill_table"), value: "Multiplications table" },
           ],
           setSkillType,
           () => setShowSkillModal(false)
@@ -443,57 +550,30 @@ export default function GoalScreen() {
       {showLessonModal &&
         renderOptionModal(
           "Select Lesson",
-          lessonOptions[skillType] || [],
+          lessons.map((l) => ({
+            label: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
+            value: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
+          })),
           setLesson,
           () => setShowLessonModal(false)
         )}
 
       {showExerciseModal &&
         renderOptionModal(
-          "Select Exercise",
-          exerciseOptions[lesson] || [],
+          t("selectExercise"),
+          lessons.map((l) => ({
+            label: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+            value: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+          })),
           setExercise,
           () => setShowExerciseModal(false)
         )}
 
       {showRewardModal &&
-        renderOptionModal(
-          "Select Reward",
-          [
-            {
-              label: "Capypara",
-              value: "Capypara",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Starfish",
-              value: "Starfish",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Hippocampus",
-              value: "Hippocampus",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Whale",
-              value: "Whale",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Super hero",
-              value: "Super hero",
-              image: theme.icons.characterSandwich,
-            },
-            {
-              label: "Mask",
-              value: "Mask",
-              image: theme.icons.characterSandwich,
-            },
-          ],
-          setReward,
-          () => setShowRewardModal(false)
+        renderOptionModal(t("selectReward"), rewardOptions, setReward, () =>
+          setShowRewardModal(false)
         )}
+
       <FloatingMenu />
     </LinearGradient>
   );

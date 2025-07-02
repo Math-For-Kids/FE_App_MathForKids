@@ -6,27 +6,46 @@
     "next": "Tiếp theo",
     "back": "Quay lại"
   },
+  "addition": {
+    "step_intro": "Bắt đầu phép cộng từ cột Đơn vị.",
+    "step_normal": "Bước {{step}}: {{d1}} + {{d2}}{{carryStr}} = {{sum}}, viết {{resultDigit}}{{carryOutStr}}",
+    "final_result": "Kết quả cuối cùng: {{num1}} + {{num2}} = {{result}}"
+  },
   "subtraction": {
-    "step_intro": "Nhấn nút (Tiếp theo) để xem chi tiết các bước tính.",
-    "step_borrow": "Bước {{step}}: Trừ các chữ số ở hàng {{label}}: ({{a}} + 10) - {{b}} = {{result}} (mượn 1)",
-    "step_normal": "Bước {{step}}: Trừ các chữ số ở hàng {{label}}: {{a}} - {{b}} = {{result}}",
-    "step_payback": "(trả 1 đơn vị đã mượn từ bước trước)",
-    "final_result": "Kết quả cuối: {{number1}} - {{number2}} = {{result}}",
-    "remember_borrowing": "Đã xảy ra việc mượn số",
-    "error_min_lt_sub": "Không thể trừ: số bị trừ nhỏ hơn số trừ."
+    "error_min_lt_sub": "Không thể trừ: số bị trừ nhỏ hơn số trừ.",
+    "step_intro": "Hãy cùng thực hiện phép trừ từng bước một nhé!",
+    "step_borrow_1": "Bước {{step}} cột ({{label}}): {{a}} nhỏ hơn {{b}}, nên cần mượn một chục (10) thành {{adjustedA}}.",
+    "step_borrow_2": "Ta có: {{adjustedA}} - {{adjustedB}} = {{result}} ghi {{result}}",
+    "step_normal": "Bước {{step}} cột ({{label}}): {{a}} - {{b}} = {{result}}.",
+    "step_normal_with_payback": "Bước {{step}} cột ({{label}}): {{a}} - {{b}} = {{result}}",
+    "step_payback": "(Hoàn trả 1 đã mượn ở bước trước vào {{b}})",
+    "final_result": "Kết quả cuối cùng: {{number1}} - {{number2}} = {{result}}.",
+    "remember_borrowing": "Bạn hãy nhớ, nếu không đủ để trừ thì phải mượn 1 từ hàng kế bên nhé!"
   },
   "multiplication": {
     "step_intro": "Bước {{step}}: Nhân chữ số hàng {{label}} của số nhân với số bị nhân từ phải sang trái.",
-    "step_zero_rule": "Khi nhân với chữ số hàng chục, hãy thêm một số 0 ở cuối kết quả để đảm bảo đúng giá trị của từng hàng.",
-    "step_detail": "Nhân {{d2}} ({{rowLabel}} của số nhân) × {{d1}} ({{colLabel}} của số bị nhân): {{d2}} × {{d1}} + {{carry}} = {{product}} → ghi {{digit}}",
+    "step_zero_rule": "Mỗi lần nhân thì kết quả phải lùi sang phải một ô!",
+    "step_detail_with_carry": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}, nhớ {{carryNow}}",
+    "step_detail_with_next": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}, nhớ {{nextCarry}}",
+    "step_detail_no_carry": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}",
     "remember": ", nhớ {{nextCarry}}",
-    "step_add_column": "Cột {{label}}: {{digits}} + nhớ {{carry}} = {{sum}} → ghi {{digit}} và nhớ {{nextCarry}}",
+    "first_add_note": "Cuối cùng, ta cộng kết quả của từng lượt nhân lại.\n",
+    "step_add_column": "{{finalNote}}Cột {{label}}: {{digits}} + nhớ {{carry}} = {{sum}} → ghi {{digit}} và nhớ {{nextCarry}}",
     "step_final_carry": "Nhớ cuối cùng: ghi {{carry}} vào chữ số cao nhất.",
     "step_final_title": "Bước cuối: Cộng tất cả các dòng nhân từng cột một:",
     "final_result": "→ Kết quả cuối cùng: {{expression}} = {{result}}",
     "summary": "Để tìm kết quả cuối cùng, hãy cộng các dòng nhân lại:\n{{partials}}\n→ {{expression}} = {{result}}",
-
-    "partial": "Dòng nhân"
+    "partial": "Dòng nhân",
+    "step_multiply_only": "{{d1}} × {{d2}} = {{product}}",
+    "step_digit_carry": "Buoc chung",
+    "shift_zero": "Vì đây là hàng {{label}}, ta thêm một chữ số 0 vào cuối kết quả.",
+    "step_detail_mul": "{{d2}} × {{d1}} = {{mul}}",
+    "step_detail_carry": "{{mul}} + nhớ {{carry}} = {{product}} → ghi {{digit}}, nhớ {{nextCarry}}",
+    "step_detail_final_digit": "{{d1}} × {{d2}} = {{product}} → viết đầy đủ {{product}}",
+    "step_detail_final": "Vì đây là chữ số cuối cùng trong hàng nhân, nên ta ghi luôn kết quả: {{d1}} × {{d2}} = {{product}}",
+    "step_carry_final_add": "Sau đó cộng thêm số nhớ từ bước trước: {{product}} + {{carry}} = {{sum}} → ghi {{nextDigit}} và nhớ {{nextCarry}}",
+    "step_carry_final_add_last": "{{product}} cộng với nhớ {{carry}} bằng {{sum}} → ghi {{sum}}, không cần nhớ nữa vì đây là số cuối cùng của lượt nhân {{d2}} x {{str1}}.",
+    "reveal_digit": "Kết quả: {{product}}"
   },
   "place": {
     "units": "Đơn vị",
@@ -47,9 +66,9 @@
   "calculation_steps": "Các bước tính toán",
   "step1_title": "Bước 1: Đặt phép tính theo chiều dọc",
   "step1_description": "Đặt hai số {{number1}} và {{number2}} sao cho các chữ số cùng hàng được thẳng cột.",
-  "step1_subText": "Nhấn nút ( Tiếp theo ) để xem chi tiết các bước tính toán.",
-  "step3_title": "Kết quả cuối cùng:",
-  "step3_description": "Đây là kết quả cuối cùng sau khi tính toán.",
+  "step1_subText": "Nhấn nút (Tiếp theo) để xem chi tiết các bước tính toán.",
+  "step3_title": "Kết quả cuối cùng của phép toán",
+  "step3_description": "{{n1Str}} {{operator}} {{n2Str}} là: ",
   "add_title": "Bước 2: Cộng các chữ số",
   "add_description": "Sắp xếp các số theo đúng cột và cộng từ phải sang trái.",
   "sub_title": "Bước 2: Trừ các chữ số",
@@ -59,5 +78,30 @@
   "div_title": "Bước 2: Bắt đầu chia",
   "div_description": "Chia {{number1}} cho {{number2}}, bắt đầu từ chữ số bên trái nhất.",
   "invalid_title": "Phép toán không hợp lệ",
-  "invalid_description": "Vui lòng chọn một phép toán hợp lệ."
+  "invalid_description": "Vui lòng chọn một phép toán hợp lệ.",
+  "horizontal": "Đặt tính ngang",
+  "vertical": "Đặt tính dọc",
+  "skills": {
+    "addition": "phép cộng:",
+    "subtraction": "phép trừ:",
+    "multiplication": "phép nhân:",
+    "division": "phép chia:"
+  },
+  "speech": {
+    "selectOperator": "Bạn đã chọn {{operator}}. Vui lòng nhập số mới"
+  },
+  "step_main": "Bước {{step}}: {{current}} chia {{divisor}} được {{result}}. Viết {{result}} vào thương. {{result}} × {{divisor}} = {{sub}}, rồi trừ: {{current}} - {{sub}} = {{remainder}}.",
+  "step_smaller_and_bring_down": "Bước {{step}}: {{current}} nhỏ hơn {{divisor}}, chưa chia được. Hạ thêm {{nextDigit}} thành {{afterBringDown}}.",
+  "step_smaller_write_zero": "Bước {{step}}: {{current}} nhỏ hơn {{divisor}}, viết 0 vào thương.",
+  "step_cannot_divide": "Bước {{step}}: {{dividend}} nhỏ hơn {{divisor}}, không chia được. Viết 0.",
+  "step_compare_less": "Bước {{step}}: {{current}} nhỏ hơn {{divisor}}, chưa đủ để chia.",
+  "step_bring_down": "Bước {{step}}: Hạ {{nextDigit}} xuống, ta được {{afterBringDown}}.",
+  "step_divide": "Bước {{step}}: Tìm số nào nhân với {{divisor}} gần bằng {{current}} mà không vượt quá. {{divisor}} × {{result}} = {{product}} là đúng. Vậy thương là {{result}}.",
+  "step_multiply": "Bước {{step}}: Lấy {{result}} nhân với {{divisor}} được {{product}}.",
+  "step_subtract": "Bước {{step}}: Lấy {{current}} trừ {{product}} được {{remainder}}.",
+  "step_choose_number": "Bước {{step}}: {{current}} {{comparison}} {{divisor}}, {{explanation}}",
+  "comparison.less": "nhỏ hơn",
+  "comparison.greater_equal": "lớn hơn hoặc bằng",
+  "explanation.less": "chưa chia được. Ta lấy thêm số phía sau.",
+  "explanation.greater_equal": "chia được. Ta bắt đầu chia."
 }
