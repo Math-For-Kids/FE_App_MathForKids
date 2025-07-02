@@ -22,7 +22,7 @@ export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
   const pupil = useSelector((state) => state.profile.info);
-  console.log("pupil", pupil);
+  // console.log("pupil", pupil);
   useEffect(() => {
     if (pupilId) {
       dispatch(pupilById(pupilId));
@@ -112,6 +112,7 @@ export default function ProfileScreen({ navigation }) {
     },
     avatar: { width: 60, height: 60, borderRadius: 50 },
     name: {
+      width: "80%",
       fontSize: 18,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.blueDark,
@@ -236,7 +237,14 @@ export default function ProfileScreen({ navigation }) {
             <Image source={avatar} style={styles.avatar} resizeMode="cover" />
           </View>
           <View>
-            <Text style={styles.name}>{pupil?.fullName}</Text>
+            <Text
+              style={styles.name}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
+              {pupil?.fullName}
+            </Text>
             <Text style={styles.text}>
               {t("grade")}: {pupil?.grade}
             </Text>

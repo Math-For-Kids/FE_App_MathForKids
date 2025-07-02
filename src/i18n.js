@@ -34,6 +34,10 @@ import viNotification from "./locales/vi/notification.json";
 import enNotification from "./locales/en/notification.json";
 import viSideBar from "./locales/vi/sidebar.json";
 import enSideBar from "./locales/en/sidebar.json";
+import viSkill from "./locales/vi/skill.json";
+import enSkill from "./locales/en/skill.json";
+import viTest from "./locales/vi/test.json";
+import enTest from "./locales/en/test.json";
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en",
@@ -56,6 +60,8 @@ i18n.use(initReactI18next).init({
       goal: enGoal,
       notification: enNotification,
       sidebar: enSideBar,
+      skill: enSkill,
+      test: enTest,
     },
     vi: {
       setting: vi,
@@ -74,6 +80,8 @@ i18n.use(initReactI18next).init({
       goal: viGoal,
       notification: viNotification,
       sidebar: viSideBar,
+      skill: viSkill,
+      test: viTest,
     },
   },
 

@@ -26,7 +26,7 @@ import { useTranslation } from "react-i18next";
 export default function NotificationScreen({ navigation, route }) {
   const { theme, isDarkMode } = useTheme();
   const { userId, pupilId } = route.params || {};
-  console.log("userId", userId);
+  // console.log("userId", userId);
   const [expandedId, setExpandedId] = useState(null);
   const user = useSelector((state) => state.auth.user);
   const { t, i18n } = useTranslation("notification");
@@ -39,14 +39,14 @@ export default function NotificationScreen({ navigation, route }) {
   const notificationsToDisplay = pupilId
     ? pupilNotifications
     : userNotifications;
-  console.log("Notifications to display:", pupilNotifications);
+  // console.log("Notifications to display:", pupilNotifications);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (isFocused) {
-      console.log("pupilId:", pupilId);
+      // console.log("pupilId:", pupilId);
       if (pupilId) {
         dispatch(notificationsByPupilId(pupilId));
       } else if (userId) {
@@ -57,8 +57,8 @@ export default function NotificationScreen({ navigation, route }) {
 
   const handlePress = async (id) => {
     const selected = notificationsToDisplay.find((n) => n.id === id);
-    console.log("Pressed notification ID:", id);
-    console.log("Selected notification:", selected);
+    // console.log("Pressed notification ID:", id);
+    // console.log("Selected notification:", selected);
 
     if (selected && !selected.isRead) {
       try {
@@ -74,7 +74,7 @@ export default function NotificationScreen({ navigation, route }) {
           dispatch(notificationsByUserId(user.id));
         }
       } catch (err) {
-        console.error("Failed to update notification:", err);
+        // console.error("Failed to update notification:", err);
       }
     }
     setExpandedId((prev) => (prev === id ? null : id));

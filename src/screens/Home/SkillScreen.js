@@ -1,16 +1,44 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  FlatList,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { getEnabledLevels } from "../../redux/levelSlice";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade } = route.params;
-  const { t } = useTranslation("common");
+  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
+    route.params;
+  const { t, i18n } = useTranslation("skill");
+  const dispatch = useDispatch();
+  const { levels, loading, error } = useSelector((state) => state.level);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedLevels, setSelectedLevels] = useState([]);
+  useEffect(() => {
+    dispatch(getEnabledLevels());
+  }, [dispatch]);
 
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedLevels([]); // Reset selectedLevels khi quay lại màn hình
+      return () => {
+        // Cleanup nếu cần
+      };
+    }, [])
+  );
   const actions = [
     { label: "lesson", icon: theme.icons.lesson },
     { label: "exercise", icon: theme.icons.exercise },
@@ -23,6 +51,42 @@ export default function SkillScreen({ navigation, route }) {
     if (skillName === "Multiplication") return theme.colors.gradientOrange;
     if (skillName === "Division") return theme.colors.gradientRed;
     return theme.colors.gradientPink;
+  };
+
+  const getSelectedGradient = () => {
+    return [theme.colors.gradientRed, "#CC0000"];
+  };
+
+  const toggleLevelSelection = (levelId) => {
+    if (selectedLevels.includes(levelId)) {
+      setSelectedLevels(selectedLevels.filter((id) => id !== levelId));
+    } else {
+      setSelectedLevels([...selectedLevels, levelId]);
+    }
+  };
+
+  const handleContinue = () => {
+    if (selectedLevels.length === 0) {
+      alert(t("pleaseSelectLevel"));
+      return;
+    }
+    const sortedLevels = levels
+      .filter((level) => selectedLevels.includes(level.id))
+      .sort((a, b) => {
+        const levelA = parseInt(a.name?.[i18n.language] || "0");
+        const levelB = parseInt(b.name?.[i18n.language] || "0");
+        return levelA - levelB;
+      })
+      .map((level) => level.id); // Chỉ lấy id sau khi sắp xếp
+    setModalVisible(false);
+    navigation.navigate("ExerciseDetailScreen", {
+      levelIds: sortedLevels,
+      lessonId,
+      skillName,
+      title,
+      grade,
+      pupilId: pupilId,
+    });
   };
 
   const styles = StyleSheet.create({
@@ -101,7 +165,106 @@ export default function SkillScreen({ navigation, route }) {
       color: theme.colors.white,
       textAlign: "center",
     },
+    modalContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+    modalContent: {
+      width: "80%",
+      backgroundColor: theme.colors.background,
+      borderRadius: 20,
+      padding: 20,
+      alignItems: "center",
+      position: "relative",
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.text,
+      marginBottom: 20,
+    },
+    closeButton: {
+      position: "absolute",
+      top: 10,
+      right: 10,
+      padding: 5,
+    },
+    levelCard: {
+      borderRadius: 15,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 10,
+      elevation: 2,
+      padding: 10,
+      width: 120,
+      marginRight: 5,
+    },
+    levelCardLabel: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      textAlign: "center",
+    },
+    continueButton: {
+      marginTop: 20,
+      padding: 15,
+      borderRadius: 10,
+      alignItems: "center",
+      width: "80%",
+    },
+    continueButtonText: {
+      fontSize: 18,
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.white,
+    },
+    loadingText: {
+      fontSize: 18,
+      textAlign: "center",
+      color: theme.colors.text,
+      marginTop: 20,
+    },
+    errorText: {
+      fontSize: 18,
+      textAlign: "center",
+      color: theme.colors.error,
+      marginTop: 20,
+    },
   });
+
+  const renderLevelItem = useCallback(
+    ({ item }) => (
+      <TouchableOpacity onPress={() => toggleLevelSelection(item.id)}>
+        <LinearGradient
+          colors={
+            selectedLevels.includes(item.id)
+              ? getSelectedGradient()
+              : getGradientBySkill()
+          }
+          style={[
+            styles.levelCard,
+            {
+              borderWidth: selectedLevels.includes(item.id) ? 2 : 0,
+              borderColor: theme.colors.white,
+            },
+          ]}
+        >
+          <Text style={[styles.levelCardLabel, { color: theme.colors.white }]}>
+            {item.name?.[i18n.language] || item.name?.en || "Unknown Level"}
+          </Text>
+          {selectedLevels.includes(item.id) && (
+            <Ionicons
+              name="checkmark"
+              size={20}
+              color={theme.colors.white}
+              style={{ position: "absolute", top: 5, right: 5 }}
+            />
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+    ),
+    [selectedLevels, i18n.language, theme.colors]
+  );
 
   return (
     <View style={styles.container}>
@@ -131,19 +294,20 @@ export default function SkillScreen({ navigation, route }) {
               style={styles.cardTouchable}
               onPress={() => {
                 if (action.label === "lesson") {
-                  navigation.navigate("LessonScreen", {
+                  navigation.navigate("LessonDetailScreen", {
                     skillName,
-                    grade,
+                    title,
+                    lessonId,
                   });
                 } else if (action.label === "exercise") {
-                  navigation.navigate("ExerciseScreen", {
-                    skillName,
-                    grade,
-                  });
+                  setModalVisible(true);
                 } else if (action.label === "test") {
                   navigation.navigate("TestScreen", {
                     skillName,
                     grade,
+                    title,
+                    lessonId,
+                    pupilId,
                   });
                 }
               }}
@@ -156,6 +320,50 @@ export default function SkillScreen({ navigation, route }) {
           </LinearGradient>
         ))}
       </View>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setModalVisible(false);
+                setSelectedLevels([]); // Reset selected levels when closing the modal
+              }}
+            >
+              <Ionicons name="close" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>{t("selectLevels")}</Text>
+            {loading ? (
+              <Text style={styles.loadingText}>{t("loading")}</Text>
+            ) : error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : (
+              <FlatList
+                data={levels}
+                renderItem={renderLevelItem}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={2}
+                contentContainerStyle={{ alignItems: "center" }}
+              />
+            )}
+            <LinearGradient
+              colors={getGradientBySkill()}
+              style={styles.continueButton}
+            >
+              <TouchableOpacity onPress={handleContinue}>
+                <Text style={styles.continueButtonText}>{t("continue")}</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        </View>
+      </Modal>
+
       <FloatingMenu />
     </View>
   );

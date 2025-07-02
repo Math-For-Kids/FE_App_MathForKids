@@ -67,9 +67,9 @@ export default function LessonDetailScreen({ navigation, route }) {
         return "+";
     }
   };
-  console.log("autoNumber1", autoNumber1);
-  console.log("autoNumber2", autoNumber2);
-  console.log("getOperatorFromSkillName", getOperatorFromSkillName);
+  // console.log("autoNumber1", autoNumber1);
+  // console.log("autoNumber2", autoNumber2);
+  // console.log("getOperatorFromSkillName", getOperatorFromSkillName);
   useEffect(() => {
     if (lessonId) {
       dispatch(getLessonById(lessonId)).then((res) => {
@@ -118,9 +118,9 @@ export default function LessonDetailScreen({ navigation, route }) {
   const tabTitles = useMemo(() => {
     return Array.isArray(enabledList)
       ? enabledList
-          .slice()
-          .sort((a, b) => a.order - b.order)
-          .map((item) => item.title?.[i18n.language] || "")
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((item) => item.title?.[i18n.language] || "")
       : [];
   }, [enabledList, i18n.language]);
 
@@ -133,8 +133,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       direction === "left" && indexNow < maxIndex
         ? indexNow + 1
         : direction === "right" && indexNow > 0
-        ? indexNow - 1
-        : null;
+          ? indexNow - 1
+          : null;
 
     if (newIndex === null) return;
 
@@ -181,7 +181,7 @@ export default function LessonDetailScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redLight;
     return theme.colors.pinkLight;
   };
-  console.log("dịch:", t("go_to_step_by_step"));
+  // console.log("dịch:", t("go_to_step_by_step"));
 
   const styles = StyleSheet.create({
     container: {

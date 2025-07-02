@@ -45,7 +45,7 @@ export default function HomeScreen({ navigation, route }) {
   const filteredPupils = pupils.find(
     (pupil) => String(pupil.id) === String(pupilId)
   );
-  console.log("filteredPupils", filteredPupils);
+  // console.log("filteredPupils", filteredPupils);
   useEffect(() => {
     if (filteredPupils?.grade) {
       setSelectedGrade(String(filteredPupils.grade));
@@ -62,29 +62,29 @@ export default function HomeScreen({ navigation, route }) {
         {
           icon: theme.icons.addition,
           label: "Addition",
-          route: "SkillScreen",
+          route: "LessonScreen",
           borderColor: theme.colors.greenDark,
         },
         {
           icon: theme.icons.subtraction,
           label: "Subtraction",
-          route: "SkillScreen",
+          route: "LessonScreen",
         },
       ];
     }
     return [
-      { icon: theme.icons.addition, label: "Addition", route: "SkillScreen" },
+      { icon: theme.icons.addition, label: "Addition", route: "LessonScreen" },
       {
         icon: theme.icons.subtraction,
         label: "Subtraction",
-        route: "SkillScreen",
+        route: "LessonScreen",
       },
       {
         icon: theme.icons.multiplication,
         label: "Multiplication",
-        route: "SkillScreen",
+        route: "LessonScreen",
       },
-      { icon: theme.icons.division, label: "Division", route: "SkillScreen" },
+      { icon: theme.icons.division, label: "Division", route: "LessonScreen" },
       {
         icon: theme.icons.multiplicationTables,
         label: "Expression",
@@ -119,7 +119,7 @@ export default function HomeScreen({ navigation, route }) {
     },
     headerContent: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "space-around",
       alignItems: "center",
     },
     userRow: {
@@ -136,19 +136,19 @@ export default function HomeScreen({ navigation, route }) {
       elevation: 3,
     },
     avatar: {
-      width: 60,
-      height: 60,
-      resizeMode: "cover",
+      width: 50,
+      height: 50,
       borderRadius: 50,
     },
     greeting: {
       color: theme.colors.white,
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     name: {
+      width: "80%",
       color: theme.colors.white,
-      fontSize: 18,
+      fontSize: 16,
       fontFamily: Fonts.NUNITO_BOLD,
     },
     notificationContainer: {
@@ -181,7 +181,7 @@ export default function HomeScreen({ navigation, route }) {
     notificationIcon: { width: 30, height: 30 },
     gradeWrapper: {
       position: "absolute",
-      top: 140,
+      top: 160,
       left: 20,
       flexDirection: "row",
       gap: 10,
@@ -194,6 +194,7 @@ export default function HomeScreen({ navigation, route }) {
       width: 100,
       borderWidth: 1,
       borderColor: theme.colors.white,
+      zIndex: 2000, // Tăng zIndex để đảm bảo ở trên
     },
     grade: {
       fontSize: 14,
@@ -207,13 +208,14 @@ export default function HomeScreen({ navigation, route }) {
     },
     dropdown: {
       position: "absolute",
-      top: 30,
+      top: 30, // Điều chỉnh vị trí để tránh bị che
       left: 0,
       marginTop: 5,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 5,
       elevation: 3,
       paddingVertical: 0,
+      zIndex: 2001, // Tăng zIndex để đảm bảo ở trên
     },
     dropdownItem: {
       paddingVertical: 6,
@@ -263,6 +265,7 @@ export default function HomeScreen({ navigation, route }) {
       <LinearGradient
         colors={theme.colors.gradientBluePrimary}
         style={styles.header}
+        pointerEvents="box-none"
       >
         <View style={styles.headerContent}>
           <View style={styles.userRow}>
@@ -283,7 +286,14 @@ export default function HomeScreen({ navigation, route }) {
             </TouchableOpacity>
             <View>
               <Text style={styles.greeting}>{t("hello")}</Text>
-              <Text style={styles.name}>{filteredPupils?.fullName}</Text>
+              <Text
+                style={styles.name}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {filteredPupils?.fullName}
+              </Text>
             </View>
           </View>
           <TouchableOpacity
@@ -307,39 +317,39 @@ export default function HomeScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.gradeWrapper}>
-          <TouchableOpacity
-            onPress={() => setShowDropdown(!showDropdown)}
-            style={styles.gradeRow}
-          >
-            <Text style={styles.grade}>
-              {t("grade", { value: selectedGrade })}
-            </Text>
-            <Ionicons
-              name={showDropdown ? "caret-up-outline" : "caret-down-outline"}
-              size={20}
-              color={theme.colors.blueDark}
-            />
-          </TouchableOpacity>
-
-          {showDropdown && (
-            <View style={styles.dropdown}>
-              {gradeOptions.map((grade, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => {
-                    setSelectedGrade(grade);
-                    setShowDropdown(false);
-                  }}
-                  style={styles.dropdownItem}
-                >
-                  <Text style={styles.dropdownItemText}>{grade}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
       </LinearGradient>
+      <View style={styles.gradeWrapper}>
+        <TouchableOpacity
+          onPress={() => setShowDropdown(!showDropdown)}
+          style={styles.gradeRow}
+        >
+          <Text style={styles.grade}>
+            {t("grade", { value: selectedGrade })}
+          </Text>
+          <Ionicons
+            name={showDropdown ? "caret-up-outline" : "caret-down-outline"}
+            size={20}
+            color={theme.colors.blueDark}
+          />
+        </TouchableOpacity>
+
+        {showDropdown && (
+          <View style={styles.dropdown}>
+            {gradeOptions.map((grade, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  setSelectedGrade(grade);
+                  setShowDropdown(false);
+                }}
+                style={styles.dropdownItem}
+              >
+                <Text style={styles.dropdownItemText}>{grade}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
 
       <Text style={styles.title}>{t("select_skill")}</Text>
 
@@ -347,15 +357,13 @@ export default function HomeScreen({ navigation, route }) {
         {skills.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={[
-              styles.skillBox,
-              { borderColor: getTab(item.label) }, 
-            ]}
+            style={[styles.skillBox, { borderColor: getTab(item.label) }]}
             onPress={() =>
               navigation.navigate(item.route, {
                 skillName: item.label,
                 skillIcon: item.icon,
                 grade: selectedGrade,
+                pupilId: pupilId,
               })
             }
           >

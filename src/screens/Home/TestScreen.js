@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -15,50 +15,106 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { getRandomTests, createTest, createMultipleTestQuestions } from "../../redux/testSlice";
+import { updatePupilProfile, pupilById } from "../../redux/profileSlice";
+import { completeAndUnlockNextLesson } from "../../redux/completedLessonSlice";
 import { Svg, Circle } from "react-native-svg";
 
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName } = route.params;
-  const time = 30;
-  const quantity = 30;
+  const { t, i18n } = useTranslation("test");
+  const { skillName, lessonId, pupilId } = route.params;
+
+  const dispatch = useDispatch();
+  const { tests, loading, error, createdTest } = useSelector((state) => state.test);
+  const pupil = useSelector((state) => state.profile.info);
   const windowWidth = Dimensions.get("window").width;
-
-  const [questions] = useState([
-    { id: 1, type: "image", image: theme.icons.question1, answer: 5 },
-    { id: 2, type: "text", text: "2788 + 37", answer: 5 },
-    { id: 3, type: "text", text: "2 + 3", answer: 5 },
-    { id: 4, type: "image", image: theme.icons.question1, answer: 5 },
-    { id: 5, type: "text", text: "2788 + 37", answer: 5 },
-  ]);
-
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const bearPosition = useRef(new Animated.Value(20)).current;
-  const [timer, setTimer] = useState(time * 60);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [userAnswers, setUserAnswers] = useState({});
-  const [showResultModal, setShowResultModal] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const timerRef = useRef(null);
   const bearRotate = useRef(new Animated.Value(0)).current;
+  const [timer, setTimer] = useState(0); // Initialize to 0, set dynamically
+  const timerRef = useRef(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [shuffledOptions, setShuffledOptions] = useState({});
+  const [showResultModal, setShowResultModal] = useState(false);
 
+  const currentQ = tests[currentQuestion - 1];
+  const totalQuestions = tests.length;
+
+  const isImageUrl = (value) =>
+    typeof value === "string" &&
+    (value.startsWith("http") || value.startsWith("https"));
+
+  const renderImage = (uri, style, key) => {
+    if (!uri || typeof uri !== "string") return <Text>Invalid Image</Text>;
+    return (
+      <Image source={{ uri }} style={style} resizeMode="contain" key={key} />
+    );
+  };
+
+  // Consolidated timer logic
   useEffect(() => {
+    if (!tests.length) return;
+
+    // Calculate initial time based on number of questions
+    let newTime = 10; // Default 10 minutes
+    if (tests.length > 10 && tests.length <= 20) {
+      newTime = 20;
+    } else if (tests.length > 20 && tests.length <= 30) {
+      newTime = 30;
+    }
+    const totalSeconds = newTime * 60;
+
+    // Initialize timer
+    setTimer(totalSeconds);
+
+    // Start timer
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
+          handleTimeUp();
           return 0;
+        }
+        if (prev === 60) {
+          Alert.alert(t("warning"), t("timeAlmostUp"));
         }
         return prev - 1;
       });
     }, 1000);
+
     return () => clearInterval(timerRef.current);
-  }, []);
+  }, [tests.length, t]);
 
   useEffect(() => {
-    const totalMargin = (questions.length - 1) * 2;
+    dispatch(getRandomTests({ lessonId }));
+    dispatch(updatePupilProfile({ id: pupilId }));
+    if (pupilId) {
+      dispatch(pupilById(pupilId));
+    }
+  }, [dispatch, lessonId, pupilId]);
+
+  useEffect(() => {
+    if (!currentQ) return;
+    if (!shuffledOptions[currentQ.id]) {
+      const options = [...(currentQ.option || []), currentQ.answer].sort(
+        () => Math.random() - 0.5
+      );
+      setShuffledOptions((prev) => ({
+        ...prev,
+        [currentQ.id]: options,
+      }));
+    }
+  }, [currentQ]);
+
+  useEffect(() => {
+    if (!tests.length) return;
+    const totalMargin = (tests.length - 1) * 2;
     const progressBarWidth = windowWidth - 40;
-    const segmentWidth = (progressBarWidth - totalMargin) / questions.length;
+    const segmentWidth = (progressBarWidth - totalMargin) / tests.length;
     const iconPositionX = 20 + (currentQuestion - 1) * (segmentWidth + 2);
 
     Animated.parallel([
@@ -84,7 +140,138 @@ export default function TestScreen({ navigation, route }) {
         }),
       ]),
     ]).start();
-  }, [currentQuestion]);
+  }, [currentQuestion, tests.length]);
+
+  const handleAnswer = (val) => {
+    if (!currentQ) return;
+    setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
+    if (currentQuestion < tests.length) {
+      setTimeout(() => {
+        setCurrentQuestion(currentQuestion + 1);
+      }, 300);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentQuestion > 1) {
+      setCurrentQuestion(currentQuestion - 1);
+    }
+  };
+
+  const calculateScore = () => {
+    if (!tests.length) return 0;
+    const correctCount = tests.filter(
+      (q) => userAnswers[q.id] === q.answer
+    ).length;
+    const rawScore = (correctCount / tests.length) * 10;
+    return Math.round(rawScore);
+  };
+
+  const calculateBonusPoint = (score) => {
+    if (score >= 9) return 5;
+    if (score >= 7 && score <= 8) return 3;
+    if (score > 5) return 1;
+    return 0;
+  };
+
+  const handleSubmit = async () => {
+    const answeredCount = Object.keys(userAnswers).length;
+    const totalTime = (tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60;
+    const usedTime = totalTime - timer;
+    clearInterval(timerRef.current);
+
+    const score = calculateScore();
+    const bonus = calculateBonusPoint(score);
+    const currentPoint = pupil?.point || 0;
+    const newPoint = currentPoint + bonus;
+
+    const doSubmit = async () => {
+      try {
+        // Create test
+        const testPayload = {
+          pupilId,
+          lessonId,
+          point: score,
+          duration: usedTime,
+        };
+
+        const testResult = await dispatch(createTest(testPayload)).unwrap();
+        console.log("ohuc", testResult?.message?.id);
+        const testId = testResult?.message?.id;
+
+        if (testId) {
+          // Prepare array of test questions
+          const questionPayloads = tests.map((question) => ({
+            testId,
+            exerciseId: question.id,
+            levelId: question.levelId || question.level,
+            question: question.question?.[i18n.language] || question.question,
+            image: question.image || null,
+            option: question.option || [],
+            correctAnswer: question.answer,
+            selectedAnswer: userAnswers[question.id] || null,
+          }));
+
+          // Create all test questions in one request
+          await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
+        }
+
+        setElapsedTime(usedTime);
+        setShowResultModal(true);
+
+        if (bonus > 0) {
+          dispatch(
+            updatePupilProfile({ id: pupilId, data: { point: newPoint } })
+          );
+        }
+
+        dispatch(completeAndUnlockNextLesson({ pupilId, lessonId }));
+      } catch (error) {
+        Alert.alert(
+          t("error"),
+          error.message || t("submissionFailed"),
+          [{ text: "OK" }]
+        );
+      }
+    };
+
+    if (answeredCount < tests.length && timer > 0) {
+      Alert.alert(t("warning"), t("youHaveAnswered"), [
+        {
+          text: t("keepDoing"),
+          style: "cancel",
+          onPress: () => {
+            // Restart timer
+            timerRef.current = setInterval(() => {
+              setTimer((prev) => {
+                if (prev <= 1) {
+                  clearInterval(timerRef.current);
+                  handleTimeUp();
+                  return 0;
+                }
+                if (prev === 60) {
+                  Alert.alert(t("warning"), t("timeAlmostUp"));
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          },
+        },
+        {
+          text: t("submit"),
+          style: "destructive",
+          onPress: doSubmit,
+        },
+      ]);
+    } else {
+      await doSubmit();
+    }
+  };
+
+  const handleTimeUp = () => {
+    Alert.alert(t("timeUp"), t("autoSubmit"));
+    handleSubmit();
+  };
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -92,88 +279,7 @@ export default function TestScreen({ navigation, route }) {
     return `${m}:${s < 10 ? "0" + s : s}`;
   };
 
-  const generateOptions = (correctAnswer) => {
-    const options = new Set([correctAnswer]);
-    while (options.size < 4) {
-      const fake = correctAnswer + Math.floor(Math.random() * 5) - 2;
-      if (fake !== correctAnswer && fake > 0) options.add(fake);
-    }
-    return Array.from(options).sort(() => Math.random() - 0.5);
-  };
-
-  const currentQ = questions[currentQuestion - 1];
-  const options = useMemo(
-    () => generateOptions(currentQ.answer),
-    [currentQuestion]
-  );
-
-  const handleAnswer = (val) => {
-    setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
-    if (val === currentQ.answer) setCorrectCount((prev) => prev + 1);
-    if (currentQuestion < questions.length)
-      setCurrentQuestion(currentQuestion + 1);
-  };
-
-  const handleBack = () => {
-    if (currentQuestion > 1) {
-      const prevQuestion = questions[currentQuestion - 2];
-      const prevAnswer = userAnswers[prevQuestion.id];
-      // Nếu đã chọn và đúng, giảm correctCount
-      if (prevAnswer !== undefined && prevAnswer === prevQuestion.answer) {
-        setCorrectCount((prev) => Math.max(0, prev - 1));
-      }
-      // Xoá đáp án đã chọn khi back
-      setUserAnswers((prev) => {
-        const updated = { ...prev };
-        delete updated[prevQuestion.id];
-        return updated;
-      });
-
-      setCurrentQuestion(currentQuestion - 1);
-    }
-  };
-
-  const handleSubmit = () => {
-    const answeredCount = Object.keys(userAnswers).length;
-    const usedTime = time * 60 - timer;
-    clearInterval(timerRef.current);
-    if (answeredCount < questions.length) {
-      Alert.alert(
-        "Warning",
-        `You have ${answeredCount}/${questions.length} unanswered questions. Do you still want to submit?`,
-        [
-          {
-            text: "Keep doing",
-            style: "cancel",
-            onPress: () => {
-              timerRef.current = setInterval(() => {
-                setTimer((prev) => {
-                  if (prev <= 1) {
-                    clearInterval(timerRef.current);
-                    return 0;
-                  }
-                  return prev - 1;
-                });
-              }, 1000);
-            },
-          },
-          {
-            text: "Submit",
-            style: "destructive",
-            onPress: () => {
-              setElapsedTime(usedTime);
-              setShowResultModal(true);
-            },
-          },
-        ]
-      );
-    } else {
-      setElapsedTime(usedTime);
-      setShowResultModal(true);
-    }
-  };
-
-  const progress = Math.min(Math.max(timer / (time * 60), 0), 1);
+  const progress = Math.min(Math.max(timer / ((tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60), 0), 1);
   const strokeDashoffset = 2 * Math.PI * 25 * (1 - progress);
 
   const getGradient = () => {
@@ -203,19 +309,21 @@ export default function TestScreen({ navigation, route }) {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      paddingTop: 20,
       backgroundColor: theme.colors.background,
+    },
+    skillsContainer: {
+      paddingBottom: 80,
     },
     header: {
       width: "100%",
-      height: "22%",
+      height: 120,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      marginBottom: 20,
+      paddingTop: 20,
     },
     backButton: {
       position: "absolute",
@@ -233,8 +341,10 @@ export default function TestScreen({ navigation, route }) {
       textAlign: "center",
     },
     subtitleContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginHorizontal: 20,
-      marginVertical: -10,
     },
     subtitleText: {
       fontSize: 14,
@@ -242,7 +352,6 @@ export default function TestScreen({ navigation, route }) {
       color: theme.colors.black,
     },
     visualProgressBar: {
-      marginTop: 62,
       marginHorizontal: 20,
       height: 20,
       backgroundColor: getProgressBackground(),
@@ -261,18 +370,15 @@ export default function TestScreen({ navigation, route }) {
     },
     bearIconWrapper: {
       position: "absolute",
-      top: 190,
+      top: -25,
       left: -5,
       elevation: 3,
     },
     bearIcon: {
-      width: 30,
-      height: 30,
+      width: 25,
+      height: 25,
     },
     timerCircleContainer: {
-      position: "absolute",
-      top: 110,
-      right: 35,
       alignItems: "center",
       justifyContent: "center",
       width: 60,
@@ -290,57 +396,75 @@ export default function TestScreen({ navigation, route }) {
     questionContent: {
       justifyContent: "center",
       alignItems: "center",
-      marginVertical: 20,
-      flexDirection: "row",
+      marginTop: 20,
       gap: 10,
     },
-    questionImage: {
-      width: 200,
-      height: 150,
-    },
     question: {
-      fontSize: 100,
+      fontSize: 14,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
-      maxWidth: "80%",
+      textAlign: "center",
+      paddingHorizontal: 20,
+    },
+    questionImage: {
+      width: 300,
       height: 150,
-      lineHeight: 150,
-      textAlignVertical: "center",
-      alignSelf: "center",
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: visualProgressBar(),
     },
     backQuestion: {
-      position: "absolute",
-      bottom: 130,
-      left: 20,
+      marginVertical: 20,
+      alignSelf: "flex-start",
       borderWidth: 1,
       borderColor: theme.colors.white,
       backgroundColor: visualProgressBar(),
       borderRadius: 50,
-      padding: 5,
+      padding: 10,
       elevation: 3,
+      marginLeft: 20,
     },
     answerOptions: {
       flexDirection: "row",
-      justifyContent: "space-around",
       flexWrap: "wrap",
+      justifyContent: "center",
       paddingHorizontal: 20,
+      width: "100%",
+      gap: 20,
     },
     answerButton: {
       backgroundColor: visualProgressBar(),
-      paddingVertical: 5,
-      paddingHorizontal: 60,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
       borderRadius: 20,
-      margin: 5,
       elevation: 3,
+      minWidth: (windowWidth - 60) / 2,
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 50,
+    },
+    answerSelectedButton: {
+      backgroundColor: getProgressBackground(),
     },
     answerText: {
-      fontFamily: Fonts.NUNITO_BOLD,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
-      fontSize: 32,
+      fontSize: 18,
+      textAlign: "center",
     },
-    answerSelectedButton: { backgroundColor: getProgressBackground() },
+    answerImage: {
+      width: 50,
+      height: 50,
+      borderRadius: 10,
+      alignSelf: "center",
+    },
+    submitButtonContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
     submitButton: {
-      marginTop: 20,
       paddingVertical: 10,
       borderTopLeftRadius: 50,
       borderTopRightRadius: 50,
@@ -400,20 +524,66 @@ export default function TestScreen({ navigation, route }) {
       borderColor: theme.colors.white,
       borderRadius: 50,
     },
+    loadingText: {
+      fontSize: 18,
+      textAlign: "center",
+      color: theme.colors.text,
+      marginTop: 20,
+    },
+    errorText: {
+      fontSize: 18,
+      textAlign: "center",
+      color: theme.colors.error,
+      marginTop: 20,
+    },
   });
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>{t("loading")}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (tests.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{t("noExercisesFound")}</Text>
+      </View>
+    );
+  }
+
+  if (!currentQ) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{t("noQuestionAvailable")}</Text>
+      </View>
+    );
+  }
+
+  const options = shuffledOptions[currentQ.id] || [];
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
           onPress={() => {
-            Alert.alert("Confirm", "Want to skip the test?", [
+            Alert.alert(t("confirm"), t("wantToSkipTest"), [
               {
-                text: "No",
+                text: t("no"),
                 style: "cancel",
               },
               {
-                text: "Yes",
+                text: t("yes"),
                 style: "destructive",
                 onPress: () => {
                   navigation.goBack();
@@ -425,161 +595,178 @@ export default function TestScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
-
         <Text
           style={styles.headerText}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
-          Test
+          {t("exercise")}
         </Text>
       </LinearGradient>
       <View style={styles.subtitleContainer}>
-        <Text style={styles.subtitleText}>Total questions: {quantity}</Text>
-        <Text style={styles.subtitleText}>
-          Anwsers: {currentQuestion}/{quantity}
-        </Text>
-      </View>
-      <View style={styles.timerCircleContainer}>
-        <Svg width={60} height={60}>
-          <Circle
-            cx={30}
-            cy={30}
-            r={25}
-            stroke={theme.colors.graySoft}
-            strokeWidth={10}
-            fill="none"
-          />
-          <Circle
-            cx={30}
-            cy={30}
-            r={25}
-            stroke={getProgressBackground()}
-            strokeWidth={10}
-            strokeDasharray={2 * Math.PI * 25}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            fill="none"
-            rotation={-90}
-            origin="30, 30"
-          />
-        </Svg>
-        <Text style={styles.timerTextOverlay}>{formatTime(timer)}</Text>
-      </View>
-      <View style={styles.visualProgressBar}>
-        {questions.map((q, index) => (
-          <View
-            key={q.id}
-            style={[
-              styles.segmentBlock,
-              {
-                backgroundColor:
-                  index < currentQuestion
-                    ? visualProgressBar()
-                    : theme.colors.progressTestBackground,
-              },
-            ]}
-          />
-        ))}
-      </View>
-      <Animated.View
-        style={[
-          styles.bearIconWrapper,
-          {
-            transform: [
-              { translateX: bearPosition },
-              {
-                rotate: bearRotate.interpolate({
-                  inputRange: [-1, 0, 1],
-                  outputRange: ["-10deg", "0deg", "10deg"],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <Image source={theme.icons.test} style={styles.bearIcon} />
-      </Animated.View>
-
-      <View style={styles.questionContent}>
-        {currentQ.type === "image" ? (
-          <Image
-            source={currentQ.image}
-            style={styles.questionImage}
-            resizeMode="contain"
-          />
-        ) : (
-          <Text
-            style={styles.question}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.5}
-          >
-            {currentQ.text}
+        <View>
+          <Text style={styles.subtitleText}>
+            {t("totalQuestions")}: {totalQuestions}
           </Text>
-        )}
+          <Text style={styles.subtitleText}>
+            {t("answers")}: {currentQuestion}/{tests.length}
+          </Text>
+        </View>
+        <View style={styles.timerCircleContainer}>
+          <Svg width={60} height={60}>
+            <Circle
+              cx={30}
+              cy={30}
+              r={25}
+              stroke={theme.colors.graySoft}
+              strokeWidth={10}
+              fill="none"
+            />
+            <Circle
+              cx={30}
+              cy={30}
+              r={25}
+              stroke={getProgressBackground()}
+              strokeWidth={10}
+              strokeDasharray={2 * Math.PI * 25}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="none"
+              rotation={-90}
+              origin="30, 30"
+            />
+          </Svg>
+          <Text style={styles.timerTextOverlay}>{formatTime(timer)}</Text>
+        </View>
       </View>
-      <TouchableOpacity
-        onPress={() => handleBack()}
-        style={styles.backQuestion}
-      >
-        <Ionicons name="play-back" size={24} color={theme.colors.white} />
-      </TouchableOpacity>
-      <View style={styles.answerOptions}>
-        {options.map((val) => (
-          <TouchableOpacity
-            key={val}
-            style={[
-              styles.answerButton,
-              userAnswers[currentQ.id] === val && styles.answerSelectedButton,
-            ]}
-            onPress={() => handleAnswer(val)}
-          >
-            <Text style={styles.answerText}>{val}</Text>
-          </TouchableOpacity>
-        ))}
+      <View>
+        <View style={styles.visualProgressBar}>
+          {tests.map((q, index) => (
+            <View
+              key={q.id}
+              style={[
+                styles.segmentBlock,
+                {
+                  backgroundColor:
+                    index < currentQuestion
+                      ? visualProgressBar()
+                      : theme.colors.progressTestBackground,
+                },
+              ]}
+            />
+          ))}
+        </View>
+        <Animated.View
+          style={[
+            styles.bearIconWrapper,
+            {
+              transform: [
+                { translateX: bearPosition },
+                {
+                  rotate: bearRotate.interpolate({
+                    inputRange: [-1, 0, 1],
+                    outputRange: ["-10deg", "0deg", "10deg"],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Image source={theme.icons.test} style={styles.bearIcon} />
+        </Animated.View>
       </View>
-      <LinearGradient
-        colors={getGradient()}
-        style={styles.submitButton}
-        start={{ x: 0, y: 1 }}
-        end={{ x: 0, y: 0 }}
-      >
-        <TouchableOpacity onPress={handleSubmit}>
-          <Text style={styles.submitText}>Submit</Text>
+      <ScrollView contentContainerStyle={styles.skillsContainer}>
+        <View>
+          <View style={styles.questionContent}>
+            {currentQ.question?.[i18n.language] && (
+              <Text
+                style={styles.question}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {currentQ.question?.[i18n.language]}
+              </Text>
+            )}
+            {currentQ.image && (
+              <Image
+                source={{ uri: currentQ.image }}
+                style={styles.questionImage}
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={() => handleBack()}
+          style={styles.backQuestion}
+        >
+          <Ionicons name="play-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
-      </LinearGradient>
-      {/* Result Modal */}
+        <View style={styles.answerOptions}>
+          {options.map((val, index) => (
+            <TouchableOpacity
+              key={`${val}-${index}`}
+              style={[
+                styles.answerButton,
+                userAnswers[currentQ.id] === val
+                  ? styles.answerSelectedButton
+                  : null,
+                isImageUrl(val) && {
+                  paddingVertical: 5,
+                  paddingHorizontal: 5,
+                },
+              ]}
+              onPress={() => handleAnswer(val)}
+            >
+              {isImageUrl(val) ? (
+                renderImage(
+                  val,
+                  styles.answerImage,
+                  `option-${currentQ.id}-${index}`
+                )
+              ) : (
+                <Text style={styles.answerText}>{val}</Text>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+      <View style={styles.submitButtonContainer}>
+        <LinearGradient
+          colors={getGradient()}
+          style={styles.submitButton}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
+        >
+          <TouchableOpacity onPress={handleSubmit}>
+            <Text style={styles.submitText}>{t("submit")}</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
       <Modal visible={showResultModal} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalCardContainer}>
-            <Text style={styles.modalTitleText}>Result</Text>
+            <Text style={styles.modalTitleText}>{t("result")}</Text>
             <View style={styles.modalTextContainer}>
               <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Score:</Text>
+                <Text style={styles.modalText}>{t("score")}:</Text>
                 <Text style={styles.modalResultText}>
-                  {correctCount * (10 / questions.length).toFixed(1)}
+                  {calculateScore()}/10
                 </Text>
               </View>
               <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Correct:</Text>
-                <Text style={styles.modalResultText}>{correctCount}</Text>
+                <Text style={styles.modalText}>{t("correct")}:</Text>
+                <Text style={styles.modalResultText}>
+                  {tests.filter((q) => userAnswers[q.id] === q.answer).length}
+                </Text>
               </View>
               <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Wrong:</Text>
-                <Text
-                  style={[
-                    styles.modalResultText,
-                    {
-                      color:
-                        questions.length - correctCount > 0
-                          ? theme.colors.black
-                          : theme.colors.white,
-                    },
-                  ]}
-                >
-                  {questions.length - correctCount}
+                <Text style={styles.modalText}>{t("wrong")}:</Text>
+                <Text style={styles.modalResultText}>
+                  {tests.length -
+                    tests.filter((q) => userAnswers[q.id] === q.answer).length}
                 </Text>
               </View>
               <View style={styles.modalRow}>
@@ -594,6 +781,9 @@ export default function TestScreen({ navigation, route }) {
               onPress={() => {
                 setShowResultModal(false);
                 navigation.goBack();
+                setUserAnswers({});
+                setCurrentQuestion(1);
+                setShuffledOptions({});
               }}
             >
               <Ionicons name="close" size={20} color={theme.colors.white} />
@@ -601,6 +791,6 @@ export default function TestScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }

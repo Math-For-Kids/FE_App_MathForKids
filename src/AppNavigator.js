@@ -32,6 +32,7 @@ import DetailScreen from "./screens/Profile/DetailScreen";
 import ProfilePupilDetailScreen from "./screens/Profile/ProfilePupilDetailScreen";
 import HomeScreen from "./screens/Home/HomeScreen";
 import SkillScreen from "./screens/Home/SkillScreen";
+import LevelScreen from "./screens/Home/LevelScreen";
 import MultiplicationTableScreen from "./screens/Home/MultiplicationTablesScreen";
 import MultiplicationTableDetailScreen from "./screens/Home/MultiplicationTableDetailScreen";
 import PracticeMultiplicationTableScreen from "./screens/Home/PracticeMultiplicationTableScreen";
@@ -87,81 +88,83 @@ export default function AppNavigator() {
   ]);
 
   return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="LoadingScreen" component={LoadingScreen} />
-        <Stack.Screen
-          name="LoadingProgressScreen"
-          component={LoadingProgressScreen}
-        />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-        <Stack.Screen name="VerifyScreen" component={VerifyScreen} />
-        <Stack.Screen name="AccountScreen" component={AccountScreen} />
-        <Stack.Screen name="ForgetPinScreen" component={ForgetPinScreen} />
-        <Stack.Screen name="SettingScreen" component={SettingScreen} />
-        <Stack.Screen
-          name="CreatePupilAccountScreen"
-          component={CreatePupilAccountScreen}
-        />
-        <Stack.Screen
-          name="NotificationScreen"
-          component={NotificationScreen}
-        />
-        <Stack.Screen name="RankScreen" component={RankScreen} />
-        <Stack.Screen name="TargetScreen" component={TargetScreen} />
-        <Stack.Screen name="RewardScreen" component={RewardScreen} />
-        <Stack.Screen name="ContactScreen" component={ContactScreen} />
-        <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
-        <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} />
-        <Stack.Screen name="ChangeEmailScreen" component={ChangeEmailScreen} />
-        <Stack.Screen name="ChangePhoneScreen" component={ChangePhoneScreen} />
-        <Stack.Screen name="ChangePinScreen" component={ChangePinScreen} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-        <Stack.Screen name="DetailScreen" component={DetailScreen} />
-        <Stack.Screen
-          name="ProfilePupilDetailScreen"
-          component={ProfilePupilDetailScreen}
-        />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="LoadingScreen" component={LoadingScreen} />
+      <Stack.Screen
+        name="LoadingProgressScreen"
+        component={LoadingProgressScreen}
+      />
+      <Stack.Screen name="LoginScreen" component={LoginScreen} />
+      <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+      <Stack.Screen name="VerifyScreen" component={VerifyScreen} />
+      <Stack.Screen name="AccountScreen" component={AccountScreen} />
+      <Stack.Screen name="ForgetPinScreen" component={ForgetPinScreen} />
+      <Stack.Screen name="SettingScreen" component={SettingScreen} />
+      <Stack.Screen
+        name="CreatePupilAccountScreen"
+        component={CreatePupilAccountScreen}
+      />
+      <Stack.Screen
+        name="NotificationScreen"
+        component={NotificationScreen}
+      />
+      <Stack.Screen name="RankScreen" component={RankScreen} />
+      <Stack.Screen name="TargetScreen" component={TargetScreen} />
+      <Stack.Screen name="RewardScreen" component={RewardScreen} />
+      <Stack.Screen name="ContactScreen" component={ContactScreen} />
+      <Stack.Screen name="TestLevelScreen" component={TestLevelScreen} />
+      <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} />
+      <Stack.Screen name="ChangeEmailScreen" component={ChangeEmailScreen} />
+      <Stack.Screen name="ChangePhoneScreen" component={ChangePhoneScreen} />
+      <Stack.Screen name="ChangePinScreen" component={ChangePinScreen} />
+      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+      <Stack.Screen name="DetailScreen" component={DetailScreen} />
+      <Stack.Screen
+        name="ProfilePupilDetailScreen"
+        component={ProfilePupilDetailScreen}
+      />
 
-        {/* Screens for role="user" */}
-        {role === "user" && (
-          <>
-            <Stack.Screen name="StatisticScreen" component={StatisticScreen} />
-            <Stack.Screen name="GoalScreen" component={GoalScreen} />
-          </>
-        )}
+      {/* Screens for role="user" */}
+      {role === "user" && (
+        <>
+          <Stack.Screen name="StatisticScreen" component={StatisticScreen} />
+          <Stack.Screen name="GoalScreen" component={GoalScreen} />
+        </>
+      )}
 
-        {/* Shared & pupil screens */}
-        <Stack.Screen name="HomeScreen" component={HomeScreen} />
-        <Stack.Screen name="SkillScreen" component={SkillScreen} />
-        <Stack.Screen
-          name="MultiplicationTableScreen"
-          component={MultiplicationTableScreen}
-        />
-        <Stack.Screen
-          name="MultiplicationTableDetailScreen"
-          component={MultiplicationTableDetailScreen}
-        />
-        <Stack.Screen
-          name="PracticeMultiplicationTableScreen"
-          component={PracticeMultiplicationTableScreen}
-        />
-        <Stack.Screen name="LessonScreen" component={LessonScreen} />
-        <Stack.Screen
-          name="LessonDetailScreen"
-          component={LessonDetailScreen}
-        />
-        <Stack.Screen name="ExerciseScreen" component={ExerciseScreen} />
-        <Stack.Screen
-          name="ExerciseDetailScreen"
-          component={ExerciseDetailScreen}
-        />
-        <Stack.Screen
-          name="ExerciseResultScreen"
-          component={ExerciseResultScreen}
-        />
-        <Stack.Screen name="TestScreen" component={TestScreen} />
-        <Stack.Screen name="StepByStepScreen" component={StepByStepScreen} />
-      </Stack.Navigator>
+      {/* Shared & pupil screens */}
+      <Stack.Screen name="HomeScreen" component={HomeScreen} />
+      <Stack.Screen name="SkillScreen" component={SkillScreen} />
+      <Stack.Screen name="LevelScreen" component={LevelScreen} />
+
+      <Stack.Screen
+        name="MultiplicationTableScreen"
+        component={MultiplicationTableScreen}
+      />
+      <Stack.Screen
+        name="MultiplicationTableDetailScreen"
+        component={MultiplicationTableDetailScreen}
+      />
+      <Stack.Screen
+        name="PracticeMultiplicationTableScreen"
+        component={PracticeMultiplicationTableScreen}
+      />
+      <Stack.Screen name="LessonScreen" component={LessonScreen} />
+      <Stack.Screen
+        name="LessonDetailScreen"
+        component={LessonDetailScreen}
+      />
+      <Stack.Screen name="ExerciseScreen" component={ExerciseScreen} />
+      <Stack.Screen
+        name="ExerciseDetailScreen"
+        component={ExerciseDetailScreen}
+      />
+      <Stack.Screen
+        name="ExerciseResultScreen"
+        component={ExerciseResultScreen}
+      />
+      <Stack.Screen name="TestScreen" component={TestScreen} />
+      <Stack.Screen name="StepByStepScreen" component={StepByStepScreen} />
+    </Stack.Navigator>
   );
 }

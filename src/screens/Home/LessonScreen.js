@@ -17,14 +17,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import * as Speech from "expo-speech";
-
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, grade } = route.params;
+  const { skillName, grade, pupilId, skillIcon } = route.params;
   const { t } = useTranslation("lesson");
   const { t: c } = useTranslation("common");
   const dispatch = useDispatch();
-
   const normalizedSkillName = skillName.toLowerCase();
   // const [activeTab] = useState("Lesson");
 
@@ -34,14 +34,18 @@ export default function LessonScreen({ navigation, route }) {
     error: lessonError,
   } = useSelector((state) => state.lesson);
 
-  useEffect(() => {
-    dispatch(getLessonsByGradeAndType({ grade, type: normalizedSkillName }));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(
+        getLessonsByGradeAndType({ grade, type: normalizedSkillName, pupilId })
+      );
+    }, [dispatch, grade, normalizedSkillName, pupilId])
+  );
 
   const filteredLessons = lessons.filter(
     (item) => item.type?.toLowerCase() === normalizedSkillName
   );
-  console.log("filteredLessons", filteredLessons);
+  // console.log("filteredLessons", filteredLessons);
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
@@ -91,6 +95,10 @@ export default function LessonScreen({ navigation, route }) {
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
       fontSize: 32,
       fontFamily: Fonts.NUNITO_BOLD,
@@ -131,6 +139,18 @@ export default function LessonScreen({ navigation, route }) {
       fontFamily: Fonts.NUNITO_MEDIUM,
       textAlign: "center",
     },
+    lockOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 20,
+    },
+    lockText: {
+      color: theme.colors.white,
+      fontSize: 16,
+      marginTop: 5,
+      fontFamily: Fonts.NUNITO_BOLD,
+    },
   });
 
   if (lessonLoading) return <Text>Loading...</Text>;
@@ -150,7 +170,7 @@ export default function LessonScreen({ navigation, route }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerText}>{t("lesson")}</Text>
       </LinearGradient>
@@ -162,16 +182,23 @@ export default function LessonScreen({ navigation, route }) {
             <TouchableOpacity
               key={item.id}
               onPress={() => {
-                navigation.navigate("LessonDetailScreen", {
+                if (item.isBlock) {
+                  alert(t("lockedLesson"));
+                  return;
+                }
+                navigation.navigate("SkillScreen", {
                   skillName,
                   title,
+                  skillIcon: skillIcon,
                   lessonId: item.id,
+                  pupilId: pupilId,
                 });
               }}
+              activeOpacity={item.isBlock ? 1 : 0.7}
             >
               <LinearGradient
                 colors={getGradient()}
-                style={styles.lessonCard}
+                style={[styles.lessonCard, item.isBlock && { opacity: 0.5 }]}
                 start={{ x: 1, y: 0 }}
                 end={{ x: 0, y: 0 }}
               >
@@ -180,8 +207,7 @@ export default function LessonScreen({ navigation, route }) {
                     <TouchableOpacity
                       onPress={() => {
                         const speakText =
-                          item.name?.[i18n.language] ||
-                          item.name?.en ||
+                          item.name?.[i18n.language]
                           item.title;
                         Speech.speak(speakText, { language: i18n.language });
                       }}
@@ -195,6 +221,16 @@ export default function LessonScreen({ navigation, route }) {
                   <View style={styles.lessonTextContainer}>
                     <Text style={styles.lessonText}>{title}</Text>
                   </View>
+
+                  {item.isBlock && (
+                    <View style={styles.lockOverlay}>
+                      <Ionicons
+                        name="lock-closed"
+                        size={40}
+                        color={theme.colors.white}
+                      />
+                    </View>
+                  )}
                 </View>
               </LinearGradient>
             </TouchableOpacity>

@@ -25,7 +25,7 @@
   "multiplication": {
     "step_intro": "Bước {{step}}: Nhân chữ số hàng {{label}} của số nhân với số bị nhân từ phải sang trái.",
     "step_zero_rule": "Mỗi lần nhân thì kết quả phải lùi sang phải một ô!",
-    "step_detail_with_carry": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}, nhớ {{carryNow}}",
+    "step_detail_with_carry": "{{d2}} × {{d1}} = {{product}} → ghi {{digitCarry}}, nhớ {{carryNow}}",
     "step_detail_with_next": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}, nhớ {{nextCarry}}",
     "step_detail_no_carry": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}",
     "remember": ", nhớ {{nextCarry}}",

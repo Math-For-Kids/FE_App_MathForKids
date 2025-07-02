@@ -72,7 +72,7 @@ export default function StepByStepScreen({ navigation, route }) {
   //nhận params và gán giá trị
   useEffect(() => {
     if (autoNumber1 !== undefined && autoNumber2 !== undefined) {
-      console.log("Setting number from route:", autoNumber1, autoNumber2);
+      // console.log("Setting number from route:", autoNumber1, autoNumber2);
       setNumber1(String(autoNumber1));
       setNumber2(String(autoNumber2));
       isFromRouteRef.current = true;
@@ -82,9 +82,9 @@ export default function StepByStepScreen({ navigation, route }) {
     if (!isFromRouteRef.current) {
       setNumber1("");
       setNumber2("");
-      console.log("Reset vì đổi operator và không nhận từ route");
+      // console.log("Reset vì đổi operator và không nhận từ route");
     } else {
-      console.log("Không reset vì vừa nhận từ route");
+      // console.log("Không reset vì vừa nhận từ route");
     }
 
     isFromRouteRef.current = false;
@@ -105,13 +105,6 @@ export default function StepByStepScreen({ navigation, route }) {
     });
   }, [operator, i18n.language]);
 
-  const speakText = () => {
-    Speech.speak("Xin chào! Đây là bước đầu tiên.", {
-      language: "vi-VN",
-      pitch: 1,
-      rate: 0.9,
-    });
-  };
   const getMaxLength = (inputIndex) => {
     switch (operator) {
       case "+":

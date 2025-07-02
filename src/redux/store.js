@@ -15,6 +15,10 @@ import settingsReducer from "./settingsSlice";
 import goalReducer from "./goalSlice";
 import rewardReducer from "./rewardSlice";
 import ownedRewardReducer from "./owned_rewardSlice";
+import completedExerciseReducer from "./completedexerciseSlice";
+import testReducer from "./testSlice";
+import levelReducer from "./levelSlice";
+
 const rootReducer = combineReducers({
   auth: authReducer,
   pupil: pupilReducer,
@@ -28,6 +32,10 @@ const rootReducer = combineReducers({
   goal: goalReducer,
   reward: rewardReducer,
   owned_reward: ownedRewardReducer,
+  level: levelReducer,
+  completed_exercise: completedExerciseReducer,
+  test: testReducer,
+
   // thêm các reducer khác nếu cần
 });
 

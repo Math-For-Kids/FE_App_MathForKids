@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,36 +7,89 @@ import {
   ScrollView,
   Image,
   Animated,
+  Alert,
 } from "react-native";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+import { getRandomExercises } from "../../redux/exerciseSlice";
+import { getEnabledLevels } from "../../redux/levelSlice";
+import {
+  createCompletedExercise,
+  clearError,
+} from "../../redux/completedexerciseSlice";
+
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, title } = route.params;
-  const questions = [
-    { id: 1, type: "image", answer: 2, image: theme.icons.question1 },
-    { id: 2, type: "text", answer: 3, text: "14 + 25" },
-    { id: 3, type: "image", answer: 4, image: theme.icons.question1 },
-  ];
-
+  const { skillName, lessonId, levelIds, pupilId, title } = route.params;
+  const dispatch = useDispatch();
+  const {
+    exercises,
+    loading: exerciseLoading,
+    error: exerciseError,
+  } = useSelector((state) => state.exercise);
+  const {
+    completedExercise,
+    loading: completedLoading,
+    error: completedError,
+  } = useSelector((state) => state.completed_exercise);
+  const { levels } = useSelector((state) => state.level);
+  const { t, i18n } = useTranslation("exercise");
   const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [shuffledOptions, setShuffledOptions] = useState({});
   const optionRefs = useRef({});
   const boxRefs = useRef({});
   const flyingAnim = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const [flyingValue, setFlyingValue] = useState(null);
   const [isFlying, setIsFlying] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSelect = (questionId, value) => {
-    const optionRef = optionRefs.current[`q${questionId}-opt${value}`];
+  useEffect(() => {
+    dispatch(getRandomExercises({ lessonId, levelIds }));
+    dispatch(getEnabledLevels());
+  }, [dispatch, lessonId, levelIds]);
+
+  useEffect(() => {
+    if (completedError) {
+      Alert.alert(t("error"), completedError, [
+        { text: t("ok"), onPress: () => dispatch(clearError()) },
+      ]);
+    }
+  }, [completedError, dispatch, t]);
+
+  const questions = exercises.map((exercise, index) => ({
+    id: exercise.id || index,
+    type: exercise.image ? "image" : "text",
+    answer: exercise.answer,
+    image: exercise.image ? { uri: exercise.image } : null,
+    question: exercise.question?.[i18n.language] || "",
+    options: exercise.option || [],
+    level: exercise.levelId,
+  }));
+
+  const isImageUrl = (value) =>
+    typeof value === "string" &&
+    (value.startsWith("http") || value.startsWith("https"));
+  const isExpression = (value) =>
+    (typeof value === "string" && value.includes("=")) || value.length >= 6;
+
+  const renderImage = (uri, style, key) => {
+    if (!uri || typeof uri !== "string")
+      return <Text style={styles.errorText}>Invalid Image</Text>;
+    return <Image source={{ uri }} style={style} resizeMode="contain" />;
+  };
+
+  const handleSelect = (questionId, value, optionIndex) => {
+    const optionRef = optionRefs.current[`q${questionId}-opt${optionIndex}`];
     const boxRef = boxRefs.current[`box${questionId}`];
 
     if (optionRef && boxRef) {
       optionRef.measure((fx, fy, width, height, px, py) => {
         boxRef.measure((bx, by, bWidth, bHeight, bpx, bpy) => {
-          // bắt đầu animation từ vị trí nút
           flyingAnim.setValue({
             x: px + width / 2 - 25,
             y: py + height / 2 - 25,
@@ -44,11 +97,7 @@ export default function ExerciseScreen({ navigation, route }) {
           setFlyingValue(value);
           setIsFlying(true);
           Animated.timing(flyingAnim, {
-            // điểm đến
-            toValue: {
-              x: bpx + bWidth / 2 - 25,
-              y: bpy + bHeight / 2 - 25,
-            },
+            toValue: { x: bpx + bWidth / 2 - 25, y: bpy + bHeight / 2 - 25 },
             duration: 800,
             useNativeDriver: true,
           }).start(() => {
@@ -59,37 +108,49 @@ export default function ExerciseScreen({ navigation, route }) {
       });
     }
   };
-  const generateOptions = (question) => {
-    const correct = question.answer;
-    const wrong1 = correct + 1;
-    const wrong2 = correct - 1;
-    const wrong3 = correct + 2;
 
-    // Trả về mảng hoán vị để vị trí đáp án đúng không cố định
-    return shuffleArray([correct, wrong1, wrong2, wrong3]);
-  };
-
-  const shuffleArray = (array) => {
-    return array
+  const shuffleArray = (array) =>
+    array
       .map((item) => ({ item, sort: Math.random() }))
       .sort((a, b) => a.sort - b.sort)
       .map(({ item }) => item);
+
+  const generateOptions = (question) => {
+    if (shuffledOptions[question.id]) return shuffledOptions[question.id];
+    const options = [...(question.options || []), question.answer].filter(
+      Boolean
+    );
+    const shuffled = shuffleArray(options);
+    setShuffledOptions((prev) => ({ ...prev, [question.id]: shuffled }));
+    return shuffled;
   };
+
   const calculateResults = () => {
     let correct = 0;
     let wrong = 0;
+    let rawScore = 0;
+    let maxScore = 0;
 
     questions.forEach((q) => {
+      const questionLevelObj = levels.find(
+        (level) => String(level.id) === String(q.level)
+      );
+      const questionLevel = questionLevelObj ? questionLevelObj.level : 1;
+      maxScore += questionLevel;
+
       const selected = selectedAnswers[q.id];
       if (selected !== undefined) {
-        if (selected === q.answer) correct++;
-        else wrong++;
+        if (selected === q.answer) {
+          correct++;
+          rawScore += questionLevel;
+        } else {
+          wrong++;
+        }
       }
     });
 
-    const score = correct * 5; // mỗi câu đúng 5 điểm
-
-    return { correct, wrong, score };
+    const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
+    return { correct, wrong, score: Math.round(score)};
   };
 
   const getGradient = () => {
@@ -99,13 +160,92 @@ export default function ExerciseScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.gradientRed;
     return theme.colors.gradientPink;
   };
+
   const getOptionBackground = () => {
     if (skillName === "Addition") return theme.colors.greenLight;
     if (skillName === "Subtraction") return theme.colors.purpleLight;
     if (skillName === "Multiplication") return theme.colors.orangeLight;
     if (skillName === "Division") return theme.colors.redLight;
-    return theme.colors.pinkLight;
+    return theme.colors.gradientPink;
   };
+
+  const shouldUseSingleRow = (options) =>
+    options.every((opt) => !isImageUrl(opt) && opt.length <= 5);
+
+  const handleSubmit = async () => {
+    if (!pupilId) {
+      Alert.alert(t("error"), t("pupilIdMissing"));
+      return;
+    }
+
+    // Hiển thị popup xác nhận
+    Alert.alert(
+      t("confirmSubmission"), // Tiêu đề của popup
+      t("confirmSubmissionMessage"), // Nội dung của popup
+      [
+        {
+          text: t("cancel"), // Nút hủy
+          style: "cancel",
+        },
+        {
+          text: t("ok"), // Nút xác nhận
+          onPress: async () => {
+            setIsSubmitting(true);
+            const { correct, wrong, score } = calculateResults();
+            try {
+              await dispatch(
+                createCompletedExercise({ pupilId, lessonId, point: score })
+              ).unwrap();
+              navigation.navigate("ExerciseResultScreen", {
+                skillName,
+                answers: selectedAnswers,
+                questions,
+                score,
+                correctCount: correct,
+                wrongCount: wrong,
+              });
+            } catch (err) {
+              Alert.alert(t("error"), t("failedToSubmitExercise"));
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true } // Cho phép nhấn ngoài popup để hủy
+    );
+  };
+
+  const renderOption = (questionId, value, optIndex, style) => {
+    if (selectedAnswers[questionId] === value) return null;
+    const optionStyle = [
+      styles.option,
+      style,
+      isImageUrl(value) && { borderRadius: 10, width: 80, height: 80 },
+      isExpression(value) && { borderRadius: 10, paddingHorizontal: 20 },
+    ];
+    return (
+      <TouchableOpacity
+        key={`q${questionId}-opt${optIndex}`}
+        style={optionStyle}
+        ref={(ref) =>
+          (optionRefs.current[`q${questionId}-opt${optIndex}`] = ref)
+        }
+        onPress={() => handleSelect(questionId, value, optIndex)}
+      >
+        {isImageUrl(value) ? (
+          renderImage(
+            value,
+            styles.selectedAnswerImage,
+            `option-${questionId}-${optIndex}`
+          )
+        ) : (
+          <Text style={styles.optionText}>{value}</Text>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -131,6 +271,10 @@ export default function ExerciseScreen({ navigation, route }) {
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
       fontSize: 32,
       fontFamily: Fonts.NUNITO_BOLD,
@@ -144,13 +288,19 @@ export default function ExerciseScreen({ navigation, route }) {
       gap: 10,
       alignItems: "center",
     },
-    soundOnIcon: { width: 40, height: 40 },
+    soundOnIcon: {
+      width: 40,
+      height: 40,
+    },
     requestText: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       fontSize: 18,
     },
-    questionContainer: { marginBottom: 30, paddingHorizontal: 20 },
+    questionContainer: {
+      marginBottom: 15, // Giảm khoảng cách
+      paddingHorizontal: 10, // Giảm padding
+    },
     questionImageContainer: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -163,24 +313,34 @@ export default function ExerciseScreen({ navigation, route }) {
     question: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
-      fontSize: 60,
+      fontSize: 36,
       maxWidth: "50%",
     },
-    selectedContainer: { flexDirection: "row", alignItems: "center", gap: 5 },
-    equalIcon: { width: 50, height: 40 },
+    selectedContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+    },
     optionsRow: {
       flexDirection: "row",
       justifyContent: "space-around",
+      marginTop: 5,
+      flexWrap: "wrap",
+    },
+    optionsContainer: {
       marginTop: 10,
     },
     option: {
-      width: 50,
-      height: 50,
       borderRadius: 25,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: getOptionBackground(),
       elevation: 3,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      minWidth: 50,
+      minHeight: 50,
+      marginTop: 10,
     },
     optionText: {
       fontFamily: Fonts.NUNITO_BOLD,
@@ -200,15 +360,23 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     selectedAnswerTextContainer: {
       backgroundColor: getOptionBackground(),
-      borderRadius: 50,
-      paddingHorizontal: 20,
-      paddingVertical: 10,
+      borderRadius: 10,
       elevation: 3,
+      justifyContent: "center",
+      alignItems: "center",
+      minWidth: 70,
+      minHeight: 70,
     },
     selectedAnswerText: {
+      textAlign: "center",
       fontSize: 24,
       color: theme.colors.white,
       fontFamily: Fonts.NUNITO_BOLD,
+    },
+    selectedAnswerImage: {
+      width: 70,
+      height: 70,
+      resizeMode: "contain",
     },
     questionText: {
       fontFamily: Fonts.NUNITO_BOLD,
@@ -231,15 +399,36 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     isFlying: {
       position: "absolute",
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: getOptionBackground(),
       justifyContent: "center",
       alignItems: "center",
-      transform: flyingAnim.getTranslateTransform(),
+      backgroundColor: getOptionBackground(),
+      elevation: 3,
+    },
+    errorText: {
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.red,
+      fontSize: 18,
+      textAlign: "center",
+    },
+    loadingText: {
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.black,
+      fontSize: 18,
+      textAlign: "center",
+      marginTop: 20,
     },
   });
+
+  if (exerciseLoading && !isSubmitting) return;
+  <View style={styles.container}>
+    <Text style={styles.loadingText}>{t("loadingExercises")}</Text>
+  </View>;
+  if (exerciseError && !isSubmitting) return;
+  <View style={styles.container}>
+    <Text style={styles.errorText}>
+      {t("errorLoadingExercises")}: {exerciseError}
+    </Text>
+  </View>;
 
   return (
     <View style={styles.container}>
@@ -248,7 +437,7 @@ export default function ExerciseScreen({ navigation, route }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text
           style={styles.headerText}
@@ -263,92 +452,170 @@ export default function ExerciseScreen({ navigation, route }) {
       <ScrollView>
         <View style={styles.requestContainer}>
           <Image source={theme.icons.soundOn} style={styles.soundOnIcon} />
-          <Text style={styles.requestText}>Choose the correct answer</Text>
+          <Text style={styles.requestText}>{t("chooseCorrectAnswer")}</Text>
         </View>
 
-        {questions.map((q) => (
-          <View key={q.id} style={styles.questionContainer}>
-            <Text style={styles.questionText}>Question {q.id}</Text>
-            <View style={styles.questionImageContainer}>
-              {q.type === "image" ? (
-                <Image
-                  source={q.image}
-                  style={styles.questionImage}
-                  resizeMode="contain"
-                />
-              ) : (
-                <Text
-                  style={styles.question}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.5}
-                >
-                  {q.text}
-                </Text>
-              )}
-              <View style={styles.selectedContainer}>
-                <Image
-                  source={theme.icons.equalMark}
-                  style={styles.equalIcon}
-                  resizeMode="contain"
-                />
-                <View
-                  style={styles.selectedAnswerBox}
-                  ref={(ref) => (boxRefs.current[`box${q.id}`] = ref)}
-                >
-                  {selectedAnswers[q.id] !== undefined && (
-                    <View style={styles.selectedAnswerTextContainer}>
-                      <Text style={styles.selectedAnswerText}>
-                        {selectedAnswers[q.id]}
-                      </Text>
-                    </View>
-                  )}
+        {questions.map((q, ind) => {
+          const options = generateOptions(q);
+          const useSingleRow = shouldUseSingleRow(options);
+          const midPoint = Math.ceil(options.length / 2);
+          // const firstRowOptions = options.slice(0, midPoint);
+          // const secondRowOptions = options.slice(midPoint);
+          return (
+            <View key={q.id} style={styles.questionContainer}>
+              <Text style={styles.questionText}>
+                {t("question")} {ind + 1}: {q.question}
+              </Text>
+              <View style={styles.questionImageContainer}>
+                {q.type === "image" ? (
+                  renderImage(
+                    q.image?.uri,
+                    styles.questionImage,
+                    `question-${q.id}`
+                  )
+                ) : (
+                  <Text style={styles.question}>{q.question}</Text>
+                )}
+                <View style={styles.selectedContainer}>
+                  <View
+                    style={styles.selectedAnswerBox}
+                    ref={(ref) => (boxRefs.current[`box${q.id}`] = ref)}
+                  >
+                    {selectedAnswers[q.id] !== undefined && (
+                      <View style={styles.selectedAnswerTextContainer}>
+                        {isImageUrl(selectedAnswers[q.id]) ? (
+                          renderImage(
+                            selectedAnswers[q.id],
+                            styles.selectedAnswerImage,
+                            `selected-${q.id}`
+                          )
+                        ) : (
+                          <Text style={styles.selectedAnswerText}>
+                            {selectedAnswers[q.id]}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
 
-            <View style={styles.optionsRow}>
-              {generateOptions(q).map((val) =>
-                selectedAnswers[q.id] === val ? null : (
-                  <TouchableOpacity
-                    key={`q${q.id}-opt${val}`}
-                    style={styles.option}
-                    ref={(ref) =>
-                      (optionRefs.current[`q${q.id}-opt${val}`] = ref)
-                    }
-                    onPress={() => handleSelect(q.id, val)}
+              <View style={styles.optionsContainer}>
+                {useSingleRow ? (
+                  <View
+                    style={[
+                      styles.optionsRow,
+                      { justifyContent: "space-around" },
+                    ]}
                   >
-                    <Text style={styles.optionText}>{val}</Text>
-                  </TouchableOpacity>
-                )
-              )}
+                    {options.map((val, optIndex) =>
+                      renderOption(q.id, val, optIndex, {
+                        ...(isImageUrl(val) && {
+                          width: 80,
+                          height: 80,
+                          borderRadius: 10,
+                        }),
+                        ...(isExpression(val) && {
+                          paddingHorizontal: 20,
+                          borderRadius: 10,
+                          width: 150,
+                        }),
+                      })
+                    )}
+                  </View>
+                ) : (
+                  <>
+                    <View
+                      style={[
+                        styles.optionsRow,
+                        { justifyContent: "space-around" },
+                      ]}
+                    >
+                      {options
+                        .slice(0, Math.ceil(options.length / 2))
+                        .map((val, optIndex) =>
+                          renderOption(q.id, val, optIndex, {
+                            ...(isImageUrl(val) && {
+                              width: 80,
+                              height: 80,
+                              borderRadius: 10,
+                            }),
+                            ...(isExpression(val) && {
+                              paddingHorizontal: 20,
+                              borderRadius: 10,
+                              width: 150,
+                            }),
+                          })
+                        )}
+                    </View>
+                    <View
+                      style={[
+                        styles.optionsRow,
+                        { justifyContent: "space-around" },
+                      ]}
+                    >
+                      {options
+                        .slice(Math.ceil(options.length / 2))
+                        .map((val, optIndex) =>
+                          renderOption(
+                            q.id,
+                            val,
+                            optIndex + Math.ceil(options.length / 2),
+                            {
+                              ...(isImageUrl(val) && {
+                                width: 80,
+                                height: 80,
+                                borderRadius: 10,
+                              }),
+                              ...(isExpression(val) && {
+                                paddingHorizontal: 20,
+                                borderRadius: 10,
+                                width: 150,
+                              }),
+                            }
+                          )
+                        )}
+                    </View>
+                  </>
+                )}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
+
       <LinearGradient colors={getGradient()} style={styles.submitButton}>
-        <TouchableOpacity
-          onPress={() => {
-            const { correct, wrong, score } = calculateResults();
-            navigation.navigate("ExerciseResultScreen", {
-              skillName,
-              answers: selectedAnswers,
-              questions,
-              score,
-              correctCount: correct,
-              wrongCount: wrong,
-            });
-          }}
-        >
-          <Text style={styles.submitText}>Submit</Text>
+        <TouchableOpacity onPress={handleSubmit} disabled={isSubmitting}>
+          <Text style={styles.submitText}>
+            {isSubmitting ? t("submitting") : t("submit")}
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
-      {/* Viên bay */}
+
       {isFlying && (
-        <Animated.View style={styles.isFlying}>
-          <Text style={styles.optionText}>{flyingValue}</Text>
+        <Animated.View
+          style={[
+            styles.isFlying,
+            { transform: flyingAnim.getTranslateTransform() },
+            isImageUrl(flyingValue) && {
+              width: 80,
+              height: 80,
+              borderRadius: 10,
+            },
+            isExpression(flyingValue) && {
+              paddingHorizontal: 10,
+              borderRadius: 10,
+            },
+          ]}
+        >
+          {isImageUrl(flyingValue) ? (
+            renderImage(flyingValue, styles.selectedAnswerImage, `flying`)
+          ) : (
+            <Text style={styles.optionText}>{flyingValue}</Text>
+          )}
         </Animated.View>
       )}
+
       <FloatingMenu />
     </View>
   );

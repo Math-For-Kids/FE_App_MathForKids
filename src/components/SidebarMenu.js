@@ -159,7 +159,7 @@ const SidebarMenu = () => {
       paddingVertical: 10,
       paddingHorizontal: 15,
       borderRadius: 20,
-      marginVertical: 4,
+      marginVertical: 8,
       borderWidth: 1,
       borderColor: theme.colors.paleBeige,
       elevation: 3,

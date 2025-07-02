@@ -4,5 +4,17 @@
   "quantity": "Quantity: {{count}} questions",
   "time": "Time: {{minutes}} min",
   "level": "Level: {{level}}",
-  "calculation_steps": "Calculation steps"
+  "calculation_steps": "Calculation steps",
+  "error": "Error",
+  "ok": "OK",
+  "loadingExercises": "Loading exercises...",
+  "errorLoadingExercises": "Failed to load exercises",
+  "pupilIdMissing": "Pupil ID is missing",
+  "failedToSubmitExercise": "Failed to submit exercise",
+  "chooseCorrectAnswer": "Choose the correct answer",
+  "question": "Question",
+  "submitting": "Submitting...",
+  "submit": "Submit",
+  "confirmSubmission": "Confirm Submission",
+  "confirmSubmissionMessage": "Are you sure you want to submit your answers?"
 }

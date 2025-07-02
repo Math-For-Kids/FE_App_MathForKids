@@ -27,7 +27,8 @@ export default function PracticeMultiplicationTableScreen({
 
   const [answers, setAnswers] = useState({});
   const [questions, setQuestions] = useState([]);
-  const [score, setScore] = useState(0);
+  const operator = "×";
+  const expression = `${left} ${operator} ${right} = ${result}`;
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
 
@@ -54,32 +55,47 @@ export default function PracticeMultiplicationTableScreen({
     const userAnsNum = parseInt(userAnswer);
     const isCorrect = userAnsNum === correctAnswer;
 
+    const operator = "×";
+    const expression = `${left} ${operator} ${right} = ${result}`;
+
+    const questionId = Date.now();
+
     const questionObj = {
-      id: multiplier,
+      id: questionId,
       left,
       right,
       answer: correctAnswer,
       user: userAnsNum,
       hidden: hiddenIndex,
+      expression,
     };
 
-    setQuestions((prev) => [...prev, questionObj]);
-    setAnswers((prev) => ({ ...prev, [multiplier]: userAnsNum }));
-    setScore((prev) => prev + (isCorrect ? 10 : 0));
-    setCorrectCount((prev) => prev + (isCorrect ? 1 : 0));
-    setWrongCount((prev) => prev + (isCorrect ? 0 : 1));
+    const newQuestions = [...questions, questionObj];
+    const newAnswers = { ...answers, [questionId]: userAnsNum };
+    const newCorrectCount = correctCount + (isCorrect ? 1 : 0);
+    const newWrongCount = wrongCount + (isCorrect ? 0 : 1);
+
+    setQuestions(newQuestions);
+    setAnswers(newAnswers);
+    setCorrectCount(newCorrectCount);
+    setWrongCount(newWrongCount);
     setUserAnswer("");
 
     if (multiplier < 9) {
       setMultiplier(multiplier + 1);
     } else {
+      const totalQuestions = 9;
+      const rawScore = (newCorrectCount / totalQuestions) * 10;
+      const finalScore = Math.round(rawScore);
+
       navigation.navigate("ExerciseResultScreen", {
-        questions,
-        answers,
-        score: score + (isCorrect ? 10 : 0),
-        correctCount: correctCount + (isCorrect ? 1 : 0),
-        wrongCount: wrongCount + (isCorrect ? 0 : 1),
+        questions: newQuestions,
+        answers: newAnswers,
+        score: finalScore,
+        correctCount: newCorrectCount,
+        wrongCount: newWrongCount,
         skillName,
+        expression,
       });
     }
   };

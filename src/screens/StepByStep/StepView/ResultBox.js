@@ -1,4 +1,5 @@
 import { View, Text } from "react-native";
+
 export default function ResultBox({ currentStep, styles }) {
   return (
     <View style={styles.resultTextContainer}>

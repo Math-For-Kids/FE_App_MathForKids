@@ -16,7 +16,7 @@ export const AdditionStepView = ({
 
   const currentStep = columnStepIndex ?? 0;
   if (!steps[2]?.digitSums) return null;
-  console.log("currentStep", currentStep);
+  // console.log("currentStep", currentStep);
   const totalSteps = steps[2].digitSums.length + 1;
   const labels = placeLabels.slice(0, steps[2].digitSums.length);
   const subTextLines = Array.isArray(steps[2].subText) ? steps[2].subText : [];

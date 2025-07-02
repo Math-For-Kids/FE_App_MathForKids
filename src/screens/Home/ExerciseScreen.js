@@ -41,7 +41,7 @@ export default function ExerciseScreen({ navigation, route }) {
   const filteredLessons = lessons.filter(
     (item) => item.type?.toLowerCase() === normalizedSkillName
   );
-  console.log("filteredLessons", filteredLessons);
+  // console.log("filteredLessons", filteredLessons);
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
