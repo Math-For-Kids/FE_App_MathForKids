@@ -26,7 +26,6 @@ export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
   const { skillName, lessonId, pupilId } = route.params;
-
   const dispatch = useDispatch();
   const { tests, loading, error, createdTest } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);

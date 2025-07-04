@@ -58,11 +58,11 @@ export default function CreatePupilAccountScreen({ navigation }) {
         today.getFullYear() -
         birthdayDate.getFullYear() -
         (today <
-        new Date(
-          today.getFullYear(),
-          birthdayDate.getMonth(),
-          birthdayDate.getDate()
-        )
+          new Date(
+            today.getFullYear(),
+            birthdayDate.getMonth(),
+            birthdayDate.getDate()
+          )
           ? 1
           : 0);
 
@@ -70,6 +70,19 @@ export default function CreatePupilAccountScreen({ navigation }) {
         Alert.alert(
           "Validation Error",
           "Age must be between 1 and 100 years old."
+        );
+        return;
+      }
+      const minAgeForGrade = {
+        "1": 6,
+        "2": 7,
+        "3": 8,
+      };
+
+      if (age < minAgeForGrade[studentClass]) {
+        Alert.alert(
+          "Lỗi xác thực",
+          `Học sinh lớp ${studentClass} phải ít nhất ${minAgeForGrade[studentClass]} tuổi.`
         );
         return;
       }

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Animated, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
 import jwt_decode from "jwt-decode";
-
+import { useTranslation } from "react-i18next";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import { logout } from "../redux/authSlice";
@@ -13,6 +13,7 @@ export default function LoadingProgressScreen({ navigation }) {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
+  const { t, i18n } = useTranslation("loading");
 
   const user = useSelector((state) => state.auth.user);
   const role = user?.role;
@@ -72,13 +73,13 @@ export default function LoadingProgressScreen({ navigation }) {
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.normalText}>
-          Developed by <Text style={styles.boldText}>FPT students</Text>
+          {t("developedBy")} <Text style={styles.boldText}>{t("fpt")}</Text>
         </Text>
       </View>
 
-      <Text style={styles.title}>Math is Fun!</Text>
+      <Text style={styles.title}>{t("title")}</Text>
       <Text style={styles.subtitle}>
-        Math learning app for students in grades 1 - 2 - 3
+        {t("subtitle")}
       </Text>
 
       <View style={styles.logoTrack}>
@@ -110,7 +111,7 @@ export default function LoadingProgressScreen({ navigation }) {
       </View>
 
       <Text style={styles.loadingText}>
-        Loading {Math.round(progress * 100)}%
+        {t("loadingText")} {Math.round(progress * 100)}%
       </Text>
     </LinearGradient>
   );
