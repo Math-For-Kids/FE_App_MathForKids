@@ -76,8 +76,6 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
       }
     }
 
-    if (!started) started = true;
-
     const qDigit = Math.floor(current / absN2);
     const sub = qDigit * absN2;
     const remainder = current - sub;
@@ -109,17 +107,13 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
       productLength === 3
     ) {
       productIndent = divisionCount - 1;
-    }
-
-    else if (
+    } else if (
       divisionCount === 1 &&
       firstDividendLength === 2 &&
       productLength === 3
     ) {
       productIndent = divisionCount - 1;
-    }
-
-    else if (
+    } else if (
       divisionCount === 3 &&
       firstDividendLength === 2 &&
       productLength === 2
@@ -139,7 +133,6 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
     } else {
       productIndent = divisionCount;
     }
-
 
     subSteps.push({
       key: "step_multiply",
@@ -169,35 +162,42 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
       },
     });
 
+    // ✅ Hạ số sau khi trừ (ngoài if (!started))
     if (i + 1 < dividend.length) {
-      const comparisonKey = remainder < absN2 ? "less" : "greater_equal";
-
-      subSteps.push({
-        key: "step_choose_number",
-        params: {
-          step: stepCounter++,
-          current: remainder,
-          divisor: absN2,
-          comparisonKey,
-          explanationKey: comparisonKey,
-          indent: divisionCount + 1,
-          visualIndent: adjustIndent(divisionCount + 1),
-        },
-      });
+      const nextDigit = dividend[i + 1];
+      const afterBringDown = remainder.toString() + nextDigit.toString();
 
       const bringDownIndent =
-        remainderLength === 1 ? divisionCount + 1 : divisionCount;
+        remainder.toString().length === 1 ? divisionCount + 1 : divisionCount;
 
       subSteps.push({
         key: "step_bring_down",
         params: {
           step: stepCounter++,
-          nextDigit: dividend[i + 1],
-          afterBringDown: remainder.toString() + dividend[i + 1].toString(),
+          nextDigit,
+          remainder,
+          afterBringDown,
           indent: bringDownIndent,
           visualIndent: adjustIndent(bringDownIndent),
+          explanationKey: "after_subtract", // để hiển thị lời giải thích riêng
         },
       });
+
+      const newCurrent = parseInt(afterBringDown, 10);
+      if (newCurrent < absN2 && i + 2 < dividend.length) {
+        subSteps.push({
+          key: "step_choose_number",
+          params: {
+            step: stepCounter++,
+            current: newCurrent,
+            divisor: absN2,
+            comparisonKey: "less",
+            explanationKey: "less",
+            indent: bringDownIndent,
+            visualIndent: adjustIndent(bringDownIndent),
+          },
+        });
+      }
     }
 
     stepsDisplay.push({
@@ -219,6 +219,7 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
     quotient += qDigit.toString();
     divisionCount++;
   }
+
 
   if (!started) {
     stepsDisplay.push({

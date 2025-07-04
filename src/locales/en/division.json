@@ -9,6 +9,7 @@
   "step_multiply": "Step {{step}}: Multiply {{result}} × {{divisor}} = {{product}}.",
   "step_subtract": "Step {{step}}: Subtract {{current}} - {{product}} = {{remainder}}.",
   "step_choose_number": "Step {{step}}: {{current}} is {{comparison}} {{divisor}}, {{explanation}}",
+  "step_bring_down_after_subtract": "Step {{step}}: After bringing down {{nextDigit}}, we get {{afterBringDown}}. Compare with {{divisor}} to see if it can be divided.",
   "comparison": {
     "less": "less than",
     "greater_equal": "greater than or equal to"

@@ -257,7 +257,10 @@ export default function StepByStepScreen({ navigation, route }) {
             steps={steps}
             placeLabels={placeLabels}
             skillName={skillName}
-            columnStepIndex={columnStepIndex} // ✅ TRUYỀN STEP ĐANG XEM
+            columnStepIndex={columnStepIndex}
+            onGoBack={() => {
+              setColumnStepIndex((prev) => Math.max(0, prev - 1));
+            }}
           />
         )}
 
@@ -302,6 +305,9 @@ export default function StepByStepScreen({ navigation, route }) {
             steps={steps}
             skillName={skillName}
             columnStepIndex={columnStepIndex}
+            onGoBack={() => {
+              setColumnStepIndex((prev) => Math.max(0, prev - 1));
+            }}
           />
         )}
 

@@ -103,5 +103,7 @@
   "comparison.less": "is less than",
   "comparison.greater_equal": "is greater than or equal to",
   "explanation.less": "cannot divide yet. Take more digits.",
-  "explanation.greater_equal": "can divide. Proceed with division."
+  "explanation.greater_equal": "can divide. Proceed with division.",
+    "step_bring_down_after_subtract": "Step {{step}}: After subtracting, the remainder is {{remainder}}. Bring down {{nextDigit}}, we get {{afterBringDown}} to continue dividing."
+
 }

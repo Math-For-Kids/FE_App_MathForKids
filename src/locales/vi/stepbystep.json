@@ -103,5 +103,6 @@
   "comparison.less": "nhỏ hơn",
   "comparison.greater_equal": "lớn hơn hoặc bằng",
   "explanation.less": "chưa chia được. Ta lấy thêm số phía sau.",
-  "explanation.greater_equal": "chia được. Ta bắt đầu chia."
+  "explanation.greater_equal": "chia được. Ta bắt đầu chia.",
+  "step_bring_down_after_subtract": "Bước {{step}}: Sau khi trừ còn {{remainder}}. Hạ {{nextDigit}} xuống, ta được {{afterBringDown}} để tiếp tục chia."
 }

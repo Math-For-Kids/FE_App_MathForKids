@@ -10,6 +10,7 @@ export const AdditionStepView = ({
   placeLabels,
   skillName,
   columnStepIndex,
+  onGoBack
 }) => {
   const { theme } = useTheme();
   const { i18n } = useTranslation("stepbystep");
@@ -23,7 +24,7 @@ export const AdditionStepView = ({
 
   const activeColor = theme.colors.orangeDark;
   const defaultColor = theme.colors.black;
-  const carryColor = theme.colors.blueGray;
+  const carryColor = theme.colors.black;
 
   const getSkillColor = () => {
     switch (skillName) {
@@ -139,7 +140,12 @@ export const AdditionStepView = ({
                 key={`carry-${i}`}
                 style={[
                   styles.carryText,
-                  { color: highlight ? activeColor : carryColor },
+                  {
+                    color:
+                      currentStep >= 1 && currentStep - 1 === i
+                        ? getSkillColor()
+                        : defaultColor,
+                  },
                 ]}
               >
                 {highlight ? carry : " "}
@@ -251,16 +257,25 @@ export const AdditionStepView = ({
             </TouchableOpacity>
           ))}
       </View>
+      <View style={{ marginBottom: 10 }}>
+        <Text
+          onPress={onGoBack}
+          style={{
+            fontSize: 16,
+            color: "#1976D2",
+            fontWeight: "bold",
+            padding: 8,
+            borderRadius: 6,
+            borderWidth: 1,
+            borderColor: "#1976D2",
+            textAlign: "center",
+            width: 100,
+          }}
+        >
+          ◀ Quay lại
+        </Text>
+      </View>
 
-      {/* Final result */}
-      {currentStep === totalSteps && (
-        <>
-          <Text style={styles.explanationText}>{steps[3].subText}</Text>
-          <Text style={styles.finalResultText}>
-            {steps[2].digitSums.join("")}
-          </Text>
-        </>
-      )}
     </View>
   );
 };
