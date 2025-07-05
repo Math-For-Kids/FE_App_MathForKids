@@ -15,7 +15,7 @@ import { Fonts } from "../../constants/Fonts";
 import { ProgressBar } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { getRandomAssessments, updateIsBlock } from "../redux/assessmentSlice";
+import { getRandomAssessments, updateIsBlock, unlockPreviousGradeLesson } from "../redux/assessmentSlice";
 import { getEnabledLevels } from "../redux/levelSlice";
 import { completeAndUnlockNextLesson } from "../redux/completedLessonSlice";
 import { updatePupilProfile } from "../redux/pupilSlice";
@@ -33,6 +33,8 @@ export default function AssessmentScreen({ navigation, route }) {
   const [showModal, setShowModal] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(0);
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const languageButtonRef = useRef(null);
   const flatListRef = useRef(null);
   useEffect(() => {
     // Fetch random assessments only once when the component mounts
@@ -42,6 +44,7 @@ export default function AssessmentScreen({ navigation, route }) {
 
   // Memoize the questions array to prevent re-randomization on every render
   const questions = useMemo(() => {
+    console.log("Assessments:", assessments);
     return assessments.map((assessment, index) => {
       const correctAnswer = assessment.answer;
       const wrongOptions = assessment.option || [];
@@ -72,82 +75,93 @@ export default function AssessmentScreen({ navigation, route }) {
   };
 
   const doSubmit = () => {
-    let totalScore = 0;
-    let correct = 0;
-    let lessonScores = {};
-    let lessonMaxScores = {};
-    questions.forEach((q) => {
-      const level = levels.find((lvl) => String(lvl.id) === String(q.levelId));
-      const point = level?.level === 1 ? 1 : level?.level === 2 ? 2 : 0;
+    try {
+      let totalScore = 0;
+      let correct = 0;
+      let lessonScores = {};
+      let lessonMaxScores = {};
+      questions.forEach((q) => {
+        const level = levels.find((lvl) => String(lvl.id) === String(q.levelId));
+        const point = level?.level === 1 ? 1 : level?.level === 2 ? 2 : 0;
 
-      if (q.lessonId) {
-        lessonMaxScores[q.lessonId] = (lessonMaxScores[q.lessonId] || 0) + point;
-      }
-
-      const isCorrect = selectedOptions[q.id] === q.answerIndex;
-      if (isCorrect) {
-        correct++;
-        totalScore += point;
         if (q.lessonId) {
-          lessonScores[q.lessonId] = (lessonScores[q.lessonId] || 0) + point;
+          lessonMaxScores[q.lessonId] = (lessonMaxScores[q.lessonId] || 0) + point;
         }
-      }
-    });
 
-    const lessonTypes = ["addition", "subtraction", "multiplication", "division"];
-    lessonTypes.forEach((type) => {
-      const lessonIds = lessonByType?.[type] || [];
-      if (lessonIds.length > 0) {
-        const firstLessonId = lessonIds[0];
-        const secondLessonId = lessonIds[1] || null;
+        const isCorrect = selectedOptions[q.id] === q.answerIndex;
+        if (isCorrect) {
+          correct++;
+          totalScore += point;
+          if (q.lessonId) {
+            lessonScores[q.lessonId] = (lessonScores[q.lessonId] || 0) + point;
+          }
+        }
+      });
 
-        if (correct === 0) {
-          console.log(`Type: ${type}, No correct answers, unlocking first lesson: ${firstLessonId}`);
-          dispatch(updateIsBlock({ pupilId, lessonId: firstLessonId }));
-          dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
-        } else if (lessonIds.length >= 2) {
-          const firstScore = lessonScores[firstLessonId] || 0;
-          const secondScore = lessonScores[secondLessonId] || 0;
-          const firstMaxScore = lessonMaxScores[firstLessonId] || 0;
-          const secondMaxScore = lessonMaxScores[secondLessonId] || 0;
-          const firstPercentage = firstMaxScore > 0 ? (firstScore / firstMaxScore) * 100 : 0;
-          const secondPercentage = secondMaxScore > 0 ? (secondScore / secondMaxScore) * 100 : 0;
-          console.log(`type: ${type}`);
-          console.log(`Lesson ID: ${firstLessonId}, Score: ${firstScore}/${firstMaxScore} (${firstPercentage.toFixed(2)}%)`);
-          console.log(`Lesson ID: ${secondLessonId}, Score: ${secondScore}/${secondMaxScore} (${secondPercentage.toFixed(2)}%)`);
-          if (secondPercentage >= 90) {
-            dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
-            dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: secondLessonId }));
-            dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
-          } else if (firstPercentage >= 90) {
-            dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
-            dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
-          } else if (firstPercentage < 90 && secondPercentage < 90) {
+      const lessonTypes = ["addition", "subtraction", "multiplication", "division"];
+      lessonTypes.forEach((type) => {
+        const lessonIds = lessonByType?.[type] || [];
+        if (lessonIds.length > 0) {
+          const firstLessonId = lessonIds[0];
+          const secondLessonId = lessonIds[1] || null;
+
+          if (correct === 0) {
+            console.log(`Type: ${type}, No correct answers, unlocking first lesson: ${firstLessonId}`);
             dispatch(updateIsBlock({ pupilId, lessonId: firstLessonId }));
             dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
-          }
-        } else {
-          const score = lessonScores[firstLessonId] || 0;
-          const maxScore = lessonMaxScores[firstLessonId] || 0;
-          const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
-          console.log(`Type: ${type}, Lesson ID: ${firstLessonId}, Score: ${score}/${maxScore} (${percentage.toFixed(2)}%)`);
-          if (percentage >= 90) {
-            dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
-            dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+          } else if (lessonIds.length >= 2) {
+            const firstScore = lessonScores[firstLessonId] || 0;
+            const secondScore = lessonScores[secondLessonId] || 0;
+            const firstMaxScore = lessonMaxScores[firstLessonId] || 0;
+            const secondMaxScore = lessonMaxScores[secondLessonId] || 0;
+            const firstPercentage = firstMaxScore > 0 ? (firstScore / firstMaxScore) * 100 : 0;
+            const secondPercentage = secondMaxScore > 0 ? (secondScore / secondMaxScore) * 100 : 0;
+            console.log(`type: ${type}`);
+            console.log(`Lesson ID: ${firstLessonId}, Score: ${firstScore}/${firstMaxScore} (${firstPercentage.toFixed(2)}%)`);
+            console.log(`Lesson ID: ${secondLessonId}, Score: ${secondScore}/${secondMaxScore} (${secondPercentage.toFixed(2)}%)`);
+            if (secondPercentage >= 90) {
+              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
+              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: secondLessonId }));
+              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(unlockPreviousGradeLesson({ pupilId }));
+            } else if (firstPercentage >= 90) {
+              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
+              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(unlockPreviousGradeLesson({ pupilId }));
+            } else if (firstPercentage < 90 && secondPercentage < 90) {
+              dispatch(updateIsBlock({ pupilId, lessonId: firstLessonId }));
+              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(unlockPreviousGradeLesson({ pupilId }));
+
+            }
+          } else {
+            const score = lessonScores[firstLessonId] || 0;
+            const maxScore = lessonMaxScores[firstLessonId] || 0;
+            const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
+            console.log(`Type: ${type}, Lesson ID: ${firstLessonId}, Score: ${score}/${maxScore} (${percentage.toFixed(2)}%)`);
+            if (percentage >= 90) {
+              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
+              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(unlockPreviousGradeLesson({ pupilId }));
+
+            }
           }
         }
-      }
-    });
+      });
 
-    const maxTotalScore = questions.reduce((sum, q) => {
-      const level = levels.find((lvl) => String(lvl.id) === String(q.levelId));
-      return sum + (level?.level === 1 ? 1 : level?.level === 2 ? 2 : 0);
-    }, 0);
+      const maxTotalScore = questions.reduce((sum, q) => {
+        const level = levels.find((lvl) => String(lvl.id) === String(q.levelId));
+        return sum + (level?.level === 1 ? 1 : level?.level === 2 ? 2 : 0);
+      }, 0);
 
-    const calculatedScore = maxTotalScore > 0 ? Math.round((totalScore / maxTotalScore) * 10) : 0;
-    setCorrectCount(correct);
-    setScore(calculatedScore);
-    setShowModal(true);
+      const calculatedScore = maxTotalScore > 0 ? Math.round((totalScore / maxTotalScore) * 10) : 0;
+      setCorrectCount(correct);
+      setScore(calculatedScore);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error in doSubmit:", error);
+      Alert.alert(t("error"), t("submissionFailed"));
+    }
   };
 
   const handleSubmit = () => {
@@ -181,16 +195,29 @@ export default function AssessmentScreen({ navigation, route }) {
           },
           {
             text: t("submit"),
-            onPress: doSubmit, // Gọi hàm doSubmit để nộp bài
+            onPress: () => {
+              console.log("Submit pressed in Alert");
+              doSubmit();
+            },
           },
         ]
       );
       return;
     }
-
+    console.log("No unanswered questions, calling doSubmit");
     // Nếu không có câu hỏi chưa trả lời, nộp bài ngay
     doSubmit();
   };
+  const handleLanguageChange = (lang) => {
+    i18n.changeLanguage(lang);
+    dispatch(updatePupilProfile({ id: pupilId, data: { language: lang } }));
+    setShowLanguageDropdown(false);
+  }
+  const handleOutsidePress = () => {
+    if (showLanguageDropdown) {
+      setShowLanguageDropdown(false);
+    }
+  }
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -254,10 +281,13 @@ export default function AssessmentScreen({ navigation, route }) {
       textAlign: "center",
     },
     questionImage: {
-      width: 150,
+      width: 200,
       height: 150,
       marginBottom: 10,
       alignSelf: "center",
+      resizeMode: "contain",
+      maxWidth: "100%",
+      flexShrink: 1,
     },
     optionsContainer: {
       flexDirection: "column",
@@ -273,8 +303,9 @@ export default function AssessmentScreen({ navigation, route }) {
       width: 140,
       minHeight: 50,
       padding: 10,
-      borderRadius: 10,
+      dumplings: 10,
       elevation: 3,
+      borderRadius:10,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.colors.optionAnswerBackground,
@@ -335,6 +366,43 @@ export default function AssessmentScreen({ navigation, route }) {
       color: theme.colors.white,
       fontSize: 16,
     },
+    languageContainer: {
+      position: "absolute",
+      right: 10,
+      backgroundColor: theme.colors.backBackgound,
+      marginRight: 20,
+      padding: 8,
+      borderRadius: 50,
+    },
+    languageDropdown: {
+      position: "absolute",
+      top: 90,
+      right: 20,
+      backgroundColor: theme.colors.white,
+      borderRadius: 10,
+      width: 100,
+      padding: 10,
+      elevation: 5,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      zIndex: 999,
+    },
+    languageOption: {
+      paddingVertical: 10,
+      width: "100%",
+      alignItems: "center",
+    },
+    languageOptionText: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: theme.colors.black,
+    },
+    languageIcon: {
+      width: 24,
+      height: 24,
+    },
     errorText: {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.red,
@@ -349,158 +417,188 @@ export default function AssessmentScreen({ navigation, route }) {
       marginTop: 20,
     },
   });
-
-  if (assessmentLoading) return <Text>Loading...</Text>;
-  if (assessmentError) {
-    const errorText =
-      typeof assessmentError === "object"
-        ? assessmentError[i18n.language] || assessmentError.en || "Unknown error"
-        : assessmentError;
-
-    return <Text>Error: {errorText}</Text>;
-  }
-
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
-      <LinearGradient
-        colors={theme.colors.gradientBluePrimary}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          style={styles.backContainer}
-          onPress={() => navigation.goBack()}
-        >
-          <Image
-            source={theme.icons.back}
-            style={styles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <Text
-          style={styles.title}
-          numberOfLines={2}
-          adjustsFontSizeToFit
-          minimumFontScale={0.5}
-        >
-          {t("assessment")}
+      {assessmentLoading ? (
+        <Text style={styles.loadingText}>{t("loading")}</Text>
+      ) : assessmentError ? (
+        <Text style={styles.errorText}>
+          {t("error")}:{" "}
+          {typeof assessmentError === "object"
+            ? assessmentError[i18n.language] || "Unknown error"
+            : assessmentError}
         </Text>
-      </LinearGradient>
-
-      <View style={styles.leftText}>
-        <Text style={styles.text}>{t("grade")}: {grade}</Text>
-        <Text style={styles.text}>
-          {t("answered")}: {Object.keys(selectedOptions).length}/{questions.length}
-        </Text>
-        <ProgressBar
-          progress={Object.keys(selectedOptions).length / questions.length}
-          color={theme.colors.green}
-          style={styles.ProgressBar}
-        />
-      </View>
-
-      <FlatList
-        data={questions}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        renderItem={({ item, index }) => {
-          const alphabet = ["A", "B", "C", "D"];
-          return (
-            <View style={styles.questionCard}>
-              <Text style={styles.subjectText}>
-                {t("question")} {index + 1}: {item.question}
-              </Text>
-              {item.image && (
-                <Image
-                  source={item.image}
-                  style={styles.questionImage}
-                  resizeMode="contain"
-                />
-              )}
-              <View style={styles.optionsContainer}>
-                <View style={styles.optionsRow}>
-                  {item.options.slice(0, 2).map((opt, idx) => {
-                    const isSelected = selectedOptions[item.id] === idx;
-                    return (
-                      <TouchableOpacity
-                        key={idx}
-                        onPress={() => handleSelectOption(item.id, idx)}
-                        style={[
-                          styles.optionButton,
-                          isSelected && styles.selectedOption,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.optionText,
-                            isSelected && styles.selectedOptionText,
-                          ]}
-                        >
-                          {alphabet[idx]}. {opt}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-                <View style={styles.optionsRow}>
-                  {item.options.slice(2, 4).map((opt, idx) => {
-                    const isSelected = selectedOptions[item.id] === (idx + 2);
-                    return (
-                      <TouchableOpacity
-                        key={idx + 2}
-                        onPress={() => handleSelectOption(item.id, idx + 2)}
-                        style={[
-                          styles.optionButton,
-                          isSelected && styles.selectedOption,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.optionText,
-                            isSelected && styles.selectedOptionText,
-                          ]}
-                        >
-                          {alphabet[idx + 2]}. {opt}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            </View>
-          );
-        }}
-      />
-
-      <TouchableOpacity onPress={handleSubmit}>
-        <LinearGradient
-          style={styles.submitButton}
-          colors={theme.colors.gradientBlue}
-        >
-          <Text style={styles.submitText}>{t("submit")}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-
-      <Modal visible={showModal} transparent animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {t("yourScore")}: {score}/10
-            </Text>
-            <Text style={styles.modalMessage}>
-              {t("correctAnswers")}: {correctCount} / {questions.length}
+      ) : (
+        <>
+          <LinearGradient
+            colors={theme.colors.gradientBluePrimary}
+            style={styles.header}
+          >
+            <TouchableOpacity
+              style={styles.backContainer}
+              onPress={() => navigation.goBack()}
+            >
+              <Image
+                source={theme.icons.back}
+                style={styles.backIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <Text
+              style={styles.title}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
+              {t("assessment")}
             </Text>
             <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => {
-                setShowModal(false);
-                navigation.goBack();
-              }}
+              ref={languageButtonRef}
+              style={styles.languageContainer}
+              onPress={() => setShowLanguageDropdown(!showLanguageDropdown)}
             >
-              <Text style={styles.modalButtonText}>{t("ok")}</Text>
+              <Image source={i18n.language === "en" ? theme.icons.languageEnglish : theme.icons.languageVietnamese}
+                style={styles.languageIcon}
+                resizeMode="contain" />
             </TouchableOpacity>
+          </LinearGradient>
+
+
+          {showLanguageDropdown && (
+            <View style={styles.languageDropdown}>
+              <TouchableOpacity
+                style={styles.languageOption}
+                onPress={() => handleLanguageChange("en")}
+              >
+                <Text style={styles.languageOptionText}>English</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.languageOption}
+                onPress={() => handleLanguageChange("vi")}
+              >
+                <Text style={styles.languageOptionText}>Tiếng Việt</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.leftText}>
+            <Text style={styles.text}>{t("grade")}: {grade}</Text>
+            <Text style={styles.text}>
+              {t("answered")}: {Object.keys(selectedOptions).length}/{questions.length}
+            </Text>
+            <ProgressBar
+              progress={Object.keys(selectedOptions).length / questions.length}
+              color={theme.colors.green}
+              style={styles.ProgressBar}
+            />
           </View>
-        </View>
-      </Modal>
+
+          <FlatList
+            ref={flatListRef}
+            data={questions}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            renderItem={({ item, index }) => {
+              const alphabet = ["A", "B", "C", "D"];
+              return (
+                <View style={styles.questionCard}>
+                  <Text style={styles.subjectText}>
+                    {t("question")} {index + 1}: {item.question}
+                  </Text>
+                  {item.image && (
+                    <Image
+                      source={item.image}
+                      style={styles.questionImage}
+                      resizeMode="contain"
+                    />
+                  )}
+                  <View style={styles.optionsContainer}>
+                    <View style={styles.optionsRow}>
+                      {item.options.slice(0, 2).map((opt, idx) => {
+                        const isSelected = selectedOptions[item.id] === idx;
+                        return (
+                          <TouchableOpacity
+                            key={idx}
+                            onPress={() => handleSelectOption(item.id, idx)}
+                            style={[
+                              styles.optionButton,
+                              isSelected && styles.selectedOption,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.optionText,
+                                isSelected && styles.selectedOptionText,
+                              ]}
+                            >
+                              {alphabet[idx]}. {opt}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                    <View style={styles.optionsRow}>
+                      {item.options.slice(2, 4).map((opt, idx) => {
+                        const isSelected = selectedOptions[item.id] === (idx + 2);
+                        return (
+                          <TouchableOpacity
+                            key={idx + 2}
+                            onPress={() => handleSelectOption(item.id, idx + 2)}
+                            style={[
+                              styles.optionButton,
+                              isSelected && styles.selectedOption,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.optionText,
+                                isSelected && styles.selectedOptionText,
+                              ]}
+                            >
+                              {alphabet[idx + 2]}. {opt}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                </View>
+              );
+            }}
+          />
+
+          <TouchableOpacity onPress={handleSubmit}>
+            <LinearGradient
+              style={styles.submitButton}
+              colors={theme.colors.gradientBlue}
+            >
+              <Text style={styles.submitText}>{t("submit")}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <Modal visible={showModal} transparent animationType="slide">
+            <View style={styles.modalBackground}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>
+                  {t("yourScore")}: {score}/10
+                </Text>
+                <Text style={styles.modalMessage}>
+                  {t("correctAnswers")}: {correctCount} / {questions.length}
+                </Text>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => {
+                    setShowModal(false);
+                    navigation.goBack();
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>{t("ok")}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </>
+      )}
     </LinearGradient>
   );
 }

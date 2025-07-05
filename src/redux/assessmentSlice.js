@@ -26,6 +26,19 @@ export const updateIsBlock = createAsyncThunk(
         }
     }
 );
+export const unlockPreviousGradeLesson = createAsyncThunk(
+    "completedLesson/unBlockByGrade",
+    async ({ pupilId }, { rejectWithValue }) => {
+        try {
+            const res = await Api.patch(
+                `/completedlesson/unBlockByGrade/${pupilId}`
+            );
+            return res.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+);
 const assessmentsSlice = createSlice({
     name: "assessment",
     initialState: {
@@ -60,6 +73,18 @@ const assessmentsSlice = createSlice({
                 state.message = action.payload.message;
             })
             .addCase(updateIsBlock.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(unlockPreviousGradeLesson.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(unlockPreviousGradeLesson.fulfilled, (state, action) => {
+                state.loading = false;
+                state.message = action.payload.message;
+            })
+            .addCase(unlockPreviousGradeLesson.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

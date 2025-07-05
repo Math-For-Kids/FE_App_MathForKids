@@ -27,12 +27,23 @@ export const getLevelById = createAsyncThunk(
     }
   }
 );
-
+export const countLevelIdsInLesson = createAsyncThunk(
+  "level/countLevelIdsInLesson",
+  async ({ lessonId, levelIds }, { rejectWithValue }) => {
+    try {
+      const res = await Api.post(`/exercise/countLevelIdsInLesson/${lessonId}`, { levelIds });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const levelSlice = createSlice({
   name: "level",
   initialState: {
     levels: [],
     detail: null,
+    levelIdCounts: null,
     loading: false,
     error: null,
   },
@@ -60,6 +71,18 @@ const levelSlice = createSlice({
         state.detail = action.payload;
       })
       .addCase(getLevelById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(countLevelIdsInLesson.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(countLevelIdsInLesson.fulfilled, (state, action) => {
+        state.loading = false;
+        state.levelIdCounts = action.payload.data; // Lưu kết quả từ API
+      })
+      .addCase(countLevelIdsInLesson.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
