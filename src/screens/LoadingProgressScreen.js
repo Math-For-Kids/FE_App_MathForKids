@@ -15,8 +15,6 @@ export default function LoadingProgressScreen({ navigation }) {
   const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
   const { t, i18n } = useTranslation("loading");
-
-
   const user = useSelector((state) => state.auth.user);
   const role = user?.role;
   const token = user?.token;
