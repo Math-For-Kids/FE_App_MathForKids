@@ -37,7 +37,7 @@ export const getRewardById = createAsyncThunk(
 const rewardSlice = createSlice({
   name: "reward",
   initialState: {
-    list: [], // Lưu danh sách phần thưởng
+    rewards: [], // Lưu danh sách phần thưởng
     selectedReward: null, // Lưu phần thưởng được lấy theo ID
     loading: false,
     error: null,
@@ -52,7 +52,7 @@ const rewardSlice = createSlice({
       })
       .addCase(getRewardByDisabledStatus.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload || [];
+        state.rewards = action.payload || [];
         console.log(
           "getRewardByDisabledStatus: Fulfilled with data:",
           action.payload

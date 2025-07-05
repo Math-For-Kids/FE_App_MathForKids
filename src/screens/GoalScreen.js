@@ -17,7 +17,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import FloatingMenu from "../components/FloatingMenu";
 import { getAllPupils, pupilById, pupilByUserId } from "../redux/pupilSlice";
 import { getLessonsByGradeAndType } from "../redux/lessonSlice";
-import { getEnabledRewards } from "../redux/rewardSlice";
+import { getRewardByDisabledStatus } from "../redux/rewardSlice";
 import { createGoal } from "../redux/goalSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
@@ -50,19 +50,18 @@ export default function GoalScreen() {
   const { t, i18n } = useTranslation("goal");
   // console.log("userId", user.id);
   useEffect(() => {
-    dispatch(getEnabledRewards());
+    dispatch(getRewardByDisabledStatus());
     dispatch(pupilByUserId(user?.id));
   }, [dispatch, user?.id]);
-  // console.log("rewards", rewards);
-  // console.log("pupils", pupils);
+
   useEffect(() => {
     const selectedPupil = pupils.find((p) => p.id === selectedAccount);
-    // console.log("selectedPupil", selectedPupil);
     if (selectedPupil && skillType) {
       dispatch(
         getLessonsByGradeAndType({
-          grade: selectedPupil.grade,
+          grade: parseInt(selectedPupil.grade),
           type: skillType.toLowerCase(),
+          pupilId: selectedPupil.id,
         })
       );
     }
@@ -549,8 +548,8 @@ export default function GoalScreen() {
 
       {showLessonModal &&
         renderOptionModal(
-          "Select Lesson",
-          lessons.map((l) => ({
+          t("selectLesson"),
+          (Array.isArray(lessons) ? lessons : []).map((l) => ({
             label: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
             value: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
           })),
@@ -561,9 +560,9 @@ export default function GoalScreen() {
       {showExerciseModal &&
         renderOptionModal(
           t("selectExercise"),
-          lessons.map((l) => ({
-            label: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
-            value: l.name?.[i18n.language] || l.name?.en || "Unnamed Lesson",
+          (Array.isArray(lessons) ? lessons : []).map((l) => ({
+            label: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
+            value: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
           })),
           setExercise,
           () => setShowExerciseModal(false)

@@ -26,8 +26,8 @@
   },
   "multiplication": {
     "step_intro": "Bước {{step}}: Nhân chữ số hàng {{label}} của số nhân với số bị nhân từ phải sang trái.",
-    "step_zero_rule": "Mỗi lần nhân thì kết quả phải lùi sang phải một ô!",
-    "step_detail_with_carry": "{{d2}} × {{d1}} = {{product}} → ghi {{digitCarry}}, nhớ {{carryNow}}",
+    "step_zero_rule": "Mỗi lần nhân thì kết quả phải dịch sang trái một ô!",
+    "step_detail_with_carry": "{{d2}} × {{d1}} = {{product}}",
     "step_detail_with_next": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}, nhớ {{nextCarry}}",
     "step_detail_no_carry": "{{d2}} × {{d1}} = {{product}} → ghi {{digit}}",
     "remember": ", nhớ {{nextCarry}}",
@@ -40,14 +40,22 @@
     "partial": "Dòng nhân",
     "step_multiply_only": "{{d1}} × {{d2}} = {{product}}",
     "step_digit_carry": "Buoc chung",
-    "shift_zero": "Vì đây là hàng {{label}}, ta thêm một chữ số 0 vào cuối kết quả.",
+    "shift_zero": "Vì đây là cột {{label}} (chữ số {{digit}} của dòng thứ {{rowFromBottom}} tính từ phải sang trái), ta thêm {{zeros}} chữ số 0 vào cuối kết quả.",
     "step_detail_mul": "{{d2}} × {{d1}} = {{mul}}",
     "step_detail_carry": "{{mul}} + nhớ {{carry}} = {{product}} → ghi {{digit}}, nhớ {{nextCarry}}",
     "step_detail_final_digit": "{{d1}} × {{d2}} = {{product}} → viết đầy đủ {{product}}",
     "step_detail_final": "Vì đây là chữ số cuối cùng trong hàng nhân, nên ta ghi luôn kết quả: {{d1}} × {{d2}} = {{product}}",
     "step_carry_final_add": "Sau đó cộng thêm số nhớ từ bước trước: {{product}} + {{carry}} = {{sum}} → ghi {{nextDigit}} và nhớ {{nextCarry}}",
     "step_carry_final_add_last": "{{product}} cộng với nhớ {{carry}} bằng {{sum}} → ghi {{sum}}, không cần nhớ nữa vì đây là số cuối cùng của lượt nhân {{d2}} x {{str1}}.",
-    "reveal_digit": "Kết quả: {{product}}"
+    "reveal_digit": "Kết quả: {{product}}",
+    "number_text": {
+      "0": "không",
+      "1": "một",
+      "2": "hai",
+      "3": "ba",
+      "4": "bốn",
+      "5": "năm"
+    }
   },
   "place": {
     "units": "Đơn vị",
@@ -106,5 +114,6 @@
   "comparison.greater_equal": "lớn hơn hoặc bằng",
   "explanation.less": "chưa chia được. Ta lấy thêm số phía sau.",
   "explanation.greater_equal": "chia được. Ta bắt đầu chia.",
-  "step_bring_down_after_subtract": "Bước {{step}}: Sau khi trừ còn {{remainder}}. Hạ {{nextDigit}} xuống, ta được {{afterBringDown}} để tiếp tục chia."
+  "step_bring_down_after_subtract": "Bước {{step}}: Sau khi trừ còn {{remainder}}. Hạ {{nextDigit}} xuống, ta được {{afterBringDown}} để tiếp tục chia.",
+  "result_with_remainder": "{{quotient}} dư {{remainder}}"
 }

@@ -11,12 +11,16 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
+import * as Speech from "expo-speech";
+
 export default function PracticeMultiplicationTableScreen({
   navigation,
   route,
 }) {
   const { theme } = useTheme();
-  const { table, title, skillName } = route.params;
+  const { t, i18n } = useTranslation("multiplicationtable");
+  const { table, title } = route.params;
 
   const [multiplier, setMultiplier] = useState(1);
   const [userAnswer, setUserAnswer] = useState("");
@@ -27,14 +31,24 @@ export default function PracticeMultiplicationTableScreen({
 
   const [answers, setAnswers] = useState({});
   const [questions, setQuestions] = useState([]);
-  const operator = "×";
-  const expression = `${left} ${operator} ${right} = ${result}`;
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
+  const skillName = "Multiplication";
+  const operator = "×";
 
   useEffect(() => {
     generateProblem();
   }, [multiplier]);
+  useEffect(() => {
+    const textToSpeak =
+      i18n.language === "vi"
+        ? "Điền số thích hợp vào ô"
+        : "Select the appropriate number in the box";
+    Speech.stop();
+    Speech.speak(textToSpeak, {
+      language: i18n.language === "vi" ? "vi-VN" : "en-US",
+    });
+  }, []);
 
   const generateProblem = () => {
     const randRight = Math.floor(Math.random() * 9) + 1;
@@ -55,9 +69,7 @@ export default function PracticeMultiplicationTableScreen({
     const userAnsNum = parseInt(userAnswer);
     const isCorrect = userAnsNum === correctAnswer;
 
-    const operator = "×";
     const expression = `${left} ${operator} ${right} = ${result}`;
-
     const questionId = Date.now();
 
     const questionObj = {
@@ -120,6 +132,7 @@ export default function PracticeMultiplicationTableScreen({
       </View>
     );
   };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -144,10 +157,6 @@ export default function PracticeMultiplicationTableScreen({
       marginLeft: 20,
       padding: 8,
       borderRadius: 50,
-    },
-    backIcon: {
-      width: 24,
-      height: 24,
     },
     headerText: {
       fontSize: 18,
@@ -230,6 +239,7 @@ export default function PracticeMultiplicationTableScreen({
       color: theme.colors.white,
     },
   });
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={theme.colors.gradientPink} style={styles.header}>
@@ -256,7 +266,7 @@ export default function PracticeMultiplicationTableScreen({
           </LinearGradient>
         </TouchableOpacity>
         <Text style={styles.infoText}>
-          Select the appropriate number in the box
+          {t("selectNumberInBox", "Select the appropriate number in the box")}
         </Text>
       </View>
       <View style={styles.equationRow}>
@@ -275,7 +285,7 @@ export default function PracticeMultiplicationTableScreen({
           style={styles.nextButton}
         >
           <Text style={styles.nextText}>
-            {multiplier === 9 ? "Submit" : "Next"}
+            {multiplier === 9 ? t("submit", "Submit") : t("next", "Next")}
           </Text>
         </LinearGradient>
       </TouchableOpacity>

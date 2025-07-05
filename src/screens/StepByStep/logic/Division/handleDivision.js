@@ -1,4 +1,4 @@
-export const handleDivision = (n1, n2, steps, setRemember) => {
+export const handleDivision = (n1, n2, steps, setRemember, t) => {
   if (n2 === 0) {
     steps[3].result = "Cannot divide";
     steps[2].subText = "Cannot divide by 0.";
@@ -257,8 +257,11 @@ export const handleDivision = (n1, n2, steps, setRemember) => {
   steps[2].divisionSteps = stepsDisplay;
   steps[2].subSteps = subSteps;
   steps[2].subText = "Step-by-step division (long division)";
-  steps[3].result = `${finalQuotient} remainder ${remainder}`;
-  steps[3].subText = `Final result: ${finalQuotient} remainder ${remainder}`;
+  steps[3].result = `${finalQuotient} dư ${remainder}`;
+  steps[3].result = t("result_with_remainder", {
+    quotient: finalQuotient,
+    remainder: remainder,
+  });
 
   setRemember(remainder > 0 ? `Remainder ${remainder}` : "");
 };

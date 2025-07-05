@@ -38,6 +38,8 @@ import viSkill from "./locales/vi/skill.json";
 import enSkill from "./locales/en/skill.json";
 import viTest from "./locales/vi/test.json";
 import enTest from "./locales/en/test.json";
+import viMultiplicationTable from "./locales/vi/multiplicationtable.json";
+import enMultiplicationTable from "./locales/en/multiplicationtable.json";
 import viLoading from "./locales/vi/loading.json";
 import enLoading from "./locales/en/loading.json";
 import viAssessment from "./locales/vi/assessment.json";
@@ -66,9 +68,9 @@ i18n.use(initReactI18next).init({
       sidebar: enSideBar,
       skill: enSkill,
       test: enTest,
+      multiplicationtable: enMultiplicationTable,
       loading: enLoading,
       assessment: enAssessment,
-
     },
     vi: {
       setting: vi,
@@ -89,12 +91,11 @@ i18n.use(initReactI18next).init({
       sidebar: viSideBar,
       skill: viSkill,
       test: viTest,
+      multiplicationtable: viMultiplicationTable,
       loading: viLoading,
       assessment: viAssessment,
-
     },
   },
-
   interpolation: { escapeValue: false },
 });
 

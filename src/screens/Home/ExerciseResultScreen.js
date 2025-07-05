@@ -17,14 +17,8 @@ import { useTranslation } from "react-i18next";
 
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const {
-    answers,
-    questions,
-    score,
-    correctCount,
-    wrongCount,
-    skillName,
-  } = route.params;
+  const { answers, questions, score, correctCount, wrongCount, skillName } =
+    route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");
@@ -112,7 +106,10 @@ export default function ExerciseResultScreen({ navigation, route }) {
     }
     match = answerText.match(/(\d+)\s*và\s+(\d+)/i);
     if (match) {
-      console.log("Extracted number:", { number1: match[1], number2: match[2] });
+      console.log("Extracted number:", {
+        number1: match[1],
+        number2: match[2],
+      });
       return { number1: match[1], number2: match[2] };
     }
     console.warn("No numbers found in answerText:", answerText);
