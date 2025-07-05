@@ -20,16 +20,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { getRandomTests, createTest, createMultipleTestQuestions } from "../../redux/testSlice";
 import { updatePupilProfile, pupilById } from "../../redux/profileSlice";
 import { completeAndUnlockNextLesson } from "../../redux/completedLessonSlice";
+import { getEnabledLevels } from "../../redux/levelSlice";
 import { Svg, Circle } from "react-native-svg";
 
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
   const { skillName, lessonId, pupilId } = route.params;
-
   const dispatch = useDispatch();
-  const { tests, loading, error, createdTest } = useSelector((state) => state.test);
+  const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
+  const { levels } = useSelector((state) => state.level);
   const windowWidth = Dimensions.get("window").width;
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const bearPosition = useRef(new Animated.Value(20)).current;
@@ -40,6 +41,10 @@ export default function TestScreen({ navigation, route }) {
   const [userAnswers, setUserAnswers] = useState({});
   const [shuffledOptions, setShuffledOptions] = useState({});
   const [showResultModal, setShowResultModal] = useState(false);
+  const [nextLessonName, setNextLessonName] = useState(null);
+  const [finalScore, setFinalScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [wrongCount, setWrongCount] = useState(0);
 
   const currentQ = tests[currentQuestion - 1];
   const totalQuestions = tests.length;
@@ -58,19 +63,16 @@ export default function TestScreen({ navigation, route }) {
   // Consolidated timer logic
   useEffect(() => {
     if (!tests.length) return;
-
     // Calculate initial time based on number of questions
     let newTime = 10; // Default 10 minutes
     if (tests.length > 10 && tests.length <= 20) {
-      newTime = 20;
+      newTime = 25;
     } else if (tests.length > 20 && tests.length <= 30) {
-      newTime = 30;
+      newTime = 35;
     }
     const totalSeconds = newTime * 60;
-
     // Initialize timer
     setTimer(totalSeconds);
-
     // Start timer
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
@@ -91,6 +93,7 @@ export default function TestScreen({ navigation, route }) {
 
   useEffect(() => {
     dispatch(getRandomTests({ lessonId }));
+    dispatch(getEnabledLevels());
     dispatch(updatePupilProfile({ id: pupilId }));
     if (pupilId) {
       dispatch(pupilById(pupilId));
@@ -159,12 +162,33 @@ export default function TestScreen({ navigation, route }) {
   };
 
   const calculateScore = () => {
-    if (!tests.length) return 0;
-    const correctCount = tests.filter(
-      (q) => userAnswers[q.id] === q.answer
-    ).length;
-    const rawScore = (correctCount / tests.length) * 10;
-    return Math.round(rawScore);
+    if (!tests.length) {
+      console.log("No tests available");
+      return { score: 0, correct: 0, wrong: 0 };
+    }
+    let rawScore = 0;
+    let maxScore = 0;
+    let correct = 0;
+    let wrong = 0;
+
+    tests.forEach((q) => {
+      const questionLevelObj = levels.find(
+        (level) => String(level.id) === String(q.levelId || q.level)
+      );
+      const questionLevel = questionLevelObj ? questionLevelObj.level : 1;
+      maxScore += questionLevel;
+
+      if (userAnswers[q.id] !== undefined && userAnswers[q.id] === q.answer) {
+        rawScore += questionLevel;
+        correct++;
+      } else if (userAnswers[q.id] !== undefined) {
+        wrong++;
+      }
+    });
+
+    const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
+    console.log("Calculate Results - Raw Score:", rawScore, "Max Score:", maxScore, "Correct:", correct, "Wrong:", wrong, "Score:", Math.round(score));
+    return { score: Math.round(score), correct, wrong };
   };
 
   const calculateBonusPoint = (score) => {
@@ -176,11 +200,13 @@ export default function TestScreen({ navigation, route }) {
 
   const handleSubmit = async () => {
     const answeredCount = Object.keys(userAnswers).length;
-    const totalTime = (tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60;
-    const usedTime = totalTime - timer;
+    const totalTime = (tests.length > 20 ? 35 : tests.length > 10 ? 25 : 10) * 60;
     clearInterval(timerRef.current);
 
-    const score = calculateScore();
+    const { score, correct, wrong } = calculateScore();
+    setFinalScore(score);
+    setCorrectCount(correct);
+    setWrongCount(wrong);
     const bonus = calculateBonusPoint(score);
     const currentPoint = pupil?.point || 0;
     const newPoint = currentPoint + bonus;
@@ -188,6 +214,9 @@ export default function TestScreen({ navigation, route }) {
     const doSubmit = async () => {
       try {
         // Create test
+        const usedTime = totalTime - timer; // This is the remaining time, so invert it
+      const actualElapsedTime = Math.max(0, usedTime); // Ensure non-negative
+      setElapsedTime(actualElapsedTime);
         const testPayload = {
           pupilId,
           lessonId,
@@ -196,7 +225,6 @@ export default function TestScreen({ navigation, route }) {
         };
 
         const testResult = await dispatch(createTest(testPayload)).unwrap();
-        console.log("ohuc", testResult?.message?.id);
         const testId = testResult?.message?.id;
 
         if (testId) {
@@ -205,17 +233,15 @@ export default function TestScreen({ navigation, route }) {
             testId,
             exerciseId: question.id,
             levelId: question.levelId || question.level,
-            question: question.question?.[i18n.language] || question.question,
+            question: question.question?.[i18n.language],
             image: question.image || null,
             option: question.option || [],
             correctAnswer: question.answer,
             selectedAnswer: userAnswers[question.id] || null,
           }));
-
           // Create all test questions in one request
           await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
         }
-
         setElapsedTime(usedTime);
         setShowResultModal(true);
 
@@ -224,8 +250,12 @@ export default function TestScreen({ navigation, route }) {
             updatePupilProfile({ id: pupilId, data: { point: newPoint } })
           );
         }
-
-        dispatch(completeAndUnlockNextLesson({ pupilId, lessonId }));
+        if (score >= 9) {
+          const unlockResult = await dispatch(completeAndUnlockNextLesson({ pupilId, lessonId })).unwrap();
+          setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
+        } else {
+          setNextLessonName(null); // Ensure no next lesson is shown if score < 9
+        }
       } catch (error) {
         Alert.alert(
           t("error"),
@@ -487,6 +517,7 @@ export default function TestScreen({ navigation, route }) {
       height: "50%",
       borderRadius: 10,
       justifyContent: "center",
+      // paddingVertical: 20, // Added padding for better spacing
       elevation: 3,
     },
     modalTitleText: {
@@ -514,6 +545,9 @@ export default function TestScreen({ navigation, route }) {
       fontSize: 20,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
+      flexShrink: 1, // Allows text to shrink
+      flexWrap: "wrap", // Ensures text wraps if too long
+      maxWidth: "60%", // Limits width to prevent overflow
     },
     closeIcon: {
       position: "absolute",
@@ -753,21 +787,19 @@ export default function TestScreen({ navigation, route }) {
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("score")}:</Text>
                 <Text style={styles.modalResultText}>
-                  {calculateScore()}/10
+                  {finalScore}/10
                 </Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("correct")}:</Text>
                 <Text style={styles.modalResultText}>
-                  {tests.filter((q) => userAnswers[q.id] === q.answer).length}
+                  {correctCount}
                 </Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("wrong")}:</Text>
                 <Text style={styles.modalResultText}>
-                  {tests.length -
-                    tests.filter((q) => userAnswers[q.id] === q.answer).length}
-                </Text>
+                  {wrongCount}</Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>Time:</Text>
@@ -775,6 +807,12 @@ export default function TestScreen({ navigation, route }) {
                   {formatTime(elapsedTime)}
                 </Text>
               </View>
+              {nextLessonName && (
+                <View style={styles.modalRow}>
+                  <Text style={styles.modalText}>{t("nextLesson")}:</Text>
+                  <Text style={styles.modalResultText}>{nextLessonName}</Text>
+                </View>
+              )}
             </View>
             <TouchableOpacity
               style={styles.closeIcon}
@@ -784,6 +822,7 @@ export default function TestScreen({ navigation, route }) {
                 setUserAnswers({});
                 setCurrentQuestion(1);
                 setShuffledOptions({});
+                setNextLessonName(null); // Reset next lesson name
               }}
             >
               <Ionicons name="close" size={20} color={theme.colors.white} />

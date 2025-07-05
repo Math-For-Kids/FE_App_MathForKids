@@ -18,6 +18,7 @@ import ownedRewardReducer from "./owned_rewardSlice";
 import completedExerciseReducer from "./completedexerciseSlice";
 import testReducer from "./testSlice";
 import levelReducer from "./levelSlice";
+import assessmentReducer from "./assessmentSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -35,6 +36,8 @@ const rootReducer = combineReducers({
   level: levelReducer,
   completed_exercise: completedExerciseReducer,
   test: testReducer,
+  assessment: assessmentReducer,
+
 
   // thêm các reducer khác nếu cần
 });

@@ -99,7 +99,7 @@ export default function AccountScreen({ navigation }) {
                 setLoading(false);
                 navigation.navigate(
                   res.isAssess ? "HomeScreen" : "TestLevelScreen",
-                  { pupilId: pupil.id }
+                  { pupilId: pupil.id, grade: pupil.grade }
                 );
               })
               .catch((err) => {
@@ -349,8 +349,8 @@ export default function AccountScreen({ navigation }) {
                     pupil?.image
                       ? { uri: pupil?.image }
                       : pupil?.gender === "female"
-                      ? theme.icons.avatarFemale
-                      : theme.icons.avatarMale
+                        ? theme.icons.avatarFemale
+                        : theme.icons.avatarMale
                   }
                   style={styles.avatar}
                 />

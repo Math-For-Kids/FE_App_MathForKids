@@ -9,18 +9,27 @@ export default function StepZeroInput({
   dynamicFontSize,
   getMaxLength,
   styles,
+  routeOperator,
+  autoNumber1,
+  autoNumber2,
 }) {
+  const isLock = !!routeOperator && autoNumber1 !== '' && autoNumber2 !== '';
   return (
     <View style={styles.stepZeroContainer}>
       <View style={styles.operatorRow}>
         {["+", "-", "×", "÷"].map((op) => (
           <TouchableOpacity
             key={op}
-            onPress={() => setOperator(op)}
+            onPress={() => {
+              if (!isLock || op === routeOperator) {
+                setOperator(op);
+              }
+            }}
             style={[
               styles.operatorButton,
               operator === op ? styles.operatorActive : styles.operatorInactive,
             ]}
+            disabled={isLock && op !== routeOperator}
           >
             <Text style={styles.operatorSymbol}>{op}</Text>
           </TouchableOpacity>
@@ -38,6 +47,8 @@ export default function StepZeroInput({
           onChangeText={setNumber1}
           keyboardType="numeric"
           maxLength={getMaxLength(1)}
+          editable={!isLock}
+          selectTextOnFocus={!isLock}
         />
         {number2 === "" && (
           <Text style={[styles.placeholderText, styles.placeholderRight]}>
@@ -50,6 +61,8 @@ export default function StepZeroInput({
           onChangeText={setNumber2}
           keyboardType="numeric"
           maxLength={getMaxLength(2)}
+          editable={!isLock}
+          selectTextOnFocus={!isLock}
         />
       </View>
     </View>

@@ -12,6 +12,10 @@
     "step_normal_with_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, greater than 10, write {{resultDigit}}, and carry {{carry}}.",
     "step_normal_no_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, write {{resultDigit}}, no carry needed.",
     "step_final_carry": "Step {{step}}: All digits have been added, but there's still a carry of {{carry}}, so write it into the next column."
+    "step_normal_with_remember": "Step {{step}}: {{d1}} + {{d2}} + {{carry}} = {{sum}}, write {{resultDigit}}, and carry {{carryOut}}.",
+    "step_normal_with_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, greater than 10, write {{resultDigit}}, and carry {{carry}}.",
+    "step_normal_no_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, write {{resultDigit}}, no carry needed.",
+    "step_final_carry": "Step {{step}}: All digits have been added, but there's still a carry of {{carry}}, so write it into the next column."
   },
   "subtraction": {
     "error_min_lt_sub": "Cannot subtract: the minuend is smaller than the subtrahend.",

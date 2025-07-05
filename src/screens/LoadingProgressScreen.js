@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
 import jwt_decode from "jwt-decode";
 import { useTranslation } from "react-i18next";
+
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import { logout } from "../redux/authSlice";
@@ -14,6 +15,7 @@ export default function LoadingProgressScreen({ navigation }) {
   const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
   const { t, i18n } = useTranslation("loading");
+
 
   const user = useSelector((state) => state.auth.user);
   const role = user?.role;

@@ -11,6 +11,7 @@ export const AdditionStepView = ({
   skillName,
   columnStepIndex,
 }) => {
+  
   const { theme } = useTheme();
   const { i18n } = useTranslation("stepbystep");
 
@@ -65,35 +66,24 @@ export const AdditionStepView = ({
     container: { alignItems: "center" },
     row: { flexDirection: "row-reverse", marginBottom: 4 },
     labelText: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 8,
-      fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.grayDark,
+      width: 50, textAlign: "center", fontSize: 8,
+      fontFamily: Fonts.NUNITO_MEDIUM, color: theme.colors.grayDark,
     },
     carryText: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 14,
+      width: 50, textAlign: "center", fontSize: 14,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
     num1Text: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 24,
+      width: 50, textAlign: "center", fontSize: 24,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
     num2Text: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 24,
+      width: 50, textAlign: "center", fontSize: 24,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
     lineRow: { marginTop: 2 },
     resultText: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 24,
+      width: 50, textAlign: "center", fontSize: 24,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
     explanationText: {

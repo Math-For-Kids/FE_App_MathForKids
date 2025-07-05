@@ -205,6 +205,9 @@ export default function StepByStepScreen({ navigation, route }) {
           getMaxLength={getMaxLength}
           dynamicFontSize={dynamicFontSize}
           styles={styles}
+          routeOperator={routeOperator}
+          autoNumber1={autoNumber1} // Pass autoNumber1
+          autoNumber2={autoNumber2} // Pass autoNumber2
         />
       )}
 

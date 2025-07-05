@@ -220,6 +220,7 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
     divisionCount++;
   }
 
+
   if (!started) {
     stepsDisplay.push({
       part: absN1.toString(),

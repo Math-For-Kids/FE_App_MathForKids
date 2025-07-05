@@ -270,12 +270,8 @@ export default function ExerciseResultScreen({ navigation, route }) {
       </LinearGradient>
 
       <View style={styles.summaryContainer}>
-        <Text style={styles.scoreText}>
-          {t("score")}: {score}
-        </Text>
-        <Text style={styles.correctText}>
-          {t("score")}: {correctCount}
-        </Text>
+        <Text style={styles.scoreText}>{t("score")}: {score}</Text>
+        <Text style={styles.correctText}>{t("score")}: {correctCount}</Text>
         <Text style={styles.wrongText}>
           {t("wrong")} <Text style={styles.wrongNumber}>{wrongCount}</Text>
         </Text>
@@ -294,9 +290,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
               setModalVisible(true);
             }}
           >
-            <Text style={styles.questionText}>
-              {t("question")} {index + 1}
-            </Text>
+            <Text style={styles.questionText}>{t("question")} {index + 1}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -323,8 +317,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
                     `modal-question-${selectedQuestion.id}`
                   )}
                 <Text style={styles.modalAnswerText}>
-                  {t("selectedAnswer")}:{" "}
-                  {answers[selectedQuestion.id] || "None"}
+                  {t("selectedAnswer")}: {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
                   {t("correctAnswer")}:{" "}

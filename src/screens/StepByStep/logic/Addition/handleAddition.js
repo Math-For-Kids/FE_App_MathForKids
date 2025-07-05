@@ -10,16 +10,8 @@ export const handleAddition = (n1, n2, steps, setRemember, t) => {
   let carry = 0;
 
   const labelMap = [
-    "Đơn vị",
-    "Chục",
-    "Trăm",
-    "Nghìn",
-    "Chục nghìn",
-    "Trăm nghìn",
-    "Triệu",
-    "Chục triệu",
-    "Trăm triệu",
-    "Tỷ",
+    "Đơn vị", "Chục", "Trăm", "Nghìn", "Chục nghìn",
+    "Trăm nghìn", "Triệu", "Chục triệu", "Trăm triệu", "Tỷ",
   ];
 
   for (let i = 0; i < digits1.length; i++) {
