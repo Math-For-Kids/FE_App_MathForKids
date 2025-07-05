@@ -55,7 +55,7 @@ export const getStyles = (theme, getBorderBox) =>
     title: {
       fontSize: 18,
       color: theme.colors.black,
-      fontFamily: Fonts.NUNITO_MEDIUM,
+      fontWeight: 600,
       marginBottom: 10,
       width: "80%",
     },
@@ -133,7 +133,7 @@ export const getStyles = (theme, getBorderBox) =>
     },
     resultText: {
       fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.redTomato,
+      color: getBorderBox(),
       fontSize: 80,
       textAlign: "right",
     },
@@ -156,7 +156,7 @@ export const getStyles = (theme, getBorderBox) =>
     nextText: {
       color: theme.colors.white,
       fontSize: 18,
-      fontFamily: Fonts.NUNITO_MEDIUM,
+      fontFamily: Fonts.NUNITO_BOLD,
       textAlign: "center",
     },
     backStepContainer: {
@@ -200,7 +200,7 @@ export const getStyles = (theme, getBorderBox) =>
     },
     operatorActive: { backgroundColor: getBorderBox() },
     operatorInactive: { backgroundColor: theme.colors.grayMedium },
-    operatorSymbol: { fontSize: 100, color: theme.colors.white },
+    operatorSymbol: { fontSize: 100, color: theme.colors.highlightText },
     scrollContainer: { flexGrow: 1, paddingBottom: 40 },
     calText: {
       fontFamily: Fonts.NUNITO_MEDIUM,

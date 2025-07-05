@@ -2,7 +2,9 @@ import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../../themes/ThemeContext";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
+import { Fonts } from "../../../../constants/Fonts";
 import * as Speech from "expo-speech";
+
 export const DivisionStepView = ({ steps, columnStepIndex }) => {
   const { theme } = useTheme?.() || {
     theme: { text: "#000", background: "#fff" },
@@ -12,8 +14,6 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
   };
 
   const subSteps = steps[2]?.subSteps || [];
-  const divisionSteps = steps[2]?.divisionSteps || [];
-
   const dividend = steps[2]?.dividend ?? "";
   const divisor = steps[2]?.divisor ?? "";
   const quotient = steps[2]?.quotient ?? "";
@@ -22,6 +22,21 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
   const currentStep = columnStepIndex ?? 0;
   const step = subSteps[currentStep];
 
+
+  const divideStepIndices = subSteps
+    .map((s, i) => (s.key === "step_divide" ? i : null))
+    .filter((i) => i !== null);
+
+  const currentDivideIndex = divideStepIndices.findIndex(
+    (i) => i === currentStep
+  );
+
+  const divideStepsDone = subSteps.filter(
+    (s, i) => s.key === "step_divide" && i <= currentStep
+  ).length;
+
+  const indentSpacing = 15;
+
   const renderExplanation = (step) => {
     if (!step) return null;
     const product =
@@ -29,6 +44,17 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
       (step.params?.result != null && step.params?.divisor != null
         ? step.params.result * step.params.divisor
         : undefined);
+
+    if (
+      step.key === "step_bring_down" &&
+      step.params?.explanationKey === "after_subtract"
+    ) {
+      return t("step_bring_down_after_subtract", {
+        ...step.params,
+        product,
+        remainder: step.params.remainder,
+      });
+    }
 
     if (step.key === "step_choose_number" && step.params?.comparisonKey) {
       const explanation = t(`explanation.${step.params.comparisonKey}`);
@@ -39,38 +65,45 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
         product,
       });
     }
+
     return t(step.key, { ...step.params, product });
   };
 
-  const renderMaskedValue = (value, maxVisibleDigits) => {
+  const renderMaskedValue = (
+    value,
+    maxVisibleDigits,
+    currentQuotientIndex
+  ) => {
     return value
       .toString()
       .split("")
-      .map((char, i) => (
-        <Text key={i} style={{ color: i < maxVisibleDigits ? "#000" : "#ccc" }}>
-          {i < maxVisibleDigits ? char : "?"}
-        </Text>
-      ));
+      .map((char, i) => {
+        let color = "#ccc";
+        if (i < maxVisibleDigits) color = "#000";
+        if (i === currentQuotientIndex) color = "#FD8550";
+
+        return (
+          <Text key={i} style={{ color }}>
+            {i < maxVisibleDigits ? char : "?"}
+          </Text>
+        );
+      });
   };
-  const divideStepsDone = subSteps.filter(
-    (s, i) => s.key === "step_divide" && i <= currentStep
-  ).length;
-  const indentSpacing = 15;
-  const charWidth = 14;
+
   useEffect(() => {
     const step = subSteps[columnStepIndex];
     const text = renderExplanation(step, t);
     if (!text) return;
     const lang = i18n.language;
-    const spokenText = text;
-    Speech.speak(spokenText, {
+    Speech.speak(text, {
       language: lang === "vi" ? "vi-VN" : "en-US",
     });
   }, [columnStepIndex]);
+
   return (
     <View style={styles.container}>
       <View style={styles.stepContainer}>
-        <Text style={styles.stepText}>{renderExplanation(step)}</Text>
+<Text style={styles.stepText}>{renderExplanation(step)}</Text>
       </View>
 
       <View style={styles.divisionBox}>
@@ -78,7 +111,7 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
         <View
           style={[
             styles.leftBox,
-            { marginLeft: 110 + baseIndentOffset * indentSpacing },
+            { marginLeft: 100 + baseIndentOffset * indentSpacing },
           ]}
         >
           <Text style={styles.dividend}>{dividend}</Text>
@@ -113,8 +146,8 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
                         color: isCurrent
                           ? "#FD8550"
                           : isVisible
-                          ? "#000"
-                          : "#ccc",
+                            ? "#000"
+                            : "#ccc",
                         marginLeft: indent * indentSpacing,
                       },
                     ]}
@@ -143,7 +176,6 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
                         backgroundColor: "#000",
                         marginVertical: 2,
                         width: `${(value || "").toString().length * 14}px`,
-                        marginLeft: indent * indentSpacing,
                       }}
                     />
                   )}
@@ -156,20 +188,22 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
         <View style={styles.rightBox}>
           <Text style={styles.divisor}>{divisor}</Text>
           <Text style={styles.quotient}>
-            {renderMaskedValue(quotient, divideStepsDone)}
+            {renderMaskedValue(quotient, divideStepsDone, currentDivideIndex)}
           </Text>
         </View>
       </View>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
-    margin: 10,
+    alignItems: "center",
   },
   divisionBox: {
     flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    paddingLeft: 25,
   },
   leftBox: {
     borderRightWidth: 2,
@@ -181,11 +215,13 @@ const styles = StyleSheet.create({
   },
   dividend: {
     fontSize: 24,
+    fontFamily: Fonts.NUNITO_MEDIUM,
   },
   quotient: {
     fontSize: 24,
     color: "#4CAF50",
     paddingLeft: 15,
+    fontFamily: Fonts.NUNITO_MEDIUM,
   },
   divisor: {
     fontSize: 24,
@@ -193,16 +229,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "#000",
     width: 70,
+    fontFamily: Fonts.NUNITO_MEDIUM,
   },
   lineText: {
     fontSize: 24,
+    fontFamily: Fonts.NUNITO_MEDIUM,
   },
   stepContainer: {
-    minHeight: 80,
-    marginTop: 12,
+    marginBottom: 20,
   },
   stepText: {
-    fontSize: 16,
-    color: "#444",
+    fontSize: 14,
+    fontFamily: Fonts.NUNITO_MEDIUM,
+    color: "#5F5F5F",
+    marginTop: 8,
+    marginHorizontal: 12,
+    textAlign: "center",
   },
 });

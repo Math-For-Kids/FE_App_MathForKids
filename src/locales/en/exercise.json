@@ -16,5 +16,15 @@
   "submitting": "Submitting...",
   "submit": "Submit",
   "confirmSubmission": "Confirm Submission",
-  "confirmSubmissionMessage": "Are you sure you want to submit your answers?"
+  "confirmSubmissionMessage": "Are you sure you want to submit your answers?",
+  "header": "Exercise result",
+  "score": "Score:",
+  "correct": "Correct:",
+  "wrong": "Wrong:",
+  "imageQuestion": "Detail Question",
+  "selectedAnswer": "Selected Answer:",
+  "correctAnswer": "Correct Answer:",
+  "goToStepByStep": "Go to Step by Step",
+  "close": "Close",
+  "invalidImage": "Invalid Image"
 }

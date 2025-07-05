@@ -11,11 +11,11 @@ import * as Speech from "expo-speech";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
 import { getStyles } from "../StepByStep/style/style";
-import StepZeroInput from "../StepByStep/StepView/StepZeroInputView";
-import StepExplanationBox from "../StepByStep/StepView/StepExplanationBox";
-import HorizontalLayout from "../StepByStep/StepView/HorizontalLayout";
-import VerticalLayout from "../StepByStep/StepView/VerticalLayout";
-import ResultBox from "../StepByStep/StepView/ResultBox";
+import StepZeroInput from "./StepView/CommonStepView/StepZeroInputView";
+import StepExplanationBox from "./StepView/CommonStepView/StepExplanationBox";
+import HorizontalLayout from "./StepView/CommonStepView/HorizontalLayout";
+import VerticalLayout from "./StepView/CommonStepView/VerticalLayout";
+import ResultBox from "./StepView/CommonStepView/ResultBox";
 import { handleNext, handleBack } from "../StepByStep/logic/handleNavigation";
 
 export default function StepByStepScreen({ navigation, route }) {
@@ -28,15 +28,13 @@ export default function StepByStepScreen({ navigation, route }) {
   } = route.params || {};
   const skillNameLower = skillName?.toLowerCase();
   const getBorderBox = () => {
-    if (skillName === "Addition") return theme.colors.GreenDark;
-    if (skillName === "Subtraction") return theme.colors.purpleDark;
-    if (skillName === "Multiplication") return theme.colors.orangeDark;
-    if (skillName === "Division") return theme.colors.redDark;
+    if (skillName === "Addition") return theme.colors.GreenBorderDark;
+    if (skillName === "Subtraction") return theme.colors.purpleBorderDark;
+    if (skillName === "Multiplication") return theme.colors.orangeBorderDark;
+    if (skillName === "Division") return theme.colors.redBorderDark;
     return theme.colors.pinkDark;
   };
   const styles = getStyles(theme, getBorderBox);
-  // Chuyển skillName thành chữ thường
-
   const getOperatorFromSkillName = (skill) => {
     switch (skill) {
       case "Addition":
@@ -69,6 +67,7 @@ export default function StepByStepScreen({ navigation, route }) {
   const { t, i18n } = useTranslation("stepbystep");
   const [visibleDigitsMap, setVisibleDigitsMap] = useState({});
   const [visibleCarryMap, setVisibleCarryMap] = useState({});
+  const carryBackupRef = useRef({});
   //nhận params và gán giá trị
   useEffect(() => {
     if (autoNumber1 !== undefined && autoNumber2 !== undefined) {
@@ -354,6 +353,12 @@ export default function StepByStepScreen({ navigation, route }) {
                     setRevealedDigits,
                     setRevealedResultDigits,
                     setCurrentRowIndex,
+                    setVisibleCarryMap,
+                    setVisibleDigitsMap,
+                    setSteps,
+                    operator,
+                    columnStepIndex,
+                    setColumnStepIndex,
                   })
                 }
               >
@@ -379,6 +384,7 @@ export default function StepByStepScreen({ navigation, route }) {
                   setCurrentRowIndex(0);
                   setRevealedDigits(0);
                   setRevealedResultDigits(0);
+                  setColumnStepIndex(0);
                   if (setVisibleCarryMap) setVisibleCarryMap({});
                   if (setVisibleDigitsMap) setVisibleDigitsMap({});
                   if (setRemember) setRemember("");
@@ -426,6 +432,7 @@ export default function StepByStepScreen({ navigation, route }) {
               visibleCarryMap,
               setColumnStepIndex,
               columnStepIndex,
+              carryBackupRef,
             })
           }
         >

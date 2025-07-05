@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
+import * as Speech from "expo-speech";
+
 export default function MultiplicationTableDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { t, i18n } = useTranslation("multiplicationtable");
   const { table, title, skillName } = route.params;
 
   const [currentIndex, setCurrentIndex] = useState(1);
@@ -26,11 +30,28 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
   const multiplicand = table;
   const multiplier = currentIndex;
   const product = multiplicand * multiplier;
+
+  const speak = (text) => {
+    Speech.stop();
+    const lang = i18n.language === "vi" ? "vi" : "en";
+    Speech.speak(text, { language: lang });
+  };
+
   const BoxedText = ({ text }) => (
     <View style={styles.box}>
       <Text style={styles.boxText}>{text}</Text>
     </View>
   );
+  useEffect(() => {
+    let equationText = "";
+    if (i18n.language === "vi") {
+      equationText = `${multiplicand} nhân ${multiplier} bằng ${product}`;
+    } else {
+      equationText = `${multiplicand} times ${multiplier} equals ${product}`;
+    }
+    speak(`${t("memorize")}. ${equationText}`);
+  }, [currentIndex]);
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -159,22 +180,31 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
         </TouchableOpacity>
         <Text style={styles.headerText}>{title}</Text>
       </LinearGradient>
+
+      {/* Memorize Section */}
       <View style={styles.infoRow}>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            let equationText = "";
+            if (i18n.language === "vi") {
+              equationText = `${multiplicand} nhân ${multiplier} bằng ${product}`;
+            } else {
+              equationText = `${multiplicand} times ${multiplier} equals ${product}`;
+            }
+            speak(`${t("memorize")}. ${equationText}`);
+          }}
+        >
           <LinearGradient
             colors={theme.colors.gradientPink}
             style={styles.volumeContainer}
           >
-            <Ionicons
-              name="volume-high"
-              size={30}
-              color={theme.colors.white}
-              styles={styles.volumeIcon}
-            />
+            <Ionicons name="volume-high" size={30} color={theme.colors.white} />
           </LinearGradient>
         </TouchableOpacity>
-        <Text style={styles.infoText}>Memorize</Text>
+        <Text style={styles.infoText}>{t("memorize")}</Text>
       </View>
+
+      {/* Equation */}
       <View style={styles.equationRow}>
         <BoxedText text={multiplicand.toString()} />
         <Text style={styles.operator}>×</Text>
@@ -182,30 +212,44 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
         <Text style={styles.operator}>=</Text>
         <BoxedText text={product.toString()} />
       </View>
+
+      {/* Explanation */}
       <View style={styles.infoRow}>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            speak(
+              t("explanation", {
+                multiplicand,
+                multiplier,
+                times: multiplier === 1 ? t("time") : t("times"),
+              })
+            )
+          }
+        >
           <LinearGradient
             colors={theme.colors.gradientPink}
             style={styles.volumeContainer}
           >
-            <Ionicons
-              name="volume-high"
-              size={30}
-              color={theme.colors.white}
-              styles={styles.volumeIcon}
-            />
+            <Ionicons name="volume-high" size={30} color={theme.colors.white} />
           </LinearGradient>
         </TouchableOpacity>
         <Text style={styles.explanation}>
-          Take the number {multiplicand} plus itself {multiplier}{" "}
-          {multiplier === 1 ? "time" : "times"}.
+          {t("explanation", {
+            multiplicand,
+            multiplier,
+            times: multiplier === 1 ? t("time") : t("times"),
+          })}
         </Text>
       </View>
+
+      {/* Repeated Addition */}
       <View style={styles.equationRow}>
         <BoxedText text={Array(multiplier).fill(multiplicand).join(" + ")} />
         <Text style={styles.operator}>=</Text>
         <BoxedText text={product.toString()} />
       </View>
+
+      {/* Back Step */}
       {currentIndex > 1 && (
         <LinearGradient
           colors={theme.colors.gradientPink}
@@ -216,16 +260,19 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
           </TouchableOpacity>
         </LinearGradient>
       )}
+
+      {/* Next Step */}
       <TouchableOpacity style={styles.nextWrapper} onPress={nextStep}>
         <LinearGradient
           colors={theme.colors.gradientPink}
           style={styles.nextButton}
         >
           <Text style={styles.nextText}>
-            {currentIndex === 9 ? "Practice" : "Next"}
+            {currentIndex === 9 ? t("practice") : t("next")}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
+
       <FloatingMenu />
     </View>
   );

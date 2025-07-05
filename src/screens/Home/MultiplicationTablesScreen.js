@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,51 +12,24 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
+import * as Speech from "expo-speech";
 export default function MultiplicationTableScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { t, i18n } = useTranslation("multiplicationtable");
   const { skillName } = route.params;
+
   const tables = [
-    {
-      icon: theme.icons.multiplication2,
-      label: "Multiplication table two",
-      number: 2,
-    },
-    {
-      icon: theme.icons.multiplication3,
-      label: "Multiplication table three",
-      number: 3,
-    },
-    {
-      icon: theme.icons.multiplication4,
-      label: "Multiplication table four",
-      number: 4,
-    },
-    {
-      icon: theme.icons.multiplication5,
-      label: "Multiplication table five",
-      number: 5,
-    },
-    {
-      icon: theme.icons.multiplication6,
-      label: "Multiplication table six",
-      number: 6,
-    },
-    {
-      icon: theme.icons.multiplication7,
-      label: "Multiplication table seven",
-      number: 7,
-    },
-    {
-      icon: theme.icons.multiplication8,
-      label: "Multiplication table eight",
-      number: 8,
-    },
-    {
-      icon: theme.icons.multiplication9,
-      label: "Multiplication table nine",
-      number: 9,
-    },
+    { icon: theme.icons.multiplication2, labelKey: "tableTwo", number: 2 },
+    { icon: theme.icons.multiplication3, labelKey: "tableThree", number: 3 },
+    { icon: theme.icons.multiplication4, labelKey: "tableFour", number: 4 },
+    { icon: theme.icons.multiplication5, labelKey: "tableFive", number: 5 },
+    { icon: theme.icons.multiplication6, labelKey: "tableSix", number: 6 },
+    { icon: theme.icons.multiplication7, labelKey: "tableSeven", number: 7 },
+    { icon: theme.icons.multiplication8, labelKey: "tableEight", number: 8 },
+    { icon: theme.icons.multiplication9, labelKey: "tableNine", number: 9 },
   ];
+
   const getGradient = () => {
     if (skillName === "Addition") return theme.colors.gradientGreen;
     if (skillName === "Subtraction") return theme.colors.gradientPurple;
@@ -64,6 +37,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.gradientRed;
     return theme.colors.gradientPink;
   };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -94,7 +68,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
       height: 24,
     },
     headerText: {
-      fontSize: 22,
+      fontSize: 26,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
@@ -112,7 +86,6 @@ export default function MultiplicationTableScreen({ navigation, route }) {
       borderWidth: 1,
       elevation: 3,
     },
-
     infoText: {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
@@ -150,7 +123,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
     },
     tableLabel: {
       marginTop: 10,
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       textAlign: "center",
@@ -166,20 +139,28 @@ export default function MultiplicationTableScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Multiplication table</Text>
+        <Text
+          style={styles.headerText}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
+          {t("headerTitle")}
+        </Text>
       </LinearGradient>
       <View style={styles.infoRow}>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            const lang = i18n.language === "vi" ? "vi" : "en";
+            Speech.speak(t("selectedOneTable"), { language: lang });
+          }}
+        >
           <LinearGradient colors={getGradient()} style={styles.volumeContainer}>
-            <Ionicons
-              name="volume-high"
-              size={30}
-              color={theme.colors.white}
-              styles={styles.volumeIcon}
-            />
+            <Ionicons name="volume-high" size={30} color={theme.colors.white} />
           </LinearGradient>
         </TouchableOpacity>
-        <Text style={styles.infoText}>Selected one multiplication table</Text>
+
+        <Text style={styles.infoText}>{t("selectedOneTable")}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.tableContainer}>
         {tables.map((item) => (
@@ -193,14 +174,21 @@ export default function MultiplicationTableScreen({ navigation, route }) {
                 navigation.navigate("MultiplicationTableDetailScreen", {
                   skillName,
                   table: item.number,
-                  title: item.label,
+                  title: t(item.labelKey),
                 })
               }
             >
               <View style={styles.tableIconContainer}>
                 <Image source={item.icon} style={styles.tableIcon} />
               </View>
-              <Text style={styles.tableLabel}>{item.label}</Text>
+              <Text
+                style={styles.tableLabel}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {t(item.labelKey)}
+              </Text>
             </TouchableOpacity>
           </LinearGradient>
         ))}

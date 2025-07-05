@@ -1,7 +1,7 @@
-import { handleAddition } from "./handleAddition";
-import { handleSubtraction } from "./handleSubtraction";
-import { handleMultiplication } from "./handleMultiplication";
-import { handleDivision } from "./handleDivision";
+import { handleAddition } from "./Addition/handleAddition";
+import { handleSubtraction } from "./Subtraction/handleSubtraction";
+import { handleMultiplication } from "./Multiplication/handleMultiplication";
+import { handleDivision } from "./Division/handleDivision";
 const isValidPositiveInteger = (str) => /^\d+$/.test(str);
 export const handleStepZero = ({
   number1,

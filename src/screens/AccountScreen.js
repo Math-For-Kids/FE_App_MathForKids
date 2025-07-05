@@ -206,7 +206,7 @@ export default function AccountScreen({ navigation }) {
       paddingBottom: 60,
     },
     userCard: {
-      width: "80%",
+      width: "90%",
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: theme.colors.paleBeige,
@@ -235,7 +235,7 @@ export default function AccountScreen({ navigation }) {
       fontSize: 16,
       width: "80%",
       fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.grayDark,
+      color: theme.colors.textModal,
       textAlign: "center",
     },
     addButton: {

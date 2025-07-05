@@ -13,19 +13,15 @@ import { useTheme } from "../../themes/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
+import { useTranslation } from "react-i18next";
 
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const {
-    answers,
-    questions,
-    score,
-    correctCount,
-    wrongCount,
-    skillName,
-  } = route.params;
+  const { answers, questions, score, correctCount, wrongCount, skillName } =
+    route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const { t, i18n } = useTranslation("exercise");
 
   const getOperatorFromSkillName = (skill) => {
     switch (skill) {
@@ -100,7 +96,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
       return { number1: "", number2: "" };
     }
     // Match patterns like "4 + 3 = 7" or "4 + 3" or "4+3=7" or "4+3"
-    let match = answerText.match(/(\d+)\s*[\+\-\×\÷]\s*(\d+)/);
+    let match = answerText.match(/(\d+)\s*[\+\-\×\÷xX]\s*(\d+)/);
     if (match) {
       console.log("Extracted numbers:", {
         number1: match[1],
@@ -110,7 +106,10 @@ export default function ExerciseResultScreen({ navigation, route }) {
     }
     match = answerText.match(/(\d+)\s*và\s+(\d+)/i);
     if (match) {
-      console.log("Extracted number:", { number1: match[1], number2: match[2] });
+      console.log("Extracted number:", {
+        number1: match[1],
+        number2: match[2],
+      });
       return { number1: match[1], number2: match[2] };
     }
     console.warn("No numbers found in answerText:", answerText);
@@ -266,15 +265,19 @@ export default function ExerciseResultScreen({ navigation, route }) {
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
-          Exercise result
+          {t("header")}
         </Text>
       </LinearGradient>
 
       <View style={styles.summaryContainer}>
-        <Text style={styles.scoreText}>Score: {score}</Text>
-        <Text style={styles.correctText}>Correct: {correctCount}</Text>
+        <Text style={styles.scoreText}>
+          {t("score")}: {score}
+        </Text>
+        <Text style={styles.correctText}>
+          {t("score")}: {correctCount}
+        </Text>
         <Text style={styles.wrongText}>
-          Wrong: <Text style={styles.wrongNumber}>{wrongCount}</Text>
+          {t("wrong")} <Text style={styles.wrongNumber}>{wrongCount}</Text>
         </Text>
       </View>
 
@@ -291,7 +294,9 @@ export default function ExerciseResultScreen({ navigation, route }) {
               setModalVisible(true);
             }}
           >
-            <Text style={styles.questionText}>Question {index + 1}</Text>
+            <Text style={styles.questionText}>
+              {t("question")} {index + 1}
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -308,7 +313,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
               <>
                 <Text style={styles.modalQuestionText}>
                   {selectedQuestion.type === "image"
-                    ? "Image Question"
+                    ? t("imageQuestion")
                     : selectedQuestion.question}
                 </Text>
                 {selectedQuestion.type === "image" &&
@@ -318,10 +323,11 @@ export default function ExerciseResultScreen({ navigation, route }) {
                     `modal-question-${selectedQuestion.id}`
                   )}
                 <Text style={styles.modalAnswerText}>
-                  Selected Answer: {answers[selectedQuestion.id] || "None"}
+                  {t("selectedAnswer")}:{" "}
+                  {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  Correct Answer:{" "}
+                  {t("correctAnswer")}:{" "}
                   {selectedQuestion.expression
                     ? selectedQuestion.expression
                     : selectedQuestion.answer}
@@ -356,13 +362,13 @@ export default function ExerciseResultScreen({ navigation, route }) {
                     });
                   }}
                 >
-                  <Text style={styles.buttonText}>Go to Step by Step</Text>
+                  <Text style={styles.buttonText}>{t("goToStepByStep")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={styles.buttonClose}>Close</Text>
+                  <Text style={styles.buttonClose}>{t("close")}</Text>
                 </TouchableOpacity>
               </>
             )}

@@ -8,8 +8,10 @@
   },
   "addition": {
     "step_intro": "Start adding from the Units column.",
-    "step_normal": "Step {{step}}: {{d1}} + {{d2}}{{carryStr}} = {{sum}}, write {{resultDigit}}{{carryOutStr}}",
-    "final_result": "Final result: {{num1}} + {{num2}} = {{result}}"
+    "step_normal_with_remember": "Step {{step}}: {{d1}} + {{d2}} + {{carry}} = {{sum}}, write {{resultDigit}}, and carry {{carryOut}}.",
+    "step_normal_with_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, greater than 10, write {{resultDigit}}, and carry {{carry}}.",
+    "step_normal_no_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, write {{resultDigit}}, no carry needed.",
+    "step_final_carry": "Step {{step}}: All digits have been added, but there's still a carry of {{carry}}, so write it into the next column."
   },
   "subtraction": {
     "error_min_lt_sub": "Cannot subtract: the minuend is smaller than the subtrahend.",
@@ -45,7 +47,15 @@
     "step_detail_final": "Since this is the last digit in this multiplication row, we write the full result: {{d1}} × {{d2}} = {{product}}",
     "step_carry_final_add": "Then add the carry from the previous step: {{product}} + {{carry}} = {{sum}} → write {{nextDigit}}, carry {{nextCarry}}",
     "step_carry_final_add_last": "{{product}} plus carry {{carry}} equals {{sum}} → write {{sum}}, no further carry since this is the last digit of {{d2}} x {{str1}}.",
-    "reveal_digit": "Result: {{product}}"
+    "reveal_digit": "Result: {{product}}",
+    "number_text": {
+      "0": "zero",
+      "1": "one",
+      "2": "two",
+      "3": "three",
+      "4": "four",
+      "5": "five"
+    }
   },
   "place": {
     "units": "Units",
@@ -103,5 +113,7 @@
   "comparison.less": "is less than",
   "comparison.greater_equal": "is greater than or equal to",
   "explanation.less": "cannot divide yet. Take more digits.",
-  "explanation.greater_equal": "can divide. Proceed with division."
+  "explanation.greater_equal": "can divide. Proceed with division.",
+  "step_bring_down_after_subtract": "Step {{step}}: After subtracting, the remainder is {{remainder}}. Bring down {{nextDigit}}, we get {{afterBringDown}} to continue dividing.",
+  "result_with_remainder": "{{quotient}} remainder {{remainder}}"
 }
