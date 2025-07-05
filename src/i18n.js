@@ -38,6 +38,10 @@ import viSkill from "./locales/vi/skill.json";
 import enSkill from "./locales/en/skill.json";
 import viTest from "./locales/vi/test.json";
 import enTest from "./locales/en/test.json";
+import viLoading from "./locales/vi/loading.json";
+import enLoading from "./locales/en/loading.json";
+import viAssessment from "./locales/vi/assessment.json";
+import enAssessment from "./locales/en/assessment.json";
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en",
@@ -62,6 +66,9 @@ i18n.use(initReactI18next).init({
       sidebar: enSideBar,
       skill: enSkill,
       test: enTest,
+      loading: enLoading,
+      assessment: enAssessment,
+
     },
     vi: {
       setting: vi,
@@ -82,6 +89,9 @@ i18n.use(initReactI18next).init({
       sidebar: viSideBar,
       skill: viSkill,
       test: viTest,
+      loading: viLoading,
+      assessment: viAssessment,
+
     },
   },
 

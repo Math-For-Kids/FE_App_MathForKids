@@ -8,6 +8,10 @@ export const getStyles = (theme, getBorderBox) =>
       paddingTop: 20,
       backgroundColor: theme.colors.background,
     },
+    operatorDisabled: {
+      opacity: 0.5, // Example: make disabled buttons look grayed out
+      backgroundColor: theme.colors.gray, // Optional: different background
+    },
     header: {
       width: "100%",
       height: "18%",
