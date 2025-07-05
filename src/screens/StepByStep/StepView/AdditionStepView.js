@@ -128,7 +128,6 @@ export const AdditionStepView = ({
       </View>
 
       {/* Row 2: Carry Digits */}
-      {/* Row 2: Carry Digits */}
       <View style={styles.row}>
         {steps[2].carryDigits
           .slice()
