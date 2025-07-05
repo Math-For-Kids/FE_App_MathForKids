@@ -11,12 +11,12 @@ export const AdditionStepView = ({
   skillName,
   columnStepIndex,
 }) => {
+  
   const { theme } = useTheme();
   const { i18n } = useTranslation("stepbystep");
 
   const currentStep = columnStepIndex ?? 0;
   if (!steps[2]?.digitSums) return null;
-  // console.log("currentStep", currentStep);
   const totalSteps = steps[2].digitSums.length + 1;
   const labels = placeLabels.slice(0, steps[2].digitSums.length);
   const subTextLines = Array.isArray(steps[2].subText) ? steps[2].subText : [];
@@ -67,28 +67,28 @@ export const AdditionStepView = ({
     row: { flexDirection: "row-reverse", marginBottom: 4 },
     labelText: {
       width: 50, textAlign: "center", fontSize: 8,
-      fontFamily: Fonts.NUNITO_BLACK, color: theme.colors.grayDark,
+      fontFamily: Fonts.NUNITO_MEDIUM, color: theme.colors.grayDark,
     },
     carryText: {
       width: 50, textAlign: "center", fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     num1Text: {
       width: 50, textAlign: "center", fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     num2Text: {
       width: 50, textAlign: "center", fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     lineRow: { marginTop: 2 },
     resultText: {
       width: 50, textAlign: "center", fontSize: 24,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     explanationText: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.grayDark,
       marginTop: 8,
       marginHorizontal: 12,
@@ -96,7 +96,7 @@ export const AdditionStepView = ({
     },
     finalResultText: {
       fontSize: 32,
-      fontFamily: Fonts.NUNITO_BLACK,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: "red",
       marginTop: 10,
     },
@@ -109,16 +109,12 @@ export const AdditionStepView = ({
 
   return (
     <View style={styles.container}>
-      {/* Explanation text (intro or step) */}
       {currentStep >= -1 && currentStep < totalSteps && (
-        <>
-          <Text style={styles.explanationText}>
-            {subTextLines[Math.max(0, currentStep)]}
-          </Text>
-        </>
+        <Text style={styles.explanationText}>
+          {subTextLines[Math.max(0, currentStep)]}
+        </Text>
       )}
 
-      {/* Row 1: Place Labels */}
       <View style={styles.row}>
         {labels.map((label, i) => (
           <Text key={`label-${i}`} style={styles.labelText}>
@@ -127,32 +123,29 @@ export const AdditionStepView = ({
         ))}
       </View>
 
-      {/* Row 2: Carry Digits */}
+      {/* Row 2: Carry Digits (only show carry at the step where it's used) */}
       <View style={styles.row}>
         {steps[2].carryDigits
           .slice()
           .reverse()
           .map((carry, i) => {
-            const highlight = carry > 0 && currentStep >= i;
-            const isCurrent = currentStep >= 1 && currentStep - 1 === i;
+            const isUsed = carry > 0 && currentStep === i + 1;
             return (
               <Text
                 key={`carry-${i}`}
                 style={[
                   styles.carryText,
                   {
-                    color: isCurrent ? getSkillColor() : defaultColor,
+                    color: isUsed ? getSkillColor() : defaultColor,
                   },
                 ]}
               >
-                {highlight ? `+${carry}` : " "}
+                {isUsed ? `+${carry}` : " "}
               </Text>
             );
           })}
       </View>
 
-
-      {/* Row 3: Number 1 Digits */}
       <View style={styles.row}>
         {steps[2].digits1
           .slice()
@@ -175,7 +168,6 @@ export const AdditionStepView = ({
           ))}
       </View>
 
-      {/* Row 4: + symbol spacer */}
       <View style={styles.row}>
         {steps[2].digits2
           .slice()
@@ -193,7 +185,6 @@ export const AdditionStepView = ({
           ))}
       </View>
 
-      {/* Row 5: Number 2 Digits */}
       <View style={styles.row}>
         {steps[2].digits2
           .slice()
@@ -216,14 +207,12 @@ export const AdditionStepView = ({
           ))}
       </View>
 
-      {/* Row 6: Line */}
       <View style={styles.row}>
         <View
           style={[styles.line, { width: 50 * steps[2].digitSums.length }]}
         />
       </View>
 
-      {/* Row 7: Result Sums */}
       <View style={styles.row}>
         {steps[2].digitSums
           .slice()
