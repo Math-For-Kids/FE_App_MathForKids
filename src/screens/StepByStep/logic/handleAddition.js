@@ -10,46 +10,58 @@ export const handleAddition = (n1, n2, steps, setRemember, t) => {
   let carry = 0;
 
   const labelMap = [
-    "Units",
-    "Tens",
-    "Hundreds",
-    "Thousands",
-    "Ten thousands",
-    "Hundred thousands",
-    "Millions",
-    "Ten millions",
-    "Hundred millions",
-    "Billions",
+    "Đơn vị", "Chục", "Trăm", "Nghìn", "Chục nghìn",
+    "Trăm nghìn", "Triệu", "Chục triệu", "Trăm triệu", "Tỷ",
   ];
 
   for (let i = 0; i < digits1.length; i++) {
     const d1 = parseInt(digits1[i]);
     const d2 = parseInt(digits2[i]);
     const sum = d1 + d2 + carry;
-    let resultDigit = sum % 10;
-    let carryOut = Math.floor(sum / 10);
-
-    // if (i === digits1.length - 1 && carryOut > 0) {
-    //   resultDigit = sum; // hiển thị toàn bộ
-    //   carryOut = 0;
-    // }
+    const resultDigit = sum % 10;
+    const carryOut = Math.floor(sum / 10);
 
     carryDigits.push(carry);
     resultDigits.push(resultDigit);
 
     const label = labelMap[i] || `10^${i}`;
-    subSteps.push(
-      t("addition.step_normal", {
-        step: i + 1,
-        label,
-        d1,
-        d2,
-        carryStr: carry > 0 ? ` + ${carry}` : "",
-        sum,
-        resultDigit,
-        carryOutStr: carryOut > 0 ? `, nhớ ${carryOut}` : "",
-      })
-    );
+    if (carry > 0) {
+      subSteps.push(
+        t("addition.step_normal_with_remember", {
+          step: i + 1,
+          label,
+          d1,
+          d2,
+          carry,
+          sum,
+          resultDigit,
+          carryOut,
+        })
+      );
+    } else if (carryOut > 0) {
+      subSteps.push(
+        t("addition.step_normal_with_carry", {
+          step: i + 1,
+          label,
+          d1,
+          d2,
+          sum,
+          resultDigit,
+          carry: carryOut,
+        })
+      );
+    } else {
+      subSteps.push(
+        t("addition.step_normal_no_carry", {
+          step: i + 1,
+          label,
+          d1,
+          d2,
+          sum,
+          resultDigit,
+        })
+      );
+    }
 
     carry = carryOut;
   }
@@ -57,6 +69,14 @@ export const handleAddition = (n1, n2, steps, setRemember, t) => {
   if (carry > 0) {
     resultDigits.push(carry);
     carryDigits.push(0);
+    const label = labelMap[digits1.length] || `10^${digits1.length}`;
+    subSteps.push(
+      t("addition.step_final_carry", {
+        step: digits1.length + 1,
+        carry,
+        label,
+      })
+    );
   }
 
   const finalDigits = [...resultDigits].reverse();
@@ -72,6 +92,7 @@ export const handleAddition = (n1, n2, steps, setRemember, t) => {
   steps[2].digitSums = finalDigits;
   steps[2].result = finalDigits.join("").replace(/^0+/, "") || "0";
   steps[2].subText = subSteps;
+
   steps[3].result = (n1 + n2).toString();
   steps[3].subText = t("addition.final_result", {
     num1: n1,

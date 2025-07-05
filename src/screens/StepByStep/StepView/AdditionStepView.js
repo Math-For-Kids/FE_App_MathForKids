@@ -23,7 +23,7 @@ export const AdditionStepView = ({
 
   const activeColor = theme.colors.orangeDark;
   const defaultColor = theme.colors.black;
-  const carryColor = theme.colors.blueGray;
+  const carryColor = theme.colors.black;
 
   const getSkillColor = () => {
     switch (skillName) {
@@ -66,35 +66,24 @@ export const AdditionStepView = ({
     container: { alignItems: "center" },
     row: { flexDirection: "row-reverse", marginBottom: 4 },
     labelText: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 8,
-      fontFamily: Fonts.NUNITO_BLACK,
-      color: theme.colors.grayDark,
+      width: 50, textAlign: "center", fontSize: 8,
+      fontFamily: Fonts.NUNITO_BLACK, color: theme.colors.grayDark,
     },
     carryText: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 14,
+      width: 50, textAlign: "center", fontSize: 14,
       fontFamily: Fonts.NUNITO_BLACK,
     },
     num1Text: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 24,
+      width: 50, textAlign: "center", fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
     },
     num2Text: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 24,
+      width: 50, textAlign: "center", fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
     },
     lineRow: { marginTop: 2 },
     resultText: {
-      width: 50,
-      textAlign: "center",
-      fontSize: 24,
+      width: 50, textAlign: "center", fontSize: 24,
       fontFamily: Fonts.NUNITO_BLACK,
     },
     explanationText: {
@@ -145,19 +134,23 @@ export const AdditionStepView = ({
           .reverse()
           .map((carry, i) => {
             const highlight = carry > 0 && currentStep >= i;
+            const isCurrent = currentStep >= 1 && currentStep - 1 === i;
             return (
               <Text
                 key={`carry-${i}`}
                 style={[
                   styles.carryText,
-                  { color: highlight ? activeColor : carryColor },
+                  {
+                    color: isCurrent ? getSkillColor() : defaultColor,
+                  },
                 ]}
               >
-                {highlight ? carry : " "}
+                {highlight ? `+${carry}` : " "}
               </Text>
             );
           })}
       </View>
+
 
       {/* Row 3: Number 1 Digits */}
       <View style={styles.row}>
@@ -262,16 +255,6 @@ export const AdditionStepView = ({
             </TouchableOpacity>
           ))}
       </View>
-
-      {/* Final result */}
-      {currentStep === totalSteps && (
-        <>
-          <Text style={styles.explanationText}>{steps[3].subText}</Text>
-          <Text style={styles.finalResultText}>
-            {steps[2].digitSums.join("")}
-          </Text>
-        </>
-      )}
     </View>
   );
 };

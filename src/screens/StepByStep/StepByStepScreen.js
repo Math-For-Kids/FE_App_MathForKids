@@ -69,6 +69,7 @@ export default function StepByStepScreen({ navigation, route }) {
   const { t, i18n } = useTranslation("stepbystep");
   const [visibleDigitsMap, setVisibleDigitsMap] = useState({});
   const [visibleCarryMap, setVisibleCarryMap] = useState({});
+  const carryBackupRef = useRef({});
   //nhận params và gán giá trị
   useEffect(() => {
     if (autoNumber1 !== undefined && autoNumber2 !== undefined) {
@@ -357,6 +358,12 @@ export default function StepByStepScreen({ navigation, route }) {
                     setRevealedDigits,
                     setRevealedResultDigits,
                     setCurrentRowIndex,
+                    setVisibleCarryMap,
+                    setVisibleDigitsMap,
+                    setSteps,
+                    operator,
+                    columnStepIndex,
+                    setColumnStepIndex,
                   })
                 }
               >
@@ -382,6 +389,7 @@ export default function StepByStepScreen({ navigation, route }) {
                   setCurrentRowIndex(0);
                   setRevealedDigits(0);
                   setRevealedResultDigits(0);
+                  setColumnStepIndex(0);
                   if (setVisibleCarryMap) setVisibleCarryMap({});
                   if (setVisibleDigitsMap) setVisibleDigitsMap({});
                   if (setRemember) setRemember("");
@@ -429,6 +437,7 @@ export default function StepByStepScreen({ navigation, route }) {
               visibleCarryMap,
               setColumnStepIndex,
               columnStepIndex,
+              carryBackupRef,
             })
           }
         >
