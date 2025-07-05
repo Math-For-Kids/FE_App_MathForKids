@@ -14,7 +14,7 @@ import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { getEnabledLevels } from "../../redux/levelSlice";
+import { getEnabledLevels, countLevelIdsInLesson } from "../../redux/levelSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
@@ -24,7 +24,7 @@ export default function SkillScreen({ navigation, route }) {
     route.params;
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
-  const { levels, loading, error } = useSelector((state) => state.level);
+  const { levels, levelIdCounts, loading, error } = useSelector((state) => state.level);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLevels, setSelectedLevels] = useState([]);
   useEffect(() => {
@@ -39,6 +39,13 @@ export default function SkillScreen({ navigation, route }) {
       };
     }, [])
   );
+  useEffect(() => {
+    if (modalVisible && levels.length > 0) {
+      const levelIds = levels.map((level) => level.id);
+      dispatch(countLevelIdsInLesson({ lessonId, levelIds }));
+    }
+  }, [modalVisible, levels, lessonId, dispatch]);
+
   const actions = [
     { label: "lesson", icon: theme.icons.lesson },
     { label: "exercise", icon: theme.icons.exercise },
@@ -56,8 +63,12 @@ export default function SkillScreen({ navigation, route }) {
   const getSelectedGradient = () => {
     return [theme.colors.gradientRed, "#CC0000"];
   };
+  const getDisabledGradient = () => {
+    return ["#A9A9A9", "#808080"]; // Gradient màu xám cho level không có bài tập
+  }
 
   const toggleLevelSelection = (levelId) => {
+    if (levelIdCounts?.levelIdCounts?.[levelId] === 0) return;
     if (selectedLevels.includes(levelId)) {
       setSelectedLevels(selectedLevels.filter((id) => id !== levelId));
     } else {
@@ -233,37 +244,46 @@ export default function SkillScreen({ navigation, route }) {
   });
 
   const renderLevelItem = useCallback(
-    ({ item }) => (
-      <TouchableOpacity onPress={() => toggleLevelSelection(item.id)}>
-        <LinearGradient
-          colors={
-            selectedLevels.includes(item.id)
-              ? getSelectedGradient()
-              : getGradientBySkill()
-          }
-          style={[
-            styles.levelCard,
-            {
-              borderWidth: selectedLevels.includes(item.id) ? 2 : 0,
-              borderColor: theme.colors.white,
-            },
-          ]}
+    ({ item }) => {
+      const isDisabled = levelIdCounts?.levelIdCounts?.[item.id] === 0;
+      return (
+        <TouchableOpacity
+          onPress={() => toggleLevelSelection(item.id)}
+          disabled={isDisabled}
         >
-          <Text style={[styles.levelCardLabel, { color: theme.colors.white }]}>
-            {item.name?.[i18n.language] || item.name?.en || "Unknown Level"}
-          </Text>
-          {selectedLevels.includes(item.id) && (
-            <Ionicons
-              name="checkmark"
-              size={20}
-              color={theme.colors.white}
-              style={{ position: "absolute", top: 5, right: 5 }}
-            />
-          )}
-        </LinearGradient>
-      </TouchableOpacity>
-    ),
-    [selectedLevels, i18n.language, theme.colors]
+          <LinearGradient
+            colors={
+              isDisabled
+                ? getDisabledGradient()
+                : selectedLevels.includes(item.id)
+                  ? getSelectedGradient()
+                  : getGradientBySkill()
+            }
+            style={[
+              styles.levelCard,
+              {
+                borderWidth: selectedLevels.includes(item.id) ? 2 : 0,
+                borderColor: theme.colors.white,
+                opacity: isDisabled ? 0.6 : 1, // Làm mờ level không có bài tập
+              },
+            ]}
+          >
+            <Text style={[styles.levelCardLabel, { color: theme.colors.white }]}>
+              {item.name?.[i18n.language] || item.name?.en || "Unknown Level"}
+            </Text>
+            {selectedLevels.includes(item.id) && (
+              <Ionicons
+                name="checkmark"
+                size={20}
+                color={theme.colors.white}
+                style={{ position: "absolute", top: 5, right: 5 }}
+              />
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    },
+    [selectedLevels, i18n.language, theme.colors,levelIdCounts]
   );
 
   return (
@@ -325,7 +345,10 @@ export default function SkillScreen({ navigation, route }) {
         animationType="fade"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => {
+          setModalVisible(false);
+          setSelectedLevels([]);
+        }}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
