@@ -11,6 +11,7 @@ export const AdditionStepView = ({
   skillName,
   columnStepIndex,
 }) => {
+  
   const { theme } = useTheme();
   const { i18n } = useTranslation("stepbystep");
 
