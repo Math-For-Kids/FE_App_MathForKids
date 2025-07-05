@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { Fonts } from "../../../../constants/Fonts";
 import * as Speech from "expo-speech";
 
-export const DivisionStepView = ({ steps, columnStepIndex, onGoBack }) => {
+export const DivisionStepView = ({ steps, columnStepIndex }) => {
   const { theme } = useTheme?.() || {
     theme: { text: "#000", background: "#fff" },
   };
@@ -192,25 +192,6 @@ export const DivisionStepView = ({ steps, columnStepIndex, onGoBack }) => {
           </Text>
         </View>
       </View>
-      <View style={{ marginBottom: 10 }}>
-        <Text
-          onPress={onGoBack}
-          style={{
-            fontSize: 16,
-            color: "#1976D2",
-            fontWeight: "bold",
-            padding: 8,
-            borderRadius: 6,
-            borderWidth: 1,
-            borderColor: "#1976D2",
-            textAlign: "center",
-            width: 100,
-          }}
-        >
-          ◀ Quay lại
-        </Text>
-      </View>
-
     </View>
   );
 };

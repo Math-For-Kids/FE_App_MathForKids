@@ -69,6 +69,7 @@ export default function StepByStepScreen({ navigation, route }) {
   const { t, i18n } = useTranslation("stepbystep");
   const [visibleDigitsMap, setVisibleDigitsMap] = useState({});
   const [visibleCarryMap, setVisibleCarryMap] = useState({});
+  const carryBackupRef = useRef({});
   //nhận params và gán giá trị
   useEffect(() => {
     if (autoNumber1 !== undefined && autoNumber2 !== undefined) {
@@ -215,37 +216,71 @@ export default function StepByStepScreen({ navigation, route }) {
             {t("horizontal")} {t(`skills.${skillNameLower}`)}
           </Text>
         )}
+        {/* Calculation */}
+        {stepIndex === 1 && (
+          <HorizontalLayout
+            operator={operator}
+            number1={number1}
+            number2={number2}
+            styles={styles}
+          />
+        )}
+        {stepIndex === 1 && (
+          <Text style={styles.calText}>
+            {t("vertical")} {t(`skills.${skillNameLower}`)}
+          </Text>
+        )}
+        {/* Write the problem vertically */}
+        {stepIndex === 1 && (
+          <VerticalLayout
+            operator={operator}
+            number1={number1}
+            number2={number2}
+            styles={styles}
+            stepIndex={stepIndex}
+            currentStep={currentStep}
+          />
+        )}
+        {stepIndex === 1 && (
+          <View style={styles.stepBox}>
+            <View style={styles.titleContainer}>
+              <LinearGradient
+                colors={getGradient()}
+                style={styles.soundContainer}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    Speech.stop();
 
-        {stepIndex > 0 &&
-          (stepIndex !== 2 || operator !== '+') && (
-            <View style={styles.stepBox}>
-              <View style={styles.titleContainer}>
-                <LinearGradient
-                  colors={getGradient()}
-                  style={styles.soundContainer}
-                >
-                  <TouchableOpacity>
-                    <Ionicons
-                      name="volume-medium"
-                      size={30}
-                      color={theme.colors.white}
-                    />
-                  </TouchableOpacity>
-                </LinearGradient>
+                    const textToRead = currentStep?.subText;
 
-                <Text
-                  style={styles.subText}
-                  numberOfLines={100}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.5}
-                  color={theme.colors.black}
+                    if (textToRead) {
+                      Speech.speak(textToRead, {
+                        language: i18n.language === "vi" ? "vi-VN" : "en-US",
+                        pitch: 1,
+                        rate: 0.9,
+                      });
+                    }
+                  }}
                 >
-                  {currentStep.subText}
-                </Text>
-              </View>
+                  <Ionicons
+                    name="volume-medium"
+                    size={30}
+                    color={theme.colors.white}
+                  />
+                </TouchableOpacity>
+              </LinearGradient>
+
+              {stepIndex > 0 && (
+                <View style={{ width: "80%" }}>
+                  {currentStep?.subText && (
+                    <Text style={styles.title}>{currentStep.subText}</Text>
+                  )}
+                </View>
+              )}
             </View>
-          )}
-
+          </View>
+        )}
 
         {/* result */}
         {stepIndex === 3 && (
@@ -257,13 +292,9 @@ export default function StepByStepScreen({ navigation, route }) {
             steps={steps}
             placeLabels={placeLabels}
             skillName={skillName}
-            columnStepIndex={columnStepIndex}
-            onGoBack={() => {
-              setColumnStepIndex((prev) => Math.max(0, prev - 1));
-            }}
+            columnStepIndex={columnStepIndex} // ✅ TRUYỀN STEP ĐANG XEM
           />
         )}
-
 
         {operator === "-" && stepIndex === 2 && (
           <SubtractionStepView
@@ -305,13 +336,43 @@ export default function StepByStepScreen({ navigation, route }) {
             steps={steps}
             skillName={skillName}
             columnStepIndex={columnStepIndex}
-            onGoBack={() => {
-              setColumnStepIndex((prev) => Math.max(0, prev - 1));
-            }}
           />
         )}
-
-
+        <View style={styles.backStepContainer}>
+          {stepIndex > 1 && (
+            <LinearGradient
+              colors={getGradient()}
+              style={styles.backStepButton}
+            >
+              <TouchableOpacity
+                onPress={() =>
+                  handleBack({
+                    subStepIndex,
+                    setSubStepIndex,
+                    stepIndex,
+                    setStepIndex,
+                    steps,
+                    setRevealedDigits,
+                    setRevealedResultDigits,
+                    setCurrentRowIndex,
+                    setVisibleCarryMap,
+                    setVisibleDigitsMap,
+                    setSteps,
+                    operator,
+                    columnStepIndex,
+                    setColumnStepIndex,
+                  })
+                }
+              >
+                <Ionicons
+                  name="caret-back"
+                  size={30}
+                  color={theme.colors.white}
+                />
+              </TouchableOpacity>
+            </LinearGradient>
+          )}
+        </View>
         <View style={styles.backStepContainer}>
           {stepIndex > 0 && (
             <LinearGradient
@@ -325,10 +386,10 @@ export default function StepByStepScreen({ navigation, route }) {
                   setCurrentRowIndex(0);
                   setRevealedDigits(0);
                   setRevealedResultDigits(0);
+                  setColumnStepIndex(0);
                   if (setVisibleCarryMap) setVisibleCarryMap({});
                   if (setVisibleDigitsMap) setVisibleDigitsMap({});
                   if (setRemember) setRemember("");
-                  setColumnStepIndex(0);
                 }}
               >
                 <Ionicons
@@ -373,6 +434,7 @@ export default function StepByStepScreen({ navigation, route }) {
               visibleCarryMap,
               setColumnStepIndex,
               columnStepIndex,
+              carryBackupRef,
             })
           }
         >

@@ -8,8 +8,10 @@
   },
   "addition": {
     "step_intro": "Start adding from the Units column.",
-    "step_normal": "Step {{step}}: {{d1}} + {{d2}}{{carryStr}} = {{sum}}, write {{resultDigit}}{{carryOutStr}}",
-    "final_result": "Final result: {{num1}} + {{num2}} = {{result}}"
+    "step_normal_with_remember": "Step {{step}}: {{d1}} + {{d2}} + {{carry}} = {{sum}}, write {{resultDigit}}, and carry {{carryOut}}.",
+    "step_normal_with_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, greater than 10, write {{resultDigit}}, and carry {{carry}}.",
+    "step_normal_no_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, write {{resultDigit}}, no carry needed.",
+    "step_final_carry": "Step {{step}}: All digits have been added, but there's still a carry of {{carry}}, so write it into the next column."
   },
   "subtraction": {
     "error_min_lt_sub": "Cannot subtract: the minuend is smaller than the subtrahend.",
@@ -104,6 +106,5 @@
   "comparison.greater_equal": "is greater than or equal to",
   "explanation.less": "cannot divide yet. Take more digits.",
   "explanation.greater_equal": "can divide. Proceed with division.",
-    "step_bring_down_after_subtract": "Step {{step}}: After subtracting, the remainder is {{remainder}}. Bring down {{nextDigit}}, we get {{afterBringDown}} to continue dividing."
-
+  "step_bring_down_after_subtract": "Step {{step}}: After subtracting, the remainder is {{remainder}}. Bring down {{nextDigit}}, we get {{afterBringDown}} to continue dividing."
 }

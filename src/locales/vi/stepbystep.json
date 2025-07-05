@@ -8,8 +8,10 @@
   },
   "addition": {
     "step_intro": "Bắt đầu phép cộng từ cột Đơn vị.",
-    "step_normal": "Bước {{step}}: {{d1}} + {{d2}}{{carryStr}} = {{sum}}, viết {{resultDigit}}{{carryOutStr}}",
-    "final_result": "Kết quả cuối cùng: {{num1}} + {{num2}} = {{result}}"
+    "step_normal_with_remember": "Bước {{step}}: {{d1}} + {{d2}} + {{carry}} = {{sum}}, viết {{resultDigit}}, nhớ {{carryOut}}.",
+    "step_normal_with_carry": "Bước {{step}}: {{d1}} + {{d2}} = {{sum}} lớn hơn 10, viết {{resultDigit}}, nhớ {{carry}}.",
+    "step_normal_no_carry": "Bước {{step}}: {{d1}} + {{d2}} = {{sum}}, viết {{resultDigit}}, không cần nhớ.",
+    "step_final_carry": "Bước {{step}}: Đã cộng hết các chữ số, nhưng còn nhớ {{carry}}, nên hạ {{carry}} xuống cột tiếp theo."
   },
   "subtraction": {
     "error_min_lt_sub": "Không thể trừ: số bị trừ nhỏ hơn số trừ.",

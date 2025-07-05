@@ -10,7 +10,6 @@ export const AdditionStepView = ({
   placeLabels,
   skillName,
   columnStepIndex,
-  onGoBack
 }) => {
   const { theme } = useTheme();
   const { i18n } = useTranslation("stepbystep");
@@ -129,30 +128,30 @@ export const AdditionStepView = ({
       </View>
 
       {/* Row 2: Carry Digits */}
+      {/* Row 2: Carry Digits */}
       <View style={styles.row}>
         {steps[2].carryDigits
           .slice()
           .reverse()
           .map((carry, i) => {
             const highlight = carry > 0 && currentStep >= i;
+            const isCurrent = currentStep >= 1 && currentStep - 1 === i;
             return (
               <Text
                 key={`carry-${i}`}
                 style={[
                   styles.carryText,
                   {
-                    color:
-                      currentStep >= 1 && currentStep - 1 === i
-                        ? getSkillColor()
-                        : defaultColor,
+                    color: isCurrent ? getSkillColor() : defaultColor,
                   },
                 ]}
               >
-                {highlight ? carry : " "}
+                {highlight ? `+${carry}` : " "}
               </Text>
             );
           })}
       </View>
+
 
       {/* Row 3: Number 1 Digits */}
       <View style={styles.row}>
@@ -257,25 +256,6 @@ export const AdditionStepView = ({
             </TouchableOpacity>
           ))}
       </View>
-      <View style={{ marginBottom: 10 }}>
-        <Text
-          onPress={onGoBack}
-          style={{
-            fontSize: 16,
-            color: "#1976D2",
-            fontWeight: "bold",
-            padding: 8,
-            borderRadius: 6,
-            borderWidth: 1,
-            borderColor: "#1976D2",
-            textAlign: "center",
-            width: 100,
-          }}
-        >
-          ◀ Quay lại
-        </Text>
-      </View>
-
     </View>
   );
 };
