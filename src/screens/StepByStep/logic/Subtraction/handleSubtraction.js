@@ -8,9 +8,9 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
   let resultDigits = [];
   let borrowFlags = [];
   let payBackFlags = [];
-  let borrow = 0;
   let subSteps = [];
   let subStepsMeta = [];
+  let subStepsType = [];
   const labelMap = [
     t("place.units"),
     t("place.tens"),
@@ -25,6 +25,8 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
   ];
   subSteps.push(t("subtraction.step_intro"));
   subStepsMeta.push(-1);
+  subStepsType.push("intro");
+  let borrow = 0;
   for (let i = 0; i < digitsA.length; i++) {
     const originalDigitA = parseInt(digitsA[i]);
     const digitB = parseInt(digitsB[i]);
@@ -45,6 +47,7 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
       });
       subSteps.push(borrowExplain1);
       subStepsMeta.push(i);
+      subStepsType.push("borrow_1");
       let borrowExplain2 = t("subtraction.step_borrow_2", {
         adjustedA,
         adjustedB,
@@ -60,6 +63,7 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
       }
       subSteps.push(borrowExplain2);
       subStepsMeta.push(i);
+      subStepsType.push("borrow_2");
       resultDigits.push(adjustedA - adjustedB);
     } else {
       borrow = 0;
@@ -90,9 +94,10 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
             b: digitB,
           });
       }
-      resultDigits.push(adjustedA - adjustedB);
       subSteps.push(stepText);
       subStepsMeta.push(i);
+      subStepsType.push("normal");
+      resultDigits.push(adjustedA - adjustedB);
     }
   }
   const finalResult =
@@ -102,15 +107,18 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
   steps[2].resultDigits = [...resultDigits].reverse();
   steps[2].borrowFlags = [...borrowFlags].reverse();
   steps[2].payBackFlags = [...payBackFlags].reverse();
-  steps[2].subText = subSteps.join("\n");
   steps[2].subSteps = subSteps;
   steps[2].subStepsMeta = subStepsMeta;
+  steps[2].subStepsType = subStepsType;
+  steps[2].subText = subSteps.join("\n");
+
   steps[3].result = finalResult;
   steps[3].subText = t("subtraction.final_result", {
     number1: n1,
     number2: n2,
     result: finalResult,
   });
+
   setRemember?.(
     borrowFlags.includes(true) ? t("subtraction.remember_borrowing") : ""
   );
