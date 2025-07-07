@@ -5,6 +5,7 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
   const digits2 = str2.split("").map(Number).reverse();
   const partials = [];
   const carryRows = [];
+  const verticalCarryRows = [];
   const subSteps = [];
   const subStepsMeta = [];
   const positionLabels = [
@@ -16,11 +17,16 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     t("place.hundred_thousands"),
     t("place.millions"),
   ];
+  const numberToText = (n, t) => {
+    return t(`multiplication.number_text.${n}`) || n.toString();
+  };
   steps[2] = steps[2] || {};
   steps[2].rowSteps = [];
   steps[2].rowIntros = [];
   digits2.forEach((d2, rowIndex) => {
     const labelRow = positionLabels[rowIndex] || `10^${rowIndex}`;
+    const columnNumber = rowIndex + 1;
+    const rowFromBottom = digits2.length - rowIndex;
     const intro = t("multiplication.step_intro", {
       step: rowIndex + 1,
       label: labelRow,
@@ -34,7 +40,10 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
       subSteps.push(
         t("multiplication.shift_zero", {
           label: labelRow,
-          zeros: rowIndex,
+          zeros: numberToText(rowIndex, t),
+          column: columnNumber,
+          digit: d2,
+          rowFromBottom: rowFromBottom + 1,
         })
       );
       subStepsMeta.push({ type: "shift", rowIndex });
@@ -196,7 +205,8 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
       const label =
         positionLabels[maxLen - 1 - col] || `10^${maxLen - 1 - col}`;
       const isFirstColumn = col === maxLen - 1;
-
+      // 🌟 Lưu carry này vào mảng mới
+      verticalCarryRows.push(nextCarry > 0 ? String(nextCarry) : " ");
       // console.log(
       //   `[COLUMN ADD] Cột ${label}: ${colDigits.join(
       //     " + "
@@ -225,7 +235,12 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
     if (carry > 0) {
       subSteps.push(t("multiplication.step_final_carry", { carry }));
       subStepsMeta.push({ type: "final_carry", carry });
+      // Có thể thêm final carry vào đầu mảng verticalCarryRows nếu muốn hiển thị nốt
+      verticalCarryRows.unshift(String(carry));
+    } else {
+      verticalCarryRows.unshift(" ");
     }
+
     subSteps.push(
       t("multiplication.final_result", {
         expression: partials.join(" + "),
@@ -246,6 +261,7 @@ export const handleMultiplication = (n1, n2, steps, setRemember, t) => {
   steps[2].multiplierDigits = str2.split("");
   steps[2].partials = partials;
   steps[2].carryRows = carryRows;
+  steps[2].verticalCarryRows = verticalCarryRows;
   // console.log("[DEBUG] carryRows =", JSON.stringify(carryRows));
   steps[2].subSteps = subSteps;
   steps[2].subStepsMeta = subStepsMeta;

@@ -24,7 +24,7 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
     t("place.billions"),
   ];
   subSteps.push(t("subtraction.step_intro"));
-  subStepsMeta.push(-1); 
+  subStepsMeta.push(-1);
   for (let i = 0; i < digitsA.length; i++) {
     const originalDigitA = parseInt(digitsA[i]);
     const digitB = parseInt(digitsB[i]);
@@ -40,7 +40,7 @@ export const handleSubtraction = (n1, n2, steps, setRemember, t) => {
         step: i + 1,
         label: labelMap[i] || `10^${i}`,
         a: originalDigitA,
-        b: digitB,
+        b: adjustedB,
         adjustedA,
       });
       subSteps.push(borrowExplain1);

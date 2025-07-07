@@ -1,14 +1,14 @@
 {
-"title": "Login",
-"placeholder": "Email or phone number",
-"loginButton": "Send OTP",
-"noAccount": "Don't have an account yet?",
-"registerLink": "Register now",
-"errorTitle": "Error",
-"errorEnterContact": "Please enter email or phone number.",
-"invalidTitle": "Invalid",
-"errorInvalidContact": "Invalid format. Please re-enter.",
-"loginFailedTitle": "Login failed",
-"errorSendOtp": "Failed to send OTP. Please try again.",
-"errorNoUserId": "User ID not found."
+  "title": "Login",
+  "placeholder": "Email or phone number",
+  "loginButton": "Send OTP",
+  "noAccount": "Don't have an account yet?",
+  "registerLink": "Register now",
+  "errorTitle": "Error",
+  "errorEnterContact": "Please enter email or phone number.",
+  "invalidTitle": "Invalid",
+  "errorInvalidContact": "Invalid format. Please re-enter.",
+  "loginFailedTitle": "Login failed",
+  "errorSendOtp": "Failed to send OTP. Please try again.",
+  "errorNoUserId": "User ID not found."
 }

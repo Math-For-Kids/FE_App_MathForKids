@@ -103,7 +103,7 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
   return (
     <View style={styles.container}>
       <View style={styles.stepContainer}>
-        <Text style={styles.stepText}>{renderExplanation(step)}</Text>
+<Text style={styles.stepText}>{renderExplanation(step)}</Text>
       </View>
 
       <View style={styles.divisionBox}>
@@ -195,7 +195,6 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
