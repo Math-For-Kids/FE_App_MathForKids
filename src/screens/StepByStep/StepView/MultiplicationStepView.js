@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import * as Speech from "expo-speech";
 import { useTranslation } from "react-i18next";
@@ -37,6 +37,21 @@ export const MultiplicationStepView = ({
   const carryRows = steps?.[2]?.carryRows || [];
   const verticalCarryRows = steps?.[2]?.verticalCarryRows || [];
   const result = steps?.[3]?.result || "";
+  const [localCarryBothRevealed, setLocalCarryBothRevealed] = useState(0);
+  const previousTypeRef = useRef(null);
+  useEffect(() => {
+    const previousType = previousTypeRef.current;
+    const currentType = meta?.type;
+    if (
+      ["carry_add", "vertical_add"].includes(previousType) &&
+      !["carry_add", "vertical_add"].includes(currentType)
+    ) {
+      setLocalCarryBothRevealed((prev) => prev + 1);
+    }
+
+    previousTypeRef.current = currentType;
+  }, [subStepIndex]);
+
   const maxLen = Math.max(
     digits.length,
     multiplierDigits.length + 1,
@@ -213,15 +228,6 @@ export const MultiplicationStepView = ({
             bottomVisible &&
             highlightIdx.includes(i) &&
             (type !== "carryBoth" || allowedCarryTypes.includes(meta.type));
-          {
-            /* console.log(
-            "🔍 renderRow partial",
-            i,
-            "→ highlightIdx:",
-            i === meta.rowIndex ? resultHighlights : []
-          ); */
-          }
-
           return (
             <View key={i} style={{ alignItems: "center" }}>
               <Text style={[styles.cellTop, topHighlight && styles.highlight]}>
@@ -259,9 +265,23 @@ export const MultiplicationStepView = ({
                   style={{
                     fontSize: 14,
                     fontFamily: Fonts.NUNITO_BOLD,
-                    color: bottomHighlight
-                      ? theme.colors.highlightText
-                      : theme.colors.textModal,
+                    color: (() => {
+                      if (bottom.trim() === "") {
+                        return theme.colors.textModal;
+                      }
+                      const revealed = localCarryBothRevealed;
+                      const rightIndex = maxLen - 1 - i;
+                      const isCurrentlyHighlight = highlightIdx.includes(i);
+                      const isAfterHighlight =
+                        !isCurrentlyHighlight && rightIndex <= revealed;
+                      let color = theme.colors.textModal;
+                      if (isCurrentlyHighlight) {
+                        color = theme.colors.highlightText;
+                      } else if (isAfterHighlight) {
+                        color = "white";
+                      }
+                      return color;
+                    })(),
                   }}
                 >
                   {bottom}
@@ -272,9 +292,33 @@ export const MultiplicationStepView = ({
         }
         let content = char;
         let showPlus = false;
+
         if (typeof char === "object" && char !== null) {
           content = char.char;
           showPlus = char.showPlus;
+        }
+
+        const rightIndex = maxLen - 1 - i;
+        const revealed = localCarryBothRevealed || 0;
+        const isCurrentlyHighlight = highlightIdx.includes(i);
+        const isAfterHighlight =
+          !isCurrentlyHighlight &&
+          (type === "carry" || type === "carryBoth") &&
+          content.trim() !== "" &&
+          rightIndex < revealed;
+
+        let carryColor = {};
+        if (
+          (type === "carry" || type === "carryBoth") &&
+          content.trim() !== ""
+        ) {
+          if (isCurrentlyHighlight) {
+            carryColor = { color: theme.colors.white };
+          } else if (isAfterHighlight) {
+            carryColor = { color: theme.colors.white };
+          } else {
+            carryColor = { color: "#5F5F5F" };
+          }
         }
         const isCellHighlighted =
           (highlightIdx.includes(i) || colHighlights.includes(i)) &&
@@ -290,6 +334,7 @@ export const MultiplicationStepView = ({
                 highlightIdx.includes(i) &&
                 styles.highlightOrange,
               isCellHighlighted && styles.highlight,
+              carryColor,
             ]}
           >
             {showPlus ? (
@@ -386,7 +431,7 @@ export const MultiplicationStepView = ({
     carryText: {
       fontSize: 14,
       fontWeight: 500,
-      color: theme.colors.textModal,
+      // color: theme.colors.textModal,
     },
     resultText: {
       fontFamily: Fonts.NUNITO_BOLD,
