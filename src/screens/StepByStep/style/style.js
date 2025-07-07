@@ -31,6 +31,10 @@ export const getStyles = (theme, getBorderBox) =>
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
       fontSize: 32,
       fontFamily: Fonts.NUNITO_BOLD,

@@ -208,6 +208,10 @@ export default function LessonDetailScreen({ navigation, route }) {
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
       fontSize: 32,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
@@ -305,7 +309,7 @@ export default function LessonDetailScreen({ navigation, route }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text
           style={styles.headerText}

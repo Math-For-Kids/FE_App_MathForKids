@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView,Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../themes/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
@@ -181,7 +181,7 @@ export default function StepByStepScreen({ navigation, route }) {
           }}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerText}>{t("calculation")}</Text>
       </LinearGradient>

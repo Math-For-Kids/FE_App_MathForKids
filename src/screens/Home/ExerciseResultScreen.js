@@ -46,7 +46,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
 
   const getQuestionColor = (question) => {
     const selected = answers[question.id];
-    return selected === question.answer
+    return selected && selected === question.answer
       ? getCorrectBackground()
       : theme.colors.redTomato;
   };

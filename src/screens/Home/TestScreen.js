@@ -215,8 +215,8 @@ export default function TestScreen({ navigation, route }) {
       try {
         // Create test
         const usedTime = totalTime - timer; // This is the remaining time, so invert it
-      const actualElapsedTime = Math.max(0, usedTime); // Ensure non-negative
-      setElapsedTime(actualElapsedTime);
+        const actualElapsedTime = Math.max(0, usedTime); // Ensure non-negative
+        setElapsedTime(actualElapsedTime);
         const testPayload = {
           pupilId,
           lessonId,
@@ -346,24 +346,30 @@ export default function TestScreen({ navigation, route }) {
     },
     header: {
       width: "100%",
-      height: 120,
+      height: "18%",
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      paddingTop: 20,
+      // marginBottom: 20,
     },
     backButton: {
       position: "absolute",
+      top: 50,
       left: 10,
       backgroundColor: theme.colors.backBackgound,
       marginLeft: 20,
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
+      marginTop: 20,
       fontSize: 32,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
@@ -627,7 +633,7 @@ export default function TestScreen({ navigation, route }) {
           }}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text
           style={styles.headerText}

@@ -49,7 +49,7 @@ export default function RewardScreen({ navigation }) {
   const pupilLoading = useSelector((state) => state.pupil.loading);
   const pupilError = useSelector((state) => state.pupil.error);
   const rawRewardList = useSelector(
-    (state) => state.reward?.list || [],
+    (state) => state.reward?.rewards || [],
     isEqual
   );
   const rewardLoading = useSelector((state) => state.reward.loading);

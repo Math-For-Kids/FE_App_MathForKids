@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,9 @@ import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { pupilById } from "../../redux/profileSlice";
+import { getAllPupils } from "../../redux/pupilSlice";
+import { countByPupilId } from "../../redux/owned_rewardSlice";
+
 export default function ProfileScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useTranslation("profile");
@@ -22,24 +25,42 @@ export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
   const pupil = useSelector((state) => state.profile.info);
-  // console.log("pupil", pupil);
+  const allPupils = useSelector((state) => state.pupil.pupils); // Get all pupils from Redux state
+  const rewardCount = useSelector((state) => state.owned_reward.count); // Get reward count from Redux state
+  const [rank, setRank] = useState(null); // State to store the user's rank
+
+  // Fetch pupil data and reward count
   useEffect(() => {
     if (pupilId) {
       dispatch(pupilById(pupilId));
+      dispatch(countByPupilId(pupilId)); // Fetch reward count for the current pupil
+      dispatch(getAllPupils()); // Fetch all pupils
     }
   }, [pupilId]);
+
+  // Calculate rank when allPupils or pupil data changes
+  useEffect(() => {
+    console.log("allPupils:", allPupils);
+    console.log("pupil:", pupil);
+    if (allPupils && pupil?.point) {
+      const sortedPupils = [...allPupils].sort((a, b) => b.point - a.point);
+      const pupilRank = sortedPupils.findIndex((p) => p.id === pupilId) + 1;
+      console.log("sortedPupils:", sortedPupils);
+      console.log("pupilRank:", pupilRank);
+      setRank(pupilRank);
+    }
+  }, [allPupils, pupil, pupilId]);
 
   const avatar = pupil?.image
     ? { uri: pupil.image }
     : pupil?.gender === "female"
-    ? theme.icons.avatarFemale
-    : theme.icons.avatarMale;
+      ? theme.icons.avatarFemale
+      : theme.icons.avatarMale;
 
   const achievements = [
-    { icon: theme.icons.achievement, label: t("top"), value: "1" },
-    { icon: theme.icons.point, label: t("point"), value: "1500" },
-    // { icon: theme.icons.time, label: t("time"), value: "2h" },
-    { icon: theme.icons.badge, label: t("badge"), value: "3" },
+    { icon: theme.icons.achievement, label: t("top"), value: rank || "..." },
+    { icon: theme.icons.point, label: t("point"), value: pupil?.point || "0" },
+    { icon: theme.icons.badge, label: t("badge"), value: rewardCount || "0" }, // Use rewardCount from Redux
   ];
 
   const progressData = {
@@ -95,7 +116,7 @@ export default function ProfileScreen({ navigation }) {
       marginTop: 20,
       flexDirection: "row",
       alignItems: "center",
-      gap: 80,
+      gap: 40,
       backgroundColor: theme.colors.cardBackground,
       paddingHorizontal: 15,
       paddingVertical: 10,
@@ -113,7 +134,7 @@ export default function ProfileScreen({ navigation }) {
     avatar: { width: 60, height: 60, borderRadius: 50 },
     name: {
       width: "80%",
-      fontSize: 18,
+      fontSize: 24,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.blueDark,
     },
@@ -239,9 +260,9 @@ export default function ProfileScreen({ navigation }) {
           <View>
             <Text
               style={styles.name}
-              numberOfLines={2}
+              numberOfLines={1}
               adjustsFontSizeToFit
-              minimumFontScale={0.5}
+              Caves minimumFontScale={0.5}
             >
               {pupil?.fullName}
             </Text>

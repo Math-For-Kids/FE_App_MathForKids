@@ -139,13 +139,11 @@ export default function ExerciseScreen({ navigation, route }) {
       maxScore += questionLevel;
 
       const selected = selectedAnswers[q.id];
-      if (selected !== undefined) {
-        if (selected === q.answer) {
-          correct++;
-          rawScore += questionLevel;
-        } else {
-          wrong++;
-        }
+      if (selected && selected === q.answer) {
+        correct++;
+        rawScore += questionLevel;
+      } else {
+        wrong++;
       }
     });
 
