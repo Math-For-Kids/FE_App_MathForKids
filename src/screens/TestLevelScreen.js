@@ -15,7 +15,11 @@ import { Fonts } from "../../constants/Fonts";
 import { ProgressBar } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { getRandomAssessments, updateIsBlock, unlockPreviousGradeLesson } from "../redux/assessmentSlice";
+import {
+  getRandomAssessments,
+  updateIsBlock,
+  unlockPreviousGradeLesson,
+} from "../redux/assessmentSlice";
 import { getEnabledLevels } from "../redux/levelSlice";
 import { completeAndUnlockNextLesson } from "../redux/completedLessonSlice";
 import { updatePupilProfile } from "../redux/pupilSlice";
@@ -24,9 +28,12 @@ export default function AssessmentScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { grade, pupilId } = route.params || {};
   const dispatch = useDispatch();
-  const { assessments, lessonByType, loading: assessmentLoading, error: assessmentError } = useSelector(
-    (state) => state.assessment
-  );
+  const {
+    assessments,
+    lessonByType,
+    loading: assessmentLoading,
+    error: assessmentError,
+  } = useSelector((state) => state.assessment);
   const { levels } = useSelector((state) => state.level);
   const { t, i18n } = useTranslation("assessment");
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -37,18 +44,21 @@ export default function AssessmentScreen({ navigation, route }) {
   const languageButtonRef = useRef(null);
   const flatListRef = useRef(null);
   useEffect(() => {
-    // Fetch random assessments only once when the component mounts
     dispatch(getRandomAssessments({ grade }));
     dispatch(getEnabledLevels());
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
   // Memoize the questions array to prevent re-randomization on every render
   const questions = useMemo(() => {
     console.log("Assessments:", assessments);
     return assessments.map((assessment, index) => {
-      const correctAnswer = assessment.answer;
-      const wrongOptions = assessment.option || [];
-      const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(Boolean);
+      const correctAnswer = assessment.answer?.[i18n.language];
+      const wrongOptions = (assessment.option || []).map(
+        (opt) => opt[i18n.language] || ""
+      );
+      const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(
+        Boolean
+      );
       const shuffledOptions = allOptions
         .map((value) => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)
@@ -81,11 +91,14 @@ export default function AssessmentScreen({ navigation, route }) {
       let lessonScores = {};
       let lessonMaxScores = {};
       questions.forEach((q) => {
-        const level = levels.find((lvl) => String(lvl.id) === String(q.levelId));
+        const level = levels.find(
+          (lvl) => String(lvl.id) === String(q.levelId)
+        );
         const point = level?.level === 1 ? 1 : level?.level === 2 ? 2 : 0;
 
         if (q.lessonId) {
-          lessonMaxScores[q.lessonId] = (lessonMaxScores[q.lessonId] || 0) + point;
+          lessonMaxScores[q.lessonId] =
+            (lessonMaxScores[q.lessonId] || 0) + point;
         }
 
         const isCorrect = selectedOptions[q.id] === q.answerIndex;
@@ -98,7 +111,12 @@ export default function AssessmentScreen({ navigation, route }) {
         }
       });
 
-      const lessonTypes = ["addition", "subtraction", "multiplication", "division"];
+      const lessonTypes = [
+        "addition",
+        "subtraction",
+        "multiplication",
+        "division",
+      ];
       lessonTypes.forEach((type) => {
         const lessonIds = lessonByType?.[type] || [];
         if (lessonIds.length > 0) {
@@ -106,55 +124,102 @@ export default function AssessmentScreen({ navigation, route }) {
           const secondLessonId = lessonIds[1] || null;
 
           if (correct === 0) {
-            console.log(`Type: ${type}, No correct answers, unlocking first lesson: ${firstLessonId}`);
+            console.log(
+              `Type: ${type}, No correct answers, unlocking first lesson: ${firstLessonId}`
+            );
             dispatch(updateIsBlock({ pupilId, lessonId: firstLessonId }));
-            dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+            dispatch(
+              updatePupilProfile({ id: pupilId, data: { isAssess: true } })
+            );
           } else if (lessonIds.length >= 2) {
             const firstScore = lessonScores[firstLessonId] || 0;
             const secondScore = lessonScores[secondLessonId] || 0;
             const firstMaxScore = lessonMaxScores[firstLessonId] || 0;
             const secondMaxScore = lessonMaxScores[secondLessonId] || 0;
-            const firstPercentage = firstMaxScore > 0 ? (firstScore / firstMaxScore) * 100 : 0;
-            const secondPercentage = secondMaxScore > 0 ? (secondScore / secondMaxScore) * 100 : 0;
+            const firstPercentage =
+              firstMaxScore > 0 ? (firstScore / firstMaxScore) * 100 : 0;
+            const secondPercentage =
+              secondMaxScore > 0 ? (secondScore / secondMaxScore) * 100 : 0;
             console.log(`type: ${type}`);
-            console.log(`Lesson ID: ${firstLessonId}, Score: ${firstScore}/${firstMaxScore} (${firstPercentage.toFixed(2)}%)`);
-            console.log(`Lesson ID: ${secondLessonId}, Score: ${secondScore}/${secondMaxScore} (${secondPercentage.toFixed(2)}%)`);
+            console.log(
+              `Lesson ID: ${firstLessonId}, Score: ${firstScore}/${firstMaxScore} (${firstPercentage.toFixed(
+                2
+              )}%)`
+            );
+            console.log(
+              `Lesson ID: ${secondLessonId}, Score: ${secondScore}/${secondMaxScore} (${secondPercentage.toFixed(
+                2
+              )}%)`
+            );
             if (secondPercentage >= 90) {
-              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
-              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: secondLessonId }));
-              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(
+                completeAndUnlockNextLesson({
+                  pupilId,
+                  lessonId: firstLessonId,
+                })
+              );
+              dispatch(
+                completeAndUnlockNextLesson({
+                  pupilId,
+                  lessonId: secondLessonId,
+                })
+              );
+              dispatch(
+                updatePupilProfile({ id: pupilId, data: { isAssess: true } })
+              );
               dispatch(unlockPreviousGradeLesson({ pupilId }));
             } else if (firstPercentage >= 90) {
-              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
-              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(
+                completeAndUnlockNextLesson({
+                  pupilId,
+                  lessonId: firstLessonId,
+                })
+              );
+              dispatch(
+                updatePupilProfile({ id: pupilId, data: { isAssess: true } })
+              );
               dispatch(unlockPreviousGradeLesson({ pupilId }));
             } else if (firstPercentage < 90 && secondPercentage < 90) {
               dispatch(updateIsBlock({ pupilId, lessonId: firstLessonId }));
-              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(
+                updatePupilProfile({ id: pupilId, data: { isAssess: true } })
+              );
               dispatch(unlockPreviousGradeLesson({ pupilId }));
-
             }
           } else {
             const score = lessonScores[firstLessonId] || 0;
             const maxScore = lessonMaxScores[firstLessonId] || 0;
             const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
-            console.log(`Type: ${type}, Lesson ID: ${firstLessonId}, Score: ${score}/${maxScore} (${percentage.toFixed(2)}%)`);
+            console.log(
+              `Type: ${type}, Lesson ID: ${firstLessonId}, Score: ${score}/${maxScore} (${percentage.toFixed(
+                2
+              )}%)`
+            );
             if (percentage >= 90) {
-              dispatch(completeAndUnlockNextLesson({ pupilId, lessonId: firstLessonId }));
-              dispatch(updatePupilProfile({ id: pupilId, data: { isAssess: true } }));
+              dispatch(
+                completeAndUnlockNextLesson({
+                  pupilId,
+                  lessonId: firstLessonId,
+                })
+              );
+              dispatch(
+                updatePupilProfile({ id: pupilId, data: { isAssess: true } })
+              );
               dispatch(unlockPreviousGradeLesson({ pupilId }));
-
             }
           }
         }
       });
 
       const maxTotalScore = questions.reduce((sum, q) => {
-        const level = levels.find((lvl) => String(lvl.id) === String(q.levelId));
+        const level = levels.find(
+          (lvl) => String(lvl.id) === String(q.levelId)
+        );
         return sum + (level?.level === 1 ? 1 : level?.level === 2 ? 2 : 0);
       }, 0);
 
-      const calculatedScore = maxTotalScore > 0 ? Math.round((totalScore / maxTotalScore) * 10) : 0;
+      const calculatedScore =
+        maxTotalScore > 0 ? Math.round((totalScore / maxTotalScore) * 10) : 0;
       setCorrectCount(correct);
       setScore(calculatedScore);
       setShowModal(true);
@@ -212,12 +277,12 @@ export default function AssessmentScreen({ navigation, route }) {
     i18n.changeLanguage(lang);
     dispatch(updatePupilProfile({ id: pupilId, data: { language: lang } }));
     setShowLanguageDropdown(false);
-  }
+  };
   const handleOutsidePress = () => {
     if (showLanguageDropdown) {
       setShowLanguageDropdown(false);
     }
-  }
+  };
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -305,7 +370,7 @@ export default function AssessmentScreen({ navigation, route }) {
       padding: 10,
       dumplings: 10,
       elevation: 3,
-      borderRadius:10,
+      borderRadius: 10,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.colors.optionAnswerBackground,
@@ -457,12 +522,17 @@ export default function AssessmentScreen({ navigation, route }) {
               style={styles.languageContainer}
               onPress={() => setShowLanguageDropdown(!showLanguageDropdown)}
             >
-              <Image source={i18n.language === "en" ? theme.icons.languageEnglish : theme.icons.languageVietnamese}
+              <Image
+                source={
+                  i18n.language === "en"
+                    ? theme.icons.languageEnglish
+                    : theme.icons.languageVietnamese
+                }
                 style={styles.languageIcon}
-                resizeMode="contain" />
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </LinearGradient>
-
 
           {showLanguageDropdown && (
             <View style={styles.languageDropdown}>
@@ -482,9 +552,12 @@ export default function AssessmentScreen({ navigation, route }) {
           )}
 
           <View style={styles.leftText}>
-            <Text style={styles.text}>{t("grade")}: {grade}</Text>
             <Text style={styles.text}>
-              {t("answered")}: {Object.keys(selectedOptions).length}/{questions.length}
+              {t("grade")}: {grade}
+            </Text>
+            <Text style={styles.text}>
+              {t("answered")}: {Object.keys(selectedOptions).length}/
+              {questions.length}
             </Text>
             <ProgressBar
               progress={Object.keys(selectedOptions).length / questions.length}
@@ -499,11 +572,10 @@ export default function AssessmentScreen({ navigation, route }) {
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={{ paddingBottom: 100 }}
             renderItem={({ item, index }) => {
-              const alphabet = ["A", "B", "C", "D"];
               return (
                 <View style={styles.questionCard}>
                   <Text style={styles.subjectText}>
-                    {t("question")} {index + 1}: {item.question}
+                    {t("question")} {index + 1}. {item.question}
                   </Text>
                   {item.image && (
                     <Image
@@ -531,7 +603,7 @@ export default function AssessmentScreen({ navigation, route }) {
                                 isSelected && styles.selectedOptionText,
                               ]}
                             >
-                              {alphabet[idx]}. {opt}
+                              {opt}
                             </Text>
                           </TouchableOpacity>
                         );
@@ -539,7 +611,7 @@ export default function AssessmentScreen({ navigation, route }) {
                     </View>
                     <View style={styles.optionsRow}>
                       {item.options.slice(2, 4).map((opt, idx) => {
-                        const isSelected = selectedOptions[item.id] === (idx + 2);
+                        const isSelected = selectedOptions[item.id] === idx + 2;
                         return (
                           <TouchableOpacity
                             key={idx + 2}
@@ -555,7 +627,7 @@ export default function AssessmentScreen({ navigation, route }) {
                                 isSelected && styles.selectedOptionText,
                               ]}
                             >
-                              {alphabet[idx + 2]}. {opt}
+                              {opt}
                             </Text>
                           </TouchableOpacity>
                         );

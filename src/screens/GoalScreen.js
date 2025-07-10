@@ -15,29 +15,41 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import FloatingMenu from "../components/FloatingMenu";
-import { getAllPupils, pupilById, pupilByUserId } from "../redux/pupilSlice";
-import { getLessonsByGradeAndType } from "../redux/lessonSlice";
+import { pupilByUserId } from "../redux/pupilSlice";
+import {
+  Modal,
+  Portal,
+  Button,
+  Checkbox,
+  RadioButton,
+} from "react-native-paper";
 import { getRewardByDisabledStatus } from "../redux/rewardSlice";
-import { createGoal } from "../redux/goalSlice";
-import { useIsFocused } from "@react-navigation/native";
+import {
+  createGoal,
+  getLessonsByGradeAndTypeFiltered,
+  getGoalsWithin30Days,
+  getEnabledLevels,
+  getAvailableLessons,
+} from "../redux/goalSlice";
 import { useTranslation } from "react-i18next";
 import { createPupilNotification } from "../redux/pupilNotificationSlice";
-import { createUserNotification } from "../redux/userNotificationSlice"; // nếu bạn cũng cần gửi cho user
-import { serverTimestamp } from "firebase/firestore";
+import { createUserNotification } from "../redux/userNotificationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
-  const [selectedAccount, setSelectedAccount] = useState("Jolly");
+  const [selectedAccount, setSelectedAccount] = useState();
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [skillType, setSkillType] = useState("");
-  const [lesson, setLesson] = useState("");
-  const [exercise, setExercise] = useState("");
-  const [reward, setReward] = useState("");
+  const [lesson, setLesson] = useState(null);
+  const [reward, setReward] = useState(null);
+  const [exercise, setExercise] = useState([]);
+  const [rewardQuantity, setRewardQuantity] = useState([]);
+  const quantityOptions = ["3", "5", "7"];
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
@@ -45,12 +57,15 @@ export default function GoalScreen() {
   const dispatch = useDispatch();
   const { pupils } = useSelector((state) => state.pupil);
   const { user } = useSelector((state) => state.auth);
-  const { lessons } = useSelector((state) => state.lesson);
   const { rewards } = useSelector((state) => state.reward);
+  const { filteredLessons, enabledLevels, availableLessons } =
+    useSelector((state) => state.goal);
   const { t, i18n } = useTranslation("goal");
-  // console.log("userId", user.id);
+  // console.log("filteredLessons", filteredLessons);
+  // console.log("availableLessons", availableLessons);
   useEffect(() => {
     dispatch(getRewardByDisabledStatus());
+    dispatch(getEnabledLevels());
     dispatch(pupilByUserId(user?.id));
   }, [dispatch, user?.id]);
 
@@ -58,22 +73,38 @@ export default function GoalScreen() {
     const selectedPupil = pupils.find((p) => p.id === selectedAccount);
     if (selectedPupil && skillType) {
       dispatch(
-        getLessonsByGradeAndType({
+        getLessonsByGradeAndTypeFiltered({
           grade: parseInt(selectedPupil.grade),
           type: skillType.toLowerCase(),
           pupilId: selectedPupil.id,
         })
       );
+      dispatch(getGoalsWithin30Days(selectedPupil.id));
     }
   }, [skillType, selectedAccount]);
-  // console.log("lessons", lessons);
-  const rewardOptions = rewards.map((r) => ({
-    label: r.name?.[i18n.language] || r.name?.en || t("unnamed"),
-    value: r.name?.[i18n.language] || r.name?.en || t("unnamed"),
-    image: r.image ? { uri: r.image } : undefined,
-  }));
-  const handleSaveGoal = () => {
-    if (!selectedAccount || !skillType || !lesson || !exercise || !reward) {
+  useEffect(() => {
+    const selectedPupil = pupils.find((p) => p.id === selectedAccount);
+    if (selectedPupil && skillType && lesson && startDate && endDate) {
+      const formattedStart = startDate.toISOString().split("T")[0]; 
+      const formattedEnd = endDate.toISOString().split("T")[0];
+      dispatch(
+        getAvailableLessons({
+          pupilId: selectedPupil.id,
+          skillType,
+          startDate: formattedStart,
+          endDate: formattedEnd,
+        })
+      );
+    }
+  }, [selectedAccount, skillType, lesson, startDate, endDate]);
+  const handleSaveGoal = async () => {
+    if (
+      !selectedAccount ||
+      !skillType ||
+      !lesson ||
+      exercise.length === 0 ||
+      !reward
+    ) {
       alert(t("alertIncomplete"));
       return;
     }
@@ -81,78 +112,191 @@ export default function GoalScreen() {
     const goalData = {
       pupilId: selectedAccount,
       skillType,
-      lesson,
       exercise,
-      reward,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      lessonId: lesson?.id,
+      rewardId: reward?.id,
+      dateStart: startDate.toISOString(),
+      dateEnd: endDate.toISOString(),
+      rewardQuantity,
     };
 
-    dispatch(createGoal(goalData))
-      .unwrap()
-      .then(() => {
-        const now = new Date();
-        const createdAt = now.toISOString();
-        const updatedAt = now.toISOString();
+    try {
+      await dispatch(createGoal(goalData)).unwrap();
 
-        // Gửi cho phụ huynh
+      const now = new Date();
+      const createdAt = now.toISOString();
+      const updatedAt = now.toISOString();
+      const selectedPupil = pupils.find((p) => p.id === selectedAccount);
+
+      // Notification cho phụ huynh
+      dispatch(
+        createUserNotification({
+          userId: user.id,
+          title: {
+            en: t(
+              "notifyGoalCreatedTitle",
+              {
+                skill: skillType,
+                lesson: lesson?.name?.en,
+              },
+              { lng: "en" }
+            ),
+            vi: t(
+              "notifyGoalCreatedTitle",
+              {
+                skill: skillType,
+                lesson: lesson?.name?.vi,
+              },
+              { lng: "vi" }
+            ),
+          },
+          content: {
+            en: t(
+              "notifyGoalCreatedContent",
+              {
+                dateStart: formatDate(startDate),
+                dateEnd: formatDate(endDate),
+                skill: t(`skill_${skillType}`, { lng: "en" }),
+                lesson: lesson?.name?.en,
+                level: exercise
+                  .map((l) => t(l.toLowerCase(), { lng: "en" }))
+                  .join(", "),
+                reward: reward?.name?.en,
+                quantity: rewardQuantity,
+              },
+              { lng: "en" }
+            ),
+            vi: t(
+              "notifyGoalCreatedContent",
+              {
+                dateStart: formatDate(startDate),
+                dateEnd: formatDate(endDate),
+                skill: t(`skill_${skillType}`, { lng: "vi" }),
+                lesson: lesson?.name?.vi,
+                level: exercise
+                  .map((l) => t(l.toLowerCase(), { lng: "vi" }))
+                  .join(", "),
+                reward: reward?.name?.vi,
+                quantity: rewardQuantity,
+              },
+              { lng: "vi" }
+            ),
+          },
+          isRead: false,
+          createdAt,
+          updatedAt,
+        })
+      );
+
+      // Notification cho học sinh
+      dispatch(
+        createPupilNotification({
+          pupilId: selectedAccount,
+          title: {
+            en: t(
+              "notifyNewGoalTitle",
+              {
+                skill: skillType,
+                lesson: lesson?.name?.en,
+              },
+              { lng: "en" }
+            ),
+            vi: t(
+              "notifyNewGoalTitle",
+              {
+                skill: skillType,
+                lesson: lesson?.name?.vi,
+              },
+              { lng: "vi" }
+            ),
+          },
+          content: {
+            en: t(
+              "notifyNewGoalContent",
+              {
+                dateStart: formatDate(startDate),
+                dateEnd: formatDate(endDate),
+                skill: t(`skill_${skillType}`, { lng: "en" }),
+                lesson: lesson?.name?.en,
+                level: exercise
+                  .map((l) => t(l.toLowerCase(), { lng: "en" }))
+                  .join(", "),
+                reward: reward?.name?.en,
+                quantity: rewardQuantity,
+              },
+              { lng: "en" }
+            ),
+            vi: t(
+              "notifyNewGoalContent",
+              {
+                dateStart: formatDate(startDate),
+                dateEnd: formatDate(endDate),
+                skill: t(`skill_${skillType}`, { lng: "vi" }),
+                lesson: lesson?.name?.vi,
+                level: exercise
+                  .map((l) => t(l.toLowerCase(), { lng: "vi" }))
+                  .join(", "),
+                reward: reward?.name?.vi,
+                quantity: rewardQuantity,
+              },
+              { lng: "vi" }
+            ),
+          },
+          isRead: false,
+          createdAt,
+          updatedAt,
+        })
+      );
+
+      // Refetch toàn bộ dữ liệu
+      if (selectedPupil) {
+        const formattedStart = startDate.toISOString().split("T")[0];
+        const formattedEnd = endDate.toISOString().split("T")[0];
+
+        dispatch(getRewardByDisabledStatus());
+        dispatch(getEnabledLevels());
+        dispatch(pupilByUserId(user?.id));
+        dispatch(getGoalsWithin30Days(selectedPupil.id));
         dispatch(
-          createUserNotification({
-            userId: user.id,
-            title: {
-              en: t("notifyGoalCreatedTitle", { lng: "en" }),
-              vi: t("notifyGoalCreatedTitle", { lng: "vi" }),
-            },
-            content: {
-              en: t(
-                "notifyGoalCreatedContent",
-                { skill: skillType, lesson },
-                { lng: "en" }
-              ),
-              vi: t(
-                "notifyGoalCreatedContent",
-                { skill: skillType, lesson },
-                { lng: "vi" }
-              ),
-            },
-            isRead: false,
-            createdAt,
-            updatedAt,
+          getLessonsByGradeAndTypeFiltered({
+            grade: parseInt(selectedPupil.grade),
+            type: skillType.toLowerCase(),
+            pupilId: selectedPupil.id,
           })
         );
-
-        // Gửi cho học sinh
         dispatch(
-          createPupilNotification({
-            pupilId: selectedAccount,
-            title: {
-              en: t("notifyNewGoalTitle", { lng: "en" }),
-              vi: t("notifyNewGoalTitle", { lng: "vi" }),
-            },
-            content: {
-              en: t(
-                "notifyNewGoalContent",
-                { skill: skillType, lesson },
-                { lng: "en" }
-              ),
-              vi: t(
-                "notifyNewGoalContent",
-                { skill: skillType, lesson },
-                { lng: "vi" }
-              ),
-            },
-            isRead: false,
-            createdAt,
-            updatedAt,
+          getAvailableLessons({
+            pupilId: selectedPupil.id,
+            skillType,
+            startDate: formattedStart,
+            endDate: formattedEnd,
           })
         );
+      }
 
-        alert(t("alertSuccess"));
-        navigation.goBack();
-      })
-      .catch((err) => {
-        alert(t("alertFail", { error: err }));
-      });
+      alert(t("alertSuccess"));
+      navigation.goBack();
+    } catch (err) {
+      alert(t("alertFail", { error: err?.message || err }));
+    }
+  };
+
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+  //An nhung bai hoc du level
+  const filteredAvailableLessons = filteredLessons.filter((lesson) => {
+    const available = availableLessons.find((a) => a.lessonId === lesson.id);
+    if (!available) return true; // nếu chưa có dữ liệu -> cho hiện
+    return available.disabledExercises.length < enabledLevels.length; // chỉ hiện nếu chưa đủ level
+  });
+  //Lấy danh sách level bị disable của bài học đang chọn
+  const getDisabledExercisesByLesson = (lessonId) => {
+    const match = availableLessons.find((a) => a.lessonId === lessonId);
+    return match?.disabledExercises || [];
   };
 
   const styles = StyleSheet.create({
@@ -196,8 +340,9 @@ export default function GoalScreen() {
       marginTop: 10,
     },
     accountScrollContainer: {
-      paddingHorizontal: 10,
+      paddingLeft: 60,
       paddingVertical: 6,
+      paddingRight: 20,
     },
     accountButton: {
       backgroundColor: theme.colors.grayLight,
@@ -319,7 +464,7 @@ export default function GoalScreen() {
         <ScrollView style={{ width: "100%" }}>
           {options.map((item) => (
             <LinearGradient
-              key={item.value}
+              key={item.value?.id || item.label}
               colors={theme.colors.gradientBluePrimary}
               style={styles.modalButton}
             >
@@ -399,7 +544,7 @@ export default function GoalScreen() {
             <Text style={styles.label}>{t("dateStart")}</Text>
             <TouchableOpacity onPress={() => setShowStartPicker(true)}>
               <TextInput
-                value={startDate.toLocaleDateString()}
+                value={formatDate(startDate)}
                 editable={false}
                 style={styles.input}
               />
@@ -411,8 +556,20 @@ export default function GoalScreen() {
                 display="default"
                 onChange={(event, selectedDate) => {
                   setShowStartPicker(false);
-                  if (event.type === "set" && selectedDate)
+                  if (event.type === "set" && selectedDate) {
+                    const minStartDate = new Date(endDate);
+                    minStartDate.setDate(endDate.getDate() - 7);
+
+                    if (selectedDate < minStartDate) {
+                      alert(t("alertStartTooEarly"));
+                      return;
+                    }
+                    if (selectedDate > endDate) {
+                      alert(t("alertStartAfterEnd"));
+                      return;
+                    }
                     setStartDate(selectedDate);
+                  }
                 }}
               />
             )}
@@ -421,7 +578,7 @@ export default function GoalScreen() {
             <Text style={styles.label}>{t("dateEnd")}</Text>
             <TouchableOpacity onPress={() => setShowEndPicker(true)}>
               <TextInput
-                value={endDate.toLocaleDateString()}
+                value={formatDate(endDate)}
                 editable={false}
                 style={styles.input}
               />
@@ -435,7 +592,7 @@ export default function GoalScreen() {
                   setShowEndPicker(false);
                   if (event.type === "set" && selectedDate) {
                     const maxEndDate = new Date(startDate);
-                    maxEndDate.setDate(startDate.getDate() + 14);
+                    maxEndDate.setDate(startDate.getDate() + 7);
 
                     if (selectedDate > maxEndDate) {
                       alert(t("alertDateLimit"));
@@ -460,8 +617,9 @@ export default function GoalScreen() {
               color: skillType ? theme.colors.black : theme.colors.gray,
             }}
           >
-            {skillType || t("selectSkillType")}
+            {skillType ? t(`skill_${skillType}`) : t("selectSkillType")}
           </Text>
+
           <Ionicons
             name="caret-down-outline"
             size={24}
@@ -479,7 +637,9 @@ export default function GoalScreen() {
               color: lesson ? theme.colors.black : theme.colors.gray,
             }}
           >
-            {lesson || t("selectLesson")}
+            {lesson?.name?.[i18n.language] ||
+              lesson?.name?.en ||
+              t("selectLesson")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -494,10 +654,23 @@ export default function GoalScreen() {
           style={styles.input}
         >
           <Text
-            style={{ color: exercise ? theme.colors.black : theme.colors.gray }}
+            style={{
+              color:
+                exercise?.length > 0 ? theme.colors.black : theme.colors.gray,
+            }}
           >
-            {exercise || t("selectExercise")}
+            {exercise.length > 0
+              ? exercise
+                  .map(
+                    (id) =>
+                      enabledLevels.find((lvl) => lvl.id === id)?.name[
+                        i18n.language
+                      ] || id
+                  )
+                  .join(", ")
+              : t("selectLevel")}
           </Text>
+
           <Ionicons
             name="caret-down-outline"
             size={24}
@@ -513,7 +686,9 @@ export default function GoalScreen() {
           <Text
             style={{ color: reward ? theme.colors.black : theme.colors.gray }}
           >
-            {reward || t("selectReward")}
+            {reward?.name?.[i18n.language] ||
+              reward?.name?.en ||
+              t("selectReward")}
           </Text>
           <Ionicons
             name="caret-down-outline"
@@ -521,6 +696,25 @@ export default function GoalScreen() {
             color={theme.colors.blueDark}
           />
         </TouchableOpacity>
+        <Text style={styles.label}>{t("selectRewardQuantity")}</Text>
+        <RadioButton.Group
+          onValueChange={(newValue) => setRewardQuantity(newValue)}
+          value={rewardQuantity}
+        >
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-around" }}
+          >
+            {quantityOptions.map((qty) => (
+              <View
+                key={qty}
+                style={{ flexDirection: "row", alignItems: "center" }}
+              >
+                <RadioButton value={qty} color={theme.colors.white} />
+                <Text style={{ color: theme.colors.white }}>{qty}</Text>
+              </View>
+            ))}
+          </View>
+        </RadioButton.Group>
       </ScrollView>
 
       <LinearGradient
@@ -536,11 +730,14 @@ export default function GoalScreen() {
         renderOptionModal(
           t("selectSkillTypeTitle"),
           [
-            { label: t("skill_add"), value: "Addition" },
-            { label: t("skill_sub"), value: "Subtraction" },
-            { label: t("skill_mul"), value: "Multiplication" },
-            { label: t("skill_div"), value: "Division" },
-            { label: t("skill_table"), value: "Multiplications table" },
+            { label: t("skill_Addition"), value: "Addition" },
+            { label: t("skill_Subtraction"), value: "Subtraction" },
+            { label: t("skill_Multiplication"), value: "Multiplication" },
+            { label: t("skill_Division"), value: "Division" },
+            {
+              label: t("skill_Multiplications"),
+              value: "Multiplications table",
+            },
           ],
           setSkillType,
           () => setShowSkillModal(false)
@@ -549,28 +746,83 @@ export default function GoalScreen() {
       {showLessonModal &&
         renderOptionModal(
           t("selectLesson"),
-          (Array.isArray(lessons) ? lessons : []).map((l) => ({
+          (filteredAvailableLessons || []).map((l) => ({
             label: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
-            value: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
+            value: { id: l.id, name: l.name },
           })),
           setLesson,
           () => setShowLessonModal(false)
         )}
 
-      {showExerciseModal &&
-        renderOptionModal(
-          t("selectExercise"),
-          (Array.isArray(lessons) ? lessons : []).map((l) => ({
-            label: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
-            value: l.name?.[i18n.language] || l.name?.en || t("unnamedLesson"),
-          })),
-          setExercise,
-          () => setShowExerciseModal(false)
-        )}
+      <Portal>
+        <Modal
+          visible={showExerciseModal}
+          onDismiss={() => setShowExerciseModal(false)}
+          contentContainerStyle={{
+            backgroundColor: "white",
+            margin: 20,
+            padding: 20,
+            borderRadius: 10,
+          }}
+        >
+          <Text style={{ fontSize: 18, marginBottom: 10 }}>
+            {t("selectLevel")}
+          </Text>
+
+          {enabledLevels.map((level) => {
+            const isDisabled = getDisabledExercisesByLesson(
+              lesson?.id
+            ).includes(level.id);
+            const isSelected = exercise.includes(level.id);
+
+            return (
+              <View
+                key={level.id}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 6,
+                  opacity: isDisabled ? 0.4 : 1,
+                }}
+              >
+                <Checkbox
+                  status={isSelected ? "checked" : "unchecked"}
+                  onPress={() => {
+                    if (isDisabled) return;
+                    setExercise((prev) =>
+                      isSelected
+                        ? prev.filter((l) => l !== level.id)
+                        : [...prev, level.id]
+                    );
+                  }}
+                  disabled={isDisabled}
+                  color={theme.colors.blueDark}
+                />
+                <Text>{level.name[i18n.language]}</Text>
+              </View>
+            );
+          })}
+
+          <Button
+            mode="contained"
+            onPress={() => setShowExerciseModal(false)}
+            style={{ marginTop: 20, backgroundColor: theme.colors.blueDark }}
+          >
+            {t("confirm")}
+          </Button>
+        </Modal>
+      </Portal>
 
       {showRewardModal &&
-        renderOptionModal(t("selectReward"), rewardOptions, setReward, () =>
-          setShowRewardModal(false)
+        renderOptionModal(
+          t("selectReward"),
+          rewards.map((r) => ({
+            label: r.name?.[i18n.language] || r.name?.en || t("unnamed"),
+            value: { id: r.id, name: r.name },
+            image: r.image ? { uri: r.image } : undefined,
+          })),
+          setReward,
+          () => setShowRewardModal(false)
         )}
 
       <FloatingMenu />

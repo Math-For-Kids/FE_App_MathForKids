@@ -40,7 +40,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
 
   const getQuestionColor = (question) => {
     const selected = answers[question.id];
-    return selected === question.answer
+    return selected && selected === question.answer
       ? getCorrectBackground()
       : theme.colors.redTomato;
   };
@@ -59,34 +59,6 @@ export default function ExerciseResultScreen({ navigation, route }) {
     if (skillName === "Multiplication") return theme.colors.orangeDark;
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
-  };
-
-  const isImageUrl = (value) => {
-    return (
-      typeof value === "string" &&
-      (value.startsWith("http") || value.startsWith("https"))
-    );
-  };
-
-  const renderImage = (uri, style, key) => {
-    if (!uri || typeof uri !== "string") {
-      console.warn(`Invalid image URI for key ${key}:`, uri);
-      return <Text style={styles.errorText}>Invalid Image</Text>;
-    }
-    return (
-      <Image
-        source={{ uri }}
-        style={style}
-        resizeMode="contain"
-        onError={(e) =>
-          console.warn(
-            `Failed to load image ${uri} for key ${key}:`,
-            e.nativeEvent.error
-          )
-        }
-        onLoad={() => console.log(`Image loaded successfully: ${uri}`)}
-      />
-    );
   };
 
   const extractNumbers = (answerText) => {
@@ -270,8 +242,12 @@ export default function ExerciseResultScreen({ navigation, route }) {
       </LinearGradient>
 
       <View style={styles.summaryContainer}>
-        <Text style={styles.scoreText}>{t("score")}: {score}</Text>
-        <Text style={styles.correctText}>{t("score")}: {correctCount}</Text>
+        <Text style={styles.scoreText}>
+          {t("score")}: {score}
+        </Text>
+        <Text style={styles.correctText}>
+          {t("score")}: {correctCount}
+        </Text>
         <Text style={styles.wrongText}>
           {t("wrong")} <Text style={styles.wrongNumber}>{wrongCount}</Text>
         </Text>
@@ -290,7 +266,9 @@ export default function ExerciseResultScreen({ navigation, route }) {
               setModalVisible(true);
             }}
           >
-            <Text style={styles.questionText}>{t("question")} {index + 1}</Text>
+            <Text style={styles.questionText}>
+              {t("question")} {index + 1}
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -306,33 +284,27 @@ export default function ExerciseResultScreen({ navigation, route }) {
             {selectedQuestion && (
               <>
                 <Text style={styles.modalQuestionText}>
-                  {selectedQuestion.type === "image"
-                    ? t("imageQuestion")
-                    : selectedQuestion.question}
+                  {selectedQuestion.question}
                 </Text>
-                {selectedQuestion.type === "image" &&
-                  renderImage(
-                    selectedQuestion.image?.uri,
-                    styles.modalImage,
-                    `modal-question-${selectedQuestion.id}`
-                  )}
+                {selectedQuestion.image && (
+                  <Image
+                    source={{ uri: selectedQuestion.image.uri }}
+                    style={styles.modalImage}
+                    resizeMode="contain"
+                  />
+                )}
                 <Text style={styles.modalAnswerText}>
-                  {t("selectedAnswer")}: {answers[selectedQuestion.id] || "None"}
+                  {t("selectedAnswer")}:{" "}
+                  {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  {t("correctAnswer")}:{" "}
-                  {selectedQuestion.expression
-                    ? selectedQuestion.expression
-                    : selectedQuestion.answer}
+                  {t("correctAnswer")}: {selectedQuestion.answer}
                 </Text>
 
                 <TouchableOpacity
                   style={styles.stepByStepButton}
                   onPress={() => {
-                    const answerText =
-                      selectedQuestion.expression ||
-                      selectedQuestion.answer ||
-                      "";
+                    const answerText = selectedQuestion.answer || "";
 
                     const { number1, number2 } = extractNumbers(answerText);
                     if (!number1 || !number2) {

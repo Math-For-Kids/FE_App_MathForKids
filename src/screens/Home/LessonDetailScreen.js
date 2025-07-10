@@ -35,6 +35,8 @@ import { useWindowDimensions } from "react-native";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, lessonId } = route.params;
+  console.log("skillName", skillName);
+  console.log("lessonId", lessonId);
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation("lesson");
   const { width } = useWindowDimensions();
@@ -45,6 +47,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   const isAnimating = useRef(false);
 
   const enabledList = useSelector((state) => state.lessonDetail.enabledList);
+  console.log("enabledList", enabledList);
   const [lessonName, setLessonName] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
@@ -70,15 +73,17 @@ export default function LessonDetailScreen({ navigation, route }) {
   // console.log("autoNumber1", autoNumber1);
   // console.log("autoNumber2", autoNumber2);
   // console.log("getOperatorFromSkillName", getOperatorFromSkillName);
-  useEffect(() => {
-    if (lessonId) {
-      dispatch(getLessonById(lessonId)).then((res) => {
-        const data = res.payload;
-        setLessonName(data?.name?.[i18n.language] || data?.name?.en || "");
-      });
-      dispatch(getEnabledByLesson(lessonId));
-    }
-  }, [lessonId, i18n.language]);
+  useFocusEffect(
+    useCallback(() => {
+      if (lessonId) {
+        dispatch(getLessonById(lessonId)).then((res) => {
+          const data = res.payload;
+          setLessonName(data?.name?.[i18n.language] || data?.name?.en || "");
+        });
+        dispatch(getEnabledByLesson(lessonId));
+      }
+    }, [lessonId, i18n.language])
+  );
 
   useEffect(() => {
     setShowSwipeHint(true);
@@ -118,9 +123,9 @@ export default function LessonDetailScreen({ navigation, route }) {
   const tabTitles = useMemo(() => {
     return Array.isArray(enabledList)
       ? enabledList
-        .slice()
-        .sort((a, b) => a.order - b.order)
-        .map((item) => item.title?.[i18n.language] || "")
+          .slice()
+          .sort((a, b) => a.order - b.order)
+          .map((item) => item.title?.[i18n.language] || "")
       : [];
   }, [enabledList, i18n.language]);
 
@@ -133,8 +138,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       direction === "left" && indexNow < maxIndex
         ? indexNow + 1
         : direction === "right" && indexNow > 0
-          ? indexNow - 1
-          : null;
+        ? indexNow - 1
+        : null;
 
     if (newIndex === null) return;
 

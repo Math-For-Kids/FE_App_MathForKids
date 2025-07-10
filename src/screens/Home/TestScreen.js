@@ -17,16 +17,23 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { getRandomTests, createTest, createMultipleTestQuestions } from "../../redux/testSlice";
+import {
+  getRandomTests,
+  createTest,
+  createMultipleTestQuestions,
+} from "../../redux/testSlice";
 import { updatePupilProfile, pupilById } from "../../redux/profileSlice";
 import { completeAndUnlockNextLesson } from "../../redux/completedLessonSlice";
 import { getEnabledLevels } from "../../redux/levelSlice";
 import { Svg, Circle } from "react-native-svg";
-
+import {
+  getGoalsWithin30Days,
+  autoMarkCompletedGoals,
+} from "../../redux/goalSlice";
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
-  const { skillName, lessonId, pupilId } = route.params;
+  const { skillName, lessonId, pupilId, goalId } = route.params;
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -35,7 +42,7 @@ export default function TestScreen({ navigation, route }) {
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const bearPosition = useRef(new Animated.Value(20)).current;
   const bearRotate = useRef(new Animated.Value(0)).current;
-  const [timer, setTimer] = useState(0); // Initialize to 0, set dynamically
+  const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
@@ -49,21 +56,9 @@ export default function TestScreen({ navigation, route }) {
   const currentQ = tests[currentQuestion - 1];
   const totalQuestions = tests.length;
 
-  const isImageUrl = (value) =>
-    typeof value === "string" &&
-    (value.startsWith("http") || value.startsWith("https"));
-
-  const renderImage = (uri, style, key) => {
-    if (!uri || typeof uri !== "string") return <Text>Invalid Image</Text>;
-    return (
-      <Image source={{ uri }} style={style} resizeMode="contain" key={key} />
-    );
-  };
-
   // Consolidated timer logic
   useEffect(() => {
     if (!tests.length) return;
-    // Calculate initial time based on number of questions
     let newTime = 10; // Default 10 minutes
     if (tests.length > 10 && tests.length <= 20) {
       newTime = 25;
@@ -71,9 +66,7 @@ export default function TestScreen({ navigation, route }) {
       newTime = 35;
     }
     const totalSeconds = newTime * 60;
-    // Initialize timer
     setTimer(totalSeconds);
-    // Start timer
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
@@ -100,12 +93,16 @@ export default function TestScreen({ navigation, route }) {
     }
   }, [dispatch, lessonId, pupilId]);
 
+  // Shuffle options with unique IDs
   useEffect(() => {
     if (!currentQ) return;
     if (!shuffledOptions[currentQ.id]) {
-      const options = [...(currentQ.option || []), currentQ.answer].sort(
-        () => Math.random() - 0.5
-      );
+      const options = [...(currentQ.option || []), currentQ.answer]
+        .map((option, index) => ({
+          value: option,
+          id: `${currentQ.id}-option-${index}`, // Unique ID for each option
+        }))
+        .sort(() => Math.random() - 0.5);
       setShuffledOptions((prev) => ({
         ...prev,
         [currentQ.id]: options,
@@ -187,7 +184,18 @@ export default function TestScreen({ navigation, route }) {
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
-    console.log("Calculate Results - Raw Score:", rawScore, "Max Score:", maxScore, "Correct:", correct, "Wrong:", wrong, "Score:", Math.round(score));
+    console.log(
+      "Calculate Results - Raw Score:",
+      rawScore,
+      "Max Score:",
+      maxScore,
+      "Correct:",
+      correct,
+      "Wrong:",
+      wrong,
+      "Score:",
+      Math.round(score)
+    );
     return { score: Math.round(score), correct, wrong };
   };
 
@@ -200,7 +208,8 @@ export default function TestScreen({ navigation, route }) {
 
   const handleSubmit = async () => {
     const answeredCount = Object.keys(userAnswers).length;
-    const totalTime = (tests.length > 20 ? 35 : tests.length > 10 ? 25 : 10) * 60;
+    const totalTime =
+      (tests.length > 20 ? 35 : tests.length > 10 ? 25 : 10) * 60;
     clearInterval(timerRef.current);
 
     const { score, correct, wrong } = calculateScore();
@@ -213,10 +222,9 @@ export default function TestScreen({ navigation, route }) {
 
     const doSubmit = async () => {
       try {
-        // Create test
-        const usedTime = totalTime - timer; // This is the remaining time, so invert it
-      const actualElapsedTime = Math.max(0, usedTime); // Ensure non-negative
-      setElapsedTime(actualElapsedTime);
+        const usedTime = totalTime - timer;
+        const actualElapsedTime = Math.max(0, usedTime);
+        setElapsedTime(actualElapsedTime);
         const testPayload = {
           pupilId,
           lessonId,
@@ -228,20 +236,33 @@ export default function TestScreen({ navigation, route }) {
         const testId = testResult?.message?.id;
 
         if (testId) {
-          // Prepare array of test questions
           const questionPayloads = tests.map((question) => ({
             testId,
             exerciseId: question.id,
             levelId: question.levelId || question.level,
-            question: question.question?.[i18n.language],
+            question: question.question,
             image: question.image || null,
             option: question.option || [],
             correctAnswer: question.answer,
             selectedAnswer: userAnswers[question.id] || null,
           }));
-          // Create all test questions in one request
-          await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
+          await dispatch(
+            createMultipleTestQuestions(questionPayloads)
+          ).unwrap();
         }
+        const res = await dispatch(
+          autoMarkCompletedGoals({ pupilId, lessonId, goalId })
+        );
+
+        if (res.payload?.message?.[i18n.language]) {
+          Alert.alert(t("success"), res.payload.message[i18n.language]);
+        } else if (res.error?.message?.[i18n.language]) {
+          Alert.alert(t("error"), res.error.message[i18n.language]);
+        } else {
+          Alert.alert(t("error"), "Đã xảy ra lỗi không xác định");
+        }
+
+        await dispatch(getGoalsWithin30Days(pupilId));
         setElapsedTime(usedTime);
         setShowResultModal(true);
 
@@ -251,17 +272,19 @@ export default function TestScreen({ navigation, route }) {
           );
         }
         if (score >= 9) {
-          const unlockResult = await dispatch(completeAndUnlockNextLesson({ pupilId, lessonId })).unwrap();
-          setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
+          const unlockResult = await dispatch(
+            completeAndUnlockNextLesson({ pupilId, lessonId })
+          ).unwrap();
+          setNextLessonName(
+            unlockResult?.nextLessonName?.[i18n.language] || null
+          );
         } else {
-          setNextLessonName(null); // Ensure no next lesson is shown if score < 9
+          setNextLessonName(null);
         }
       } catch (error) {
-        Alert.alert(
-          t("error"),
-          error.message || t("submissionFailed"),
-          [{ text: "OK" }]
-        );
+        Alert.alert(t("error"), error.message || t("submissionFailed"), [
+          { text: "OK" },
+        ]);
       }
     };
 
@@ -271,7 +294,6 @@ export default function TestScreen({ navigation, route }) {
           text: t("keepDoing"),
           style: "cancel",
           onPress: () => {
-            // Restart timer
             timerRef.current = setInterval(() => {
               setTimer((prev) => {
                 if (prev <= 1) {
@@ -309,7 +331,13 @@ export default function TestScreen({ navigation, route }) {
     return `${m}:${s < 10 ? "0" + s : s}`;
   };
 
-  const progress = Math.min(Math.max(timer / ((tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60), 0), 1);
+  const progress = Math.min(
+    Math.max(
+      timer / ((tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60),
+      0
+    ),
+    1
+  );
   const strokeDashoffset = 2 * Math.PI * 25 * (1 - progress);
 
   const getGradient = () => {
@@ -346,24 +374,29 @@ export default function TestScreen({ navigation, route }) {
     },
     header: {
       width: "100%",
-      height: 120,
+      height: "18%",
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      paddingTop: 20,
     },
     backButton: {
       position: "absolute",
+      top: 50,
       left: 10,
       backgroundColor: theme.colors.backBackgound,
       marginLeft: 20,
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
+      marginTop: 20,
       fontSize: 32,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       color: theme.colors.white,
@@ -430,7 +463,7 @@ export default function TestScreen({ navigation, route }) {
       gap: 10,
     },
     question: {
-      fontSize: 14,
+      fontSize: 20,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
       textAlign: "center",
@@ -517,7 +550,6 @@ export default function TestScreen({ navigation, route }) {
       height: "50%",
       borderRadius: 10,
       justifyContent: "center",
-      // paddingVertical: 20, // Added padding for better spacing
       elevation: 3,
     },
     modalTitleText: {
@@ -545,9 +577,9 @@ export default function TestScreen({ navigation, route }) {
       fontSize: 20,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
-      flexShrink: 1, // Allows text to shrink
-      flexWrap: "wrap", // Ensures text wraps if too long
-      maxWidth: "60%", // Limits width to prevent overflow
+      flexShrink: 1,
+      flexWrap: "wrap",
+      maxWidth: "60%",
     },
     closeIcon: {
       position: "absolute",
@@ -627,7 +659,7 @@ export default function TestScreen({ navigation, route }) {
           }}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text
           style={styles.headerText}
@@ -678,7 +710,7 @@ export default function TestScreen({ navigation, route }) {
         <View style={styles.visualProgressBar}>
           {tests.map((q, index) => (
             <View
-              key={q.id}
+              key={q.id ?? `segment-${index}`} // Fallback to index if q.id is undefined
               style={[
                 styles.segmentBlock,
                 {
@@ -716,9 +748,9 @@ export default function TestScreen({ navigation, route }) {
             {currentQ.question?.[i18n.language] && (
               <Text
                 style={styles.question}
-                numberOfLines={2}
+                numberOfLines={5}
                 adjustsFontSizeToFit
-                minimumFontScale={0.5}
+                minimumFontScale={0.1}
               >
                 {currentQ.question?.[i18n.language]}
               </Text>
@@ -739,30 +771,20 @@ export default function TestScreen({ navigation, route }) {
           <Ionicons name="play-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
         <View style={styles.answerOptions}>
-          {options.map((val, index) => (
+          {options.map((option) => (
             <TouchableOpacity
-              key={`${val}-${index}`}
+              key={option.id} // Use unique ID from shuffled options
               style={[
                 styles.answerButton,
-                userAnswers[currentQ.id] === val
+                userAnswers[currentQ.id] === option.value
                   ? styles.answerSelectedButton
                   : null,
-                isImageUrl(val) && {
-                  paddingVertical: 5,
-                  paddingHorizontal: 5,
-                },
               ]}
-              onPress={() => handleAnswer(val)}
+              onPress={() => handleAnswer(option.value)}
             >
-              {isImageUrl(val) ? (
-                renderImage(
-                  val,
-                  styles.answerImage,
-                  `option-${currentQ.id}-${index}`
-                )
-              ) : (
-                <Text style={styles.answerText}>{val}</Text>
-              )}
+              <Text style={styles.answerText}>
+                {option.value?.[i18n.language]}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -786,20 +808,15 @@ export default function TestScreen({ navigation, route }) {
             <View style={styles.modalTextContainer}>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("score")}:</Text>
-                <Text style={styles.modalResultText}>
-                  {finalScore}/10
-                </Text>
+                <Text style={styles.modalResultText}>{finalScore}/10</Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("correct")}:</Text>
-                <Text style={styles.modalResultText}>
-                  {correctCount}
-                </Text>
+                <Text style={styles.modalResultText}>{correctCount}</Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("wrong")}:</Text>
-                <Text style={styles.modalResultText}>
-                  {wrongCount}</Text>
+                <Text style={styles.modalResultText}>{wrongCount}</Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>Time:</Text>
@@ -822,7 +839,7 @@ export default function TestScreen({ navigation, route }) {
                 setUserAnswers({});
                 setCurrentQuestion(1);
                 setShuffledOptions({});
-                setNextLessonName(null); // Reset next lesson name
+                setNextLessonName(null);
               }}
             >
               <Ionicons name="close" size={20} color={theme.colors.white} />

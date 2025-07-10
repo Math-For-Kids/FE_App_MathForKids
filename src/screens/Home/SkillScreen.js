@@ -14,17 +14,27 @@ import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { getEnabledLevels, countLevelIdsInLesson } from "../../redux/levelSlice";
+import {
+  getEnabledLevels,
+  countLevelIdsInLesson,
+} from "../../redux/levelSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
+  const { skillName, skillIcon, grade, pupilId, title, lessonId, goalId } =
     route.params;
+  // console.log("skillIcon", skillIcon);
+  // console.log("pupilId", pupilId);
+  // console.log("lessonId", lessonId);
+  // console.log("title", title);
+  // console.log("goalId", goalId);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
-  const { levels, levelIdCounts, loading, error } = useSelector((state) => state.level);
+  const { levels, levelIdCounts, loading, error } = useSelector(
+    (state) => state.level
+  );
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLevels, setSelectedLevels] = useState([]);
   useEffect(() => {
@@ -64,8 +74,8 @@ export default function SkillScreen({ navigation, route }) {
     return [theme.colors.gradientRed, "#CC0000"];
   };
   const getDisabledGradient = () => {
-    return ["#A9A9A9", "#808080"]; // Gradient màu xám cho level không có bài tập
-  }
+    return ["#A9A9A9", "#808080"];
+  };
 
   const toggleLevelSelection = (levelId) => {
     if (levelIdCounts?.levelIdCounts?.[levelId] === 0) return;
@@ -88,7 +98,7 @@ export default function SkillScreen({ navigation, route }) {
         const levelB = parseInt(b.name?.[i18n.language] || "0");
         return levelA - levelB;
       })
-      .map((level) => level.id); // Chỉ lấy id sau khi sắp xếp
+      .map((level) => level.id); 
     setModalVisible(false);
     navigation.navigate("ExerciseDetailScreen", {
       levelIds: sortedLevels,
@@ -256,19 +266,21 @@ export default function SkillScreen({ navigation, route }) {
               isDisabled
                 ? getDisabledGradient()
                 : selectedLevels.includes(item.id)
-                  ? getSelectedGradient()
-                  : getGradientBySkill()
+                ? getSelectedGradient()
+                : getGradientBySkill()
             }
             style={[
               styles.levelCard,
               {
                 borderWidth: selectedLevels.includes(item.id) ? 2 : 0,
                 borderColor: theme.colors.white,
-                opacity: isDisabled ? 0.6 : 1, // Làm mờ level không có bài tập
+                opacity: isDisabled ? 0.6 : 1, 
               },
             ]}
           >
-            <Text style={[styles.levelCardLabel, { color: theme.colors.white }]}>
+            <Text
+              style={[styles.levelCardLabel, { color: theme.colors.white }]}
+            >
               {item.name?.[i18n.language] || item.name?.en || "Unknown Level"}
             </Text>
             {selectedLevels.includes(item.id) && (
@@ -283,7 +295,7 @@ export default function SkillScreen({ navigation, route }) {
         </TouchableOpacity>
       );
     },
-    [selectedLevels, i18n.language, theme.colors,levelIdCounts]
+    [selectedLevels, i18n.language, theme.colors, levelIdCounts]
   );
 
   return (
@@ -328,6 +340,7 @@ export default function SkillScreen({ navigation, route }) {
                     title,
                     lessonId,
                     pupilId,
+                    goalId,
                   });
                 }
               }}
