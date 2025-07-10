@@ -27,7 +27,7 @@ export default function LessonScreen({ navigation, route }) {
   const dispatch = useDispatch();
   const normalizedSkillName = skillName.toLowerCase();
   // const [activeTab] = useState("Lesson");
-
+  console.log("skillIcon", skillIcon);
   const {
     lessons,
     loading: lessonLoading,

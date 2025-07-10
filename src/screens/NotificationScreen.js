@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
+import Markdown from "react-native-markdown-display";
 import {
   notificationsByUserId,
   updateNotification,
@@ -31,10 +32,10 @@ export default function NotificationScreen({ navigation, route }) {
   const user = useSelector((state) => state.auth.user);
   const { t, i18n } = useTranslation("notification");
   const userNotifications = useSelector(
-    (state) => state.notifications.list || []
+    (state) => state.notifications?.list || []
   );
   const pupilNotifications = useSelector(
-    (state) => state.pupilnotifications.list || []
+    (state) => state.pupilnotifications?.list || []
   );
   const notificationsToDisplay = pupilId
     ? pupilNotifications
@@ -157,13 +158,11 @@ export default function NotificationScreen({ navigation, route }) {
       position: "absolute",
       bottom: 0,
       right: 10,
-      top: 30,
-      fontSize: 8,
+      fontSize: 10,
       fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
       color: theme.colors.blueGray,
     },
     notificationContentContainer: {
-      marginTop: 10,
       alignItems: "center",
     },
     notificationContent: {
@@ -202,7 +201,9 @@ export default function NotificationScreen({ navigation, route }) {
       <FlatList
         style={{ paddingTop: 10 }}
         data={notificationsToDisplay}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) =>
+          item?.id ? item.id.toString() : index.toString()
+        }
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -234,11 +235,25 @@ export default function NotificationScreen({ navigation, route }) {
 
             {expandedId === item.id && (
               <View style={styles.notificationContentContainer}>
-                <Text style={styles.notificationContent}>
+                <Markdown
+                  style={{
+                    body: {
+                      fontSize: 14,
+                      lineHeight: 22,
+                      color: "#333",
+                    },
+                    strong: {
+                      fontWeight: "bold",
+                    },
+                    paragraph: {
+                      marginBottom: 8,
+                    },
+                  }}
+                >
                   {item.content?.[i18n.language] ||
                     item.content?.en ||
                     t("noContent")}
-                </Text>
+                </Markdown>
               </View>
             )}
           </TouchableOpacity>
