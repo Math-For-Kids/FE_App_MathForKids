@@ -58,11 +58,12 @@ export default function GoalScreen() {
   const { pupils } = useSelector((state) => state.pupil);
   const { user } = useSelector((state) => state.auth);
   const { rewards } = useSelector((state) => state.reward);
-  const { filteredLessons, enabledLevels, availableLessons } =
-    useSelector((state) => state.goal);
+  const { filteredLessons, enabledLevels, availableLessons } = useSelector(
+    (state) => state.goal
+  );
   const { t, i18n } = useTranslation("goal");
   // console.log("filteredLessons", filteredLessons);
-  // console.log("availableLessons", availableLessons);
+  console.log("availableLessons", availableLessons);
   useEffect(() => {
     dispatch(getRewardByDisabledStatus());
     dispatch(getEnabledLevels());
@@ -70,7 +71,7 @@ export default function GoalScreen() {
   }, [dispatch, user?.id]);
 
   useEffect(() => {
-    const selectedPupil = pupils.find((p) => p.id === selectedAccount);
+    const selectedPupil = pupils?.find((p) => p.id === selectedAccount);
     if (selectedPupil && skillType) {
       dispatch(
         getLessonsByGradeAndTypeFiltered({
@@ -83,9 +84,9 @@ export default function GoalScreen() {
     }
   }, [skillType, selectedAccount]);
   useEffect(() => {
-    const selectedPupil = pupils.find((p) => p.id === selectedAccount);
+    const selectedPupil = pupils?.find((p) => p.id === selectedAccount);
     if (selectedPupil && skillType && lesson && startDate && endDate) {
-      const formattedStart = startDate.toISOString().split("T")[0]; 
+      const formattedStart = startDate.toISOString().split("T")[0];
       const formattedEnd = endDate.toISOString().split("T")[0];
       dispatch(
         getAvailableLessons({
@@ -103,7 +104,8 @@ export default function GoalScreen() {
       !skillType ||
       !lesson ||
       exercise.length === 0 ||
-      !reward
+      !reward ||
+      !rewardQuantity
     ) {
       alert(t("alertIncomplete"));
       return;
@@ -121,12 +123,20 @@ export default function GoalScreen() {
     };
 
     try {
-      await dispatch(createGoal(goalData)).unwrap();
-
+      // await dispatch(createGoal(goalData)).unwrap();
+      const goalCreated = await dispatch(createGoal(goalData)).unwrap();
+      console.log("goalCreated", goalCreated.id);
       const now = new Date();
       const createdAt = now.toISOString();
       const updatedAt = now.toISOString();
-      const selectedPupil = pupils.find((p) => p.id === selectedAccount);
+      const selectedPupil = pupils?.find((p) => p.id === selectedAccount);
+      const mapExerciseNames = (lang) =>
+        exercise
+          .map((id) => {
+            const level = enabledLevels.find((lvl) => lvl.id === id);
+            return level?.name?.[lang] || id;
+          })
+          .join(", ");
 
       // Notification cho phụ huynh
       dispatch(
@@ -158,9 +168,7 @@ export default function GoalScreen() {
                 dateEnd: formatDate(endDate),
                 skill: t(`skill_${skillType}`, { lng: "en" }),
                 lesson: lesson?.name?.en,
-                level: exercise
-                  .map((l) => t(l.toLowerCase(), { lng: "en" }))
-                  .join(", "),
+                level: mapExerciseNames("en"),
                 reward: reward?.name?.en,
                 quantity: rewardQuantity,
               },
@@ -173,9 +181,7 @@ export default function GoalScreen() {
                 dateEnd: formatDate(endDate),
                 skill: t(`skill_${skillType}`, { lng: "vi" }),
                 lesson: lesson?.name?.vi,
-                level: exercise
-                  .map((l) => t(l.toLowerCase(), { lng: "vi" }))
-                  .join(", "),
+                level: mapExerciseNames("vi"),
                 reward: reward?.name?.vi,
                 quantity: rewardQuantity,
               },
@@ -192,6 +198,7 @@ export default function GoalScreen() {
       dispatch(
         createPupilNotification({
           pupilId: selectedAccount,
+          goalId: goalCreated.id,
           title: {
             en: t(
               "notifyNewGoalTitle",
@@ -218,9 +225,7 @@ export default function GoalScreen() {
                 dateEnd: formatDate(endDate),
                 skill: t(`skill_${skillType}`, { lng: "en" }),
                 lesson: lesson?.name?.en,
-                level: exercise
-                  .map((l) => t(l.toLowerCase(), { lng: "en" }))
-                  .join(", "),
+                level: mapExerciseNames("en"),
                 reward: reward?.name?.en,
                 quantity: rewardQuantity,
               },
@@ -233,9 +238,7 @@ export default function GoalScreen() {
                 dateEnd: formatDate(endDate),
                 skill: t(`skill_${skillType}`, { lng: "vi" }),
                 lesson: lesson?.name?.vi,
-                level: exercise
-                  .map((l) => t(l.toLowerCase(), { lng: "vi" }))
-                  .join(", "),
+                level: mapExerciseNames("vi"),
                 reward: reward?.name?.vi,
                 quantity: rewardQuantity,
               },
@@ -289,13 +292,13 @@ export default function GoalScreen() {
   };
   //An nhung bai hoc du level
   const filteredAvailableLessons = filteredLessons.filter((lesson) => {
-    const available = availableLessons.find((a) => a.lessonId === lesson.id);
+    const available = availableLessons?.find((a) => a.lessonId === lesson.id);
     if (!available) return true; // nếu chưa có dữ liệu -> cho hiện
     return available.disabledExercises.length < enabledLevels.length; // chỉ hiện nếu chưa đủ level
   });
   //Lấy danh sách level bị disable của bài học đang chọn
   const getDisabledExercisesByLesson = (lessonId) => {
-    const match = availableLessons.find((a) => a.lessonId === lessonId);
+    const match = availableLessons?.find((a) => a.lessonId === lessonId);
     return match?.disabledExercises || [];
   };
 
@@ -568,6 +571,10 @@ export default function GoalScreen() {
                       alert(t("alertStartAfterEnd"));
                       return;
                     }
+                    if (selectedDate < new Date()) {
+                      alert(t("alertStartBeforeToday"));
+                      return;
+                    }
                     setStartDate(selectedDate);
                   }
                 }}
@@ -663,7 +670,7 @@ export default function GoalScreen() {
               ? exercise
                   .map(
                     (id) =>
-                      enabledLevels.find((lvl) => lvl.id === id)?.name[
+                      enabledLevels?.find((lvl) => lvl.id === id)?.name[
                         i18n.language
                       ] || id
                   )

@@ -34,5 +34,6 @@
   "ended": "Đã kết thúc",
   "selectRewardQuantity": "Chọn số lượng phần thưởng",
   "alertStartTooEarly": "Ngày bắt đầu không được trước ngày kết thúc quá 7 ngày.",
-  "alertStartAfterEnd": "Ngày bắt đầu không được sau ngày kết thúc."
+  "alertStartAfterEnd": "Ngày bắt đầu không được sau ngày kết thúc.",
+  "alertStartBeforeToday": "Ngày bắt đầu không được nhỏ hơn ngày hôm nay"
 }
