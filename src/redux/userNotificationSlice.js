@@ -7,7 +7,7 @@ export const notificationsByUserId = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const res = await Api.get(`/usernotification/getWithin30Days/${userId}`);
-      console.log("noti", res.data);
+      // console.log("noti", res.data);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

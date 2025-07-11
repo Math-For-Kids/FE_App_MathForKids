@@ -23,7 +23,7 @@ import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId, goalId } =
+  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
     route.params;
   // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
@@ -340,7 +340,7 @@ export default function SkillScreen({ navigation, route }) {
                     title,
                     lessonId,
                     pupilId,
-                    goalId,
+                    // goalId,
                   });
                 }
               }}

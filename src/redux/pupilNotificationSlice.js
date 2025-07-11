@@ -8,12 +8,8 @@ export const notificationsByPupilId = createAsyncThunk(
     try {
       const res = await Api.get(
         `/pupilnotification/getWithin30Days/${pupilId}`
-        // {
-        //   headers: {
-        //     "Cache-Control": "no-cache",
-        //   },
-        // }
       );
+      // console.log("📥 noti:", res.data);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

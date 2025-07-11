@@ -183,7 +183,12 @@ export default function ExerciseScreen({ navigation, route }) {
             const { correct, wrong, score } = calculateResults();
             try {
               await dispatch(
-                createCompletedExercise({ pupilId, lessonId, point: score })
+                createCompletedExercise({
+                  pupilId,
+                  lessonId,
+                  levelId: levelIds,
+                  point: score,
+                })
               ).unwrap();
               navigation.navigate("ExerciseResultScreen", {
                 skillName,
@@ -426,7 +431,7 @@ export default function ExerciseScreen({ navigation, route }) {
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
-          {title}
+          {title[i18n.language]}
         </Text>
       </LinearGradient>
 

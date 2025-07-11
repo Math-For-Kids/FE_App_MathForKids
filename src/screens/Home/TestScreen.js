@@ -33,7 +33,7 @@ import {
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
-  const { skillName, lessonId, pupilId, goalId } = route.params;
+  const { skillName, lessonId, pupilId } = route.params;
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -251,7 +251,7 @@ export default function TestScreen({ navigation, route }) {
           ).unwrap();
         }
         const res = await dispatch(
-          autoMarkCompletedGoals({ pupilId, lessonId, goalId })
+          autoMarkCompletedGoals({ pupilId, lessonId })
         );
 
         if (res.payload?.message?.[i18n.language]) {

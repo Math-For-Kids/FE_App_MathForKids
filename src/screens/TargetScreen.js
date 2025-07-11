@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -17,8 +17,11 @@ import { getLessonById } from "../redux/lessonSlice";
 import { getRewardById } from "../redux/rewardSlice";
 import { getEnabledLevels } from "../redux/goalSlice";
 import { useTranslation } from "react-i18next";
-export default function TargetScreen({ navigation }) {
+export default function TargetScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const flatListRef = useRef(null);
+  const { focusGoalId } = route.params || {};
+  // console.log("focusGoalId", focusGoalId);
   const [selectedTab, setSelectedTab] = useState("target");
   const [mergedGoals, setMergedGoals] = useState([]);
   const { t, i18n } = useTranslation("target");
@@ -84,6 +87,19 @@ export default function TargetScreen({ navigation }) {
 
     if (goals.length > 0) fetchDetailsForGoals();
   }, [goals]);
+  useEffect(() => {
+    if (!focusGoalId || mergedGoals.length === 0) return;
+
+    const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);
+    if (index >= 0 && flatListRef.current) {
+      flatListRef.current.scrollToIndex({
+        index,
+        animated: true,
+        viewPosition: 0.5, // căn giữa
+      });
+    }
+  }, [mergedGoals, focusGoalId]);
+
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -258,8 +274,21 @@ export default function TargetScreen({ navigation }) {
       </View>
       <FlatList
         data={filteredTargets}
+        ref={flatListRef}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
+        getItemLayout={(data, index) => ({
+          length: 160, 
+          offset: 160 * index,
+          index,
+        })}
+        onScrollToIndexFailed={({ index }) => {
+          setTimeout(() => {
+            if (flatListRef.current) {
+              flatListRef.current.scrollToIndex({ index, animated: true });
+            }
+          }, 500);
+        }}
         ListEmptyComponent={
           <Text
             style={{
@@ -276,6 +305,7 @@ export default function TargetScreen({ navigation }) {
         renderItem={({ item, index }) => {
           const isExpired =
             new Date(item.dateEnd).getTime() < new Date().setHours(0, 0, 0, 0);
+          const isFocused = item.id === focusGoalId;
 
           return (
             <LinearGradient
@@ -288,7 +318,14 @@ export default function TargetScreen({ navigation }) {
               }
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 0 }}
-              style={styles.targetCard}
+              style={[
+                styles.targetCard,
+                isFocused && {
+                  borderWidth: 2,
+                  borderColor: theme.colors.green,
+                  elevation: 6,
+                },
+              ]}
             >
               <TouchableOpacity
                 style={styles.cardContent}
@@ -301,7 +338,7 @@ export default function TargetScreen({ navigation }) {
                     skillIcon: item.skillIcon,
                     lessonId: item.lessonId,
                     pupilId: pupilId,
-                    goalId: item.id,
+                    // goalId: item.id,
                   });
                 }}
               >
