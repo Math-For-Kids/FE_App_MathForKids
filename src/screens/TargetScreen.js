@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,78 +8,109 @@ import {
   FlatList,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
-
-export default function TargetScreen({ navigation }) {
-  const { theme, isDarkMode } = useTheme();
-  const [expandedId, setExpandedId] = useState(null);
+import { useDispatch, useSelector } from "react-redux";
+import { getGoalsWithin30Days } from "../redux/goalSlice";
+import { getLessonById } from "../redux/lessonSlice";
+import { getRewardById } from "../redux/rewardSlice";
+import { getEnabledLevels } from "../redux/goalSlice";
+import { useTranslation } from "react-i18next";
+export default function TargetScreen({ navigation, route }) {
+  const { theme } = useTheme();
+  const flatListRef = useRef(null);
+  const { focusGoalId } = route.params || {};
+  // console.log("focusGoalId", focusGoalId);
   const [selectedTab, setSelectedTab] = useState("target");
+  const [mergedGoals, setMergedGoals] = useState([]);
+  const { t, i18n } = useTranslation("target");
+  const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  const goals = useSelector((state) => state.goal.goals || []);
+  const { enabledLevels } = useSelector((state) => state.goal);
+  // console.log("enabledLevels", enabledLevels);
+  const dispatch = useDispatch();
+  const getSkillIconByName = (skillName = "") => {
+    const name = skillName.toLowerCase();
+    const iconMap = {
+      addition: 9,
+      subtraction: 55,
+      multiplication: 37,
+      division: 22,
+    };
+    return iconMap[name] || 0;
+  };
 
-  const allTargets = [
-    {
-      id: 1,
-      title: "Parental",
-      misstion: "Two number addition lesson",
-      content: "Complete this lesson to earn rewards!",
-      rewardImage: theme.images.characterHeart,
-      reward: 12,
-      rewardName: "Capybara",
-      dateEnd: new Date("2025-05-20"),
-      isSuccess: false,
-    },
-    {
-      id: 2,
-      title: "Daily",
-      misstion: "Two number addition lesson",
-      content: "Try to solve all questions correctly!",
-      rewardImage: theme.images.characterEating,
-      reward: 10,
-      rewardName: "Koala",
-      dateEnd: new Date("2025-04-18"),
-      isSuccess: true,
-    },
-    {
-      id: 3,
-      title: "Parental",
-      misstion: "Two number addition lesson",
-      content: "Earn stars by completing 5 tasks.",
-      rewardImage: theme.images.characterWithBird,
-      reward: 15,
-      rewardName: "Eagle",
-      dateEnd: new Date("2025-06-01"),
-      isSuccess: false,
-    },
-    {
-      id: 4,
-      title: "Daily",
-      misstion: "Two number addition lesson",
-      content: "Earn stars by completing 5 tasks.",
-      rewardImage: theme.images.characterWithBird,
-      reward: 15,
-      rewardName: "Eagle",
-      dateEnd: new Date("2025-06-01"),
-      isSuccess: false,
-    },
-    {
-      id: 5,
-      title: "Parental",
-      misstion: "Two number addition lesson",
-      content: "Earn stars by completing 5 tasks.",
-      rewardImage: theme.images.characterWithBird,
-      reward: 15,
-      rewardName: "Eagle",
-      dateEnd: new Date("2025-06-01"),
-      isSuccess: true,
-    },
-  ];
+  useEffect(() => {
+    dispatch(getEnabledLevels());
+    if (pupilId) {
+      dispatch(getGoalsWithin30Days(pupilId));
+    }
+  }, [pupilId]);
 
-  const filteredTargets = allTargets.filter((item) =>
-    selectedTab === "success" ? item.isSuccess : !item.isSuccess
-  );
+  useEffect(() => {
+    const fetchDetailsForGoals = async () => {
+      const updatedGoals = await Promise.all(
+        goals.map(async (goal) => {
+          let lesson = {};
+          let reward = {};
 
+          if (goal.lessonId) {
+            try {
+              lesson = await dispatch(getLessonById(goal.lessonId)).unwrap();
+            } catch {}
+          }
+          if (goal.rewardId) {
+            try {
+              reward = await dispatch(getRewardById(goal.rewardId)).unwrap();
+            } catch {}
+          }
+          return {
+            ...goal,
+            lessonId: goal.lessonId,
+            lessonName: {
+              en: lesson.name?.en || lesson.name?.vi || "Unnamed Lesson",
+              vi: lesson.name?.vi || lesson.name?.en || "Unnamed Lesson",
+            },
+            skillName: lesson.type || "",
+            skillIcon: getSkillIconByName(lesson.type),
+            rewardName: {
+              en: reward.name?.en || reward.name?.vi || "Unnamed Reward",
+              vi: reward.name?.vi || reward.name?.en || "Unnamed Reward",
+            },
+            rewardImage: reward.image ? { uri: reward.image } : undefined,
+          };
+        })
+      );
+      setMergedGoals(updatedGoals);
+    };
+
+    if (goals.length > 0) fetchDetailsForGoals();
+  }, [goals]);
+  useEffect(() => {
+    if (!focusGoalId || mergedGoals.length === 0) return;
+
+    const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);
+    if (index >= 0 && flatListRef.current) {
+      flatListRef.current.scrollToIndex({
+        index,
+        animated: true,
+        viewPosition: 0.5, // căn giữa
+      });
+    }
+  }, [mergedGoals, focusGoalId]);
+
+  const capitalizeFirstLetter = (str) => {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  const filteredTargets = mergedGoals.filter((item) => {
+    if (selectedTab === "success") return item.isCompleted === true;
+    return item.isCompleted !== true; // includes false or undefined
+  });
+
+  // console.log("mergedGoals", mergedGoals);
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -139,42 +170,42 @@ export default function TargetScreen({ navigation }) {
       justifyContent: "space-between",
       alignItems: "center",
       elevation: 3,
-      marginBottom: 15,
+      marginBottom: 20,
       paddingLeft: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.white,
     },
     cardContent: {
       flexDirection: "row",
       alignItems: "center",
       flex: 1,
+      paddingVertical: 10,
     },
     cardTitle: {
       color: theme.colors.white,
-      fontFamily: Fonts.NUNITO_MEDIUM,
-      fontSize: 14,
+      fontFamily: Fonts.NUNITO_BOLD,
+      fontSize: 16,
       marginBottom: 4,
     },
     cardMission: {
-      color: theme.colors.black,
+      color: theme.colors.white,
       fontFamily: Fonts.NUNITO_MEDIUM,
-      fontSize: 12,
+      fontSize: 14,
     },
     cardReward: {
-      color: theme.colors.black,
+      color: theme.colors.white,
       fontFamily: Fonts.NUNITO_MEDIUM,
-      fontSize: 12,
+      fontSize: 14,
     },
     rewardHighlight: {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
     },
     cardDateEnd: {
-      color: theme.colors.blueGray,
-      fontSize: 8,
+      color: theme.colors.white,
+      fontSize: 10,
       fontFamily: Fonts.NUNITO_ITALIC,
       marginTop: 4,
-      position: "absolute",
-      top: 50,
-      right: 0,
     },
     rewardImageWrapper: {
       width: 64,
@@ -182,7 +213,7 @@ export default function TargetScreen({ navigation }) {
       borderRadius: 16,
       justifyContent: "center",
       alignItems: "center",
-      marginLeft: 10,
+      marginHorizontal: 10,
       elevation: 5,
     },
     rewardImageContainer: {
@@ -190,7 +221,8 @@ export default function TargetScreen({ navigation }) {
       backgroundColor: theme.colors.white,
       padding: 8,
       borderWidth: 1,
-      borderColor: theme.colors.black,
+      borderColor: theme.colors.grayLight,
+      elevation: 3,
     },
     rewardImage: {
       width: 40,
@@ -217,7 +249,7 @@ export default function TargetScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Task</Text>
+        <Text style={styles.title}>{t("taskTitle")}</Text>
       </LinearGradient>
       <View style={styles.tabContainer}>
         {["target", "success"].map((tab) => (
@@ -235,50 +267,115 @@ export default function TargetScreen({ navigation }) {
                 selectedTab === tab && styles.tabTextActive,
               ]}
             >
-              {tab === "target" ? "Target" : "Success target"}
+              {t(tab)}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
       <FlatList
         data={filteredTargets}
+        ref={flatListRef}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            key={item.id}
-            onPress={() =>
-              setExpandedId((prev) => (prev === item.id ? null : item.id))
+        getItemLayout={(data, index) => ({
+          length: 160, 
+          offset: 160 * index,
+          index,
+        })}
+        onScrollToIndexFailed={({ index }) => {
+          setTimeout(() => {
+            if (flatListRef.current) {
+              flatListRef.current.scrollToIndex({ index, animated: true });
             }
+          }, 500);
+        }}
+        ListEmptyComponent={
+          <Text
+            style={{
+              textAlign: "center",
+              marginTop: 40,
+              fontSize: 16,
+              fontFamily: Fonts.NUNITO_MEDIUM,
+              color: theme.colors.white,
+            }}
           >
+            {t("noTasks")}
+          </Text>
+        }
+        renderItem={({ item, index }) => {
+          const isExpired =
+            new Date(item.dateEnd).getTime() < new Date().setHours(0, 0, 0, 0);
+          const isFocused = item.id === focusGoalId;
+
+          return (
             <LinearGradient
               colors={
-                !item.isSuccess
-                  ? item.title === "Parental"
-                    ? theme.colors.gradientBluePrimary
-                    : theme.colors.gradientGreen
+                isExpired
+                  ? [theme.colors.grayLight, theme.colors.grayDark]
+                  : !item.isSuccess
+                  ? theme.colors.gradientBluePrimary
                   : theme.colors.gradientGreen
               }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.targetCard}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 0 }}
+              style={[
+                styles.targetCard,
+                isFocused && {
+                  borderWidth: 2,
+                  borderColor: theme.colors.green,
+                  elevation: 6,
+                },
+              ]}
             >
-              <View style={styles.cardContent}>
+              <TouchableOpacity
+                style={styles.cardContent}
+                disabled={isExpired}
+                onPress={() => {
+                  if (isExpired) return;
+                  navigation.navigate("SkillScreen", {
+                    skillName: capitalizeFirstLetter(item.skillName),
+                    title: item.lessonName,
+                    skillIcon: item.skillIcon,
+                    lessonId: item.lessonId,
+                    pupilId: pupilId,
+                    // goalId: item.id,
+                  });
+                }}
+              >
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardMission}>
-                    Mission:{" "}
-                    <Text style={styles.boldText}>{item.misstion}</Text>
+                  <Text style={styles.cardTitle}>
+                    {item.lessonName?.[i18n.language]}
                   </Text>
-                  <Text style={styles.cardReward}>
-                    Reward:{" "}
-                    <Text style={styles.rewardHighlight}>
-                      {item.reward} {item.rewardName} reward
+                  <Text style={styles.cardMission}>
+                    {t("exercise")}:{" "}
+                    <Text style={styles.boldText}>
+                      {enabledLevels
+                        .filter((lvl) => item.exercise?.includes(lvl.id))
+                        .map((lvl) => lvl.name[i18n.language])
+                        .join(", ")}
                     </Text>
                   </Text>
-                  <Text style={styles.cardDateEnd}>
-                    end: {new Date(item.dateEnd).toLocaleDateString("en-GB")}
+
+                  <Text style={styles.cardReward}>
+                    {t("reward")}:{" "}
+                    <Text style={styles.rewardHighlight}>
+                      {item.rewardName[i18n.language]}
+                    </Text>
                   </Text>
+
+                  <Text style={styles.cardDateEnd}>
+                    {isExpired
+                      ? t("expired")
+                      : `${t("end")}: ${new Date(
+                          item.dateEnd
+                        ).toLocaleDateString("en-GB")}`}
+                  </Text>
+
+                  {isExpired && (
+                    <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                      {t("taskExpired")}
+                    </Text>
+                  )}
                 </View>
 
                 <View
@@ -289,10 +386,32 @@ export default function TargetScreen({ navigation }) {
                         index % 2 === 0
                           ? theme.colors.yellowLight
                           : theme.colors.orangeLight,
+                      opacity: isExpired ? 0.4 : 1,
                     },
                   ]}
                 >
                   <View style={styles.rewardImageContainer}>
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: -20,
+                        right: -10,
+                        backgroundColor: theme.colors.cardBackground,
+                        borderRadius: 30,
+                        padding: 5,
+                        elevation: 3,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontFamily: Fonts.NUNITO_MEDIUM,
+                          color: theme.colors.blueDark,
+                        }}
+                      >
+                        x {item.rewardQuantity}
+                      </Text>
+                    </View>
                     <Image
                       source={item.rewardImage}
                       style={styles.rewardImage}
@@ -300,10 +419,10 @@ export default function TargetScreen({ navigation }) {
                     />
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </LinearGradient>
-          </TouchableOpacity>
-        )}
+          );
+        }}
       />
       <FloatingMenu />
     </LinearGradient>

@@ -4,21 +4,19 @@ export const handleBackSubtraction = ({
   setRevealedResultDigits,
   steps,
 }) => {
-  const getRevealedResultDigitsForStep = (steps, subStepIndex) => {
-    if (subStepIndex <= 0) return 0;
-    const currentCol = steps[2]?.subStepsMeta?.[subStepIndex];
-    const previousCol = steps[2]?.subStepsMeta?.[subStepIndex - 1];
-    if (currentCol !== undefined && currentCol !== previousCol) {
-      return 1;
-    }
-    return 0;
-  };
-  if (subStepIndex > 0) {
-    const revealedChange = getRevealedResultDigitsForStep(steps, subStepIndex);
-    setSubStepIndex((prev) => prev - 1);
-    setRevealedResultDigits((prev) => Math.max(0, prev - revealedChange));
-    return true;
+  if (subStepIndex <= 0) return false;
+  const currentType = steps[2]?.subStepsType?.[subStepIndex];
+  const currentCol = steps[2]?.subStepsMeta?.[subStepIndex];
+  const prevCol = steps[2]?.subStepsMeta?.[subStepIndex - 1];
+  let decrease = 0;
+  if (currentType === "borrow_2") {
+    decrease = 1;
   }
-
-  return false;
+  if (currentType === "normal" && currentCol !== prevCol) {
+    decrease = 1;
+  }
+  const newSubStepIndex = subStepIndex - 1;
+  setSubStepIndex(newSubStepIndex);
+  setRevealedResultDigits((prev) => Math.max(0, prev - decrease));
+  return true;
 };

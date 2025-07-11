@@ -426,7 +426,7 @@ export default function ExerciseScreen({ navigation, route }) {
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
-          {title}
+          {title[i18n.language]}
         </Text>
       </LinearGradient>
 

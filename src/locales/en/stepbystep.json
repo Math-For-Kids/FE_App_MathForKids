@@ -16,7 +16,7 @@
   "subtraction": {
     "error_min_lt_sub": "Cannot subtract: the minuend is smaller than the subtrahend.",
     "step_intro": "Let's perform subtraction step by step!",
-    "step_borrow_1": "Step {{step}} column ({{label}}): {{a}} is smaller than {{b}}, so we borrow a ten to make it {{adjustedA}}.",
+    "step_borrow_1": "Step {{step}} (column {{label}}): {{a}} is less than {{b}}, so need to BORROW a dozen (10) to {{adjustedA}}. Need to PAY a dozen (10) in the next column.",
     "step_borrow_2": "We have: {{adjustedA}} - {{adjustedB}} = {{result}}, write {{result}}",
     "step_normal": "Step {{step}} column ({{label}}): {{a}} - {{b}} = {{result}}.",
     "step_normal_with_payback": "Step {{step}} column ({{label}}): {{a}} - {{b}} = {{result}}",

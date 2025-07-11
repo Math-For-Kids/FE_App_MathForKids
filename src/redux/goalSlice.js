@@ -53,6 +53,63 @@ export const updateGoal = createAsyncThunk(
   }
 );
 
+// Thunk: Lấy danh sách bài học theo grade, type, pupilId
+export const getLessonsByGradeAndTypeFiltered = createAsyncThunk(
+  "goal/getLessonsByGradeAndTypeFiltered",
+  async ({ grade, type, pupilId }, { rejectWithValue }) => {
+    try {
+      const res = await Api.get("/lesson/getLessonsByGradeAndTypeFiltered", {
+        params: { grade, type, pupilId },
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Thunk: Tự động đánh dấu goal đã hoàn thành
+export const autoMarkCompletedGoals = createAsyncThunk(
+  "goal/autoMarkCompletedGoals",
+  async ({ pupilId, lessonId}, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(
+        `/goal/completedgoal/${pupilId}/${lessonId}`
+      );
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Thunk: Lấy danh sách bài học khả dụng
+export const getAvailableLessons = createAsyncThunk(
+  "goal/getAvailableLessons",
+  async ({ pupilId, skillType, startDate, endDate }, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(
+        `/goal/availablelessons/${pupilId}/${skillType}/${startDate}/${endDate}`
+      );
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+// Thunk: Lấy danh sách level chưa bị vô hiệu hóa từ collection "levels"
+export const getEnabledLevels = createAsyncThunk(
+  "goal/getEnabledLevels",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await Api.get("/level/getEnabledLevels");
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 // Slice
 const goalSlice = createSlice({
   name: "goal",
@@ -61,6 +118,9 @@ const goalSlice = createSlice({
     error: null,
     goals: [],
     goal: null,
+    filteredLessons: [],
+    availableLessons: null,
+    enabledLevels: [],
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -72,7 +132,7 @@ const goalSlice = createSlice({
       })
       .addCase(createGoal.fulfilled, (state, action) => {
         state.loading = false;
-        state.goals.push(action.payload); // optional: if backend returns the created goal
+        state.goals.push(action.payload);
       })
       .addCase(createGoal.rejected, (state, action) => {
         state.loading = false;
@@ -120,6 +180,60 @@ const goalSlice = createSlice({
         );
       })
       .addCase(updateGoal.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Get lessons by grade and type
+      .addCase(getLessonsByGradeAndTypeFiltered.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getLessonsByGradeAndTypeFiltered.fulfilled, (state, action) => {
+        state.loading = false;
+        state.filteredLessons = action.payload || [];
+      })
+      .addCase(getLessonsByGradeAndTypeFiltered.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Auto mark completed goals
+      .addCase(autoMarkCompletedGoals.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(autoMarkCompletedGoals.fulfilled, (state) => {
+        state.loading = false;
+        // Có thể cập nhật danh sách goals nếu cần
+      })
+      .addCase(autoMarkCompletedGoals.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Get available lessons
+      .addCase(getAvailableLessons.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAvailableLessons.fulfilled, (state, action) => {
+        state.loading = false;
+        state.availableLessons = action.payload;
+      })
+      .addCase(getAvailableLessons.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      }) // Get enabled levels
+      .addCase(getEnabledLevels.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getEnabledLevels.fulfilled, (state, action) => {
+        state.loading = false;
+        state.enabledLevels = action.payload || [];
+      })
+      .addCase(getEnabledLevels.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

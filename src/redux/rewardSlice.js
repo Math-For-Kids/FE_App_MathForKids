@@ -8,7 +8,7 @@ export const getRewardByDisabledStatus = createAsyncThunk(
       const res = await Api.get(
         `/reward/filterByDisabledStatus?isDisabled=false`
       );
-      console.log("reward:", res.data.data);
+      // console.log("reward:", res.data.data);
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -21,12 +21,9 @@ export const getRewardById = createAsyncThunk(
   async (rewardId, { rejectWithValue }) => {
     try {
       const res = await Api.get(`/reward/${rewardId}`);
-      console.log("Get Reward by ID API Response:", res.data.data);
-      return res.data.data;
+      return res.data;
     } catch (err) {
-      console.error("Error in getRewardById:", err);
       if (err.response?.status === 404) {
-        console.log("Reward not found for rewardId:", rewardId);
         return rejectWithValue("Reward not found");
       }
       return rejectWithValue(err.response?.data?.message || err.message);
