@@ -61,34 +61,6 @@ export default function ExerciseResultScreen({ navigation, route }) {
     return theme.colors.pinkDark;
   };
 
-  const isImageUrl = (value) => {
-    return (
-      typeof value === "string" &&
-      (value.startsWith("http") || value.startsWith("https"))
-    );
-  };
-
-  const renderImage = (uri, style, key) => {
-    if (!uri || typeof uri !== "string") {
-      console.warn(`Invalid image URI for key ${key}:`, uri);
-      return <Text style={styles.errorText}>Invalid Image</Text>;
-    }
-    return (
-      <Image
-        source={{ uri }}
-        style={style}
-        resizeMode="contain"
-        onError={(e) =>
-          console.warn(
-            `Failed to load image ${uri} for key ${key}:`,
-            e.nativeEvent.error
-          )
-        }
-        onLoad={() => console.log(`Image loaded successfully: ${uri}`)}
-      />
-    );
-  };
-
   const extractNumbers = (answerText) => {
     console.log("Extracting numbers from answerText:", answerText); // Debug log
     if (!answerText || typeof answerText !== "string") {
@@ -306,33 +278,27 @@ export default function ExerciseResultScreen({ navigation, route }) {
             {selectedQuestion && (
               <>
                 <Text style={styles.modalQuestionText}>
-                  {selectedQuestion.type === "image"
-                    ? t("imageQuestion")
-                    : selectedQuestion.question}
+                  {selectedQuestion.question}
                 </Text>
-                {selectedQuestion.type === "image" &&
-                  renderImage(
-                    selectedQuestion.image?.uri,
-                    styles.modalImage,
-                    `modal-question-${selectedQuestion.id}`
-                  )}
+                {selectedQuestion.image && (
+                  <Image
+                    source={{ uri: selectedQuestion.image.uri }}
+                    style={styles.modalImage}
+                    resizeMode="contain"
+                  />
+                )}
                 <Text style={styles.modalAnswerText}>
                   {t("selectedAnswer")}: {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
                   {t("correctAnswer")}:{" "}
-                  {selectedQuestion.expression
-                    ? selectedQuestion.expression
-                    : selectedQuestion.answer}
+                  {selectedQuestion.answer}
                 </Text>
 
                 <TouchableOpacity
                   style={styles.stepByStepButton}
                   onPress={() => {
-                    const answerText =
-                      selectedQuestion.expression ||
-                      selectedQuestion.answer ||
-                      "";
+                    const answerText = selectedQuestion.answer || "";
 
                     const { number1, number2 } = extractNumbers(answerText);
                     if (!number1 || !number2) {

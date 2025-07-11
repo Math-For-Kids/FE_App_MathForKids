@@ -283,7 +283,7 @@ export default function SkillScreen({ navigation, route }) {
         </TouchableOpacity>
       );
     },
-    [selectedLevels, i18n.language, theme.colors,levelIdCounts]
+    [selectedLevels, i18n.language, theme.colors, levelIdCounts]
   );
 
   return (
@@ -318,6 +318,7 @@ export default function SkillScreen({ navigation, route }) {
                     skillName,
                     title,
                     lessonId,
+                    grade,
                   });
                 } else if (action.label === "exercise") {
                   setModalVisible(true);

@@ -37,17 +37,16 @@ export default function AssessmentScreen({ navigation, route }) {
   const languageButtonRef = useRef(null);
   const flatListRef = useRef(null);
   useEffect(() => {
-    // Fetch random assessments only once when the component mounts
     dispatch(getRandomAssessments({ grade }));
     dispatch(getEnabledLevels());
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
   // Memoize the questions array to prevent re-randomization on every render
   const questions = useMemo(() => {
     console.log("Assessments:", assessments);
     return assessments.map((assessment, index) => {
-      const correctAnswer = assessment.answer;
-      const wrongOptions = assessment.option || [];
+      const correctAnswer = assessment.answer?.[i18n.language];
+      const wrongOptions = (assessment.option || []).map((opt) => opt[i18n.language] || "");
       const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(Boolean);
       const shuffledOptions = allOptions
         .map((value) => ({ value, sort: Math.random() }))
@@ -305,7 +304,7 @@ export default function AssessmentScreen({ navigation, route }) {
       padding: 10,
       dumplings: 10,
       elevation: 3,
-      borderRadius:10,
+      borderRadius: 10,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.colors.optionAnswerBackground,
@@ -499,11 +498,10 @@ export default function AssessmentScreen({ navigation, route }) {
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={{ paddingBottom: 100 }}
             renderItem={({ item, index }) => {
-              const alphabet = ["A", "B", "C", "D"];
               return (
                 <View style={styles.questionCard}>
                   <Text style={styles.subjectText}>
-                    {t("question")} {index + 1}: {item.question}
+                    {t("question")} {index + 1}. {item.question}
                   </Text>
                   {item.image && (
                     <Image
@@ -531,7 +529,7 @@ export default function AssessmentScreen({ navigation, route }) {
                                 isSelected && styles.selectedOptionText,
                               ]}
                             >
-                              {alphabet[idx]}. {opt}
+                              {opt}
                             </Text>
                           </TouchableOpacity>
                         );
@@ -555,7 +553,7 @@ export default function AssessmentScreen({ navigation, route }) {
                                 isSelected && styles.selectedOptionText,
                               ]}
                             >
-                              {alphabet[idx + 2]}. {opt}
+                              {opt}
                             </Text>
                           </TouchableOpacity>
                         );

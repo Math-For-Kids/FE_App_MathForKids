@@ -90,6 +90,7 @@ export const getStyles = (theme, getBorderBox) =>
       gap: 10,
     },
     operatorContainer: {
+      position: "relative",
       width: "30%",
       height: 120,
       justifyContent: "center",
@@ -195,11 +196,11 @@ export const getStyles = (theme, getBorderBox) =>
     operatorRow: {
       flexDirection: "row",
       justifyContent: "center",
+      alignItems: "center",
     },
     operatorButton: {
       borderRadius: 10,
       marginHorizontal: 5,
-      paddingVertical: 10,
       marginBottom: 15,
       width: "20%",
       justifyContent: "center",
@@ -207,7 +208,29 @@ export const getStyles = (theme, getBorderBox) =>
       elevation: 3,
     },
     operatorActive: { backgroundColor: getBorderBox() },
+    operatorSymbolContainer: {
+      width: 70,
+      height: 150,
+      justifyContent: "center",
+      alignItems: "center",
+      position: "relative",
+    },
+    lockOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.2)",
+      borderRadius: 10,
+      zIndex: 10,
+    },
     operatorInactive: { backgroundColor: theme.colors.grayMedium },
+    hiddenButton: {
+      opacity: 0, // Làm nút trong suốt nhưng vẫn chiếm chỗ
+      pointerEvents: 'none', // Vô hiệu hóa tương tác
+    },
+    hiddenText: {
+      color: 'transparent', // Làm chữ trong suốt
+    },
     operatorSymbol: { fontSize: 100, color: theme.colors.highlightText },
     scrollContainer: { flexGrow: 1, paddingBottom: 40 },
     calText: {

@@ -4,10 +4,10 @@ import Api from "../api/api";
 // Thunk: Tạo completed_exercise
 export const createCompletedExercise = createAsyncThunk(
   "completed_exercise/createCompletedExercise",
-  async ({ pupilId, lessonId, point }, { rejectWithValue }) => {
+  async ({ pupilId, lessonId, levelId, point }, { rejectWithValue }) => {
     try {
-      console.log("Sending createCompletedExercise with payload:", { pupilId, lessonId, point });
-      const res = await Api.post("/completedexercise", { pupilId, lessonId, point });
+      console.log("Sending createCompletedExercise with payload:", { pupilId, lessonId, levelId, point });
+      const res = await Api.post("/completedexercise", { pupilId, lessonId, levelId, point });
       console.log("Completed exercise API response:", res.data);
       return res.data;
     } catch (err) {
@@ -16,10 +16,26 @@ export const createCompletedExercise = createAsyncThunk(
     }
   }
 );
+export const countCompletedExercisePupil = createAsyncThunk(
+  "completed_exercise/countCompletedExercisePupil",
+  async ({ pupilId, grade }, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/completedexercise/countCompletedExercisePupil/${pupilId}?grade=${grade}`);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+)
 
 const completedExerciseSlice = createSlice({
   name: "completed_exercise",
   initialState: {
+    counts: {
+      totalLessons: 0,
+      completedLessons: 0,
+      completedExercises: 0,
+    },
     completedExercise: null, // Changed to null to match single-object expectation
     loading: false,
     error: null,
@@ -40,6 +56,18 @@ const completedExerciseSlice = createSlice({
         state.completedExercise = action.payload;
       })
       .addCase(createCompletedExercise.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(countCompletedExercisePupil.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(countCompletedExercisePupil.fulfilled, (state, action) => {
+        state.loading = false;
+        state.counts = action.payload;
+      })
+      .addCase(countCompletedExercisePupil.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

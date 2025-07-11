@@ -25,6 +25,7 @@ export default function StepByStepScreen({ navigation, route }) {
     number1: autoNumber1 = "",
     number2: autoNumber2 = "",
     operator: routeOperator,
+    grade: grade,
   } = route.params || {};
   const skillNameLower = skillName?.toLowerCase();
   const getBorderBox = () => {
@@ -208,6 +209,8 @@ export default function StepByStepScreen({ navigation, route }) {
           routeOperator={routeOperator}
           autoNumber1={autoNumber1} // Pass autoNumber1
           autoNumber2={autoNumber2} // Pass autoNumber2
+          grade={grade} // Pass autoNumber2
+
         />
       )}
 

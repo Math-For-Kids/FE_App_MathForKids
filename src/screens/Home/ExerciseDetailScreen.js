@@ -63,25 +63,16 @@ export default function ExerciseScreen({ navigation, route }) {
 
   const questions = exercises.map((exercise, index) => ({
     id: exercise.id || index,
-    type: exercise.image ? "image" : "text",
-    answer: exercise.answer,
+    type: "text",
+    answer: exercise.answer?.[i18n.language],
     image: exercise.image ? { uri: exercise.image } : null,
     question: exercise.question?.[i18n.language] || "",
-    options: exercise.option || [],
+    options: exercise.option?.map((opt) => opt[i18n.language]) || [],
     level: exercise.levelId,
   }));
 
-  const isImageUrl = (value) =>
-    typeof value === "string" &&
-    (value.startsWith("http") || value.startsWith("https"));
   const isExpression = (value) =>
     (typeof value === "string" && value.includes("=")) || value.length >= 6;
-
-  const renderImage = (uri, style, key) => {
-    if (!uri || typeof uri !== "string")
-      return <Text style={styles.errorText}>Invalid Image</Text>;
-    return <Image source={{ uri }} style={style} resizeMode="contain" />;
-  };
 
   const handleSelect = (questionId, value, optionIndex) => {
     const optionRef = optionRefs.current[`q${questionId}-opt${optionIndex}`];
@@ -168,7 +159,7 @@ export default function ExerciseScreen({ navigation, route }) {
   };
 
   const shouldUseSingleRow = (options) =>
-    options.every((opt) => !isImageUrl(opt) && opt.length <= 5);
+    options.every((opt) => opt.length <= 5);
 
   const handleSubmit = async () => {
     if (!pupilId) {
@@ -192,7 +183,7 @@ export default function ExerciseScreen({ navigation, route }) {
             const { correct, wrong, score } = calculateResults();
             try {
               await dispatch(
-                createCompletedExercise({ pupilId, lessonId, point: score })
+                createCompletedExercise({ pupilId, lessonId, levelId: levelIds, point: score })
               ).unwrap();
               navigation.navigate("ExerciseResultScreen", {
                 skillName,
@@ -219,7 +210,6 @@ export default function ExerciseScreen({ navigation, route }) {
     const optionStyle = [
       styles.option,
       style,
-      isImageUrl(value) && { borderRadius: 10, width: 80, height: 80 },
       isExpression(value) && { borderRadius: 10, paddingHorizontal: 20 },
     ];
     return (
@@ -231,15 +221,7 @@ export default function ExerciseScreen({ navigation, route }) {
         }
         onPress={() => handleSelect(questionId, value, optIndex)}
       >
-        {isImageUrl(value) ? (
-          renderImage(
-            value,
-            styles.selectedAnswerImage,
-            `option-${questionId}-${optIndex}`
-          )
-        ) : (
-          <Text style={styles.optionText}>{value}</Text>
-        )}
+        <Text style={styles.optionText}>{value}</Text>
       </TouchableOpacity>
     );
   };
@@ -306,7 +288,8 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     questionImage: {
       width: 150,
-      height: 150,
+      height: 100,
+      resizeMode: "contain",
     },
     question: {
       fontFamily: Fonts.NUNITO_BOLD,
@@ -456,24 +439,13 @@ export default function ExerciseScreen({ navigation, route }) {
         {questions.map((q, ind) => {
           const options = generateOptions(q);
           const useSingleRow = shouldUseSingleRow(options);
-          const midPoint = Math.ceil(options.length / 2);
-          // const firstRowOptions = options.slice(0, midPoint);
-          // const secondRowOptions = options.slice(midPoint);
           return (
             <View key={q.id} style={styles.questionContainer}>
               <Text style={styles.questionText}>
                 {t("question")} {ind + 1}: {q.question}
               </Text>
               <View style={styles.questionImageContainer}>
-                {q.type === "image" ? (
-                  renderImage(
-                    q.image?.uri,
-                    styles.questionImage,
-                    `question-${q.id}`
-                  )
-                ) : (
-                  <Text style={styles.question}>{q.question}</Text>
-                )}
+                {q.image && <Image style={styles.questionImage} source={q.image} />}
                 <View style={styles.selectedContainer}>
                   <View
                     style={styles.selectedAnswerBox}
@@ -481,17 +453,9 @@ export default function ExerciseScreen({ navigation, route }) {
                   >
                     {selectedAnswers[q.id] !== undefined && (
                       <View style={styles.selectedAnswerTextContainer}>
-                        {isImageUrl(selectedAnswers[q.id]) ? (
-                          renderImage(
-                            selectedAnswers[q.id],
-                            styles.selectedAnswerImage,
-                            `selected-${q.id}`
-                          )
-                        ) : (
-                          <Text style={styles.selectedAnswerText}>
-                            {selectedAnswers[q.id]}
-                          </Text>
-                        )}
+                        <Text style={styles.selectedAnswerText}>
+                          {selectedAnswers[q.id]}
+                        </Text>
                       </View>
                     )}
                   </View>
@@ -508,11 +472,6 @@ export default function ExerciseScreen({ navigation, route }) {
                   >
                     {options.map((val, optIndex) =>
                       renderOption(q.id, val, optIndex, {
-                        ...(isImageUrl(val) && {
-                          width: 80,
-                          height: 80,
-                          borderRadius: 10,
-                        }),
                         ...(isExpression(val) && {
                           paddingHorizontal: 20,
                           borderRadius: 10,
@@ -533,11 +492,6 @@ export default function ExerciseScreen({ navigation, route }) {
                         .slice(0, Math.ceil(options.length / 2))
                         .map((val, optIndex) =>
                           renderOption(q.id, val, optIndex, {
-                            ...(isImageUrl(val) && {
-                              width: 80,
-                              height: 80,
-                              borderRadius: 10,
-                            }),
                             ...(isExpression(val) && {
                               paddingHorizontal: 20,
                               borderRadius: 10,
@@ -560,11 +514,6 @@ export default function ExerciseScreen({ navigation, route }) {
                             val,
                             optIndex + Math.ceil(options.length / 2),
                             {
-                              ...(isImageUrl(val) && {
-                                width: 80,
-                                height: 80,
-                                borderRadius: 10,
-                              }),
                               ...(isExpression(val) && {
                                 paddingHorizontal: 20,
                                 borderRadius: 10,
@@ -595,22 +544,13 @@ export default function ExerciseScreen({ navigation, route }) {
           style={[
             styles.isFlying,
             { transform: flyingAnim.getTranslateTransform() },
-            isImageUrl(flyingValue) && {
-              width: 80,
-              height: 80,
-              borderRadius: 10,
-            },
             isExpression(flyingValue) && {
               paddingHorizontal: 10,
               borderRadius: 10,
             },
           ]}
         >
-          {isImageUrl(flyingValue) ? (
-            renderImage(flyingValue, styles.selectedAnswerImage, `flying`)
-          ) : (
-            <Text style={styles.optionText}>{flyingValue}</Text>
-          )}
+          <Text style={styles.optionText}>{flyingValue}</Text>
         </Animated.View>
       )}
 

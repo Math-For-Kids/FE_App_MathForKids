@@ -48,23 +48,14 @@ const rewardSlice = createSlice({
       .addCase(getRewardByDisabledStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
-        console.log("getRewardByDisabledStatus: Pending");
       })
       .addCase(getRewardByDisabledStatus.fulfilled, (state, action) => {
         state.loading = false;
         state.rewards = action.payload || [];
-        console.log(
-          "getRewardByDisabledStatus: Fulfilled with data:",
-          action.payload
-        );
       })
       .addCase(getRewardByDisabledStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        console.log(
-          "getRewardByDisabledStatus: Rejected with error:",
-          action.payload
-        );
       })
       .addCase(getRewardById.pending, (state) => {
         state.loading = true;

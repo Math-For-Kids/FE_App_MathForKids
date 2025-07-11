@@ -44,10 +44,25 @@ export const createMultipleTestQuestions = createAsyncThunk(
         }
     }
 );
-
+export const countCompletedTestPupil = createAsyncThunk(
+    "test/countCompletedTestPupil",
+    async ({ pupilId, grade }, { rejectWithValue }) => {
+        try {
+            const res = await Api.get(`/test/countCompletedTestPupil/${pupilId}?grade=${grade}`);
+            return res.data;
+        } catch (error) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+)
 const testsSlice = createSlice({
     name: "test",
     initialState: {
+        counts: {
+            totalLessons: 0,
+            completedLessons: 0,
+            completedTest: 0
+        },
         tests: [],
         loading: false,
         error: null,
@@ -94,6 +109,18 @@ const testsSlice = createSlice({
                 state.createdTestQuestion = action.payload;
             })
             .addCase(createMultipleTestQuestions.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(countCompletedTestPupil.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(countCompletedTestPupil.fulfilled, (state, action) => {
+                state.loading = false;
+                state.counts = action.payload;
+            })
+            .addCase(countCompletedTestPupil.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

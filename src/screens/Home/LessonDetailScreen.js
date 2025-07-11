@@ -34,7 +34,7 @@ import { WebView } from "react-native-webview";
 import { useWindowDimensions } from "react-native";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, lessonId } = route.params;
+  const { skillName, lessonId, grade } = route.params;
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation("lesson");
   const { width } = useWindowDimensions();
@@ -67,7 +67,7 @@ export default function LessonDetailScreen({ navigation, route }) {
         return "+";
     }
   };
-  // console.log("autoNumber1", autoNumber1);
+  console.log("gradeLeson", grade);
   // console.log("autoNumber2", autoNumber2);
   // console.log("getOperatorFromSkillName", getOperatorFromSkillName);
   useEffect(() => {
@@ -404,9 +404,13 @@ export default function LessonDetailScreen({ navigation, route }) {
                   number1: autoNumber1,
                   number2: autoNumber2,
                   operator,
+                  grade: grade,
                 });
               } else if (currentIndex === 2) {
-                navigation.navigate("StepByStepScreen", baseParams);
+                navigation.navigate("StepByStepScreen", {
+                  ...baseParams,
+                  grade: grade,
+                });
               }
             }}
           >

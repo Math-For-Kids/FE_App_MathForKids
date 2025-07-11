@@ -16,6 +16,10 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { pupilById } from "../../redux/profileSlice";
 import { getAllPupils } from "../../redux/pupilSlice";
+import { countCompletedExercisePupil } from "../../redux/completedexerciseSlice";
+import { countCompletedLessonPupil } from "../../redux/completedLessonSlice";
+import { countCompletedTestPupil } from "../../redux/testSlice";
+
 import { countByPupilId } from "../../redux/owned_rewardSlice";
 
 export default function ProfileScreen({ navigation }) {
@@ -28,6 +32,9 @@ export default function ProfileScreen({ navigation }) {
   const allPupils = useSelector((state) => state.pupil.pupils); // Get all pupils from Redux state
   const rewardCount = useSelector((state) => state.owned_reward.count); // Get reward count from Redux state
   const [rank, setRank] = useState(null); // State to store the user's rank
+  const completedExerciseData = useSelector((state) => state.completed_exercise.counts);
+  const completedLessonData = useSelector((state) => state.completedLesson.counts);
+  const completedTestData = useSelector((state) => state.test.counts);
 
   // Fetch pupil data and reward count
   useEffect(() => {
@@ -35,18 +42,19 @@ export default function ProfileScreen({ navigation }) {
       dispatch(pupilById(pupilId));
       dispatch(countByPupilId(pupilId)); // Fetch reward count for the current pupil
       dispatch(getAllPupils()); // Fetch all pupils
+      dispatch(countCompletedExercisePupil({ pupilId, grade: pupil?.grade || "1" }))
+      dispatch(countCompletedLessonPupil({ pupilId, grade: pupil?.grade || "1" }))
+      dispatch(countCompletedTestPupil({ pupilId, grade: pupil?.grade || "1" }))
+
     }
-  }, [pupilId]);
+  }, [pupilId, pupil?.grade]);
 
   // Calculate rank when allPupils or pupil data changes
   useEffect(() => {
-    console.log("allPupils:", allPupils);
-    console.log("pupil:", pupil);
     if (allPupils && pupil?.point) {
       const sortedPupils = [...allPupils].sort((a, b) => b.point - a.point);
       const pupilRank = sortedPupils.findIndex((p) => p.id === pupilId) + 1;
-      console.log("sortedPupils:", sortedPupils);
-      console.log("pupilRank:", pupilRank);
+
       setRank(pupilRank);
     }
   }, [allPupils, pupil, pupilId]);
@@ -62,12 +70,19 @@ export default function ProfileScreen({ navigation }) {
     { icon: theme.icons.point, label: t("point"), value: pupil?.point || "0" },
     { icon: theme.icons.badge, label: t("badge"), value: rewardCount || "0" }, // Use rewardCount from Redux
   ];
-
+  const exerciseProgress = completedExerciseData?.totalLessons
+    ? completedExerciseData.completedExercises / completedExerciseData.totalLessons
+    : 0;
+  const lessonProgress = completedLessonData?.totalCount
+    ? completedLessonData.completedCount / completedLessonData.totalCount
+    : 0;
+  const testProgress = completedTestData?.totalLessons
+    ? completedTestData.completedTest / completedTestData.totalLessons
+    : 0;
   const progressData = {
-    lesson: 0.01,
-    exercise: 0.6,
-    test: 0.4,
-    mission: 0.7,
+    lesson: lessonProgress,
+    exercise: exerciseProgress,
+    test: testProgress,
   };
 
   const renderProgressBar = (label, progress, key) => (
