@@ -16,7 +16,7 @@
   "subtraction": {
     "error_min_lt_sub": "Không thể trừ: số bị trừ nhỏ hơn số trừ.",
     "step_intro": "Hãy cùng thực hiện phép trừ từng bước một nhé!",
-    "step_borrow_1": "Bước {{step}} cột ({{label}}): {{a}} nhỏ hơn {{b}}, nên cần mượn một chục (10) thành {{adjustedA}}.",
+    "step_borrow_1": "Bước {{step}} (cột {{label}}): {{a}} nhỏ hơn {{b}}, nên cần MƯỢN một chục (10) thành {{adjustedA}}. Cần TRẢ một chục (10) ở cột tiếp theo.",
     "step_borrow_2": "Ta có: {{adjustedA}} - {{adjustedB}} = {{result}} ghi {{result}}",
     "step_normal": "Bước {{step}} cột ({{label}}): {{a}} - {{b}} = {{result}}.",
     "step_normal_with_payback": "Bước {{step}} cột ({{label}}): {{a}} - {{b}} = {{result}}",

@@ -19,5 +19,6 @@
   "result": "Result",
   "score": "Score",
   "correct": "Correct",
-  "wrong": "Wrong"
+  "wrong": "Wrong",
+  "success": "Success"
 }

@@ -189,6 +189,26 @@ export const SubtractionStepView = ({
           </Text>
         </View>
 
+        {/* Dòng số trừ (subtrahend) */}
+        <View style={styles.row}>
+          {steps[2].digits2.map((digit, i) => {
+            const indexFromRight = steps[2].digits2.length - 1 - i;
+            return (
+              <Text
+                key={`subtrahend-${i}`}
+                style={[
+                  styles.minuendText,
+                  {
+                    backgroundColor: getActiveBackgroundColor(indexFromRight),
+                    color: getActiveTextColor(indexFromRight),
+                  },
+                ]}
+              >
+                {digit}
+              </Text>
+            );
+          })}
+        </View>
         {/* Dòng hoàn trả (payback) */}
         <View style={styles.row}>
           {steps[2].payBackFlags?.map((pay, i) => {
@@ -220,33 +240,11 @@ export const SubtractionStepView = ({
                   },
                 ]}
               >
-                {pay ? "+ 1" : " "}
+                {pay ? "- 1" : " "}
               </Text>
             );
           })}
         </View>
-
-        {/* Dòng số trừ (subtrahend) */}
-        <View style={styles.row}>
-          {steps[2].digits2.map((digit, i) => {
-            const indexFromRight = steps[2].digits2.length - 1 - i;
-            return (
-              <Text
-                key={`subtrahend-${i}`}
-                style={[
-                  styles.minuendText,
-                  {
-                    backgroundColor: getActiveBackgroundColor(indexFromRight),
-                    color: getActiveTextColor(indexFromRight),
-                  },
-                ]}
-              >
-                {digit}
-              </Text>
-            );
-          })}
-        </View>
-
         {/* Gạch ngang */}
         <View
           style={{

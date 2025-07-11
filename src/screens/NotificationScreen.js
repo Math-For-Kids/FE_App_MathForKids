@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
+import Markdown from "react-native-markdown-display";
 import {
   notificationsByUserId,
   updateNotification,
@@ -31,15 +32,15 @@ export default function NotificationScreen({ navigation, route }) {
   const user = useSelector((state) => state.auth.user);
   const { t, i18n } = useTranslation("notification");
   const userNotifications = useSelector(
-    (state) => state.notifications.list || []
+    (state) => state.notifications?.list || []
   );
   const pupilNotifications = useSelector(
-    (state) => state.pupilnotifications.list || []
+    (state) => state.pupilnotifications?.list || []
   );
   const notificationsToDisplay = pupilId
     ? pupilNotifications
     : userNotifications;
-  // console.log("Notifications to display:", pupilNotifications);
+  console.log("Notifications to display:", pupilNotifications);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -81,33 +82,18 @@ export default function NotificationScreen({ navigation, route }) {
   };
   // xem lai date
   const formatDate = (value) => {
-    if (!value) return "Invalid Date";
-
-    let date = null;
-
-    if (typeof value === "string") {
-      // Check if it's a custom string format like "HH:mm:ss DD/MM/YYYY"
-      const customDateTimePattern =
-        /^(\d{2}):(\d{2}):(\d{2}) (\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-      const match = value.match(customDateTimePattern);
-      if (match) {
-        const [, hour, minute, second, day, month, year] = match.map(Number);
-        date = new Date(year, month - 1, day, hour, minute, second);
-      } else {
-        // Try normal ISO string
-        date = new Date(value);
+    try {
+      if (!value) return "Invalid Date";
+      let date;
+      if (value.seconds && typeof value.seconds === "number") {
+        date = new Date(value.seconds * 1000);
       }
-    } else if (typeof value === "number") {
-      date = new Date(value);
-    } else if (typeof value.toDate === "function") {
-      date = value.toDate();
-    } else if (value instanceof Date) {
-      date = value;
+      return date && !isNaN(date.getTime())
+        ? date.toLocaleDateString("en-GB")
+        : "Invalid Date";
+    } catch (err) {
+      return "Invalid Date";
     }
-
-    return date && !isNaN(date.getTime())
-      ? date.toLocaleDateString("en-GB")
-      : "Invalid Date";
   };
 
   const styles = StyleSheet.create({
@@ -157,13 +143,11 @@ export default function NotificationScreen({ navigation, route }) {
       position: "absolute",
       bottom: 0,
       right: 10,
-      top: 30,
-      fontSize: 8,
+      fontSize: 10,
       fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
       color: theme.colors.blueGray,
     },
     notificationContentContainer: {
-      marginTop: 10,
       alignItems: "center",
     },
     notificationContent: {
@@ -202,7 +186,9 @@ export default function NotificationScreen({ navigation, route }) {
       <FlatList
         style={{ paddingTop: 10 }}
         data={notificationsToDisplay}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) =>
+          item?.id ? item.id.toString() : index.toString()
+        }
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -234,16 +220,60 @@ export default function NotificationScreen({ navigation, route }) {
 
             {expandedId === item.id && (
               <View style={styles.notificationContentContainer}>
-                <Text style={styles.notificationContent}>
+                <Markdown
+                  style={{
+                    body: {
+                      fontSize: 14,
+                      lineHeight: 22,
+                      color: "#333",
+                    },
+                    strong: {
+                      fontWeight: "bold",
+                    },
+                    paragraph: {
+                      marginBottom: 8,
+                    },
+                  }}
+                >
                   {item.content?.[i18n.language] ||
                     item.content?.en ||
                     t("noContent")}
-                </Text>
+                </Markdown>
+
+                {pupilId && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("TargetScreen", {
+                        pupilId,
+                        focusGoalId: item.goalId,
+                      })
+                    }
+                    style={{
+                      marginTop: 10,
+                      backgroundColor: theme.colors.blueDark,
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                      borderRadius: 8,
+                      alignSelf: "flex-end",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.white,
+                        fontFamily: Fonts.NUNITO_BOLD,
+                        fontSize: 14,
+                      }}
+                    >
+                      {t("goToTasks")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </TouchableOpacity>
         )}
       />
+
       <FloatingMenu />
     </LinearGradient>
   );

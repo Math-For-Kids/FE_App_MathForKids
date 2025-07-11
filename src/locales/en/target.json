@@ -1,0 +1,11 @@
+{
+  "taskTitle": "Task",
+  "target": "Target",
+  "success": "Success target",
+  "exercise": "Exercise",
+  "reward": "Reward",
+  "expired": "Expired",
+  "end": "End",
+  "noTasks": "No tasks available",
+  "taskExpired": "Task has expired!"
+}

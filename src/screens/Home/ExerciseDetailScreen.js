@@ -184,6 +184,7 @@ export default function ExerciseScreen({ navigation, route }) {
             try {
               await dispatch(
                 createCompletedExercise({ pupilId, lessonId, levelId: levelIds, point: score })
+
               ).unwrap();
               navigation.navigate("ExerciseResultScreen", {
                 skillName,
@@ -426,7 +427,7 @@ export default function ExerciseScreen({ navigation, route }) {
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >
-          {title}
+          {title[i18n.language]}
         </Text>
       </LinearGradient>
 
@@ -446,6 +447,7 @@ export default function ExerciseScreen({ navigation, route }) {
               </Text>
               <View style={styles.questionImageContainer}>
                 {q.image && <Image style={styles.questionImage} source={q.image} />}
+
                 <View style={styles.selectedContainer}>
                   <View
                     style={styles.selectedAnswerBox}
