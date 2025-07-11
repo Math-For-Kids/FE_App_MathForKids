@@ -44,8 +44,11 @@ import viLoading from "./locales/vi/loading.json";
 import enLoading from "./locales/en/loading.json";
 import viAssessment from "./locales/vi/assessment.json";
 import enAssessment from "./locales/en/assessment.json";
+import viReward from "./locales/vi/reward.json";
+import enReward from "./locales/en/reward.json";
 import viTarget from "./locales/vi/target.json";
 import enTarget from "./locales/en/target.json";
+
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en",
@@ -73,6 +76,7 @@ i18n.use(initReactI18next).init({
       multiplicationtable: enMultiplicationTable,
       loading: enLoading,
       assessment: enAssessment,
+      reward: enReward,
       target: enTarget,
     },
     vi: {
@@ -97,6 +101,7 @@ i18n.use(initReactI18next).init({
       multiplicationtable: viMultiplicationTable,
       loading: viLoading,
       assessment: viAssessment,
+      reward: viReward,
       target: viTarget,
     },
   },

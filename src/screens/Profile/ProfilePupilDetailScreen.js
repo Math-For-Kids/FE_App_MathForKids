@@ -39,11 +39,11 @@ export default function ProfilePupilScreen({ navigation }) {
   const [newAvatar, setNewAvatar] = useState(null);
   const [refreshProfile, setRefreshProfile] = useState(false);
   const [editedProfile, setEditedProfile] = useState({});
+  const [tempProfile, setTempProfile] = useState({}); // State tạm thời cho modal
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentDateField, setCurrentDateField] = useState(null);
 
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
-  // console.log("pupilIdeeeeee", pupilId);
   const pupil = useSelector((state) => state.profile.info);
 
   useEffect(() => {
@@ -62,15 +62,16 @@ export default function ProfilePupilScreen({ navigation }) {
     const dobSeconds = pupil?.dateOfBirth?.seconds;
     const dobDate = dobSeconds ? new Date(dobSeconds * 1000) : null;
     const formattedBirthday = dobDate ? dobDate.toISOString() : "";
-    setEditedProfile({
+    const initialProfile = {
       fullName: pupil.fullName || "none",
-      nickName: pupil.nickName || "none",
-      Grade: pupil.grade || "none",
+      grade: pupil.grade || "none",
       dateOfBirth: formattedBirthday,
       gender: pupil.gender || "none",
-      grade: pupil.grade || "none",
-    });
+    };
+    setEditedProfile(initialProfile);
+    setTempProfile(initialProfile); // Khởi tạo tempProfile giống editedProfile
   }, [pupil]);
+
   const formatDateString = (isoStr) => {
     if (!isoStr) return "";
     const date = new Date(isoStr);
@@ -78,7 +79,7 @@ export default function ProfilePupilScreen({ navigation }) {
   };
 
   const handleChange = (field, value) => {
-    setEditedProfile((prev) => ({ ...prev, [field]: value }));
+    setTempProfile((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePickImage = async () => {
@@ -101,44 +102,79 @@ export default function ProfilePupilScreen({ navigation }) {
       }
     }
   };
+
   const handlePickerDate = (fieldName) => {
     setCurrentDateField(fieldName);
     setShowDatePicker(true);
   };
+
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate && currentDateField) {
       const selectedYear = selectedDate.getFullYear();
       const currentYear = new Date().getFullYear();
-
       const age = currentYear - selectedYear;
 
-      // 1. Kiểm tra nhỏ hơn 8 tuổi
-      if (age < 8) {
-        Alert.alert("Lỗi", "Năm sinh phải nhỏ hơn năm hiện tại ít nhất 8 năm.");
+      const grade = tempProfile.grade;
+      if (grade === "1" && age < 6) {
+        Alert.alert(t("profile:errorTitle"), t("profile:checkvalidategrade1"));
         return;
       }
-
-      // 2. Kiểm tra lớn hơn 100 tuổi
-      if (age > 100) {
-        Alert.alert("Lỗi", "Tuổi không được vượt quá 100.");
+      if (grade === "2" && age < 7) {
+        Alert.alert(t("profile:errorTitle"), t("profile:checkvalidategrade2"));
+        return;
+      }
+      if (grade === "3" && age < 8) {
+        Alert.alert(t("profile:errorTitle"), t("profile:checkvalidategrade3"));
         return;
       }
       handleChange(currentDateField, selectedDate.toISOString());
     }
   };
 
+  const validateInputs = () => {
+    const requiredFields = [
+      { field: "fullName", label: t("profile:fullName") },
+      { field: "dateOfBirth", label: t("profile:birthday") },
+      { field: "gender", label: t("profile:gender") },
+      { field: "grade", label: t("profile:grade") },
+    ];
+
+    for (const { field, label } of requiredFields) {
+      if (
+        !tempProfile[field] ||
+        tempProfile[field] === "none" ||
+        tempProfile[field].trim() === ""
+      ) {
+        Alert.alert(t("profile:errorTitle"), t("profile:requiredField", { field: label }));
+        return false;
+      }
+    }
+    return true;
+  };
+
+
   const handleSave = async () => {
+    if (!validateInputs()) {
+      return;
+    }
     try {
       await dispatch(
-        updatePupilProfile({ id: pupilId, data: editedProfile })
+        updatePupilProfile({ id: pupilId, data: tempProfile })
       ).unwrap();
+      setEditedProfile(tempProfile); // Cập nhật editedProfile sau khi lưu
       setRefreshProfile((prev) => !prev);
       Alert.alert(c("success"), t("updateSuccess"));
       setModalVisible(false);
     } catch (error) {
       Alert.alert(c("error"), t("updateFailed"));
     }
+  };
+
+  const handleCancel = () => {
+    setTempProfile(editedProfile); // Khôi phục tempProfile về giá trị ban đầu
+    setModalVisible(false);
+    setNewAvatar(null); // Xóa ảnh mới nếu có
   };
 
   const userFields = [
@@ -253,12 +289,6 @@ export default function ProfilePupilScreen({ navigation }) {
       elevation: 5,
       backgroundColor: theme.colors.inputBoxModal,
     },
-    modalButtonContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: 20,
-    },
-
     modalOverlay: {
       flex: 1,
       backgroundColor: theme.colors.overlay,
@@ -280,13 +310,11 @@ export default function ProfilePupilScreen({ navigation }) {
       borderBottomRightRadius: 10,
       left: 0,
     },
-
     editChangeTextButton: {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
       fontSize: 14,
     },
-
     dropdownButton: {
       padding: 10,
       borderRadius: 10,
@@ -426,8 +454,8 @@ export default function ProfilePupilScreen({ navigation }) {
       {showDatePicker && (
         <DateTimePicker
           value={
-            editedProfile.dateOfBirth
-              ? new Date(editedProfile.dateOfBirth)
+            tempProfile.dateOfBirth
+              ? new Date(tempProfile.dateOfBirth)
               : new Date()
           }
           mode="date"
@@ -452,8 +480,8 @@ export default function ProfilePupilScreen({ navigation }) {
                           newAvatar
                             ? { uri: newAvatar }
                             : pupil?.image
-                            ? { uri: pupil?.image }
-                            : theme.icons.avatarFemale
+                              ? { uri: pupil?.image }
+                              : theme.icons.avatarFemale
                         }
                         style={styles.avatar}
                       />
@@ -485,12 +513,12 @@ export default function ProfilePupilScreen({ navigation }) {
                       <TouchableOpacity
                         onPress={() => {
                           setCurrentField(field.fieldName);
-                          setMenuVisible(true);
+                          setMenuVisible((prev) => !prev);
                         }}
                         style={styles.dropdownButton}
                       >
                         <Text style={styles.dropdownButtonText}>
-                          {editedProfile[field.fieldName] ||
+                          {tempProfile[field.fieldName] ||
                             t("common:selectOption")}
                         </Text>
                       </TouchableOpacity>
@@ -517,8 +545,8 @@ export default function ProfilePupilScreen({ navigation }) {
                       style={[styles.inputBox, { justifyContent: "center" }]}
                     >
                       <Text style={styles.inputTextBox}>
-                        {editedProfile[field.fieldName]
-                          ? formatDateString(editedProfile[field.fieldName])
+                        {tempProfile[field.fieldName]
+                          ? formatDateString(tempProfile[field.fieldName])
                           : t("common:selectDate")}
                       </Text>
                     </TouchableOpacity>
@@ -539,7 +567,7 @@ export default function ProfilePupilScreen({ navigation }) {
                       ]}
                     >
                       <TextInput
-                        value={editedProfile[field.fieldName]}
+                        value={tempProfile[field.fieldName]}
                         onChangeText={(text) =>
                           handleChange(field.fieldName, text)
                         }
@@ -566,23 +594,23 @@ export default function ProfilePupilScreen({ navigation }) {
                       {["phoneNumber", "email", "pin"].includes(
                         field.fieldName
                       ) && (
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (field.fieldName === "phoneNumber") {
-                              navigation.navigate("ChangePhoneScreen");
-                            } else if (field.fieldName === "email") {
-                              navigation.navigate("ChangeEmailScreen");
-                            } else if (field.fieldName === "pin") {
-                              navigation.navigate("ChangePinScreen");
-                            }
-                          }}
-                          style={styles.editChangeButtonContainer}
-                        >
-                          <Text style={styles.editChangeTextButton}>
-                            {t("common:edit")}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
+                          <TouchableOpacity
+                            onPress={() => {
+                              if (field.fieldName === "phoneNumber") {
+                                navigation.navigate("ChangePhoneScreen");
+                              } else if (field.fieldName === "email") {
+                                navigation.navigate("ChangeEmailScreen");
+                              } else if (field.fieldName === "pin") {
+                                navigation.navigate("ChangePinScreen");
+                              }
+                            }}
+                            style={styles.editChangeButtonContainer}
+                          >
+                            <Text style={styles.editChangeTextButton}>
+                              {t("common:edit")}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
                     </View>
                   )}
                 </View>
@@ -594,7 +622,7 @@ export default function ProfilePupilScreen({ navigation }) {
                 <Text style={styles.buttonText}>{t("common:save")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setModalVisible(false)}
+                onPress={handleCancel}
                 style={styles.cancelButton}
               >
                 <Text style={styles.buttonText}>{t("common:cancel")}</Text>

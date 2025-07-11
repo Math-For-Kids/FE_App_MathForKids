@@ -330,6 +330,7 @@ export default function SkillScreen({ navigation, route }) {
                     skillName,
                     title,
                     lessonId,
+                    grade,
                   });
                 } else if (action.label === "exercise") {
                   setModalVisible(true);

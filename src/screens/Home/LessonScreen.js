@@ -189,6 +189,7 @@ export default function LessonScreen({ navigation, route }) {
                 navigation.navigate("SkillScreen", {
                   skillName,
                   title,
+                  grade,
                   skillIcon: skillIcon,
                   lessonId: item.id,
                   pupilId: pupilId,

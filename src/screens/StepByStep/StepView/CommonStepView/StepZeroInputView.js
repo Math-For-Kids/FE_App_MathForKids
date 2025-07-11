@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 export default function StepZeroInput({
   number1,
   number2,
@@ -12,16 +13,19 @@ export default function StepZeroInput({
   routeOperator,
   autoNumber1,
   autoNumber2,
+  grade,
 }) {
   const isLock = !!routeOperator && autoNumber1 !== '' && autoNumber2 !== '';
+  const isGradeOne = grade === "1";
+
   return (
     <View style={styles.stepZeroContainer}>
       <View style={styles.operatorRow}>
-        {["+", "-", "×", "÷"].map((op) => (
+        {["+", "-", "x", "÷"].map((op) => (
           <TouchableOpacity
             key={op}
             onPress={() => {
-              if (!isLock || op === routeOperator) {
+              if (!isLock && !(isGradeOne && (op === "x" || op === "÷"))) {
                 setOperator(op);
               }
             }}
@@ -29,9 +33,20 @@ export default function StepZeroInput({
               styles.operatorButton,
               operator === op ? styles.operatorActive : styles.operatorInactive,
             ]}
-            disabled={isLock && op !== routeOperator}
+            disabled={isLock || (isGradeOne && (op === "x" || op === "÷"))}
           >
-            <Text style={styles.operatorSymbol}>{op}</Text>
+            <View style={styles.operatorSymbolContainer}>
+              <Text style={styles.operatorSymbol}>{op}</Text>
+              {isGradeOne && (op === "x" || op === "÷") && (
+                <View style={styles.lockOverlay}>
+                  <Ionicons
+                    name="lock-closed"
+                    size={40}
+                    color="#ffffff"
+                  />
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
         ))}
       </View>

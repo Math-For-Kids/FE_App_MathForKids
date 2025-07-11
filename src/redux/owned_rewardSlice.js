@@ -31,7 +31,6 @@ export const getByPupilId = createAsyncThunk(
   async (pupilId, { rejectWithValue }) => {
     try {
       const res = await Api.get(`/ownereward/getByPupilId/${pupilId}`);
-      console.log("📦 API response getByPupilId:", res.data);
       return res.data && Array.isArray(res.data) ? res.data : [];
     } catch (err) {
       console.error("Error in getByPupilId:", err);
@@ -43,7 +42,24 @@ export const getByPupilId = createAsyncThunk(
     }
   }
 );
-
+// Thunk: Đếm số lượng owned_reward theo pupilId
+export const countByPupilId = createAsyncThunk(
+  "owned_reward/countByPupilId",
+  async (pupilId, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/ownereward/countByPupilId/${pupilId}`);
+      // Kiểm tra xem res.data có tồn tại và có thuộc tính count không
+      return typeof res.data?.count === 'number' ? res.data.count : 0;
+    } catch (err) {
+      console.error("Error in countByPupilId:", err);
+      if (err.response?.status === 404) {
+        console.log("No owned_reward found for pupilId:", pupilId);
+        return 0;
+      }
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const ownedRewardSlice = createSlice({
   name: "owned_reward",
   initialState: {
@@ -87,6 +103,19 @@ const ownedRewardSlice = createSlice({
       .addCase(getByPupilId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch owned rewards";
+      })
+      .addCase(countByPupilId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(countByPupilId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        state.count = action.payload; // Update count in state
+      })
+      .addCase(countByPupilId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch owned rewards count";
       });
   },
 });

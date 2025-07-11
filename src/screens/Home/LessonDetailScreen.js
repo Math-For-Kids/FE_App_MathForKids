@@ -34,9 +34,7 @@ import { WebView } from "react-native-webview";
 import { useWindowDimensions } from "react-native";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, lessonId } = route.params;
-  console.log("skillName", skillName);
-  console.log("lessonId", lessonId);
+  const { skillName, lessonId, grade } = route.params;
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation("lesson");
   const { width } = useWindowDimensions();
@@ -70,7 +68,7 @@ export default function LessonDetailScreen({ navigation, route }) {
         return "+";
     }
   };
-  // console.log("autoNumber1", autoNumber1);
+  console.log("gradeLeson", grade);
   // console.log("autoNumber2", autoNumber2);
   // console.log("getOperatorFromSkillName", getOperatorFromSkillName);
   useFocusEffect(
@@ -213,6 +211,10 @@ export default function LessonDetailScreen({ navigation, route }) {
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
       fontSize: 32,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
@@ -310,7 +312,7 @@ export default function LessonDetailScreen({ navigation, route }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text
           style={styles.headerText}
@@ -405,9 +407,13 @@ export default function LessonDetailScreen({ navigation, route }) {
                   number1: autoNumber1,
                   number2: autoNumber2,
                   operator,
+                  grade: grade,
                 });
               } else if (currentIndex === 2) {
-                navigation.navigate("StepByStepScreen", baseParams);
+                navigation.navigate("StepByStepScreen", {
+                  ...baseParams,
+                  grade: grade,
+                });
               }
             }}
           >

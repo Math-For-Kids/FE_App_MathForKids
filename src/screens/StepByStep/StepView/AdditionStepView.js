@@ -101,7 +101,7 @@ export const AdditionStepView = ({
       marginTop: 10,
     },
     line: {
-      height: 2,
+height: 2,
       backgroundColor: theme.colors.grayDark,
       marginTop: 2,
     },
@@ -218,7 +218,7 @@ export const AdditionStepView = ({
           .slice()
           .reverse()
           .map((digit, i) => (
-            <TouchableOpacity
+<TouchableOpacity
               key={`sum-${i}`}
               onPress={() => {
                 const toSpeak = subTextLines[i + 1];

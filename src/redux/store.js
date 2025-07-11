@@ -16,6 +16,8 @@ import goalReducer from "./goalSlice";
 import rewardReducer from "./rewardSlice";
 import ownedRewardReducer from "./owned_rewardSlice";
 import completedExerciseReducer from "./completedexerciseSlice";
+import completedLessonReducer from "./completedLessonSlice";
+
 import testReducer from "./testSlice";
 import levelReducer from "./levelSlice";
 import assessmentReducer from "./assessmentSlice";
@@ -37,6 +39,7 @@ const rootReducer = combineReducers({
   completed_exercise: completedExerciseReducer,
   test: testReducer,
   assessment: assessmentReducer,
+  completedLesson: completedLessonReducer,
 
 
   // thêm các reducer khác nếu cần
