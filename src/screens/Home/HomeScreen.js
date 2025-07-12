@@ -316,7 +316,6 @@ export default function HomeScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
         </View>
-
       </LinearGradient>
       <View style={styles.gradeWrapper}>
         <TouchableOpacity
@@ -350,7 +349,12 @@ export default function HomeScreen({ navigation, route }) {
           </View>
         )}
       </View>
-
+      <TouchableOpacity
+        style={styles.avatarContainer}
+        onPress={() => navigation.navigate("AccountScreen")}
+      >
+        <Text>Back to account</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>{t("select_skill")}</Text>
 
       <ScrollView contentContainerStyle={styles.skillsContainer}>

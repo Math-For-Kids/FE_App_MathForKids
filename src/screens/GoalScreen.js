@@ -63,7 +63,7 @@ export default function GoalScreen() {
   );
   const { t, i18n } = useTranslation("goal");
   // console.log("filteredLessons", filteredLessons);
-  console.log("availableLessons", availableLessons);
+  // console.log("availableLessons", availableLessons);
   useEffect(() => {
     dispatch(getRewardByDisabledStatus());
     dispatch(getEnabledLevels());
@@ -83,9 +83,24 @@ export default function GoalScreen() {
       dispatch(getGoalsWithin30Days(selectedPupil.id));
     }
   }, [skillType, selectedAccount]);
+  // useEffect(() => {
+  //   const selectedPupil = pupils?.find((p) => p.id === selectedAccount);
+  //   if (selectedPupil && skillType && lesson && startDate && endDate) {
+  //     const formattedStart = startDate.toISOString().split("T")[0];
+  //     const formattedEnd = endDate.toISOString().split("T")[0];
+  //     dispatch(
+  //       getAvailableLessons({
+  //         pupilId: selectedPupil.id,
+  //         skillType,
+  //         startDate: formattedStart,
+  //         endDate: formattedEnd,
+  //       })
+  //     );
+  //   }
+  // }, [selectedAccount, skillType, lesson, startDate, endDate]);
   useEffect(() => {
     const selectedPupil = pupils?.find((p) => p.id === selectedAccount);
-    if (selectedPupil && skillType && lesson && startDate && endDate) {
+    if (selectedPupil && skillType && startDate && endDate) {
       const formattedStart = startDate.toISOString().split("T")[0];
       const formattedEnd = endDate.toISOString().split("T")[0];
       dispatch(
@@ -97,7 +112,8 @@ export default function GoalScreen() {
         })
       );
     }
-  }, [selectedAccount, skillType, lesson, startDate, endDate]);
+  }, [selectedAccount, skillType, startDate, endDate]);
+
   const handleSaveGoal = async () => {
     if (
       !selectedAccount ||
