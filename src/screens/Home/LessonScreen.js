@@ -169,7 +169,7 @@ export default function LessonScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("HomeScreen", { pupilId })}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
