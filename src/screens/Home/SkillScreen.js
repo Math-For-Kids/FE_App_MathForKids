@@ -23,13 +23,13 @@ import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
+  const { skillName, skillIcon, grade, pupilId, title, lessonId, levelId } =
     route.params;
   // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
-  // console.log("goalId", goalId);
+  // console.log("levelId", levelId);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, levelIdCounts, loading, error } = useSelector(
@@ -41,14 +41,20 @@ export default function SkillScreen({ navigation, route }) {
     dispatch(getEnabledLevels());
   }, [dispatch]);
 
-  useFocusEffect(
-    useCallback(() => {
-      setSelectedLevels([]); // Reset selectedLevels khi quay lại màn hình
-      return () => {
-        // Cleanup nếu cần
-      };
-    }, [])
-  );
+  useEffect(() => {
+    if (levelId && !route.params?.fromExercise) {
+      navigation.replace("ExerciseDetailScreen", {
+        levelIds: levelId,
+        lessonId,
+        skillName,
+        title,
+        grade,
+        pupilId,
+        skillIcon,
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (modalVisible && levels.length > 0) {
       const levelIds = levels.map((level) => level.id);
@@ -330,7 +336,10 @@ export default function SkillScreen({ navigation, route }) {
                     skillName,
                     title,
                     lessonId,
-                    grade,
+                    levelIds:
+                      persistedLevels.length > 0
+                        ? persistedLevels
+                        : selectedLevels,
                   });
                 } else if (action.label === "exercise") {
                   setModalVisible(true);

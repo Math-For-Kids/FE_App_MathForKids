@@ -161,7 +161,7 @@ export default function TestScreen({ navigation, route }) {
 
   const calculateScore = () => {
     if (!tests.length) {
-      console.log("No tests available");
+      // console.log("No tests available");
       return { score: 0, correct: 0, wrong: 0 };
     }
     let rawScore = 0;
@@ -185,18 +185,18 @@ export default function TestScreen({ navigation, route }) {
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
-    console.log(
-      "Calculate Results - Raw Score:",
-      rawScore,
-      "Max Score:",
-      maxScore,
-      "Correct:",
-      correct,
-      "Wrong:",
-      wrong,
-      "Score:",
-      Math.round(score)
-    );
+    // console.log(
+    //   "Calculate Results - Raw Score:",
+    //   rawScore,
+    //   "Max Score:",
+    //   maxScore,
+    //   "Correct:",
+    //   correct,
+    //   "Wrong:",
+    //   wrong,
+    //   "Score:",
+    //   Math.round(score)
+    // );
     return { score: Math.round(score), correct, wrong };
   };
 

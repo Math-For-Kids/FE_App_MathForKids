@@ -510,12 +510,6 @@ export default function StatisticScreen({ navigation }) {
             </TouchableOpacity>
           </Modal>
         </View>
-        <TouchableOpacity
-          style={styles.avatarContainer}
-          onPress={() => navigation.navigate("AccountScreen")}
-        >
-          <Text>Back to account</Text>
-        </TouchableOpacity>
         {/* {selectedTab === "Skill statistics" && ( */}
         <>
           <View style={styles.academicChartContainer}>
