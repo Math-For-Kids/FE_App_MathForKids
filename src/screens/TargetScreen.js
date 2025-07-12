@@ -89,18 +89,21 @@ export default function TargetScreen({ navigation, route }) {
     if (goals.length > 0) fetchDetailsForGoals();
   }, [goals]);
   useEffect(() => {
+    console.log("⏩ mergedGoals.length =", mergedGoals.length);
+    console.log("🎯 Scrolling to index =", index);
+
     if (!focusGoalId || mergedGoals.length === 0) return;
-
     const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);
-
     if (index >= 0 && index < mergedGoals.length) {
       setTimeout(() => {
-        flatListRef.current?.scrollToIndex({
-          index,
-          animated: true,
-          viewPosition: 0.5,
-        });
-      }, 100); // delay nhẹ 100ms
+        if (flatListRef.current && mergedGoals.length > index) {
+          flatListRef.current.scrollToIndex({
+            index,
+            animated: true,
+            viewPosition: 0.5,
+          });
+        }
+      }, 100);
     }
   }, [mergedGoals, focusGoalId]);
 
