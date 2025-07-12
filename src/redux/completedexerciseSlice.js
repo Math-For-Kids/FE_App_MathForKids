@@ -6,8 +6,18 @@ export const createCompletedExercise = createAsyncThunk(
   "completed_exercise/createCompletedExercise",
   async ({ pupilId, lessonId, levelId, point }, { rejectWithValue }) => {
     try {
-      console.log("Sending createCompletedExercise with payload:", { pupilId, lessonId, levelId, point });
-      const res = await Api.post("/completedexercise", { pupilId, lessonId, levelId, point });
+     console.log("Sending createCompletedExercise with payload:", {
+        pupilId,
+        lessonId,
+        levelId,
+        point,
+      });
+      const res = await Api.post("/completedexercise", {
+        pupilId,
+        lessonId,
+        levelId,
+        point,
+      });
       console.log("Completed exercise API response:", res.data);
       return res.data;
     } catch (err) {
@@ -25,9 +35,7 @@ export const countCompletedExercisePupil = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
-  }
-)
-
+  });
 const completedExerciseSlice = createSlice({
   name: "completed_exercise",
   initialState: {

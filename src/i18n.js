@@ -101,7 +101,6 @@ i18n.use(initReactI18next).init({
       loading: viLoading,
       assessment: viAssessment,
       reward: viReward,
-
       target: viTarget,
     },
   },
