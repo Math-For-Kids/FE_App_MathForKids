@@ -40,7 +40,7 @@ export default function NotificationScreen({ navigation, route }) {
   const notificationsToDisplay = pupilId
     ? pupilNotifications
     : userNotifications;
-  console.log("Notifications to display:", pupilNotifications);
+  // console.log("Notifications to display:", pupilNotifications);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -214,7 +214,15 @@ export default function NotificationScreen({ navigation, route }) {
                 </Text>
               </Text>
               <Text style={styles.notificationDateEnd}>
-                {formatDate(item.createdAt)}
+                {(() => {
+                  console.log(
+                    "🕒 CreatedAt raw:",
+                    item.createdAt,
+                    "| id:",
+                    item.id
+                  );
+                  return formatDate(item.createdAt);
+                })()}
               </Text>
             </View>
 

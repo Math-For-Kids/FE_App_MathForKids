@@ -9,13 +9,13 @@ export const createOrUpdate = createAsyncThunk(
       const res = await Api.post(`/ownereward/create/${pupilId}/${rewardId}`, {
         quantity,
       });
-      console.log("Create/Update API Full Response:", res.data);
+      // console.log("Create/Update API Full Response:", res.data);
       // Không trả về res.data.data vì API không cung cấp dữ liệu bản ghi
       return { success: true, message: res.data.message };
     } catch (err) {
       console.error("Error in createOrUpdate:", err);
       if (err.response?.status === 404) {
-        console.log("Endpoint or resource not found:", { pupilId, rewardId });
+        // console.log("Endpoint or resource not found:", { pupilId, rewardId });
         return rejectWithValue(
           "Resource not found for creating or updating reward"
         );
@@ -35,7 +35,7 @@ export const getByPupilId = createAsyncThunk(
     } catch (err) {
       console.error("Error in getByPupilId:", err);
       if (err.response?.status === 404) {
-        console.log("No owned_reward found for pupilId:", pupilId);
+        // console.log("No owned_reward found for pupilId:", pupilId);
         return [];
       }
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -53,7 +53,7 @@ export const countByPupilId = createAsyncThunk(
     } catch (err) {
       console.error("Error in countByPupilId:", err);
       if (err.response?.status === 404) {
-        console.log("No owned_reward found for pupilId:", pupilId);
+        // console.log("No owned_reward found for pupilId:", pupilId);
         return 0;
       }
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -78,7 +78,7 @@ const ownedRewardSlice = createSlice({
         state.loading = false;
         state.error = null;
         // Không cập nhật state.list vì API không trả về dữ liệu bản ghi
-        console.log("createOrUpdate succeeded:", action.payload.message);
+        // console.log("createOrUpdate succeeded:", action.payload.message);
       })
       .addCase(createOrUpdate.rejected, (state, action) => {
         state.loading = false;

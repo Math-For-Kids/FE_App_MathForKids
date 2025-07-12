@@ -45,7 +45,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   const isAnimating = useRef(false);
 
   const enabledList = useSelector((state) => state.lessonDetail.enabledList);
-  console.log("enabledList", enabledList);
+  // console.log("enabledList", enabledList);
   const [lessonName, setLessonName] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
@@ -68,7 +68,7 @@ export default function LessonDetailScreen({ navigation, route }) {
         return "+";
     }
   };
-  console.log("gradeLeson", grade);
+  // console.log("gradeLeson", grade);
   // console.log("autoNumber2", autoNumber2);
   // console.log("getOperatorFromSkillName", getOperatorFromSkillName);
   useFocusEffect(
