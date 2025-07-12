@@ -352,7 +352,7 @@ export default function TargetScreen({ navigation, route }) {
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>
-                    {item.lessonName?.[i18n.language]}
+                    {t("request")} {item.lessonName?.[i18n.language]}
                   </Text>
                   <Text style={styles.cardMission}>
                     {t("exercise")}:{" "}
