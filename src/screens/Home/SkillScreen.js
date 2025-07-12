@@ -23,13 +23,13 @@ import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId, levelId } =
+  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
     route.params;
   // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
-  // console.log("levelId", levelId);
+  // console.log("goalId", goalId);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, levelIdCounts, loading, error } = useSelector(
@@ -41,20 +41,14 @@ export default function SkillScreen({ navigation, route }) {
     dispatch(getEnabledLevels());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (levelId && !route.params?.fromExercise) {
-      navigation.replace("ExerciseDetailScreen", {
-        levelIds: levelId,
-        lessonId,
-        skillName,
-        title,
-        grade,
-        pupilId,
-        skillIcon,
-      });
-    }
-  }, []);
-
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedLevels([]); // Reset selectedLevels khi quay lại màn hình
+      return () => {
+        // Cleanup nếu cần
+      };
+    }, [])
+  );
   useEffect(() => {
     if (modalVisible && levels.length > 0) {
       const levelIds = levels.map((level) => level.id);
@@ -104,7 +98,7 @@ export default function SkillScreen({ navigation, route }) {
         const levelB = parseInt(b.name?.[i18n.language] || "0");
         return levelA - levelB;
       })
-      .map((level) => level.id); 
+      .map((level) => level.id);
     setModalVisible(false);
     navigation.navigate("ExerciseDetailScreen", {
       levelIds: sortedLevels,
@@ -272,15 +266,15 @@ export default function SkillScreen({ navigation, route }) {
               isDisabled
                 ? getDisabledGradient()
                 : selectedLevels.includes(item.id)
-                ? getSelectedGradient()
-                : getGradientBySkill()
+                  ? getSelectedGradient()
+                  : getGradientBySkill()
             }
             style={[
               styles.levelCard,
               {
                 borderWidth: selectedLevels.includes(item.id) ? 2 : 0,
                 borderColor: theme.colors.white,
-                opacity: isDisabled ? 0.6 : 1, 
+                opacity: isDisabled ? 0.6 : 1,
               },
             ]}
           >
@@ -336,10 +330,7 @@ export default function SkillScreen({ navigation, route }) {
                     skillName,
                     title,
                     lessonId,
-                    levelIds:
-                      persistedLevels.length > 0
-                        ? persistedLevels
-                        : selectedLevels,
+                    grade,
                   });
                 } else if (action.label === "exercise") {
                   setModalVisible(true);
