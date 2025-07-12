@@ -87,18 +87,22 @@ export default function TargetScreen({ navigation, route }) {
 
     if (goals.length > 0) fetchDetailsForGoals();
   }, [goals]);
-  useEffect(() => {
-    if (!focusGoalId || mergedGoals.length === 0) return;
+useEffect(() => {
+  if (!focusGoalId || mergedGoals.length === 0) return;
 
-    const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);
-    if (index >= 0 && flatListRef.current) {
-      flatListRef.current.scrollToIndex({
+  const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);
+
+  if (index >= 0 && index < mergedGoals.length) {
+    setTimeout(() => {
+      flatListRef.current?.scrollToIndex({
         index,
         animated: true,
-        viewPosition: 0.5, // căn giữa
+        viewPosition: 0.5,
       });
-    }
-  }, [mergedGoals, focusGoalId]);
+    }, 100); // delay nhẹ 100ms
+  }
+}, [mergedGoals, focusGoalId]);
+
 
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
@@ -278,7 +282,7 @@ export default function TargetScreen({ navigation, route }) {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
         getItemLayout={(data, index) => ({
-          length: 160, 
+          length: 160,
           offset: 160 * index,
           index,
         })}

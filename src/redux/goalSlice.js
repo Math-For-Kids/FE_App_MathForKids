@@ -71,10 +71,11 @@ export const getLessonsByGradeAndTypeFiltered = createAsyncThunk(
 // Thunk: Tự động đánh dấu goal đã hoàn thành
 export const autoMarkCompletedGoals = createAsyncThunk(
   "goal/autoMarkCompletedGoals",
-  async ({ pupilId, lessonId}, { rejectWithValue }) => {
+  async ({ pupilId, lessonId, exercise }, { rejectWithValue }) => {
     try {
+      const query = exercise ? `?exercise=${exercise}` : "";
       const res = await Api.get(
-        `/goal/completedgoal/${pupilId}/${lessonId}`
+        `/goal/completedgoal/${pupilId}/${lessonId}${query}`
       );
       return res.data;
     } catch (err) {

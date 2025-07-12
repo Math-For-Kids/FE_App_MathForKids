@@ -33,7 +33,8 @@ import {
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
-  const { skillName, lessonId, pupilId } = route.params;
+  const { skillName, lessonId, pupilId, levelIds } = route.params;
+  // console.log("levelIds", levelIds);
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -250,8 +251,9 @@ export default function TestScreen({ navigation, route }) {
             createMultipleTestQuestions(questionPayloads)
           ).unwrap();
         }
+        const exercise = levelIds.join(",");
         const res = await dispatch(
-          autoMarkCompletedGoals({ pupilId, lessonId })
+          autoMarkCompletedGoals({ pupilId, lessonId, exercise })
         );
 
         if (res.payload?.message?.[i18n.language]) {

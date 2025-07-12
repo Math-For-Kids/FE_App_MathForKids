@@ -17,12 +17,19 @@ import { useTranslation } from "react-i18next";
 
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { answers, questions, score, correctCount, wrongCount, skillName } =
-    route.params;
+  const {
+    answers,
+    questions,
+    score,
+    correctCount,
+    wrongCount,
+    skillName,
+    levelIds,
+  } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");
-
+  // console.log("levelIds", levelIds);
   const getOperatorFromSkillName = (skill) => {
     switch (skill) {
       case "Addition":
