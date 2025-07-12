@@ -184,12 +184,8 @@ export default function ExerciseScreen({ navigation, route }) {
             const { correct, wrong, score } = calculateResults();
             try {
               await dispatch(
-                createCompletedExercise({
-                  pupilId,
-                  lessonId,
-                  levelId: levelIds,
-                  point: score,
-                })
+                createCompletedExercise({ pupilId, lessonId, levelId: levelIds, point: score })
+
               ).unwrap();
               navigation.navigate("ExerciseResultScreen", {
                 skillName,
@@ -457,9 +453,8 @@ export default function ExerciseScreen({ navigation, route }) {
                 {t("question")} {ind + 1}: {q.question}
               </Text>
               <View style={styles.questionImageContainer}>
-                {q.image && (
-                  <Image style={styles.questionImage} source={q.image} />
-                )}
+                {q.image && <Image style={styles.questionImage} source={q.image} />}
+
                 <View style={styles.selectedContainer}>
                   <View
                     style={styles.selectedAnswerBox}

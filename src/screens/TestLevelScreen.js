@@ -53,12 +53,9 @@ export default function AssessmentScreen({ navigation, route }) {
     console.log("Assessments:", assessments);
     return assessments.map((assessment, index) => {
       const correctAnswer = assessment.answer?.[i18n.language];
-      const wrongOptions = (assessment.option || []).map(
-        (opt) => opt[i18n.language] || ""
-      );
-      const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(
-        Boolean
-      );
+      const wrongOptions = (assessment.option || []).map((opt) => opt[i18n.language] || "");
+      const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(Boolean);
+
       const shuffledOptions = allOptions
         .map((value) => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)

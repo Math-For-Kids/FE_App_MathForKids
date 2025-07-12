@@ -9,7 +9,8 @@ export const getLessonsByGradeAndType = createAsyncThunk(
       const res = await Api.get("/completedlesson/getAll?pageSize=30", {
         params: { grade, type, pupilId },
       });
-      return res.data.data;
+      // return res.data.data;
+      return Array.isArray(res.data.data) ? res.data.data : [];
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
@@ -43,7 +44,7 @@ const lessonSlice = createSlice({
       })
       .addCase(getLessonsByGradeAndType.fulfilled, (state, action) => {
         state.loading = false;
-        state.lessons = action.payload;
+        state.lessons = action.payload || [];
       })
       .addCase(getLessonsByGradeAndType.rejected, (state, action) => {
         state.loading = false;

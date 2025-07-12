@@ -322,7 +322,9 @@ export default function ExerciseResultScreen({ navigation, route }) {
                   {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  {t("correctAnswer")}: {selectedQuestion.answer}
+                  {t("correctAnswer")}:{" "}
+                  {selectedQuestion.answer}
+
                 </Text>
 
                 <TouchableOpacity

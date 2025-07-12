@@ -350,6 +350,7 @@ export default function SkillScreen({ navigation, route }) {
                       persistedLevels.length > 0
                         ? persistedLevels
                         : selectedLevels,
+                    grade,
                   });
                 } else if (action.label === "exercise") {
                   setModalVisible(true);

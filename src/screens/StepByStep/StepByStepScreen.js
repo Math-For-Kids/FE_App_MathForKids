@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView,Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../themes/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,6 +25,7 @@ export default function StepByStepScreen({ navigation, route }) {
     number1: autoNumber1 = "",
     number2: autoNumber2 = "",
     operator: routeOperator,
+    grade: grade,
   } = route.params || {};
   const skillNameLower = skillName?.toLowerCase();
   const getBorderBox = () => {
@@ -179,7 +180,7 @@ export default function StepByStepScreen({ navigation, route }) {
           }}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerText}>{t("calculation")}</Text>
       </LinearGradient>
@@ -208,6 +209,8 @@ export default function StepByStepScreen({ navigation, route }) {
           routeOperator={routeOperator}
           autoNumber1={autoNumber1} // Pass autoNumber1
           autoNumber2={autoNumber2} // Pass autoNumber2
+          grade={grade} // Pass autoNumber2
+
         />
       )}
 
