@@ -338,7 +338,7 @@ export default function TargetScreen({ navigation, route }) {
                     skillIcon: item.skillIcon,
                     lessonId: item.lessonId,
                     pupilId: pupilId,
-                    // goalId: item.id,
+                    goalId: item.id,
                   });
                 }}
               >

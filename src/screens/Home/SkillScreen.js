@@ -23,13 +23,13 @@ import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
+  const { skillName, skillIcon, grade, pupilId, title, lessonId, goalId } =
     route.params;
   // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
-  // console.log("goalId", goalId);
+  console.log("goalId", goalId);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, levelIdCounts, loading, error } = useSelector(
@@ -98,7 +98,7 @@ export default function SkillScreen({ navigation, route }) {
         const levelB = parseInt(b.name?.[i18n.language] || "0");
         return levelA - levelB;
       })
-      .map((level) => level.id); 
+      .map((level) => level.id);
     setModalVisible(false);
     navigation.navigate("ExerciseDetailScreen", {
       levelIds: sortedLevels,
@@ -266,15 +266,15 @@ export default function SkillScreen({ navigation, route }) {
               isDisabled
                 ? getDisabledGradient()
                 : selectedLevels.includes(item.id)
-                ? getSelectedGradient()
-                : getGradientBySkill()
+                  ? getSelectedGradient()
+                  : getGradientBySkill()
             }
             style={[
               styles.levelCard,
               {
                 borderWidth: selectedLevels.includes(item.id) ? 2 : 0,
                 borderColor: theme.colors.white,
-                opacity: isDisabled ? 0.6 : 1, 
+                opacity: isDisabled ? 0.6 : 1,
               },
             ]}
           >

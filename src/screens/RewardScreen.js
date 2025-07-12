@@ -669,10 +669,10 @@ export default function RewardScreen({ navigation }) {
     },
     rewardImageBackground: {
       backgroundColor: theme.colors.cardBackground,
-      padding: 8,
-      borderRadius: 50,
-      borderWidth: 1,
+      borderRadius: 5,
+      borderWidth: 2,
       borderColor: theme.colors.black,
+      elevation: 3,
     },
     rewardImage: { width: 40, height: 40 },
     progress: {
