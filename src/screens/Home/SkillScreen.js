@@ -302,7 +302,14 @@ export default function SkillScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradientBySkill()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() =>
+            navigation.navigate("LessonScreen", {
+              skillName,
+              grade,
+              pupilId,
+              skillIcon,
+            })
+          }
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
