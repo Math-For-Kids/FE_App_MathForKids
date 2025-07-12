@@ -104,6 +104,7 @@ export default function TestScreen({ navigation, route }) {
           id: `${currentQ.id}-option-${index}`, // Unique ID for each option
         })
       ).sort(() => Math.random() - 0.5);
+
       setShuffledOptions((prev) => ({
         ...prev,
         [currentQ.id]: options,
@@ -247,7 +248,9 @@ export default function TestScreen({ navigation, route }) {
             correctAnswer: question.answer,
             selectedAnswer: userAnswers[question.id] || null,
           }));
-          await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
+          await dispatch(
+            createMultipleTestQuestions(questionPayloads)
+          ).unwrap();
         }
         const exercise = levelIds.join(",");
         const res = await dispatch(
@@ -783,6 +786,7 @@ export default function TestScreen({ navigation, route }) {
               onPress={() => handleAnswer(option.value)}
             >
               <Text style={styles.answerText}>{option.value?.[i18n.language]}</Text>
+
             </TouchableOpacity>
           ))}
         </View>
@@ -817,6 +821,7 @@ export default function TestScreen({ navigation, route }) {
                 <Text style={styles.modalResultText}>
                   {wrongCount}
                 </Text>
+
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>Time:</Text>

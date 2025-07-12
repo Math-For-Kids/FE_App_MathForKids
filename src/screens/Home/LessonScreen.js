@@ -22,7 +22,7 @@ import { useCallback } from "react";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, grade, pupilId, skillIcon } = route.params;
-  // console.log("LessonScreen params:", route.params);
+  console.log("LessonScreen params:", route.params);
 
   const { t } = useTranslation("lesson");
   const { t: c } = useTranslation("common");
@@ -169,7 +169,7 @@ export default function LessonScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("HomeScreen", { pupilId })}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -190,7 +190,7 @@ export default function LessonScreen({ navigation, route }) {
                 }
                 navigation.navigate("SkillScreen", {
                   skillName,
-                  title,
+                  title: item.name,
                   grade,
                   skillIcon: skillIcon,
                   lessonId: item.id,

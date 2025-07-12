@@ -27,6 +27,8 @@ export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, skillIcon, lessonId, levelIds, pupilId, title, grade } =
     route.params;
+  console.log("ExerciseScreen params:", route.params);
+
   const dispatch = useDispatch();
   const {
     exercises,
@@ -185,6 +187,7 @@ export default function ExerciseScreen({ navigation, route }) {
             try {
               await dispatch(
                 createCompletedExercise({ pupilId, lessonId, levelId: levelIds, point: score })
+
               ).unwrap();
               navigation.navigate("ExerciseResultScreen", {
                 skillName,
@@ -198,7 +201,7 @@ export default function ExerciseScreen({ navigation, route }) {
                 pupilId,
                 title,
                 grade,
-                skillIcon,
+                skillIcon: skillIcon,
               });
             } catch (err) {
               Alert.alert(t("error"), t("failedToSubmitExercise"));
@@ -453,6 +456,7 @@ export default function ExerciseScreen({ navigation, route }) {
               </Text>
               <View style={styles.questionImageContainer}>
                 {q.image && <Image style={styles.questionImage} source={q.image} />}
+
                 <View style={styles.selectedContainer}>
                   <View
                     style={styles.selectedAnswerBox}
