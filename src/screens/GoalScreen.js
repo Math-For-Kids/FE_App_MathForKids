@@ -141,7 +141,7 @@ export default function GoalScreen() {
     try {
       // await dispatch(createGoal(goalData)).unwrap();
       const goalCreated = await dispatch(createGoal(goalData)).unwrap();
-      console.log("goalCreated", goalCreated.id);
+      // console.log("goalCreated", goalCreated.id);
       const now = new Date();
       const createdAt = now.toISOString();
       const updatedAt = now.toISOString();
