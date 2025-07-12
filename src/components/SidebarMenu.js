@@ -15,7 +15,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../redux/authSlice";
 import { useTranslation } from "react-i18next";
-
+import { Ionicons } from "@expo/vector-icons";
 const SidebarMenu = () => {
   const { theme } = useTheme();
   const { t } = useTranslation("sidebar");
@@ -136,8 +136,13 @@ const SidebarMenu = () => {
       borderWidth: 3,
       borderColor: getLabelColor(),
     },
+    titleContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around",
+    },
     title: {
-      fontSize: 24,
+      fontSize: 22,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
       textAlign: "center",
       color: getLabelColor(),
@@ -191,7 +196,19 @@ const SidebarMenu = () => {
 
   return (
     <View style={styles.sidebar}>
-      <Text style={styles.title}>{t("menu")}</Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>{t("menu")}</Text>
+        <TouchableOpacity
+          style={styles.backAccount}
+          onPress={() => navigation.navigate("AccountScreen")}
+        >
+          <Ionicons
+            name="people-circle-outline"
+            size={32}
+            color={getLabelColor()}
+          />
+        </TouchableOpacity>
+      </View>
       <View style={styles.menuContainer}>
         <ScrollView
           style={styles.menuScroll}

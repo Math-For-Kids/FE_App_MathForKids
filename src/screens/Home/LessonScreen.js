@@ -22,12 +22,14 @@ import { useCallback } from "react";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, grade, pupilId, skillIcon } = route.params;
+  // console.log("LessonScreen params:", route.params);
+
   const { t } = useTranslation("lesson");
   const { t: c } = useTranslation("common");
   const dispatch = useDispatch();
   const normalizedSkillName = skillName.toLowerCase();
   // const [activeTab] = useState("Lesson");
-  console.log("skillIcon", skillIcon);
+  // console.log("skillIcon", skillIcon);
   const {
     lessons,
     loading: lessonLoading,
@@ -167,7 +169,7 @@ export default function LessonScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("HomeScreen", { pupilId })}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -193,6 +195,7 @@ export default function LessonScreen({ navigation, route }) {
                   skillIcon: skillIcon,
                   lessonId: item.id,
                   pupilId: pupilId,
+                  grade,
                 });
               }}
               activeOpacity={item.isBlock ? 1 : 0.7}
@@ -207,9 +210,8 @@ export default function LessonScreen({ navigation, route }) {
                   <View>
                     <TouchableOpacity
                       onPress={() => {
-                        const speakText =
-                          item.name?.[i18n.language]
-                          item.title;
+                        const speakText = item.name?.[i18n.language];
+                        item.title;
                         Speech.speak(speakText, { language: i18n.language });
                       }}
                     >

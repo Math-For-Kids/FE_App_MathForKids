@@ -316,8 +316,8 @@ export default function HomeScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
         </View>
-
       </LinearGradient>
+
       <View style={styles.gradeWrapper}>
         <TouchableOpacity
           onPress={() => setShowDropdown(!showDropdown)}

@@ -33,7 +33,8 @@ import {
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
-  const { skillName, lessonId, pupilId } = route.params;
+  const { skillName, lessonId, pupilId, levelIds } = route.params;
+  // console.log("levelIds", levelIds);
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -161,7 +162,7 @@ export default function TestScreen({ navigation, route }) {
 
   const calculateScore = () => {
     if (!tests.length) {
-      console.log("No tests available");
+      // console.log("No tests available");
       return { score: 0, correct: 0, wrong: 0 };
     }
     let rawScore = 0;
@@ -185,18 +186,18 @@ export default function TestScreen({ navigation, route }) {
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
-    console.log(
-      "Calculate Results - Raw Score:",
-      rawScore,
-      "Max Score:",
-      maxScore,
-      "Correct:",
-      correct,
-      "Wrong:",
-      wrong,
-      "Score:",
-      Math.round(score)
-    );
+    // console.log(
+    //   "Calculate Results - Raw Score:",
+    //   rawScore,
+    //   "Max Score:",
+    //   maxScore,
+    //   "Correct:",
+    //   correct,
+    //   "Wrong:",
+    //   wrong,
+    //   "Score:",
+    //   Math.round(score)
+    // );
     return { score: Math.round(score), correct, wrong };
   };
 
@@ -247,10 +248,13 @@ export default function TestScreen({ navigation, route }) {
             correctAnswer: question.answer,
             selectedAnswer: userAnswers[question.id] || null,
           }));
-          await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
-
+          await dispatch(
+            createMultipleTestQuestions(questionPayloads)
+          ).unwrap();
+        }
+        const exercise = levelIds.join(",");
         const res = await dispatch(
-          autoMarkCompletedGoals({ pupilId, lessonId })
+          autoMarkCompletedGoals({ pupilId, lessonId, exercise })
         );
 
         if (res.payload?.message?.[i18n.language]) {

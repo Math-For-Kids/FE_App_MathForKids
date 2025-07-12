@@ -23,13 +23,13 @@ import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId } =
+  const { skillName, skillIcon, grade, pupilId, title, lessonId, levelId } =
     route.params;
   // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
-  // console.log("goalId", goalId);
+  // console.log("levelId", levelId);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, levelIdCounts, loading, error } = useSelector(
@@ -37,18 +37,25 @@ export default function SkillScreen({ navigation, route }) {
   );
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLevels, setSelectedLevels] = useState([]);
+  const [persistedLevels, setPersistedLevels] = useState([]);
   useEffect(() => {
     dispatch(getEnabledLevels());
   }, [dispatch]);
 
-  useFocusEffect(
-    useCallback(() => {
-      setSelectedLevels([]); // Reset selectedLevels khi quay lại màn hình
-      return () => {
-        // Cleanup nếu cần
-      };
-    }, [])
-  );
+  useEffect(() => {
+    if (levelId && !route.params?.fromExercise) {
+      navigation.replace("ExerciseDetailScreen", {
+        levelIds: levelId,
+        lessonId,
+        skillName,
+        title,
+        grade,
+        pupilId,
+        skillIcon,
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (modalVisible && levels.length > 0) {
       const levelIds = levels.map((level) => level.id);
@@ -81,8 +88,10 @@ export default function SkillScreen({ navigation, route }) {
     if (levelIdCounts?.levelIdCounts?.[levelId] === 0) return;
     if (selectedLevels.includes(levelId)) {
       setSelectedLevels(selectedLevels.filter((id) => id !== levelId));
+      setPersistedLevels(selectedLevels.filter((id) => id !== levelId));
     } else {
       setSelectedLevels([...selectedLevels, levelId]);
+      setPersistedLevels([...selectedLevels, levelId]);
     }
   };
 
@@ -98,7 +107,7 @@ export default function SkillScreen({ navigation, route }) {
         const levelB = parseInt(b.name?.[i18n.language] || "0");
         return levelA - levelB;
       })
-      .map((level) => level.id); 
+      .map((level) => level.id);
     setModalVisible(false);
     navigation.navigate("ExerciseDetailScreen", {
       levelIds: sortedLevels,
@@ -274,7 +283,7 @@ export default function SkillScreen({ navigation, route }) {
               {
                 borderWidth: selectedLevels.includes(item.id) ? 2 : 0,
                 borderColor: theme.colors.white,
-                opacity: isDisabled ? 0.6 : 1, 
+                opacity: isDisabled ? 0.6 : 1,
               },
             ]}
           >
@@ -302,7 +311,14 @@ export default function SkillScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradientBySkill()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() =>
+            navigation.navigate("LessonScreen", {
+              skillName,
+              grade,
+              pupilId,
+              skillIcon,
+            })
+          }
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -330,6 +346,10 @@ export default function SkillScreen({ navigation, route }) {
                     skillName,
                     title,
                     lessonId,
+                    levelIds:
+                      persistedLevels.length > 0
+                        ? persistedLevels
+                        : selectedLevels,
                     grade,
                   });
                 } else if (action.label === "exercise") {
@@ -341,7 +361,10 @@ export default function SkillScreen({ navigation, route }) {
                     title,
                     lessonId,
                     pupilId,
-                    // goalId,
+                    levelIds:
+                      persistedLevels.length > 0
+                        ? persistedLevels
+                        : selectedLevels,
                   });
                 }
               }}
@@ -362,6 +385,7 @@ export default function SkillScreen({ navigation, route }) {
         onRequestClose={() => {
           setModalVisible(false);
           setSelectedLevels([]);
+          // setPersistedLevels([]);
         }}
       >
         <View style={styles.modalContainer}>
@@ -371,6 +395,7 @@ export default function SkillScreen({ navigation, route }) {
               onPress={() => {
                 setModalVisible(false);
                 setSelectedLevels([]); // Reset selected levels when closing the modal
+                // setPersistedLevels([]);
               }}
             >
               <Ionicons name="close" size={24} color={theme.colors.text} />

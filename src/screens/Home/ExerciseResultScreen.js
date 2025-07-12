@@ -17,12 +17,24 @@ import { useTranslation } from "react-i18next";
 
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { answers, questions, score, correctCount, wrongCount, skillName } =
-    route.params;
+  const {
+    answers,
+    questions,
+    score,
+    correctCount,
+    wrongCount,
+    skillName,
+    levelIds,
+    lessonId,
+    pupilId,
+    title,
+    grade,
+    skillIcon,
+  } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");
-
+  // console.log("levelIds", levelIds);
   const getOperatorFromSkillName = (skill) => {
     switch (skill) {
       case "Addition":
@@ -62,7 +74,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
   };
 
   const extractNumbers = (answerText) => {
-    console.log("Extracting numbers from answerText:", answerText); // Debug log
+    // console.log("Extracting numbers from answerText:", answerText); // Debug log
     if (!answerText || typeof answerText !== "string") {
       console.warn("Invalid answerText:", answerText);
       return { number1: "", number2: "" };
@@ -70,18 +82,18 @@ export default function ExerciseResultScreen({ navigation, route }) {
     // Match patterns like "4 + 3 = 7" or "4 + 3" or "4+3=7" or "4+3"
     let match = answerText.match(/(\d+)\s*[\+\-\×\÷xX]\s*(\d+)/);
     if (match) {
-      console.log("Extracted numbers:", {
-        number1: match[1],
-        number2: match[2],
-      }); // Debug log
+      // console.log("Extracted numbers:", {
+      //   number1: match[1],
+      //   number2: match[2],
+      // }); // Debug log
       return { number1: match[1], number2: match[2] };
     }
     match = answerText.match(/(\d+)\s*và\s+(\d+)/i);
     if (match) {
-      console.log("Extracted number:", {
-        number1: match[1],
-        number2: match[2],
-      });
+      // console.log("Extracted number:", {
+      //   number1: match[1],
+      //   number2: match[2],
+      // });
       return { number1: match[1], number2: match[2] };
     }
     console.warn("No numbers found in answerText:", answerText);
@@ -226,11 +238,23 @@ export default function ExerciseResultScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.pop(2)}
+          onPress={() =>
+            navigation.navigate("SkillScreen", {
+              skillName,
+              skillIcon,
+              grade,
+              pupilId,
+              title,
+              lessonId,
+              levelId: levelIds,
+              fromExercise: true,
+            })
+          }
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
+
         <Text
           style={styles.headerText}
           numberOfLines={1}

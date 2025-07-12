@@ -1,11 +1,12 @@
 {
   "taskTitle": "Task",
-  "target": "Target",
-  "success": "Success target",
+  "target": "In Progress",
+  "success": "Completed",
   "exercise": "Exercise",
   "reward": "Reward",
   "expired": "Expired",
   "end": "End",
   "noTasks": "No tasks available",
-  "taskExpired": "Task has expired!"
+  "taskExpired": "The task has expired!",
+  "request": "Complete the lesson:"
 }

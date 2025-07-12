@@ -240,7 +240,7 @@ export default function NotificationScreen({ navigation, route }) {
                     t("noContent")}
                 </Markdown>
 
-                {pupilId && (
+                {pupilId && item.goalId && (
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate("TargetScreen", {

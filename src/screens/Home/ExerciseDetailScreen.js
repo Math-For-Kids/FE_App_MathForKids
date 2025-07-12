@@ -25,7 +25,8 @@ import {
 
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, lessonId, levelIds, pupilId, title } = route.params;
+  const { skillName, skillIcon, lessonId, levelIds, pupilId, title, grade } =
+    route.params;
   const dispatch = useDispatch();
   const {
     exercises,
@@ -193,6 +194,12 @@ export default function ExerciseScreen({ navigation, route }) {
                 score,
                 correctCount: correct,
                 wrongCount: wrong,
+                lessonId,
+                levelIds,
+                pupilId,
+                title,
+                grade,
+                skillIcon,
               });
             } catch (err) {
               Alert.alert(t("error"), t("failedToSubmitExercise"));

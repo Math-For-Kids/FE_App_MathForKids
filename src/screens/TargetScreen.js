@@ -24,6 +24,7 @@ export default function TargetScreen({ navigation, route }) {
   // console.log("focusGoalId", focusGoalId);
   const [selectedTab, setSelectedTab] = useState("target");
   const [mergedGoals, setMergedGoals] = useState([]);
+  // console.log("mergedGoals", mergedGoals);
   const { t, i18n } = useTranslation("target");
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
   const goals = useSelector((state) => state.goal.goals || []);
@@ -88,15 +89,21 @@ export default function TargetScreen({ navigation, route }) {
     if (goals.length > 0) fetchDetailsForGoals();
   }, [goals]);
   useEffect(() => {
-    if (!focusGoalId || mergedGoals.length === 0) return;
+    console.log("⏩ mergedGoals.length =", mergedGoals.length);
+    console.log("🎯 Scrolling to index =", index);
 
+    if (!focusGoalId || mergedGoals.length === 0) return;
     const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);
-    if (index >= 0 && flatListRef.current) {
-      flatListRef.current.scrollToIndex({
-        index,
-        animated: true,
-        viewPosition: 0.5, // căn giữa
-      });
+    if (index >= 0 && index < mergedGoals.length) {
+      setTimeout(() => {
+        if (flatListRef.current && mergedGoals.length > index) {
+          flatListRef.current.scrollToIndex({
+            index,
+            animated: true,
+            viewPosition: 0.5,
+          });
+        }
+      }, 100);
     }
   }, [mergedGoals, focusGoalId]);
 
@@ -241,7 +248,7 @@ export default function TargetScreen({ navigation, route }) {
       >
         <TouchableOpacity
           style={styles.backContainer}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("HomeScreen", { pupilId })}
         >
           <Image
             source={theme.icons.back}
@@ -278,7 +285,7 @@ export default function TargetScreen({ navigation, route }) {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
         getItemLayout={(data, index) => ({
-          length: 160, 
+          length: 160,
           offset: 160 * index,
           index,
         })}
@@ -339,12 +346,13 @@ export default function TargetScreen({ navigation, route }) {
                     lessonId: item.lessonId,
                     pupilId: pupilId,
                     // goalId: item.id,
+                    levelId: item.exercise,
                   });
                 }}
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>
-                    {item.lessonName?.[i18n.language]}
+                    {t("request")} {item.lessonName?.[i18n.language]}
                   </Text>
                   <Text style={styles.cardMission}>
                     {t("exercise")}:{" "}
