@@ -172,7 +172,7 @@ export default function RewardScreen({ navigation }) {
       setIsValid(item.exchangePoint <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
       const ownedNumber = owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
-      setIsValid(100 <= ownedNumber); // Require 100 owned_rewards
+      setIsValid(100 <= ownedNumber);
     }
   };
 
@@ -251,10 +251,26 @@ export default function RewardScreen({ navigation }) {
     const rewardId = selectedReward.id;
     const exchangeQuantity = parseInt(quantity, 10);
     const exchangePoint = parseInt(selectedReward.exchangePoint, 10);
-    const exchangeReward = 100; // Fixed to 100 owned_rewards per real reward
+    const exchangeReward = 100;
+    const rewardName = {
+      en: selectedReward?.name?.en || t("Unknown_reward", { lng: "en" }),
+      vi: selectedReward?.name?.vi || t("Unknown_reward", { lng: "vi" }),
+    };
+
+    console.log("Current language:", i18n.language);
+    console.log("selectedReward:", selectedReward);
+    console.log("rewardName:", rewardName);
+    console.log("pupil.fullName:", pupil.fullName);
+    console.log("exchangeQuantity:", exchangeQuantity);
 
     if (!rewardId) {
       Alert.alert(t("Error"), t("Missing_reward_id"));
+      return;
+    }
+
+    if (!pupil.fullName || !rewardName || isNaN(exchangeQuantity)) {
+      console.error("Invalid data:", { pupilFullName: pupil.fullName, rewardName, exchangeQuantity });
+      Alert.alert(t("Error"), t("Invalid_input"));
       return;
     }
 
@@ -319,7 +335,6 @@ export default function RewardScreen({ navigation }) {
           return;
         }
 
-        // Deduct owned rewards
         await dispatch(
           createOrUpdate({
             pupilId,
@@ -328,7 +343,6 @@ export default function RewardScreen({ navigation }) {
           })
         ).unwrap();
 
-        // Create exchange_reward entries and collect their IDs
         const exchangeRewardIds = [];
         for (let i = 0; i < exchangeQuantity; i++) {
           const exchangeResult = await dispatch(
@@ -337,64 +351,82 @@ export default function RewardScreen({ navigation }) {
               rewardId,
             })
           ).unwrap();
-          exchangeRewardIds.push(exchangeResult.id); // Assuming the backend returns the ID of the created exchange_reward
+          if (!exchangeResult?.id) {
+            throw new Error("createExchangeReward did not return an ID");
+          }
+          exchangeRewardIds.push(exchangeResult.id);
         }
 
         await fetchOwnedRewardsWithRetry(pupilId);
 
-        // Send notification to parent
         const now = new Date();
         const createdAt = now.toISOString();
-        const rewardName = selectedReward?.name?.[i18n.language] || selectedReward?.name?.en || t("Unknown_reward");
         for (const id of exchangeRewardIds) {
           await dispatch(
             createUserNotification({
               userId: userId,
               title: {
-                en: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "en" }),
-                vi: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "vi" }),
+                en: t(
+                  "notifyExchangeRewardRequestTitle",
+                  { pupilName: pupil.fullName, reward: rewardName.en },
+                  { lng: "en" }
+                ),
+                vi: t(
+                  "notifyExchangeRewardRequestTitle",
+                  { pupilName: pupil.fullName, reward: rewardName.vi },
+                  { lng: "vi" }
+                ),
               },
               content: {
-                en: t("notifyExchangeRewardRequestContent", {
-                  pupilName: pupil.fullName,
-                  reward: rewardName,
-                  quantity: exchangeQuantity,
-                }, { lng: "en" }),
-                vi: t("notifyExchangeRewardRequestContent", {
-                  pupilName: pupil.fullName,
-                  reward: rewardName,
-                  quantity: exchangeQuantity,
-                }, { lng: "vi" }),
+                en: t(
+                  "notifyExchangeRewardRequestContent",
+                  {
+                    pupilName: pupil.fullName,
+                    reward: rewardName.en,
+                    quantity: exchangeQuantity,
+                    exchangeRewardId: id,
+                  },
+                  { lng: "en" }
+                ),
+                vi: t(
+                  "notifyExchangeRewardRequestContent",
+                  {
+                    pupilName: pupil.fullName,
+                    reward: rewardName.vi,
+                    quantity: exchangeQuantity,
+                    exchangeRewardId: id,
+                  },
+                  { lng: "vi" }
+                ),
               },
-              exchangedRewardId: id, // Use the first exchangeRewardId for simplicity
-              type: "EXCHANGE_REWARD_REQUEST",
+              exchangedRewardId: id,
               isRead: false,
               createdAt,
             })
-          );
+          ).unwrap();
         }
-        // Send notification to pupil
+
         await dispatch(
           createPupilNotification({
             pupilId: pupilId,
             title: {
-              en: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "en" }),
-              vi: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "vi" }),
+              en: t("notifyExchangeRewardSentTitle", { reward: rewardName.en }),
+              vi: t("notifyExchangeRewardSentTitle", { reward: rewardName.vi }),
             },
             content: {
               en: t("notifyExchangeRewardSentContent", {
-                reward: rewardName,
+                reward: rewardName.en,
                 quantity: exchangeQuantity,
-              }, { lng: "en" }),
+              }),
               vi: t("notifyExchangeRewardSentContent", {
-                reward: rewardName,
+                reward: rewardName.vi,
                 quantity: exchangeQuantity,
-              }, { lng: "vi" }),
+              }),
             },
             isRead: false,
             createdAt,
           })
-        );
+        ).unwrap();
 
         Alert.alert(t("Success"), t("Exchange_success"));
         setSelectedReward(null);
@@ -461,7 +493,7 @@ export default function RewardScreen({ navigation }) {
           rewardImage: reward.image,
           ownedNumber: owned ? parseInt(owned.quantity, 10) : 0,
           pupilPoint: pupil ? pupil.point : 0,
-          exchangeReward: 100, // Set fixed exchange requirement
+          exchangeReward: 100,
         };
       })
       .filter((target) => target !== null && target?.id !== undefined);
@@ -473,8 +505,8 @@ export default function RewardScreen({ navigation }) {
         rewardId: o.rewardId,
         rewardImage: "https://via.placeholder.com/60",
         name: {
-          vi: t("Unknown_reward", { id: o.rewardId }),
-          en: t("Unknown_reward", { id: o.rewardId }),
+          vi: t("Unknown_reward", { id: o.rewardId }, { lng: "vi" }),
+          en: t("Unknown_reward", { id: o.rewardId }, { lng: "en" }),
         },
         exchangePoint: 0,
         exchangeReward: 100,
@@ -493,6 +525,7 @@ export default function RewardScreen({ navigation }) {
   const selectedTarget = allTargets.find(
     (item) => item && item.id === selectedReward?.id
   );
+
 
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
