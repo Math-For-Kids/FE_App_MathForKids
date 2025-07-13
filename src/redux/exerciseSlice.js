@@ -7,7 +7,7 @@ export const getRandomExercises = createAsyncThunk(
   async ({ lessonId, levelIds }, { rejectWithValue }) => {
     try {
       const res = await Api.post(`/exercise/randomExercises/${lessonId}`, { levelIds });
-      console.log("API response:", res.data);
+      // console.log("API response:", res.data);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
