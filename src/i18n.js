@@ -48,10 +48,39 @@ import viReward from "./locales/vi/reward.json";
 import enReward from "./locales/en/reward.json";
 import viTarget from "./locales/vi/target.json";
 import enTarget from "./locales/en/target.json";
+
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
-  lng: "en",
-  fallbackLng: "en",
+  lng: "en", // Ngôn ngữ mặc định
+  fallbackLng: "en", // Nếu không có bản dịch sẽ fallback
+  ns: [
+    "setting",
+    "home",
+    "lesson",
+    "common",
+    "profile",
+    "exercise",
+    "statistic",
+    "privacy",
+    "verify",
+    "login",
+    "account",
+    "register",
+    "stepbystep",
+    "goal",
+    "notification",
+    "sidebar",
+    "skill",
+    "test",
+    "multiplicationtable",
+    "loading",
+    "assessment",
+    "reward",
+    "target",
+  ],
+  defaultNS: "goal", // ✅ Đặt default là goal để t("skill_Addition") hoạt động
+  defaultNS: "reward", // ✅ Đặt default là goal để t("skill_Addition") hoạt động
+
   resources: {
     en: {
       setting: en,
@@ -104,7 +133,9 @@ i18n.use(initReactI18next).init({
       target: viTarget,
     },
   },
-  interpolation: { escapeValue: false },
+  interpolation: {
+    escapeValue: false,
+  },
 });
 
 export default i18n;

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   View,
@@ -181,6 +182,11 @@ export default function RewardScreen({ navigation }) {
   };
 
   const handleQuantityChange = (action) => {
+    if (selectedTab === "Exchange item") {
+      // Prevent quantity changes for "Exchange item"
+      return;
+    }
+
     const currentQuantity = parseInt(quantity, 10) || 1;
     let newQuantity;
     if (action === "increment") {
@@ -196,12 +202,6 @@ export default function RewardScreen({ navigation }) {
     if (selectedTab === "Exchange points") {
       const totalPointsRequired = selectedReward?.exchangePoint * newQuantity;
       setIsValid(totalPointsRequired <= (pupil?.point || 0));
-    } else if (selectedTab === "Exchange item") {
-      const totalItemsRequired = 100 * newQuantity;
-      const ownedNumber = owned_rewards.find(
-        (o) => o.rewardId === selectedReward?.id
-      )?.quantity || 0;
-      setIsValid(totalItemsRequired <= ownedNumber && newQuantity >= 1);
     }
   };
 
@@ -361,72 +361,66 @@ export default function RewardScreen({ navigation }) {
 
         const now = new Date();
         const createdAt = now.toISOString();
+        const buildNotificationText = (templateKey, lang, values) =>
+          t(templateKey, { ...values, lng: lang });
+
+        const buildMultilangText = (templateKey, values) => ({
+          en: buildNotificationText(templateKey, "en", values.en),
+          vi: buildNotificationText(templateKey, "vi", values.vi),
+        });
+
+        const titleValues = {
+          en: { pupilName: pupil.fullName, reward: rewardName.en },
+          vi: { pupilName: pupil.fullName, reward: rewardName.vi },
+        };
+
+        const contentValues = {
+          en: {
+            pupilName: pupil.fullName,
+            reward: rewardName.en,
+            quantity: exchangeQuantity,
+          },
+          vi: {
+            pupilName: pupil.fullName,
+            reward: rewardName.vi,
+            quantity: exchangeQuantity,
+          },
+        };
+
         for (const id of exchangeRewardIds) {
-          await dispatch(
+          dispatch(
             createUserNotification({
-              userId: userId,
-              title: {
-                en: t(
-                  "notifyExchangeRewardRequestTitle",
-                  { pupilName: pupil.fullName, reward: rewardName.en },
-                  { lng: "en" }
-                ),
-                vi: t(
-                  "notifyExchangeRewardRequestTitle",
-                  { pupilName: pupil.fullName, reward: rewardName.vi },
-                  { lng: "vi" }
-                ),
-              },
-              content: {
-                en: t(
-                  "notifyExchangeRewardRequestContent",
-                  {
-                    pupilName: pupil.fullName,
-                    reward: rewardName.en,
-                    quantity: exchangeQuantity,
-                    exchangeRewardId: id,
-                  },
-                  { lng: "en" }
-                ),
-                vi: t(
-                  "notifyExchangeRewardRequestContent",
-                  {
-                    pupilName: pupil.fullName,
-                    reward: rewardName.vi,
-                    quantity: exchangeQuantity,
-                    exchangeRewardId: id,
-                  },
-                  { lng: "vi" }
-                ),
-              },
+              userId,
+              title: buildMultilangText(
+                "notifyExchangeRewardRequestTitle",
+                titleValues
+              ),
+              content: buildMultilangText(
+                "notifyExchangeRewardRequestContent",
+                contentValues
+              ),
               exchangedRewardId: id,
               isRead: false,
               createdAt,
             })
-          ).unwrap();
+          );
         }
 
-        await dispatch(
+        dispatch(
           createPupilNotification({
-            pupilId: pupilId,
-            title: {
-              en: t("notifyExchangeRewardSentTitle", { reward: rewardName.en }),
-              vi: t("notifyExchangeRewardSentTitle", { reward: rewardName.vi }),
-            },
-            content: {
-              en: t("notifyExchangeRewardSentContent", {
-                reward: rewardName.en,
-                quantity: exchangeQuantity,
-              }),
-              vi: t("notifyExchangeRewardSentContent", {
-                reward: rewardName.vi,
-                quantity: exchangeQuantity,
-              }),
-            },
+            pupilId,
+            title: buildMultilangText(
+              "notifyExchangeRewardSentTitle",
+              titleValues
+            ),
+            content: buildMultilangText(
+              "notifyExchangeRewardSentContent",
+              contentValues
+            ),
             isRead: false,
             createdAt,
           })
-        ).unwrap();
+        );
 
         Alert.alert(t("Success"), t("Exchange_success"));
         setSelectedReward(null);
@@ -526,7 +520,6 @@ export default function RewardScreen({ navigation }) {
     (item) => item && item.id === selectedReward?.id
   );
 
-
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -560,6 +553,7 @@ export default function RewardScreen({ navigation }) {
       marginBottom: 20,
     },
     tabButton: {
+      width: "40%",
       paddingVertical: 10,
       paddingHorizontal: 20,
       marginHorizontal: 5,
@@ -573,13 +567,14 @@ export default function RewardScreen({ navigation }) {
     tabText: {
       fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 12,
+      textAlign: "center",
       color: theme.colors.black,
     },
     tabTextActive: {
       color: theme.colors.white,
     },
     cardTitle: {
-      width: "40%",
+      width: "50%",
       alignItems: "center",
       marginHorizontal: 20,
       padding: 5,
@@ -1082,7 +1077,9 @@ export default function RewardScreen({ navigation }) {
                 <Text style={styles.modalText}>{t("Loading_reward_details")}</Text>
               ) : rewardError ? (
                 <Text style={styles.errorText}>
-                  {t("Error_loading_rewards", { error: rewardError?.en || rewardError?.vi || rewardError })}
+                  {t("Error_loading_rewards", {
+                    error: rewardError?.en || rewardError?.vi || rewardError,
+                  })}
                 </Text>
               ) : (
                 <>
@@ -1094,52 +1091,55 @@ export default function RewardScreen({ navigation }) {
                     resizeMode="contain"
                   />
                   <Text style={styles.modalText}>
-                    {selectedReward?.name?.en || selectedReward?.name?.vi || t("Unknown_reward")}
+                    {selectedReward?.name?.en ||
+                      selectedReward?.name?.vi ||
+                      t("Unknown_reward")}
                   </Text>
                   <Text style={styles.rewardInfoText}>
-                    {selectedReward?.description?.en || selectedReward?.description?.vi || t("No_description")}
+                    {selectedReward?.description?.en ||
+                      selectedReward?.description?.vi ||
+                      t("No_description")}
                   </Text>
-                  <View style={styles.quantityContainer}>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={() => handleQuantityChange("decrement")}
-                      disabled={quantity <= 1}
-                    >
-                      <Text style={styles.quantityButtonText}>-</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.quantityText}>{quantity}</Text>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={() => handleQuantityChange("increment")}
-                    >
-                      <Text style={styles.quantityButtonText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {!isValid && (
-                    <Text style={styles.errorText}>
-                      {selectedTab === "Exchange points"
-                        ? t("Not_enough_points", {
-                          required: selectedReward.exchangePoint * quantity,
-                          available: pupil?.point || 0
-                        })
-                        : t("Not_enough_items", {
-                          required: selectedReward.exchangeReward * quantity,
-                          available: allTargets.find((item) => item.id === selectedReward?.id)?.ownedNumber || 0
-                        })}
-                    </Text>
+                  {selectedTab === "Exchange points" && (
+                    <View style={styles.quantityContainer}>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => handleQuantityChange("decrement")}
+                        disabled={quantity <= 1}
+                      >
+                        <Text style={styles.quantityButtonText}>-</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.quantityText}>{quantity}</Text>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => handleQuantityChange("increment")}
+                      >
+                        <Text style={styles.quantityButtonText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {selectedTab === "Exchange item" && (
+                    <View style={styles.quantityContainer}>
+                      <Text style={styles.quantityText}>1</Text>
+                    </View>
                   )}
                   <View style={styles.buttonContainer}>
                     <TouchableOpacity
                       disabled={isExchanging || !isValid}
                       style={
                         isExchanging || !isValid
-                          ? { ...styles.exchangeButton, backgroundColor: theme.colors.grayDark }
+                          ? {
+                            ...styles.exchangeButton,
+                            backgroundColor: theme.colors.grayDark,
+                          }
                           : styles.exchangeButton
                       }
                       onPress={debouncedHandleExchange}
                     >
                       <Text style={styles.exchangeButtonText}>
-                        {isExchanging || isRefreshing ? t("Exchanging") : t("Exchange")}
+                        {isExchanging || isRefreshing
+                          ? t("Exchanging")
+                          : t("Exchange")}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -1188,7 +1188,9 @@ export default function RewardScreen({ navigation }) {
                 </TouchableOpacity>
               </LinearGradient>
               <Text style={styles.modalText}>
-                {selectedRewardOwn?.name?.en || selectedRewardOwn?.name?.vi || t("Unknown_reward")}
+                {selectedRewardOwn?.name?.en ||
+                  selectedRewardOwn?.name?.vi ||
+                  t("Unknown_reward")}
               </Text>
               <Text style={styles.rewardInfoText}>
                 {(() => {
@@ -1196,7 +1198,9 @@ export default function RewardScreen({ navigation }) {
                     (r) => r && r.id === selectedRewardOwn.id
                   );
                   return (
-                    reward?.description?.en || reward?.description?.vi || t("No_description")
+                    reward?.description?.en ||
+                    reward?.description?.vi ||
+                    t("No_description")
                   );
                 })()}
               </Text>

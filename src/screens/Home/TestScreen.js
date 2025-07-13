@@ -56,7 +56,6 @@ export default function TestScreen({ navigation, route }) {
 
   const currentQ = tests[currentQuestion - 1];
   const totalQuestions = tests.length;
-
   // Consolidated timer logic
   useEffect(() => {
     if (!tests.length) return;
