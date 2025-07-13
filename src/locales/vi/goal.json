@@ -12,7 +12,7 @@
   "alertSuccess": "Đã lưu mục tiêu và gửi thông báo!",
   "alertFail": "Lưu mục tiêu thất bại: {{error}}",
   "alertDateLimit": "Bạn chỉ có thể đặt mục tiêu trong vòng 7 ngày kể từ ngày bắt đầu.",
-  "notifyGoalCreatedTitle": "Bạn vừa tạo mục tiêu cho bài học ❝{{lesson}}❞",
+  "notifyGoalCreatedTitle": "Bạn vừa tạo mục tiêu cho bài học **{{lesson}}**",
   "notifyGoalCreatedContent": "**Thời gian bắt đầu:** {{dateStart}}\n**Thời gian kết thúc:** {{dateEnd}}\n**Kỹ năng toán học:** {{skill}}\n**Bài học:** {{lesson}}\n**Bài tập:** {{level}}\n**Phần thưởng:** {{reward}} x {{quantity}}",
   "notifyNewGoalContent": "🔴 Bạn có mục tiêu mới!\n\n🟢 **Từ:** {{dateStart}} → **Đến:** {{dateEnd}}\n🔵 **Kỹ năng:** {{skill}}\n🟣 **Bài học:** {{lesson}}\n🟠 **Bài tập:** {{level}}\n⚪️ **Phần thưởng:** {{reward}}  x {{quantity}}\n\n **Hãy cùng cố gắng hoàn thành nhé!**",
   "notifyNewGoalTitle": "Có mục tiêu mới cho bài học: {{lesson}}",
@@ -35,5 +35,9 @@
   "selectRewardQuantity": "Chọn số lượng phần thưởng",
   "alertStartTooEarly": "Ngày bắt đầu không được trước ngày kết thúc quá 7 ngày.",
   "alertStartAfterEnd": "Ngày bắt đầu không được sau ngày kết thúc.",
-  "alertStartBeforeToday": "Ngày bắt đầu không được nhỏ hơn ngày hôm nay"
+  "alertStartBeforeToday": "Ngày bắt đầu không được nhỏ hơn ngày hôm nay",
+  "lessonNotStarted": "Bài chưa học",
+  "lessonLocked": "Bài bị khóa",
+  "lessonCompleted": "Bài đã học",
+  "lessonInProgress": "Bài đang học"
 }

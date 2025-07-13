@@ -207,20 +207,28 @@ export default function NotificationScreen({ navigation, route }) {
 
             <View>
               <Text style={styles.notificationTitle}>
-                <Text style={styles.notificationTitle}>
+                <Markdown
+                  style={{
+                    body: {
+                      fontSize: 16,
+                      lineHeight: 22,
+                      color: theme.colors.black,
+                    },
+                    strong: {
+                      fontWeight: "bold",
+                    },
+                    paragraph: {
+                      marginBottom: 8,
+                    },
+                  }}
+                >
                   {item.title?.[i18n.language] ||
                     item.title?.en ||
                     t("noTitle")}
-                </Text>
+                </Markdown>
               </Text>
               <Text style={styles.notificationDateEnd}>
                 {(() => {
-                  console.log(
-                    "🕒 CreatedAt raw:",
-                    item.createdAt,
-                    "| id:",
-                    item.id
-                  );
                   return formatDate(item.createdAt);
                 })()}
               </Text>

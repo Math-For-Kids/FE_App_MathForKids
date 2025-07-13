@@ -12,7 +12,7 @@
   "alertSuccess": "Goal saved and notification sent!",
   "alertFail": "Failed to save goal: {{error}}",
   "alertDateLimit": "You can only set goals within 7 days from the start date.",
-  "notifyGoalCreatedTitle": "You just created a goal for the lesson ❝{{lesson}}❞",
+  "notifyGoalCreatedTitle": "You just created a goal for the lesson **{{lesson}}**",
   "notifyGoalCreatedContent": "**Start time:** {{dateStart}}\n**End time:** {{dateEnd}}\n**Math skill:** {{skill}}\n**Lesson:** {{lesson}}\n**Exercise:** {{level}}\n**Reward:** {{reward}} x {{quantity}}",
   "notifyNewGoalContent": "🔴 You have a new goal!\n\n🟢 **From:** {{dateStart}} → **To:** {{dateEnd}}\n🔵 **Skill:** {{skill}}\n🟣 **Lesson:** {{lesson}}\n🟠 **Exercise:** {{level}}\n⚪️ **Reward:** {{reward}} x {{quantity}}\n\n **Let's try our best to complete it!**",
   "notifyNewGoalTitle": "New goal for lesson: {{lesson}}",
@@ -35,5 +35,9 @@
   "selectRewardQuantity": "Select Reward Quantity",
   "alertStartTooEarly": "Start date must not be more than 7 days before the end date.",
   "alertStartAfterEnd": "Start date must not be after the end date.",
-  "alertStartBeforeToday": "Start date must not be earlier than today."
+  "alertStartBeforeToday": "Start date must not be earlier than today.",
+  "lessonNotStarted": "Not started",
+  "lessonLocked": "Locked",
+  "lessonCompleted": "Completed",
+  "lessonInProgress": "In progress"
 }
