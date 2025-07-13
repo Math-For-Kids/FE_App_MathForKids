@@ -153,7 +153,40 @@ export default function GoalScreen() {
             return level?.name?.[lang] || id;
           })
           .join(", ");
+      // Hàm tạo nội dung
+      const buildNotificationText = (templateKey, lang, values) =>
+        i18n.getFixedT(lang)(templateKey, values);
 
+      //Hàm title/content
+      const buildMultilangText = (templateKey, values) => ({
+        en: buildNotificationText(templateKey, "en", values.en),
+        vi: buildNotificationText(templateKey, "vi", values.vi),
+      });
+      //dùng chung
+      const titleValues = {
+        en: { skill: skillType, lesson: lesson?.name?.en },
+        vi: { skill: skillType, lesson: lesson?.name?.vi },
+      };
+      const contentValues = {
+        en: {
+          dateStart: formatDate(startDate),
+          dateEnd: formatDate(endDate),
+          skill: i18n.getFixedT("en")(`skill_${skillType}`),
+          lesson: lesson?.name?.en,
+          level: mapExerciseNames("en"),
+          reward: reward?.name?.en,
+          quantity: rewardQuantity,
+        },
+        vi: {
+          dateStart: formatDate(startDate),
+          dateEnd: formatDate(endDate),
+          skill: i18n.getFixedT("vi")(`skill_${skillType}`),
+          lesson: lesson?.name?.vi,
+          level: mapExerciseNames("vi"),
+          reward: reward?.name?.vi,
+          quantity: rewardQuantity,
+        },
+      };
       // Notification cho phụ huynh
       // Hàm tạo nội dung
       const buildNotificationText = (templateKey, lang, values) =>
@@ -276,6 +309,18 @@ export default function GoalScreen() {
     if (!found.isBlock && found.isCompleted) return theme.colors.gradientGreen;
     return theme.colors.gradientBluePrimary;
   };
+  const getLessonBorderColor = (lessonId) => {
+    const found = filteredAvailableLessons?.find((a) => a.id === lessonId);
+
+    if (!found) return theme.colors.purpleBorderDark; // Mặc định nếu không tìm thấy
+
+    if (found.isBlock && !found.isCompleted)
+      return theme.colors.orangeBorderDark;
+    if (!found.isBlock && found.isCompleted)
+      return theme.colors.GreenBorderDark;
+    return theme.colors.blueDark; // Bài đang học
+  };
+
   const getLessonLabel = (lessonId) => {
     const found = filteredAvailableLessons?.find((a) => a.id === lessonId);
     if (!found) return t("lessonNotStarted");
@@ -405,8 +450,6 @@ export default function GoalScreen() {
       width: "100%",
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
-      borderWidth: 1,
-      borderColor: theme.colors.blueDark,
       marginVertical: 10,
       overflow: "hidden",
       elevation: 3,
@@ -456,7 +499,13 @@ export default function GoalScreen() {
                   ? getLessonGradient(item.value?.id)
                   : theme.colors.gradientBluePrimary
               }
-              style={styles.modalButton}
+              style={[
+                styles.modalButton,
+                title === t("selectLesson") && {
+                  borderColor: getLessonBorderColor(item.value?.id),
+                  borderWidth: 1,
+                },
+              ]}
             >
               <TouchableOpacity
                 onPress={() => {
@@ -476,7 +525,8 @@ export default function GoalScreen() {
                   <Text
                     style={{
                       fontSize: 10,
-                      color: theme.colors.grayDark,
+                      color: theme.colors.black,
+                      fontFamily: Fonts.NUNITO_MEDIUM,
                       position: "absolute",
                       top: 5,
                       right: 10,
@@ -679,13 +729,13 @@ export default function GoalScreen() {
           >
             {exercise.length > 0
               ? exercise
-                .map(
-                  (id) =>
-                    enabledLevels?.find((lvl) => lvl.id === id)?.name[
-                    i18n.language
-                    ] || id
-                )
-                .join(", ")
+                  .map(
+                    (id) =>
+                      enabledLevels?.find((lvl) => lvl.id === id)?.name[
+                        i18n.language
+                      ] || id
+                  )
+                  .join(", ")
               : t("selectLevel")}
           </Text>
 

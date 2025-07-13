@@ -71,7 +71,6 @@ export const updateExchangeReward = createAsyncThunk(
     }
   }
 );
-
 const rewardSlice = createSlice({
   name: "reward",
   initialState: {

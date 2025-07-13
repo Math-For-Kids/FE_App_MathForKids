@@ -37,7 +37,7 @@
   "alertStartAfterEnd": "Start date must not be after the end date.",
   "alertStartBeforeToday": "Start date must not be earlier than today.",
   "lessonNotStarted": "Not started",
-  "lessonLocked": "Locked",
+  "lessonLocked": "Incompleted",
   "lessonCompleted": "Completed",
   "lessonInProgress": "In progress",
   "alertDateStartDate": "The end date cannot be earlier than the start date."

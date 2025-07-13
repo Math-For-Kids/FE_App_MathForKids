@@ -114,7 +114,9 @@ export default function RewardScreen({ navigation }) {
                   if (!pupil || !pupilId) {
                     Alert.alert(
                       t("Error"),
-                      t("Error_loading_pupil", { error: "Failed to load pupil data" }),
+                      t("Error_loading_pupil", {
+                        error: "Failed to load pupil data",
+                      }),
                       [
                         {
                           text: "OK",
@@ -145,7 +147,9 @@ export default function RewardScreen({ navigation }) {
           console.error("API error:", error);
           Alert.alert(
             t("Error"),
-            t("Error_loading_rewards", { error: error?.[i18n.language] || "Unknown error" })
+            t("Error_loading_rewards", {
+              error: error?.[i18n.language] || "Unknown error",
+            })
           );
         }
       }
@@ -289,7 +293,10 @@ export default function RewardScreen({ navigation }) {
         if (totalPointsRequired > pupil.point) {
           Alert.alert(
             t("Error"),
-            t("Not_enough_points", { required: totalPointsRequired, available: pupil.point })
+            t("Not_enough_points", {
+              required: totalPointsRequired,
+              available: pupil.point,
+            })
           );
           return;
         }
@@ -330,7 +337,10 @@ export default function RewardScreen({ navigation }) {
         if (quantityToDeduct > ownedNumber) {
           Alert.alert(
             t("Error"),
-            t("Not_enough_items", { required: quantityToDeduct, available: ownedNumber })
+            t("Not_enough_items", {
+              required: quantityToDeduct,
+              available: ownedNumber,
+            })
           );
           return;
         }
@@ -421,17 +431,50 @@ export default function RewardScreen({ navigation }) {
             createdAt,
           })
         );
+        // console.log("rewardName", rewardName);
+        // console.log("titleValues", titleValues);
+        // console.log("contentValues", contentValues);
 
-        Alert.alert(t("Success"), t("Exchange_success"));
+        // console.log(
+        //   "translated title (vi)",
+        //   t("notifyExchangeRewardRequestTitle", {
+        //     ...titleValues.vi,
+        //     lng: "vi",
+        //   })
+        // );
+        // console.log(
+        //   "translated title (en)",
+        //   t("notifyExchangeRewardRequestTitle", {
+        //     ...titleValues.en,
+        //     lng: "en",
+        //   })
+        // );
+
+        // console.log(
+        //   "translated content (vi)",
+        //   t("notifyExchangeRewardRequestContent", {
+        //     ...contentValues.vi,
+        //     lng: "vi",
+        //   })
+        // );
+        // console.log(
+        //   "translated content (en)",
+        //   t("notifyExchangeRewardRequestContent", {
+        //     ...contentValues.en,
+        //     lng: "en",
+        //   })
+        // );
+
+        Alert.alert(
+          t("Success", { ns: "common" }),
+          t("Exchange_success", { ns: "reward" })
+        );
         setSelectedReward(null);
         setQuantity(1);
       }
     } catch (error) {
       console.error("Exchange error:", error);
-      Alert.alert(
-        t("Error"),
-        t("Exchange_failed", { message: error.message })
-      );
+      Alert.alert(t("Error"), t("Exchange_failed", { message: error.message }));
     } finally {
       setIsExchanging(false);
       setIsRefreshing(false);
@@ -844,7 +887,9 @@ export default function RewardScreen({ navigation }) {
       <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {t("Error_loading_rewards", { error: rewardError?.en || rewardError?.vi || rewardError })}
+            {t("Error_loading_rewards", {
+              error: rewardError?.en || rewardError?.vi || rewardError,
+            })}
           </Text>
         </View>
       </View>
@@ -856,7 +901,9 @@ export default function RewardScreen({ navigation }) {
       <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {t("Error_loading_pupil", { error: pupilError?.en || pupilError?.vi || pupilError })}
+            {t("Error_loading_pupil", {
+              error: pupilError?.en || pupilError?.vi || pupilError,
+            })}
           </Text>
         </View>
       </View>
@@ -877,7 +924,10 @@ export default function RewardScreen({ navigation }) {
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             {t("Error_loading_owned_rewards", {
-              error: owned_reward_error?.en || owned_reward_error?.vi || owned_reward_error
+              error:
+                owned_reward_error?.en ||
+                owned_reward_error?.vi ||
+                owned_reward_error,
             })}
           </Text>
         </View>
@@ -914,7 +964,9 @@ export default function RewardScreen({ navigation }) {
                 selectedTab === tab && styles.tabTextActive,
               ]}
             >
-              {t(tab === "Exchange points" ? "Exchange_points" : "Exchange_item")}
+              {t(
+                tab === "Exchange points" ? "Exchange_points" : "Exchange_item"
+              )}
             </Text>
           </TouchableOpacity>
         ))}
@@ -1036,8 +1088,8 @@ export default function RewardScreen({ navigation }) {
       </View>
       {allTargets.filter((item) => item && item.id && item.ownedNumber > 0)
         .length === 0 && (
-          <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
-        )}
+        <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
+      )}
       <FlatList
         data={allTargets.filter((item) => {
           if (!item || !item.id) return null;
@@ -1074,7 +1126,9 @@ export default function RewardScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalBackground}>
               {rewardLoading || isRefreshing ? (
-                <Text style={styles.modalText}>{t("Loading_reward_details")}</Text>
+                <Text style={styles.modalText}>
+                  {t("Loading_reward_details")}
+                </Text>
               ) : rewardError ? (
                 <Text style={styles.errorText}>
                   {t("Error_loading_rewards", {
@@ -1085,7 +1139,9 @@ export default function RewardScreen({ navigation }) {
                 <>
                   <Image
                     source={{
-                      uri: selectedReward?.image || "https://via.placeholder.com/60",
+                      uri:
+                        selectedReward?.image ||
+                        "https://via.placeholder.com/60",
                     }}
                     style={styles.modalImage}
                     resizeMode="contain"
@@ -1164,7 +1220,9 @@ export default function RewardScreen({ navigation }) {
             <View style={styles.modalBackground}>
               <Image
                 source={{
-                  uri: selectedRewardOwn?.rewardImage || "https://via.placeholder.com/60",
+                  uri:
+                    selectedRewardOwn?.rewardImage ||
+                    "https://via.placeholder.com/60",
                 }}
                 style={styles.modalImage}
                 resizeMode="contain"

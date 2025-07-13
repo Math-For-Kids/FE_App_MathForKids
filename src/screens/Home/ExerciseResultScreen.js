@@ -241,7 +241,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
           onPress={() =>
             navigation.navigate("SkillScreen", {
               skillName,
-              skillIcon: skillIcon,
+              skillIcon,
               grade,
               pupilId,
               title,

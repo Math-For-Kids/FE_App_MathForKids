@@ -49,7 +49,7 @@ export const countByPupilId = createAsyncThunk(
     try {
       const res = await Api.get(`/ownereward/countByPupilId/${pupilId}`);
       // Kiểm tra xem res.data có tồn tại và có thuộc tính count không
-      return typeof res.data?.count === 'number' ? res.data.count : 0;
+      return typeof res.data?.count === "number" ? res.data.count : 0;
     } catch (err) {
       console.error("Error in countByPupilId:", err);
       if (err.response?.status === 404) {
@@ -67,7 +67,7 @@ export const createExchangeReward = createAsyncThunk(
     try {
       const res = await Api.post("/exchangereward", {
         pupilId,
-        rewardId
+        rewardId,
       });
       return res.data;
     } catch (err) {

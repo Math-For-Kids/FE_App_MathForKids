@@ -37,7 +37,7 @@
   "alertStartAfterEnd": "Ngày bắt đầu không được sau ngày kết thúc.",
   "alertStartBeforeToday": "Ngày bắt đầu không được nhỏ hơn ngày hôm nay",
   "lessonNotStarted": "Bài chưa học",
-  "lessonLocked": "Bài bị khóa",
+  "lessonLocked": "Bài chưa học",
   "lessonCompleted": "Bài đã học",
   "lessonInProgress": "Bài đang học",
   "alertDateStartDate": "Ngày kết thúc không được sớm hơn ngày bắt đầu."
