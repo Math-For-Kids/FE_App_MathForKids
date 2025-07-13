@@ -95,8 +95,8 @@ export default function TargetScreen({ navigation, route }) {
     if (goals.length > 0) fetchDetailsForGoals();
   }, [goals]);
   useEffect(() => {
-    console.log("⏩ mergedGoals.length =", mergedGoals.length);
-    console.log("🎯 Scrolling to index =", index);
+    // console.log("⏩ mergedGoals.length =", mergedGoals.length);
+    // console.log("🎯 Scrolling to index =", index);
 
     if (!focusGoalId || mergedGoals.length === 0) return;
     const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);

@@ -317,6 +317,22 @@ export default function GoalScreen() {
     const match = availableLessons?.find((a) => a.lessonId === lessonId);
     return match?.disabledExercises || [];
   };
+  const getLessonGradient = (lessonId) => {
+    const found = filteredAvailableLessons?.find((a) => a.id === lessonId);
+    // console.log("filteredAvailableLessons", filteredAvailableLessons);
+    // console.log("found", found);
+    if (!found) return theme.colors.gradientPurple;
+    if (found.isBlock && !found.isCompleted) return theme.colors.gradientOrange;
+    if (!found.isBlock && found.isCompleted) return theme.colors.gradientGreen;
+    return theme.colors.gradientBluePrimary;
+  };
+  const getLessonLabel = (lessonId) => {
+    const found = filteredAvailableLessons?.find((a) => a.id === lessonId);
+    if (!found) return t("lessonNotStarted");
+    if (found.isBlock && !found.isCompleted) return t("lessonLocked");
+    if (!found.isBlock && found.isCompleted) return t("lessonCompleted");
+    return t("lessonInProgress");
+  };
 
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
@@ -447,9 +463,10 @@ export default function GoalScreen() {
     },
     modalButtonText: {
       textAlign: "center",
+      width: "100%",
       color: theme.colors.white,
       fontSize: 16,
-      paddingVertical: 10,
+      padding: 10,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
     labelValueContainer: {
@@ -484,7 +501,11 @@ export default function GoalScreen() {
           {options.map((item) => (
             <LinearGradient
               key={item.value?.id || item.label}
-              colors={theme.colors.gradientBluePrimary}
+              colors={
+                title === t("selectLesson")
+                  ? getLessonGradient(item.value?.id)
+                  : theme.colors.gradientBluePrimary
+              }
               style={styles.modalButton}
             >
               <TouchableOpacity
@@ -501,8 +522,29 @@ export default function GoalScreen() {
                     resizeMode="contain"
                   />
                 )}
+                {title === t("selectLesson") && (
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: theme.colors.grayDark,
+                      position: "absolute",
+                      top: 5,
+                      right: 10,
+                    }}
+                  >
+                    {getLessonLabel(item.value?.id)}
+                  </Text>
+                )}
+
                 <View style={styles.labelValueContainer}>
-                  <Text style={styles.modalButtonText}>{item.label}</Text>
+                  <Text
+                    style={styles.modalButtonText}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
+                  >
+                    {item.label}
+                  </Text>
                 </View>
               </TouchableOpacity>
             </LinearGradient>

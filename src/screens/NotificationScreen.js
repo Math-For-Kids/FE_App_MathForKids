@@ -40,7 +40,7 @@ export default function NotificationScreen({ navigation, route }) {
   const notificationsToDisplay = pupilId
     ? pupilNotifications
     : userNotifications;
-  console.log("Notifications to display:", pupilNotifications);
+  // console.log("Notifications to display:", pupilNotifications);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -207,14 +207,30 @@ export default function NotificationScreen({ navigation, route }) {
 
             <View>
               <Text style={styles.notificationTitle}>
-                <Text style={styles.notificationTitle}>
+                <Markdown
+                  style={{
+                    body: {
+                      fontSize: 16,
+                      lineHeight: 22,
+                      color: theme.colors.black,
+                    },
+                    strong: {
+                      fontWeight: "bold",
+                    },
+                    paragraph: {
+                      marginBottom: 8,
+                    },
+                  }}
+                >
                   {item.title?.[i18n.language] ||
                     item.title?.en ||
                     t("noTitle")}
-                </Text>
+                </Markdown>
               </Text>
               <Text style={styles.notificationDateEnd}>
-                {formatDate(item.createdAt)}
+                {(() => {
+                  return formatDate(item.createdAt);
+                })()}
               </Text>
             </View>
 

@@ -31,8 +31,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
     grade,
     skillIcon,
   } = route.params;
-    console.log("ExerciseResultScreen params:", route.params);
-
+  console.log("route.params", route.params);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");
@@ -247,7 +246,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
               pupilId,
               title,
               lessonId,
-              levelId: levelIds,
+              levelIds,
               fromExercise: true,
             })
           }
@@ -323,9 +322,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
                   {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  {t("correctAnswer")}:{" "}
-                  {selectedQuestion.answer}
-
+                  {t("correctAnswer")}: {selectedQuestion.answer}
                 </Text>
 
                 <TouchableOpacity

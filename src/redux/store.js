@@ -60,7 +60,7 @@ export const store = configureStore({
       serializableCheck: false,
     }).concat((store) => (next) => (action) => {
       if (action.type === "persist/REHYDRATE") {
-        console.log(" Redux rehydrated!");
+        // console.log(" Redux rehydrated!");
       }
       return next(action);
     }),

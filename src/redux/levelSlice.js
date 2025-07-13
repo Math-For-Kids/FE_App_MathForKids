@@ -7,7 +7,7 @@ export const getEnabledLevels = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await Api.get("/level/getEnabledLevels");
-      console.log("API Response:", res.data); // Debug the response
+      // console.log("API Response:", res.data); // Debug the response
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
