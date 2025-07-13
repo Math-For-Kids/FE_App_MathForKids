@@ -23,13 +23,21 @@ import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
 
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { skillName, skillIcon, grade, pupilId, title, lessonId, levelId } =
-    route.params;
+  const {
+    skillName,
+    skillIcon,
+    grade,
+    pupilId,
+    title,
+    lessonId,
+    levelId,
+    levelIds,
+  } = route.params;
   // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
-  // console.log("levelId", levelId);
+  console.log("levelIds", levelIds);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, levelIdCounts, loading, error } = useSelector(
@@ -38,14 +46,19 @@ export default function SkillScreen({ navigation, route }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLevels, setSelectedLevels] = useState([]);
   const [persistedLevels, setPersistedLevels] = useState([]);
+  // console.log("selectedLevels", selectedLevels);
+  // console.log("persistedLevels", persistedLevels);
   useEffect(() => {
     dispatch(getEnabledLevels());
   }, [dispatch]);
 
   useEffect(() => {
     if (levelId && !route.params?.fromExercise) {
+      setSelectedLevels(Array.isArray(levelId) ? levelId : [levelId]);
+      setPersistedLevels(Array.isArray(levelId) ? levelId : [levelId]);
+
       navigation.replace("ExerciseDetailScreen", {
-        levelIds: levelId,
+        levelIds: Array.isArray(levelId) ? levelId : [levelId],
         lessonId,
         skillName,
         title,
@@ -86,13 +99,14 @@ export default function SkillScreen({ navigation, route }) {
 
   const toggleLevelSelection = (levelId) => {
     if (levelIdCounts?.levelIdCounts?.[levelId] === 0) return;
-    if (selectedLevels.includes(levelId)) {
-      setSelectedLevels(selectedLevels.filter((id) => id !== levelId));
-      setPersistedLevels(selectedLevels.filter((id) => id !== levelId));
-    } else {
-      setSelectedLevels([...selectedLevels, levelId]);
-      setPersistedLevels([...selectedLevels, levelId]);
-    }
+
+    const current = selectedLevels || [];
+    const updated = current.includes(levelId)
+      ? current.filter((id) => id !== levelId)
+      : [...current, levelId];
+
+    setSelectedLevels(updated);
+    setPersistedLevels(updated);
   };
 
   const handleContinue = () => {
@@ -362,9 +376,9 @@ export default function SkillScreen({ navigation, route }) {
                     lessonId,
                     pupilId,
                     levelIds:
-                      persistedLevels.length > 0
-                        ? persistedLevels
-                        : selectedLevels,
+                      levelIds.length > 0
+                        ? levelIds
+                        : levelId,
                   });
                 }
               }}
