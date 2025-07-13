@@ -25,6 +25,8 @@ export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, skillIcon, grade, pupilId, title, lessonId, levelId } =
     route.params;
+  console.log("SkillScreen params:", route.params);
+    
   // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);

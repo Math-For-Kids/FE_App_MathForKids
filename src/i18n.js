@@ -48,7 +48,6 @@ import viReward from "./locales/vi/reward.json";
 import enReward from "./locales/en/reward.json";
 import viTarget from "./locales/vi/target.json";
 import enTarget from "./locales/en/target.json";
-
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en",

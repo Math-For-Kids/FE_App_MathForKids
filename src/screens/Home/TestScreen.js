@@ -252,18 +252,7 @@ export default function TestScreen({ navigation, route }) {
             createMultipleTestQuestions(questionPayloads)
           ).unwrap();
         }
-        const exercise = levelIds.join(",");
-        const res = await dispatch(
-          autoMarkCompletedGoals({ pupilId, lessonId, exercise })
-        );
 
-        if (res.payload?.message?.[i18n.language]) {
-          Alert.alert(t("success"), res.payload.message[i18n.language]);
-        } else if (res.error?.message?.[i18n.language]) {
-          Alert.alert(t("error"), res.error.message[i18n.language]);
-        } else {
-          Alert.alert(t("error"), "Đã xảy ra lỗi không xác định");
-        }
 
         await dispatch(getGoalsWithin30Days(pupilId));
         setElapsedTime(usedTime);
@@ -278,6 +267,18 @@ export default function TestScreen({ navigation, route }) {
           const unlockResult = await dispatch(
             completeAndUnlockNextLesson({ pupilId, lessonId })
           ).unwrap();
+          const exercise = levelIds.join(",");
+          const res = await dispatch(
+            autoMarkCompletedGoals({ pupilId, lessonId, exercise })
+          );
+
+          if (res.payload?.message?.[i18n.language]) {
+            Alert.alert(t("success"), res.payload.message[i18n.language]);
+          } else if (res.error?.message?.[i18n.language]) {
+            Alert.alert(t("error"), res.error.message[i18n.language]);
+          } else {
+            Alert.alert(t("error"), "Đã xảy ra lỗi không xác định");
+          }
           setNextLessonName(
             unlockResult?.nextLessonName?.[i18n.language] || null
           );

@@ -25,5 +25,9 @@
     "Not_enough_points": "Not enough points! You need {{required}} points but only have {{available}} points.",
     "Not_enough_items": "Not enough items! You need {{required}} items but only have {{available}} items.",
     "Exchange_success": "Reward exchanged successfully!",
-    "Exchange_failed": "Failed to exchange reward or refresh data. Please try again."
+    "Exchange_failed": "Failed to exchange reward or refresh data. Please try again.",
+    "notifyExchangeRewardRequestTitle": "{pupilName} requested to exchange {reward}",
+    "notifyExchangeRewardRequestContent": "{pupilName} requested to exchange {quantity} {reward}(s). Please confirm.",
+    "notifyExchangeRewardSentTitle": "Your {reward} exchange request has been sent",
+    "notifyExchangeRewardSentContent": "Your request to exchange {quantity} {reward}(s) has been sent. Waiting for confirmation."
 }
