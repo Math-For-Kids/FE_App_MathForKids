@@ -35,5 +35,8 @@
   "selectRewardQuantity": "Select Reward Quantity",
   "alertStartTooEarly": "Start date must not be more than 7 days before the end date.",
   "alertStartAfterEnd": "Start date must not be after the end date.",
-  "alertStartBeforeToday": "Start date must not be earlier than today."
+  "alertStartBeforeToday": "Start date must not be earlier than today.",
+  "alertDateStartDate": "The end date cannot be earlier than the start date."
+
+
 }

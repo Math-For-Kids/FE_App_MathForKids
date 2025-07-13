@@ -18,6 +18,9 @@ import FloatingMenu from "../components/FloatingMenu";
 import { getRewardByDisabledStatus } from "../redux/rewardSlice";
 import { createOrUpdate, getByPupilId } from "../redux/owned_rewardSlice";
 import { pupilById, updatePupilProfile } from "../redux/pupilSlice";
+import { createExchangeReward } from "../redux/owned_rewardSlice";
+import { createUserNotification } from "../redux/userNotificationSlice";
+import { createPupilNotification } from "../redux/pupilNotificationSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -31,7 +34,7 @@ export default function RewardScreen({ navigation }) {
   const [selectedReward, setSelectedReward] = useState(null);
   const [selectedRewardOwn, setSelectedRewardOwn] = useState(null);
   const [filteredRewardList, setFilteredRewardList] = useState([]);
-  const [quantity, setQuantity] = useState(1); // Bắt đầu từ 1
+  const [quantity, setQuantity] = useState(1);
   const [isValid, setIsValid] = useState(true);
   const [isExchanging, setIsExchanging] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -42,7 +45,6 @@ export default function RewardScreen({ navigation }) {
   const retryCountRef = useRef(0);
   const lastSyncRef = useRef(null);
 
-  // Lấy dữ liệu từ Redux
   const user = useSelector((state) => state.auth);
   const userId = user?.user?.id;
   const pupil = useSelector((state) => state.pupil.pupil, isEqual);
@@ -63,7 +65,6 @@ export default function RewardScreen({ navigation }) {
     (state) => state.owned_reward?.error || null
   );
 
-  // Monitor owned_rewards changes for debugging
   useEffect(() => {
     const invalidEntries = owned_rewards.filter(
       (o) => !o || typeof o !== "object" || !o.rewardId || o.quantity == null
@@ -73,7 +74,6 @@ export default function RewardScreen({ navigation }) {
     }
   }, [owned_rewards]);
 
-  // Kiểm tra đăng nhập
   useEffect(() => {
     if (!user || !user.user || !userId) {
       Alert.alert(t("Error"), t("User_data_missing"), [
@@ -82,7 +82,6 @@ export default function RewardScreen({ navigation }) {
     }
   }, [user, userId, navigation, t]);
 
-  // Lấy dữ liệu khi màn hình focus
   useEffect(() => {
     if (!isFocused || !userId || !pupilId) return;
 
@@ -154,7 +153,6 @@ export default function RewardScreen({ navigation }) {
     fetchData();
   }, [isFocused, userId, pupilId, pupil, dispatch, navigation, t]);
 
-  // Cập nhật filteredRewardList
   useEffect(() => {
     if (!rawRewardList) return;
     setFilteredRewardList((prev) =>
@@ -162,22 +160,19 @@ export default function RewardScreen({ navigation }) {
     );
   }, [rawRewardList]);
 
-  // Đặt số lượng mặc định
   useEffect(() => {
-    setQuantity(1); // Mặc định là 1 cho cả hai tab
+    setQuantity(1);
     setIsValid(true);
   }, [selectedTab]);
 
-  // Xử lý khi click vào ảnh phần thưởng
   const handleRewardPress = (item) => {
     setSelectedReward(item);
-    setQuantity(1); // Reset quantity khi chọn phần thưởng mới
-    // Kiểm tra hợp lệ ngay khi chọn phần thưởng
+    setQuantity(1);
     if (selectedTab === "Exchange points") {
       setIsValid(item.exchangePoint <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
       const ownedNumber = owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
-      setIsValid(item.exchangeReward <= ownedNumber);
+      setIsValid(100 <= ownedNumber); // Require 100 owned_rewards
     }
   };
 
@@ -185,7 +180,6 @@ export default function RewardScreen({ navigation }) {
     setSelectedRewardOwn(item);
   };
 
-  // Xử lý tăng/giảm số lượng
   const handleQuantityChange = (action) => {
     const currentQuantity = parseInt(quantity, 10) || 1;
     let newQuantity;
@@ -199,12 +193,11 @@ export default function RewardScreen({ navigation }) {
 
     setQuantity(newQuantity);
 
-    // Kiểm tra hợp lệ
     if (selectedTab === "Exchange points") {
       const totalPointsRequired = selectedReward?.exchangePoint * newQuantity;
       setIsValid(totalPointsRequired <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
-      const totalItemsRequired = selectedReward?.exchangeReward * newQuantity;
+      const totalItemsRequired = 100 * newQuantity;
       const ownedNumber = owned_rewards.find(
         (o) => o.rewardId === selectedReward?.id
       )?.quantity || 0;
@@ -212,7 +205,6 @@ export default function RewardScreen({ navigation }) {
     }
   };
 
-  // Hàm retry cho getByPupilId
   const fetchOwnedRewardsWithRetry = async (pupilId, maxRetries = 3) => {
     let retryCount = 0;
     while (retryCount < maxRetries) {
@@ -235,7 +227,6 @@ export default function RewardScreen({ navigation }) {
     }
   };
 
-  // Xử lý nút đổi phần thưởng
   const handleExchange = async () => {
     if (
       isExchanging ||
@@ -260,7 +251,7 @@ export default function RewardScreen({ navigation }) {
     const rewardId = selectedReward.id;
     const exchangeQuantity = parseInt(quantity, 10);
     const exchangePoint = parseInt(selectedReward.exchangePoint, 10);
-    const exchangeReward = parseInt(selectedReward.exchangeReward, 10);
+    const exchangeReward = 100; // Fixed to 100 owned_rewards per real reward
 
     if (!rewardId) {
       Alert.alert(t("Error"), t("Missing_reward_id"));
@@ -314,12 +305,7 @@ export default function RewardScreen({ navigation }) {
         setSelectedReward(null);
         setQuantity(1);
       } else if (selectedTab === "Exchange item") {
-        if (isNaN(exchangeReward) || exchangeReward <= 0) {
-          Alert.alert(t("Error"), t("Invalid_exchange_requirement"));
-          return;
-        }
-
-        const quantityToDeduct = (exchangeReward ?? 2) * exchangeQuantity;
+        const quantityToDeduct = exchangeReward * exchangeQuantity;
         const ownedReward = owned_rewards.find((o) => o.rewardId === rewardId);
         const ownedNumber = ownedReward
           ? parseInt(ownedReward.quantity, 10)
@@ -333,6 +319,7 @@ export default function RewardScreen({ navigation }) {
           return;
         }
 
+        // Deduct owned rewards
         await dispatch(
           createOrUpdate({
             pupilId,
@@ -341,7 +328,73 @@ export default function RewardScreen({ navigation }) {
           })
         ).unwrap();
 
+        // Create exchange_reward entries and collect their IDs
+        const exchangeRewardIds = [];
+        for (let i = 0; i < exchangeQuantity; i++) {
+          const exchangeResult = await dispatch(
+            createExchangeReward({
+              pupilId,
+              rewardId,
+            })
+          ).unwrap();
+          exchangeRewardIds.push(exchangeResult.id); // Assuming the backend returns the ID of the created exchange_reward
+        }
+
         await fetchOwnedRewardsWithRetry(pupilId);
+
+        // Send notification to parent
+        const now = new Date();
+        const createdAt = now.toISOString();
+        const rewardName = selectedReward?.name?.[i18n.language] || selectedReward?.name?.en || t("Unknown_reward");
+        for (const id of exchangeRewardIds) {
+          await dispatch(
+            createUserNotification({
+              userId: userId,
+              title: {
+                en: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "en" }),
+                vi: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "vi" }),
+              },
+              content: {
+                en: t("notifyExchangeRewardRequestContent", {
+                  pupilName: pupil.fullName,
+                  reward: rewardName,
+                  quantity: exchangeQuantity,
+                }, { lng: "en" }),
+                vi: t("notifyExchangeRewardRequestContent", {
+                  pupilName: pupil.fullName,
+                  reward: rewardName,
+                  quantity: exchangeQuantity,
+                }, { lng: "vi" }),
+              },
+              exchangedRewardId: id, // Use the first exchangeRewardId for simplicity
+              type: "EXCHANGE_REWARD_REQUEST",
+              isRead: false,
+              createdAt,
+            })
+          );
+        }
+        // Send notification to pupil
+        await dispatch(
+          createPupilNotification({
+            pupilId: pupilId,
+            title: {
+              en: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "en" }),
+              vi: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "vi" }),
+            },
+            content: {
+              en: t("notifyExchangeRewardSentContent", {
+                reward: rewardName,
+                quantity: exchangeQuantity,
+              }, { lng: "en" }),
+              vi: t("notifyExchangeRewardSentContent", {
+                reward: rewardName,
+                quantity: exchangeQuantity,
+              }, { lng: "vi" }),
+            },
+            isRead: false,
+            createdAt,
+          })
+        );
 
         Alert.alert(t("Success"), t("Exchange_success"));
         setSelectedReward(null);
@@ -359,20 +412,17 @@ export default function RewardScreen({ navigation }) {
     }
   };
 
-  // Debounce handleExchange to prevent rapid calls
   const debouncedHandleExchange = useMemo(
     () => debounce(handleExchange, 300, { leading: true, trailing: false }),
     [handleExchange]
   );
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       debouncedHandleExchange.cancel();
     };
   }, [debouncedHandleExchange]);
 
-  // Tạo allTargets
   const allTargets = useMemo(() => {
     if (
       !rawRewardList ||
@@ -411,6 +461,7 @@ export default function RewardScreen({ navigation }) {
           rewardImage: reward.image,
           ownedNumber: owned ? parseInt(owned.quantity, 10) : 0,
           pupilPoint: pupil ? pupil.point : 0,
+          exchangeReward: 100, // Set fixed exchange requirement
         };
       })
       .filter((target) => target !== null && target?.id !== undefined);
@@ -426,6 +477,7 @@ export default function RewardScreen({ navigation }) {
           en: t("Unknown_reward", { id: o.rewardId }),
         },
         exchangePoint: 0,
+        exchangeReward: 100,
         ownedNumber: parseInt(o.quantity, 10),
         pupilPoint: pupil ? pupil.point : 0,
       }));
@@ -941,7 +993,7 @@ export default function RewardScreen({ navigation }) {
                         style={{ position: "absolute", width: "100%" }}
                       />
                       <Text style={exchangeItem.progressText}>
-                        {item.ownedNumber ?? 0} / {item.exchangeReward ?? 2}
+                        {item.ownedNumber ?? 0} / {item.exchangeReward}
                       </Text>
                     </View>
                   )}

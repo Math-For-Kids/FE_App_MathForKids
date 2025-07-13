@@ -158,6 +158,10 @@ export default function PracticeMultiplicationTableScreen({
       padding: 8,
       borderRadius: 50,
     },
+    backIcon: {
+      width: 24,
+      height: 24,
+    },
     headerText: {
       fontSize: 18,
       fontFamily: Fonts.NUNITO_BOLD,
@@ -247,7 +251,7 @@ export default function PracticeMultiplicationTableScreen({
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerText}>{title}</Text>
       </LinearGradient>

@@ -137,7 +137,7 @@ export default function MultiplicationTableScreen({ navigation, route }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Image source={theme.icons.back} style={styles.backIcon} />
         </TouchableOpacity>
         <Text
           style={styles.headerText}
