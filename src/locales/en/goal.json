@@ -39,5 +39,6 @@
   "lessonNotStarted": "Not started",
   "lessonLocked": "Locked",
   "lessonCompleted": "Completed",
-  "lessonInProgress": "In progress"
+  "lessonInProgress": "In progress",
+  "alertDateStartDate": "The end date cannot be earlier than the start date."
 }

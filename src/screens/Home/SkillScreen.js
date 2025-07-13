@@ -375,10 +375,7 @@ export default function SkillScreen({ navigation, route }) {
                     title,
                     lessonId,
                     pupilId,
-                    levelIds:
-                      levelIds.length > 0
-                        ? levelIds
-                        : levelId,
+                    evelIds: levelIds.length > 0 ? levelIds : levelId,
                   });
                 }
               }}

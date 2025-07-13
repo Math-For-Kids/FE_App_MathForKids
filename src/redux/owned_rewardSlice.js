@@ -60,6 +60,21 @@ export const countByPupilId = createAsyncThunk(
     }
   }
 );
+// Thunk: Tạo exchange reward mới
+export const createExchangeReward = createAsyncThunk(
+  "exchangereward/create",
+  async ({ pupilId, rewardId }, { rejectWithValue }) => {
+    try {
+      const res = await Api.post("/exchangereward", {
+        pupilId,
+        rewardId
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const ownedRewardSlice = createSlice({
   name: "owned_reward",
   initialState: {
@@ -116,6 +131,17 @@ const ownedRewardSlice = createSlice({
       .addCase(countByPupilId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch owned rewards count";
+      })
+      .addCase(createExchangeReward.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createExchangeReward.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(createExchangeReward.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

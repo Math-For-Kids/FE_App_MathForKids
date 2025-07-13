@@ -48,7 +48,7 @@ export default function GoalScreen() {
   const [lesson, setLesson] = useState(null);
   const [reward, setReward] = useState(null);
   const [exercise, setExercise] = useState([]);
-  const [rewardQuantity, setRewardQuantity] = useState([]);
+  const [rewardQuantity, setRewardQuantity] = useState();
   const quantityOptions = ["3", "5", "7"];
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [showLessonModal, setShowLessonModal] = useState(false);
@@ -663,7 +663,10 @@ export default function GoalScreen() {
                       alert(t("alertDateLimit"));
                       return;
                     }
-
+                    if (selectedDate < startDate) {
+                      alert(t("alertDateStartDate"));
+                      return;
+                    }
                     setEndDate(selectedDate);
                   }
                 }}
@@ -726,13 +729,13 @@ export default function GoalScreen() {
           >
             {exercise.length > 0
               ? exercise
-                  .map(
-                    (id) =>
-                      enabledLevels?.find((lvl) => lvl.id === id)?.name[
-                        i18n.language
-                      ] || id
-                  )
-                  .join(", ")
+                .map(
+                  (id) =>
+                    enabledLevels?.find((lvl) => lvl.id === id)?.name[
+                    i18n.language
+                    ] || id
+                )
+                .join(", ")
               : t("selectLevel")}
           </Text>
 
@@ -867,14 +870,6 @@ export default function GoalScreen() {
               </View>
             );
           })}
-
-          <Button
-            mode="contained"
-            onPress={() => setShowExerciseModal(false)}
-            style={{ marginTop: 20, backgroundColor: theme.colors.blueDark }}
-          >
-            {t("confirm")}
-          </Button>
         </Modal>
       </Portal>
 

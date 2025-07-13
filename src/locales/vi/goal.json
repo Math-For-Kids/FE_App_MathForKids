@@ -39,5 +39,6 @@
   "lessonNotStarted": "Bài chưa học",
   "lessonLocked": "Bài bị khóa",
   "lessonCompleted": "Bài đã học",
-  "lessonInProgress": "Bài đang học"
+  "lessonInProgress": "Bài đang học",
+  "alertDateStartDate": "Ngày kết thúc không được sớm hơn ngày bắt đầu."
 }

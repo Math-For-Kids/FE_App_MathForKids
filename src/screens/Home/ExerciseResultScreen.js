@@ -35,7 +35,6 @@ export default function ExerciseResultScreen({ navigation, route }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");
-  // console.log("levelIds", levelIds);
   const getOperatorFromSkillName = (skill) => {
     switch (skill) {
       case "Addition":
@@ -242,7 +241,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
           onPress={() =>
             navigation.navigate("SkillScreen", {
               skillName,
-              skillIcon,
+              skillIcon: skillIcon,
               grade,
               pupilId,
               title,

@@ -16,6 +16,8 @@ import { getGoalsWithin30Days } from "../redux/goalSlice";
 import { getLessonById } from "../redux/lessonSlice";
 import { getRewardById } from "../redux/rewardSlice";
 import { getEnabledLevels } from "../redux/goalSlice";
+import { pupilById } from "../redux/pupilSlice";
+
 import { useTranslation } from "react-i18next";
 export default function TargetScreen({ navigation, route }) {
   const { theme } = useTheme();
@@ -24,13 +26,16 @@ export default function TargetScreen({ navigation, route }) {
   // console.log("focusGoalId", focusGoalId);
   const [selectedTab, setSelectedTab] = useState("target");
   const [mergedGoals, setMergedGoals] = useState([]);
-  // console.log("mergedGoals", mergedGoals);
+  console.log("mergedGoals", mergedGoals);
   const { t, i18n } = useTranslation("target");
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  const pupilData = useSelector((state) => state.pupil.pupil);
+
   const goals = useSelector((state) => state.goal.goals || []);
   const { enabledLevels } = useSelector((state) => state.goal);
   // console.log("enabledLevels", enabledLevels);
   const dispatch = useDispatch();
+
   const getSkillIconByName = (skillName = "") => {
     const name = skillName.toLowerCase();
     const iconMap = {
@@ -46,6 +51,7 @@ export default function TargetScreen({ navigation, route }) {
     dispatch(getEnabledLevels());
     if (pupilId) {
       dispatch(getGoalsWithin30Days(pupilId));
+      dispatch(pupilById(pupilId));
     }
   }, [pupilId]);
 
@@ -59,12 +65,12 @@ export default function TargetScreen({ navigation, route }) {
           if (goal.lessonId) {
             try {
               lesson = await dispatch(getLessonById(goal.lessonId)).unwrap();
-            } catch {}
+            } catch { }
           }
           if (goal.rewardId) {
             try {
               reward = await dispatch(getRewardById(goal.rewardId)).unwrap();
-            } catch {}
+            } catch { }
           }
           return {
             ...goal,
@@ -320,8 +326,8 @@ export default function TargetScreen({ navigation, route }) {
                 isExpired
                   ? [theme.colors.grayLight, theme.colors.grayDark]
                   : !item.isSuccess
-                  ? theme.colors.gradientBluePrimary
-                  : theme.colors.gradientGreen
+                    ? theme.colors.gradientBluePrimary
+                    : theme.colors.gradientGreen
               }
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 0 }}
@@ -345,6 +351,7 @@ export default function TargetScreen({ navigation, route }) {
                     skillIcon: item.skillIcon,
                     lessonId: item.lessonId,
                     pupilId: pupilId,
+                    grade: pupilData.grade,
                     // goalId: item.id,
                     levelId: item.exercise,
                   });
@@ -375,8 +382,8 @@ export default function TargetScreen({ navigation, route }) {
                     {isExpired
                       ? t("expired")
                       : `${t("end")}: ${new Date(
-                          item.dateEnd
-                        ).toLocaleDateString("en-GB")}`}
+                        item.dateEnd
+                      ).toLocaleDateString("en-GB")}`}
                   </Text>
 
                   {isExpired && (
