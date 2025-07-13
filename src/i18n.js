@@ -2,56 +2,85 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
+// Import tất cả các file ngôn ngữ
 import en from "./locales/en/setting.json";
 import vi from "./locales/vi/setting.json";
 import enHome from "./locales/en/home.json";
 import viHome from "./locales/vi/home.json";
-import viLesson from "./locales/vi/lesson.json";
 import enLesson from "./locales/en/lesson.json";
-import viCommon from "./locales/vi/common.json";
+import viLesson from "./locales/vi/lesson.json";
 import enCommon from "./locales/en/common.json";
-import viProfile from "./locales/vi/profile.json";
+import viCommon from "./locales/vi/common.json";
 import enProfile from "./locales/en/profile.json";
-import viExercise from "./locales/vi/exercise.json";
+import viProfile from "./locales/vi/profile.json";
 import enExercise from "./locales/en/exercise.json";
-import viStatistic from "./locales/vi/statistic.json";
+import viExercise from "./locales/vi/exercise.json";
 import enStatistic from "./locales/en/statistic.json";
-import viPrivacy from "./locales/vi/privacy.json";
+import viStatistic from "./locales/vi/statistic.json";
 import enPrivacy from "./locales/en/privacy.json";
-import viVerify from "./locales/vi/verify.json";
+import viPrivacy from "./locales/vi/privacy.json";
 import enVerify from "./locales/en/verify.json";
-import viLogin from "./locales/vi/login.json";
+import viVerify from "./locales/vi/verify.json";
 import enLogin from "./locales/en/login.json";
-import viAccount from "./locales/vi/account.json";
+import viLogin from "./locales/vi/login.json";
 import enAccount from "./locales/en/account.json";
-import viRegister from "./locales/vi/register.json";
+import viAccount from "./locales/vi/account.json";
 import enRegister from "./locales/en/register.json";
-import viStepByStep from "./locales/vi/stepbystep.json";
+import viRegister from "./locales/vi/register.json";
 import enStepByStep from "./locales/en/stepbystep.json";
-import viGoal from "./locales/vi/goal.json";
+import viStepByStep from "./locales/vi/stepbystep.json";
 import enGoal from "./locales/en/goal.json";
-import viNotification from "./locales/vi/notification.json";
+import viGoal from "./locales/vi/goal.json";
 import enNotification from "./locales/en/notification.json";
-import viSideBar from "./locales/vi/sidebar.json";
+import viNotification from "./locales/vi/notification.json";
 import enSideBar from "./locales/en/sidebar.json";
-import viSkill from "./locales/vi/skill.json";
+import viSideBar from "./locales/vi/sidebar.json";
 import enSkill from "./locales/en/skill.json";
-import viTest from "./locales/vi/test.json";
+import viSkill from "./locales/vi/skill.json";
 import enTest from "./locales/en/test.json";
-import viMultiplicationTable from "./locales/vi/multiplicationtable.json";
+import viTest from "./locales/vi/test.json";
 import enMultiplicationTable from "./locales/en/multiplicationtable.json";
-import viLoading from "./locales/vi/loading.json";
+import viMultiplicationTable from "./locales/vi/multiplicationtable.json";
 import enLoading from "./locales/en/loading.json";
-import viAssessment from "./locales/vi/assessment.json";
+import viLoading from "./locales/vi/loading.json";
 import enAssessment from "./locales/en/assessment.json";
-import viReward from "./locales/vi/reward.json";
+import viAssessment from "./locales/vi/assessment.json";
 import enReward from "./locales/en/reward.json";
-import viTarget from "./locales/vi/target.json";
+import viReward from "./locales/vi/reward.json";
 import enTarget from "./locales/en/target.json";
+import viTarget from "./locales/vi/target.json";
+
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
-  lng: "en",
-  fallbackLng: "en",
+  lng: "en", // Ngôn ngữ mặc định
+  fallbackLng: "en", // Nếu không có bản dịch sẽ fallback
+  ns: [
+    "setting",
+    "home",
+    "lesson",
+    "common",
+    "profile",
+    "exercise",
+    "statistic",
+    "privacy",
+    "verify",
+    "login",
+    "account",
+    "register",
+    "stepbystep",
+    "goal",
+    "notification",
+    "sidebar",
+    "skill",
+    "test",
+    "multiplicationtable",
+    "loading",
+    "assessment",
+    "reward",
+    "target",
+  ],
+  defaultNS: "goal", // ✅ Đặt default là goal để t("skill_Addition") hoạt động
+  defaultNS: "reward",
   resources: {
     en: {
       setting: en,
@@ -104,7 +133,9 @@ i18n.use(initReactI18next).init({
       target: viTarget,
     },
   },
-  interpolation: { escapeValue: false },
+  interpolation: {
+    escapeValue: false,
+  },
 });
 
 export default i18n;

@@ -113,7 +113,9 @@ export default function RewardScreen({ navigation }) {
                   if (!pupil || !pupilId) {
                     Alert.alert(
                       t("Error"),
-                      t("Error_loading_pupil", { error: "Failed to load pupil data" }),
+                      t("Error_loading_pupil", {
+                        error: "Failed to load pupil data",
+                      }),
                       [
                         {
                           text: "OK",
@@ -144,7 +146,9 @@ export default function RewardScreen({ navigation }) {
           console.error("API error:", error);
           Alert.alert(
             t("Error"),
-            t("Error_loading_rewards", { error: error?.[i18n.language] || "Unknown error" })
+            t("Error_loading_rewards", {
+              error: error?.[i18n.language] || "Unknown error",
+            })
           );
         }
       }
@@ -171,8 +175,9 @@ export default function RewardScreen({ navigation }) {
     if (selectedTab === "Exchange points") {
       setIsValid(item.exchangePoint <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
-      const ownedNumber = owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
-      setIsValid(100 <= ownedNumber); // Require 100 owned_rewards
+      const ownedNumber =
+        owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
+      setIsValid(100 <= ownedNumber);
     }
   };
 
@@ -198,9 +203,9 @@ export default function RewardScreen({ navigation }) {
       setIsValid(totalPointsRequired <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
       const totalItemsRequired = 100 * newQuantity;
-      const ownedNumber = owned_rewards.find(
-        (o) => o.rewardId === selectedReward?.id
-      )?.quantity || 0;
+      const ownedNumber =
+        owned_rewards.find((o) => o.rewardId === selectedReward?.id)
+          ?.quantity || 0;
       setIsValid(totalItemsRequired <= ownedNumber && newQuantity >= 1);
     }
   };
@@ -251,10 +256,30 @@ export default function RewardScreen({ navigation }) {
     const rewardId = selectedReward.id;
     const exchangeQuantity = parseInt(quantity, 10);
     const exchangePoint = parseInt(selectedReward.exchangePoint, 10);
-    const exchangeReward = 100; // Fixed to 100 owned_rewards per real reward
+    const exchangeReward = 100;
+    const rewardName = {
+      en: selectedReward?.name?.en || t("Unknown_reward", { lng: "en" }),
+      vi: selectedReward?.name?.vi || t("Unknown_reward", { lng: "vi" }),
+    };
+
+    console.log("Current language:", i18n.language);
+    console.log("selectedReward:", selectedReward);
+    console.log("rewardName:", rewardName);
+    console.log("pupil.fullName:", pupil.fullName);
+    console.log("exchangeQuantity:", exchangeQuantity);
 
     if (!rewardId) {
       Alert.alert(t("Error"), t("Missing_reward_id"));
+      return;
+    }
+
+    if (!pupil.fullName || !rewardName || isNaN(exchangeQuantity)) {
+      console.error("Invalid data:", {
+        pupilFullName: pupil.fullName,
+        rewardName,
+        exchangeQuantity,
+      });
+      Alert.alert(t("Error"), t("Invalid_input"));
       return;
     }
 
@@ -273,7 +298,10 @@ export default function RewardScreen({ navigation }) {
         if (totalPointsRequired > pupil.point) {
           Alert.alert(
             t("Error"),
-            t("Not_enough_points", { required: totalPointsRequired, available: pupil.point })
+            t("Not_enough_points", {
+              required: totalPointsRequired,
+              available: pupil.point,
+            })
           );
           return;
         }
@@ -314,12 +342,14 @@ export default function RewardScreen({ navigation }) {
         if (quantityToDeduct > ownedNumber) {
           Alert.alert(
             t("Error"),
-            t("Not_enough_items", { required: quantityToDeduct, available: ownedNumber })
+            t("Not_enough_items", {
+              required: quantityToDeduct,
+              available: ownedNumber,
+            })
           );
           return;
         }
 
-        // Deduct owned rewards
         await dispatch(
           createOrUpdate({
             pupilId,
@@ -328,7 +358,6 @@ export default function RewardScreen({ navigation }) {
           })
         ).unwrap();
 
-        // Create exchange_reward entries and collect their IDs
         const exchangeRewardIds = [];
         for (let i = 0; i < exchangeQuantity; i++) {
           const exchangeResult = await dispatch(
@@ -337,75 +366,124 @@ export default function RewardScreen({ navigation }) {
               rewardId,
             })
           ).unwrap();
-          exchangeRewardIds.push(exchangeResult.id); // Assuming the backend returns the ID of the created exchange_reward
+          if (!exchangeResult?.id) {
+            throw new Error("createExchangeReward did not return an ID");
+          }
+          exchangeRewardIds.push(exchangeResult.id);
         }
 
         await fetchOwnedRewardsWithRetry(pupilId);
 
-        // Send notification to parent
         const now = new Date();
         const createdAt = now.toISOString();
-        const rewardName = selectedReward?.name?.[i18n.language] || selectedReward?.name?.en || t("Unknown_reward");
+        // Hàm tạo nội dung thông báo
+        const buildNotificationText = (templateKey, lang, values) =>
+          t(templateKey, { ...values, lng: lang });
+
+        const buildMultilangText = (templateKey, values) => ({
+          en: buildNotificationText(templateKey, "en", values.en),
+          vi: buildNotificationText(templateKey, "vi", values.vi),
+        });
+
+        // Tạo giá trị truyền vào bản dịch
+        const titleValues = {
+          en: { pupilName: pupil.fullName, reward: rewardName.en },
+          vi: { pupilName: pupil.fullName, reward: rewardName.vi },
+        };
+
+        const contentValues = {
+          en: {
+            pupilName: pupil.fullName,
+            reward: rewardName.en,
+            quantity: exchangeQuantity,
+          },
+          vi: {
+            pupilName: pupil.fullName,
+            reward: rewardName.vi,
+            quantity: exchangeQuantity,
+          },
+        };
+
+        // Tạo thông báo cho từng exchangeRewardId
         for (const id of exchangeRewardIds) {
-          await dispatch(
+          dispatch(
             createUserNotification({
-              userId: userId,
-              title: {
-                en: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "en" }),
-                vi: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "vi" }),
-              },
-              content: {
-                en: t("notifyExchangeRewardRequestContent", {
-                  pupilName: pupil.fullName,
-                  reward: rewardName,
-                  quantity: exchangeQuantity,
-                }, { lng: "en" }),
-                vi: t("notifyExchangeRewardRequestContent", {
-                  pupilName: pupil.fullName,
-                  reward: rewardName,
-                  quantity: exchangeQuantity,
-                }, { lng: "vi" }),
-              },
-              exchangedRewardId: id, // Use the first exchangeRewardId for simplicity
-              type: "EXCHANGE_REWARD_REQUEST",
+              userId,
+              title: buildMultilangText(
+                "notifyExchangeRewardRequestTitle",
+                titleValues
+              ),
+              content: buildMultilangText(
+                "notifyExchangeRewardRequestContent",
+                contentValues
+              ),
+              exchangedRewardId: id,
               isRead: false,
               createdAt,
             })
           );
         }
-        // Send notification to pupil
-        await dispatch(
+
+        // Gửi thông báo cho học sinh
+        dispatch(
           createPupilNotification({
-            pupilId: pupilId,
-            title: {
-              en: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "en" }),
-              vi: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "vi" }),
-            },
-            content: {
-              en: t("notifyExchangeRewardSentContent", {
-                reward: rewardName,
-                quantity: exchangeQuantity,
-              }, { lng: "en" }),
-              vi: t("notifyExchangeRewardSentContent", {
-                reward: rewardName,
-                quantity: exchangeQuantity,
-              }, { lng: "vi" }),
-            },
+            pupilId,
+            title: buildMultilangText(
+              "notifyExchangeRewardSentTitle",
+              titleValues
+            ),
+            content: buildMultilangText(
+              "notifyExchangeRewardSentContent",
+              contentValues
+            ),
             isRead: false,
             createdAt,
           })
         );
+        // console.log("rewardName", rewardName);
+        // console.log("titleValues", titleValues);
+        // console.log("contentValues", contentValues);
 
-        Alert.alert(t("Success"), t("Exchange_success"));
+        // console.log(
+        //   "translated title (vi)",
+        //   t("notifyExchangeRewardRequestTitle", {
+        //     ...titleValues.vi,
+        //     lng: "vi",
+        //   })
+        // );
+        // console.log(
+        //   "translated title (en)",
+        //   t("notifyExchangeRewardRequestTitle", {
+        //     ...titleValues.en,
+        //     lng: "en",
+        //   })
+        // );
+
+        // console.log(
+        //   "translated content (vi)",
+        //   t("notifyExchangeRewardRequestContent", {
+        //     ...contentValues.vi,
+        //     lng: "vi",
+        //   })
+        // );
+        // console.log(
+        //   "translated content (en)",
+        //   t("notifyExchangeRewardRequestContent", {
+        //     ...contentValues.en,
+        //     lng: "en",
+        //   })
+        // );
+
+        Alert.alert(
+          t("Success", { ns: "common" }),
+          t("Exchange_success", { ns: "reward" })
+        );
         setSelectedReward(null);
         setQuantity(1);
       }
     } catch (error) {
       console.error("Exchange error:", error);
-      Alert.alert(
-        t("Error"),
-        t("Exchange_failed", { message: error.message })
-      );
+      Alert.alert(t("Error"), t("Exchange_failed", { message: error.message }));
     } finally {
       setIsExchanging(false);
       setIsRefreshing(false);
@@ -461,7 +539,7 @@ export default function RewardScreen({ navigation }) {
           rewardImage: reward.image,
           ownedNumber: owned ? parseInt(owned.quantity, 10) : 0,
           pupilPoint: pupil ? pupil.point : 0,
-          exchangeReward: 100, // Set fixed exchange requirement
+          exchangeReward: 100,
         };
       })
       .filter((target) => target !== null && target?.id !== undefined);
@@ -473,8 +551,8 @@ export default function RewardScreen({ navigation }) {
         rewardId: o.rewardId,
         rewardImage: "https://via.placeholder.com/60",
         name: {
-          vi: t("Unknown_reward", { id: o.rewardId }),
-          en: t("Unknown_reward", { id: o.rewardId }),
+          vi: t("Unknown_reward", { id: o.rewardId }, { lng: "vi" }),
+          en: t("Unknown_reward", { id: o.rewardId }, { lng: "en" }),
         },
         exchangePoint: 0,
         exchangeReward: 100,
@@ -816,7 +894,9 @@ export default function RewardScreen({ navigation }) {
       <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {t("Error_loading_rewards", { error: rewardError?.en || rewardError?.vi || rewardError })}
+            {t("Error_loading_rewards", {
+              error: rewardError?.en || rewardError?.vi || rewardError,
+            })}
           </Text>
         </View>
       </View>
@@ -828,7 +908,9 @@ export default function RewardScreen({ navigation }) {
       <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {t("Error_loading_pupil", { error: pupilError?.en || pupilError?.vi || pupilError })}
+            {t("Error_loading_pupil", {
+              error: pupilError?.en || pupilError?.vi || pupilError,
+            })}
           </Text>
         </View>
       </View>
@@ -849,7 +931,10 @@ export default function RewardScreen({ navigation }) {
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             {t("Error_loading_owned_rewards", {
-              error: owned_reward_error?.en || owned_reward_error?.vi || owned_reward_error
+              error:
+                owned_reward_error?.en ||
+                owned_reward_error?.vi ||
+                owned_reward_error,
             })}
           </Text>
         </View>
@@ -886,7 +971,9 @@ export default function RewardScreen({ navigation }) {
                 selectedTab === tab && styles.tabTextActive,
               ]}
             >
-              {t(tab === "Exchange points" ? "Exchange_points" : "Exchange_item")}
+              {t(
+                tab === "Exchange points" ? "Exchange_points" : "Exchange_item"
+              )}
             </Text>
           </TouchableOpacity>
         ))}
@@ -1008,8 +1095,8 @@ export default function RewardScreen({ navigation }) {
       </View>
       {allTargets.filter((item) => item && item.id && item.ownedNumber > 0)
         .length === 0 && (
-          <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
-        )}
+        <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
+      )}
       <FlatList
         data={allTargets.filter((item) => {
           if (!item || !item.id) return null;
@@ -1046,25 +1133,35 @@ export default function RewardScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalBackground}>
               {rewardLoading || isRefreshing ? (
-                <Text style={styles.modalText}>{t("Loading_reward_details")}</Text>
+                <Text style={styles.modalText}>
+                  {t("Loading_reward_details")}
+                </Text>
               ) : rewardError ? (
                 <Text style={styles.errorText}>
-                  {t("Error_loading_rewards", { error: rewardError?.en || rewardError?.vi || rewardError })}
+                  {t("Error_loading_rewards", {
+                    error: rewardError?.en || rewardError?.vi || rewardError,
+                  })}
                 </Text>
               ) : (
                 <>
                   <Image
                     source={{
-                      uri: selectedReward?.image || "https://via.placeholder.com/60",
+                      uri:
+                        selectedReward?.image ||
+                        "https://via.placeholder.com/60",
                     }}
                     style={styles.modalImage}
                     resizeMode="contain"
                   />
                   <Text style={styles.modalText}>
-                    {selectedReward?.name?.en || selectedReward?.name?.vi || t("Unknown_reward")}
+                    {selectedReward?.name?.en ||
+                      selectedReward?.name?.vi ||
+                      t("Unknown_reward")}
                   </Text>
                   <Text style={styles.rewardInfoText}>
-                    {selectedReward?.description?.en || selectedReward?.description?.vi || t("No_description")}
+                    {selectedReward?.description?.en ||
+                      selectedReward?.description?.vi ||
+                      t("No_description")}
                   </Text>
                   <View style={styles.quantityContainer}>
                     <TouchableOpacity
@@ -1086,13 +1183,16 @@ export default function RewardScreen({ navigation }) {
                     <Text style={styles.errorText}>
                       {selectedTab === "Exchange points"
                         ? t("Not_enough_points", {
-                          required: selectedReward.exchangePoint * quantity,
-                          available: pupil?.point || 0
-                        })
+                            required: selectedReward.exchangePoint * quantity,
+                            available: pupil?.point || 0,
+                          })
                         : t("Not_enough_items", {
-                          required: selectedReward.exchangeReward * quantity,
-                          available: allTargets.find((item) => item.id === selectedReward?.id)?.ownedNumber || 0
-                        })}
+                            required: selectedReward.exchangeReward * quantity,
+                            available:
+                              allTargets.find(
+                                (item) => item.id === selectedReward?.id
+                              )?.ownedNumber || 0,
+                          })}
                     </Text>
                   )}
                   <View style={styles.buttonContainer}>
@@ -1100,13 +1200,18 @@ export default function RewardScreen({ navigation }) {
                       disabled={isExchanging || !isValid}
                       style={
                         isExchanging || !isValid
-                          ? { ...styles.exchangeButton, backgroundColor: theme.colors.grayDark }
+                          ? {
+                              ...styles.exchangeButton,
+                              backgroundColor: theme.colors.grayDark,
+                            }
                           : styles.exchangeButton
                       }
                       onPress={debouncedHandleExchange}
                     >
                       <Text style={styles.exchangeButtonText}>
-                        {isExchanging || isRefreshing ? t("Exchanging") : t("Exchange")}
+                        {isExchanging || isRefreshing
+                          ? t("Exchanging")
+                          : t("Exchange")}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -1131,7 +1236,9 @@ export default function RewardScreen({ navigation }) {
             <View style={styles.modalBackground}>
               <Image
                 source={{
-                  uri: selectedRewardOwn?.rewardImage || "https://via.placeholder.com/60",
+                  uri:
+                    selectedRewardOwn?.rewardImage ||
+                    "https://via.placeholder.com/60",
                 }}
                 style={styles.modalImage}
                 resizeMode="contain"
@@ -1155,7 +1262,9 @@ export default function RewardScreen({ navigation }) {
                 </TouchableOpacity>
               </LinearGradient>
               <Text style={styles.modalText}>
-                {selectedRewardOwn?.name?.en || selectedRewardOwn?.name?.vi || t("Unknown_reward")}
+                {selectedRewardOwn?.name?.en ||
+                  selectedRewardOwn?.name?.vi ||
+                  t("Unknown_reward")}
               </Text>
               <Text style={styles.rewardInfoText}>
                 {(() => {
@@ -1163,7 +1272,9 @@ export default function RewardScreen({ navigation }) {
                     (r) => r && r.id === selectedRewardOwn.id
                   );
                   return (
-                    reward?.description?.en || reward?.description?.vi || t("No_description")
+                    reward?.description?.en ||
+                    reward?.description?.vi ||
+                    t("No_description")
                   );
                 })()}
               </Text>

@@ -223,7 +223,7 @@ export default function NotificationScreen({ navigation, route }) {
                   }}
                 >
                   {item.title?.[i18n.language] ||
-                    item.title?.en ||
+                    item.title?.vi ||
                     t("noTitle")}
                 </Markdown>
               </Text>

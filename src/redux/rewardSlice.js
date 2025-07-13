@@ -30,11 +30,43 @@ export const getRewardById = createAsyncThunk(
     }
   }
 );
-
+export const getExchangeReward = createAsyncThunk(
+  "exchangereward/getById",
+  async (exchangeRewardId, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/exchangereward/${exchangeRewardId}`);
+      return res.data;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        return rejectWithValue("Reward not found");
+      }
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+export const updateExchangeReward = createAsyncThunk(
+  "exchangereward/update",
+  async ({ exchangeRewardId, isAccept }, { rejectWithValue }) => {
+    try {
+      const res = await Api.patch(`/exchangereward/${exchangeRewardId}`, {
+        isAccept,
+      });
+      return res.data;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        return rejectWithValue("Reward not found");
+      } else if (err.response?.status === 400) {
+        return rejectWithValue("Invalid request");
+      }
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const rewardSlice = createSlice({
   name: "reward",
   initialState: {
     rewards: [], // Lưu danh sách phần thưởng
+    exchangeRewards: {},
     selectedReward: null, // Lưu phần thưởng được lấy theo ID
     loading: false,
     error: null,
@@ -64,6 +96,30 @@ const rewardSlice = createSlice({
         state.error = null;
       })
       .addCase(getRewardById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateExchangeReward.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateExchangeReward.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedReward = action.payload; // Cập nhật state nếu cần
+      })
+      .addCase(updateExchangeReward.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getExchangeReward.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getExchangeReward.fulfilled, (state, action) => {
+        state.loading = false;
+        state.exchangeRewards = action.payload;
+      })
+      .addCase(getExchangeReward.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
