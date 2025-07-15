@@ -34,7 +34,7 @@ export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
   const { skillName, lessonId, pupilId, levelIds } = route.params;
-  console.log("levelIds", levelIds);
+  // console.log("levelIds", levelIds);
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -53,16 +53,18 @@ export default function TestScreen({ navigation, route }) {
   const [finalScore, setFinalScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
-
-  const currentQ = tests[currentQuestion - 1];
-  const totalQuestions = tests.length;
+  // const currentQ = tests[currentQuestion - 1];
+  // const totalQuestions = tests.length;
+  const validTests = tests.filter((item) => item.question && item.answer);
+  const totalQuestions = validTests.length;
+  const currentQ = validTests[currentQuestion - 1];
   // Consolidated timer logic
   useEffect(() => {
-    if (!tests.length) return;
+    if (!validTests.length || showResultModal) return;
     let newTime = 10; // Default 10 minutes
-    if (tests.length > 10 && tests.length <= 20) {
+    if (validTests.length > 10 && validTests.length <= 20) {
       newTime = 25;
-    } else if (tests.length > 20 && tests.length <= 30) {
+    } else if (validTests.length > 20 && validTests.length <= 30) {
       newTime = 35;
     }
     const totalSeconds = newTime * 60;
@@ -82,7 +84,7 @@ export default function TestScreen({ navigation, route }) {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [tests.length, t]);
+  }, [validTests.length, t, showResultModal]);
 
   useEffect(() => {
     dispatch(getRandomTests({ lessonId }));
@@ -112,10 +114,10 @@ export default function TestScreen({ navigation, route }) {
   }, [currentQ]);
 
   useEffect(() => {
-    if (!tests.length) return;
-    const totalMargin = (tests.length - 1) * 2;
+    if (!validTests.length || showResultModal) return;
+    const totalMargin = (validTests.length - 1) * 2;
     const progressBarWidth = windowWidth - 40;
-    const segmentWidth = (progressBarWidth - totalMargin) / tests.length;
+    const segmentWidth = (progressBarWidth - totalMargin) / validTests.length;
     const iconPositionX = 20 + (currentQuestion - 1) * (segmentWidth + 2);
 
     Animated.parallel([
@@ -141,12 +143,12 @@ export default function TestScreen({ navigation, route }) {
         }),
       ]),
     ]).start();
-  }, [currentQuestion, tests.length]);
+  }, [currentQuestion, validTests.length, showResultModal]);
 
   const handleAnswer = (val) => {
     if (!currentQ) return;
     setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
-    if (currentQuestion < tests.length) {
+    if (currentQuestion < validTests.length) {
       setTimeout(() => {
         setCurrentQuestion(currentQuestion + 1);
       }, 300);
@@ -160,7 +162,7 @@ export default function TestScreen({ navigation, route }) {
   };
 
   const calculateScore = () => {
-    if (!tests.length) {
+    if (!validTests.length) {
       // console.log("No tests available");
       return { score: 0, correct: 0, wrong: 0 };
     }
@@ -169,7 +171,7 @@ export default function TestScreen({ navigation, route }) {
     let correct = 0;
     let wrong = 0;
 
-    tests.forEach((q) => {
+    validTests.forEach((q) => {
       const questionLevelObj = levels.find(
         (level) => String(level.id) === String(q.levelId || q.level)
       );
@@ -210,7 +212,7 @@ export default function TestScreen({ navigation, route }) {
   const handleSubmit = async () => {
     const answeredCount = Object.keys(userAnswers).length;
     const totalTime =
-      (tests.length > 20 ? 35 : tests.length > 10 ? 25 : 10) * 60;
+      (validTests.length > 20 ? 35 : validTests.length > 10 ? 25 : 10) * 60;
     clearInterval(timerRef.current);
 
     const { score, correct, wrong } = calculateScore();
@@ -237,7 +239,7 @@ export default function TestScreen({ navigation, route }) {
         const testId = testResult?.message?.id;
 
         if (testId) {
-          const questionPayloads = tests.map((question) => ({
+          const questionPayloads = validTests.map((question) => ({
             testId,
             exerciseId: question.id,
             levelId: question.levelId || question.level,
@@ -254,7 +256,6 @@ export default function TestScreen({ navigation, route }) {
 
 
         await dispatch(getGoalsWithin30Days(pupilId));
-        setElapsedTime(usedTime);
         setShowResultModal(true);
 
         if (bonus > 0) {
@@ -275,8 +276,6 @@ export default function TestScreen({ navigation, route }) {
             Alert.alert(t("success"), res.payload.message[i18n.language]);
           } else if (res.error?.message?.[i18n.language]) {
             Alert.alert(t("error"), res.error.message[i18n.language]);
-          } else {
-            Alert.alert(t("error"), "Đã xảy ra lỗi không xác định");
           }
           setNextLessonName(
             unlockResult?.nextLessonName?.[i18n.language] || null
@@ -291,25 +290,27 @@ export default function TestScreen({ navigation, route }) {
       }
     };
 
-    if (answeredCount < tests.length && timer > 0) {
+    if (answeredCount < validTests.length && timer > 0) {
       Alert.alert(t("warning"), t("youHaveAnswered"), [
         {
           text: t("keepDoing"),
           style: "cancel",
           onPress: () => {
-            timerRef.current = setInterval(() => {
-              setTimer((prev) => {
-                if (prev <= 1) {
-                  clearInterval(timerRef.current);
-                  handleTimeUp();
-                  return 0;
-                }
-                if (prev === 60) {
-                  Alert.alert(t("warning"), t("timeAlmostUp"));
-                }
-                return prev - 1;
-              });
-            }, 1000);
+            if (!showResultModal) {
+              timerRef.current = setInterval(() => {
+                setTimer((prev) => {
+                  if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    handleTimeUp();
+                    return 0;
+                  }
+                  if (prev === 60) {
+                    Alert.alert(t("warning"), t("timeAlmostUp"));
+                  }
+                  return prev - 1;
+                });
+              }, 1000);
+            }
           },
         },
         {
@@ -336,7 +337,7 @@ export default function TestScreen({ navigation, route }) {
 
   const progress = Math.min(
     Math.max(
-      timer / ((tests.length > 20 ? 30 : tests.length > 10 ? 20 : 10) * 60),
+      timer / ((validTests.length > 20 ? 30 : validTests.length > 10 ? 20 : 10) * 60),
       0
     ),
     1
@@ -550,7 +551,7 @@ export default function TestScreen({ navigation, route }) {
     modalCardContainer: {
       backgroundColor: visualProgressBar(),
       width: "80%",
-      height: "50%",
+      height: "auto",
       borderRadius: 10,
       justifyContent: "center",
       elevation: 3,
@@ -578,6 +579,7 @@ export default function TestScreen({ navigation, route }) {
     },
     modalResultText: {
       fontSize: 20,
+      textAlign: 'right',
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       flexShrink: 1,
@@ -623,7 +625,7 @@ export default function TestScreen({ navigation, route }) {
     );
   }
 
-  if (tests.length === 0) {
+  if (validTests.length === 0) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{t("noExercisesFound")}</Text>
@@ -679,7 +681,7 @@ export default function TestScreen({ navigation, route }) {
             {t("totalQuestions")}: {totalQuestions}
           </Text>
           <Text style={styles.subtitleText}>
-            {t("answers")}: {currentQuestion}/{tests.length}
+            {t("answers")}: {currentQuestion}/{totalQuestions}
           </Text>
         </View>
         <View style={styles.timerCircleContainer}>
@@ -711,14 +713,14 @@ export default function TestScreen({ navigation, route }) {
       </View>
       <View>
         <View style={styles.visualProgressBar}>
-          {tests.map((q, index) => (
+          {validTests.map((q, index) => (
             <View
               key={q.id ?? `segment-${index}`} // Fallback to index if q.id is undefined
               style={[
                 styles.segmentBlock,
                 {
                   backgroundColor:
-                    index < currentQuestion
+                    index <= currentQuestion - 1
                       ? visualProgressBar()
                       : theme.colors.progressTestBackground,
                 },
@@ -821,10 +823,9 @@ export default function TestScreen({ navigation, route }) {
                 <Text style={styles.modalResultText}>
                   {wrongCount}
                 </Text>
-
               </View>
               <View style={styles.modalRow}>
-                <Text style={styles.modalText}>Time:</Text>
+                <Text style={styles.modalText}>{t("time")}:</Text>
                 <Text style={styles.modalResultText}>
                   {formatTime(elapsedTime)}
                 </Text>
@@ -842,9 +843,9 @@ export default function TestScreen({ navigation, route }) {
                 setShowResultModal(false);
                 navigation.goBack();
                 setUserAnswers({});
-                setCurrentQuestion(1);
                 setShuffledOptions({});
                 setNextLessonName(null);
+                setCurrentQuestion(1);
               }}
             >
               <Ionicons name="close" size={20} color={theme.colors.white} />

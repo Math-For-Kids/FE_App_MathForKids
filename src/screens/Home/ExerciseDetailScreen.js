@@ -27,7 +27,7 @@ export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, skillIcon, lessonId, levelIds, pupilId, title, grade } =
     route.params;
-  console.log("ExerciseScreen params:", route.params);
+  // console.log("ExerciseScreen params:", route.params);
 
   const dispatch = useDispatch();
   const {

@@ -76,8 +76,8 @@ export default function SettingScreen({ navigation }) {
       themeKey === "theme1"
         ? "theme2"
         : themeKey === "theme2"
-        ? "theme3"
-        : "theme1";
+          ? "theme3"
+          : "theme1";
 
     switchThemeKey(nextThemeKey);
 
@@ -176,14 +176,17 @@ export default function SettingScreen({ navigation }) {
 
       <Text style={styles.sectionTitle}>{t("music")}</Text>
       <Text style={styles.volume}>
-        {t("volume", { value: (volume * 100).toFixed(0) })}
+        {t("volume", { value: Math.round(volume * 100) })}
       </Text>
       <View style={styles.selectorRow}>
-        <TouchableOpacity onPress={() => handleVolumeChange(-0.34)}>
+        <TouchableOpacity
+          onPress={() => handleVolumeChange(-0.33)}
+          dispatch={volume <= 0}
+        >
           <Ionicons
             name="caret-back-outline"
             size={30}
-            color={theme.colors.grayLight}
+            color={volume <= 0 ? theme.colors.grayDark : theme.colors.grayLight}
           />
         </TouchableOpacity>
         <View style={styles.musicDots}>
@@ -202,7 +205,10 @@ export default function SettingScreen({ navigation }) {
             />
           ))}
         </View>
-        <TouchableOpacity onPress={() => handleVolumeChange(+0.34)}>
+        <TouchableOpacity
+          onPress={() => handleVolumeChange(0.34)}
+          disabled={volume >= 1}
+        >
           <Ionicons
             name="caret-forward-outline"
             size={30}
@@ -221,7 +227,7 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
         <View style={styles.languageContainer}>
-          <Image source={theme.icons.languageEnglish} style={styles.flagIcon} />
+          <Image source={i18n.language === "en" ? theme.icons.languageEnglish : theme.icons.languageVietnamese} style={styles.flagIcon} />
           <Text style={styles.languageText}>
             {i18n.language === "en" ? t("english") : t("vietnamese")}
           </Text>
@@ -281,8 +287,8 @@ export default function SettingScreen({ navigation }) {
             {themeKey === "theme1"
               ? t("capybara")
               : themeKey === "theme2"
-              ? t("animal")
-              : t("super_hero")}
+                ? t("animal")
+                : t("super_hero")}
           </Text>
         </View>
         <TouchableOpacity onPress={handleSwitchTheme}>

@@ -31,7 +31,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
     grade,
     skillIcon,
   } = route.params;
-  console.log("route.params", route.params);
+  // console.log("fsesfroute.params", route.params);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");

@@ -75,7 +75,7 @@ const rewardSlice = createSlice({
   name: "reward",
   initialState: {
     rewards: [], // Lưu danh sách phần thưởng
-    exchangeRewards: { rewardIds: [], rewardCount: [] }, // Cập nhật initialState để phù hợp với response
+    exchangeRewards: { rewardIds: []}, // Cập nhật initialState để phù hợp với response
     selectedReward: null, // Lưu phần thưởng được lấy theo ID
     loading: false,
     error: null,

@@ -20,5 +20,7 @@
   "score": "Score",
   "correct": "Correct",
   "wrong": "Wrong",
+  "time": "Time",
+  "nextLesson": "Next lesson",
   "success": "Success"
 }
