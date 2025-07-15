@@ -205,7 +205,7 @@ export default function ExerciseScreen({ navigation, route }) {
                 pupilId,
                 title,
                 grade,
-                skillIcon,
+                skillIcon: skillIcon,
               });
             } catch (err) {
               Alert.alert(t("error"), t("failedToSubmitExercise"));

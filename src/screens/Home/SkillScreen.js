@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -33,11 +33,12 @@ export default function SkillScreen({ navigation, route }) {
     levelId,
     levelIds,
   } = route.params;
-  // console.log("skillIcon", skillIcon);
+  console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
   console.log("levelIds", levelIds);
+  console.log("level", level);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, levelIdCounts, loading, error } = useSelector(
@@ -51,7 +52,15 @@ export default function SkillScreen({ navigation, route }) {
   useEffect(() => {
     dispatch(getEnabledLevels());
   }, [dispatch]);
-
+  const level = useMemo(() => {
+    if (!Array.isArray(levelIds) || levelIds.length === 0) {
+      if (levels && levels.length > 0) {
+        return [levels[0].id]; // gan level dau tien khi levelIds undefine
+      }
+      return [];
+    }
+    return levelIds;
+  }, [levelIds, levels]);
   useEffect(() => {
     if (levelId && !route.params?.fromExercise) {
       setSelectedLevels(Array.isArray(levelId) ? levelId : [levelId]);
@@ -64,7 +73,7 @@ export default function SkillScreen({ navigation, route }) {
         title,
         grade,
         pupilId,
-        skillIcon,
+        skillIcon: skillIcon,
       });
     }
   }, []);
@@ -375,7 +384,8 @@ export default function SkillScreen({ navigation, route }) {
                     title,
                     lessonId,
                     pupilId,
-                    levelIds: levelIds.length > 0 ? levelIds : levelId,
+                    skillIcon,
+                    levelIds: level,
                   });
                 }
               }}
