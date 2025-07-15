@@ -155,55 +155,49 @@ export default function GoalScreen() {
           .join(", ");
 
       // Notification cho phụ huynh
+      // Hàm tạo nội dung
+      const buildNotificationText = (templateKey, lang, values) =>
+        i18n.getFixedT(lang)(templateKey, values);
+
+      //Hàm title/content
+      const buildMultilangText = (templateKey, values) => ({
+        en: buildNotificationText(templateKey, "en", values.en),
+        vi: buildNotificationText(templateKey, "vi", values.vi),
+      });
+      //dùng chung
+      const titleValues = {
+        en: { skill: skillType, lesson: lesson?.name?.en },
+        vi: { skill: skillType, lesson: lesson?.name?.vi },
+      };
+      const contentValues = {
+        en: {
+          dateStart: formatDate(startDate),
+          dateEnd: formatDate(endDate),
+          skill: i18n.getFixedT("en")(`skill_${skillType}`),
+          lesson: lesson?.name?.en,
+          level: mapExerciseNames("en"),
+          reward: reward?.name?.en,
+          quantity: rewardQuantity,
+        },
+        vi: {
+          dateStart: formatDate(startDate),
+          dateEnd: formatDate(endDate),
+          skill: i18n.getFixedT("vi")(`skill_${skillType}`),
+          lesson: lesson?.name?.vi,
+          level: mapExerciseNames("vi"),
+          reward: reward?.name?.vi,
+          quantity: rewardQuantity,
+        },
+      };
+      // Notification cho phụ huynh
       dispatch(
         createUserNotification({
           userId: user.id,
-          title: {
-            en: t(
-              "notifyGoalCreatedTitle",
-              {
-                skill: skillType,
-                lesson: lesson?.name?.en,
-              },
-              { lng: "en" }
-            ),
-            vi: t(
-              "notifyGoalCreatedTitle",
-              {
-                skill: skillType,
-                lesson: lesson?.name?.vi,
-              },
-              { lng: "vi" }
-            ),
-          },
-          content: {
-            en: t(
-              "notifyGoalCreatedContent",
-              {
-                dateStart: formatDate(startDate),
-                dateEnd: formatDate(endDate),
-                skill: t(`skill_${skillType}`, { lng: "en" }),
-                lesson: lesson?.name?.en,
-                level: mapExerciseNames("en"),
-                reward: reward?.name?.en,
-                quantity: rewardQuantity,
-              },
-              { lng: "en" }
-            ),
-            vi: t(
-              "notifyGoalCreatedContent",
-              {
-                dateStart: formatDate(startDate),
-                dateEnd: formatDate(endDate),
-                skill: t(`skill_${skillType}`, { lng: "vi" }),
-                lesson: lesson?.name?.vi,
-                level: mapExerciseNames("vi"),
-                reward: reward?.name?.vi,
-                quantity: rewardQuantity,
-              },
-              { lng: "vi" }
-            ),
-          },
+          title: buildMultilangText("notifyGoalCreatedTitle", titleValues),
+          content: buildMultilangText(
+            "notifyGoalCreatedContent",
+            contentValues
+          ),
           isRead: false,
           createdAt,
           updatedAt,
@@ -215,52 +209,8 @@ export default function GoalScreen() {
         createPupilNotification({
           pupilId: selectedAccount,
           goalId: goalCreated.id,
-          title: {
-            en: t(
-              "notifyNewGoalTitle",
-              {
-                skill: skillType,
-                lesson: lesson?.name?.en,
-              },
-              { lng: "en" }
-            ),
-            vi: t(
-              "notifyNewGoalTitle",
-              {
-                skill: skillType,
-                lesson: lesson?.name?.vi,
-              },
-              { lng: "vi" }
-            ),
-          },
-          content: {
-            en: t(
-              "notifyNewGoalContent",
-              {
-                dateStart: formatDate(startDate),
-                dateEnd: formatDate(endDate),
-                skill: t(`skill_${skillType}`, { lng: "en" }),
-                lesson: lesson?.name?.en,
-                level: mapExerciseNames("en"),
-                reward: reward?.name?.en,
-                quantity: rewardQuantity,
-              },
-              { lng: "en" }
-            ),
-            vi: t(
-              "notifyNewGoalContent",
-              {
-                dateStart: formatDate(startDate),
-                dateEnd: formatDate(endDate),
-                skill: t(`skill_${skillType}`, { lng: "vi" }),
-                lesson: lesson?.name?.vi,
-                level: mapExerciseNames("vi"),
-                reward: reward?.name?.vi,
-                quantity: rewardQuantity,
-              },
-              { lng: "vi" }
-            ),
-          },
+          title: buildMultilangText("notifyNewGoalTitle", titleValues),
+          content: buildMultilangText("notifyNewGoalContent", contentValues),
           isRead: false,
           createdAt,
           updatedAt,

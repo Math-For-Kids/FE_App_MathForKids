@@ -22,7 +22,7 @@ import { useCallback } from "react";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, grade, pupilId, skillIcon } = route.params;
-  console.log("LessonScreen params:", route.params);
+  // console.log("LessonScreen params:", route.params);
 
   const { t } = useTranslation("lesson");
   const { t: c } = useTranslation("common");

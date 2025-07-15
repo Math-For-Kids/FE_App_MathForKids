@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +21,13 @@ import {
 import {
   notificationsByPupilId,
   updatePupilNotification,
+  createPupilNotification
 } from "../redux/pupilNotificationSlice";
+import {
+  getExchangeReward,
+  updateExchangeReward
+} from "../redux/rewardSlice";
+
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -29,6 +36,7 @@ export default function NotificationScreen({ navigation, route }) {
   const { userId, pupilId } = route.params || {};
   // console.log("userId", userId);
   const [expandedId, setExpandedId] = useState(null);
+  const [rewardData, setRewardData] = useState({});
   const user = useSelector((state) => state.auth.user);
   const { t, i18n } = useTranslation("notification");
   const userNotifications = useSelector(
@@ -45,6 +53,14 @@ export default function NotificationScreen({ navigation, route }) {
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
 
+  const buildNotificationText = (templateKey, lang, values) =>
+    t(templateKey, { ...values, lng: lang });
+
+  const buildMultilangText = (templateKey, values) => ({
+    en: buildNotificationText(templateKey, "en", values.en),
+    vi: buildNotificationText(templateKey, "vi", values.vi),
+  });
+
   useEffect(() => {
     if (isFocused) {
       // console.log("pupilId:", pupilId);
@@ -55,6 +71,28 @@ export default function NotificationScreen({ navigation, route }) {
       }
     }
   }, [isFocused, pupilId, userId]);
+  useEffect(() => {
+    const fetchRewards = async () => {
+      const rewards = {};
+      for (const notification of notificationsToDisplay) {
+        if (notification.exchangedRewardId) {
+          try {
+            const result = await dispatch(
+              getExchangeReward(notification.exchangedRewardId)
+            ).unwrap();
+            rewards[notification.exchangedRewardId] = result;
+          } catch (err) {
+            console.error("Failed to fetch reward:", err);
+          }
+        }
+      }
+      setRewardData(rewards);
+    };
+
+    if (notificationsToDisplay.length > 0) {
+      fetchRewards();
+    }
+  }, [notificationsToDisplay, dispatch]);
 
   const handlePress = async (id) => {
     const selected = notificationsToDisplay.find((n) => n.id === id);
@@ -223,7 +261,7 @@ export default function NotificationScreen({ navigation, route }) {
                   }}
                 >
                   {item.title?.[i18n.language] ||
-                    item.title?.en ||
+                    item.title?.vi ||
                     t("noTitle")}
                 </Markdown>
               </Text>
@@ -255,7 +293,80 @@ export default function NotificationScreen({ navigation, route }) {
                     item.content?.en ||
                     t("noContent")}
                 </Markdown>
+                {item.exchangedRewardId && userId && rewardData[item.exchangedRewardId]
+                  && !rewardData[item.exchangedRewardId].isAccept && (
+                    <TouchableOpacity
+                      onPress={async () => {
+                        try {
+                          const reward = rewardData[item.exchangedRewardId];
+                          console.log("Reward data for confirmation:", reward); // Debug log
 
+                          await dispatch(
+                            updateExchangeReward({
+                              exchangedRewardId: item.exchangedRewardId,
+                              isAccept: true,
+                            })
+                          ).unwrap();
+                          // Send notification to pupil
+                          const titleValues = {
+                            en: { reward: reward.name?.en || "Reward" },
+                            vi: { reward: reward.name?.vi || "Phần thưởng" },
+                          };
+                          const contentValues = {
+                            en: { reward: reward.name?.en || "Reward" },
+                            vi: { reward: reward.name?.vi || "Phần thưởng" },
+                          };
+                          await dispatch(
+                            createPupilNotification({
+                              pupilId: reward.pupilId,
+                              title: buildMultilangText(
+                                "notifyRewardConfirmedTitle",
+                                titleValues
+                              ),
+                              content: buildMultilangText(
+                                "notifyRewardConfirmedContent",
+                                contentValues
+                              ),
+                              isRead: false,
+                              createdAt: new Date(),
+                            })
+                          ).unwrap();
+                          Alert.alert(
+                            t("success"),
+                            t("rewardConfirmed"),
+                            [{ text: t("ok") }]
+                          );
+                          // Cập nhật lại danh sách thông báo sau khi xác nhận
+                          dispatch(notificationsByUserId(userId));
+                        } catch (err) {
+                          console.error("Failed to update exchange reward:", err);
+                          Alert.alert(
+                            t("error"),
+                            t("failedToConfirm"),
+                            [{ text: t("ok") }]
+                          );
+                        }
+                      }}
+                      style={{
+                        marginTop: 10,
+                        backgroundColor: theme.colors.green,
+                        paddingVertical: 10,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        alignSelf: "flex-end",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: theme.colors.white,
+                          fontFamily: Fonts.NUNITO_BOLD,
+                          fontSize: 14,
+                        }}
+                      >
+                        {t("acceptReward")}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 {pupilId && item.goalId && (
                   <TouchableOpacity
                     onPress={() =>

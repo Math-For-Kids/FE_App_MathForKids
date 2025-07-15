@@ -50,7 +50,7 @@ export default function AssessmentScreen({ navigation, route }) {
 
   // Memoize the questions array to prevent re-randomization on every render
   const questions = useMemo(() => {
-    console.log("Assessments:", assessments);
+    // console.log("Assessments:", assessments);
     return assessments.map((assessment, index) => {
       const correctAnswer = assessment.answer?.[i18n.language];
       const wrongOptions = (assessment.option || []).map((opt) => opt[i18n.language] || "");
@@ -127,6 +127,7 @@ export default function AssessmentScreen({ navigation, route }) {
             dispatch(
               updatePupilProfile({ id: pupilId, data: { isAssess: true } })
             );
+            dispatch(unlockPreviousGradeLesson({ pupilId }));
           } else if (lessonIds.length >= 2) {
             const firstScore = lessonScores[firstLessonId] || 0;
             const secondScore = lessonScores[secondLessonId] || 0;

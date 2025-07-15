@@ -26,8 +26,8 @@
     "Not_enough_items": "Không đủ vật phẩm! Bạn cần {{required}} vật phẩm nhưng chỉ có {{available}} vật phẩm.",
     "Exchange_success": "Đổi phần thưởng thành công!",
     "Exchange_failed": "Không thể đổi phần thưởng hoặc làm mới dữ liệu. Vui lòng thử lại.",
-    "notifyExchangeRewardRequestTitle": "{pupilName} đã yêu cầu đổi {reward}",
-    "notifyExchangeRewardRequestContent": "{pupilName} đã yêu cầu đổi {quantity} {reward}. Vui lòng xác nhận.",
-    "notifyExchangeRewardSentTitle": "Yêu cầu đổi {reward} của bạn đã được gửi",
-    "notifyExchangeRewardSentContent": "Yêu cầu đổi {quantity} {reward} của bạn đã được gửi. Đang chờ xác nhận."
+    "notifyExchangeRewardRequestTitle": "{{pupilName}} đã yêu cầu đổi {{reward}}",
+    "notifyExchangeRewardRequestContent": "{{pupilName}} đã yêu cầu đổi {{quantity}} {{reward}}. Vui lòng xác nhận.",
+    "notifyExchangeRewardSentTitle": "Yêu cầu đổi {{reward}} của bạn đã được gửi",
+    "notifyExchangeRewardSentContent": "Yêu cầu đổi {{quantity}} {{reward}} của bạn đã được gửi. Đang chờ xác nhận."
 }

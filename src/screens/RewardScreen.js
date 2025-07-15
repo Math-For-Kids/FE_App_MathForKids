@@ -15,7 +15,7 @@ import * as Progress from "react-native-progress";
 import Modal from "react-native-modal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import FloatingMenu from "../components/FloatingMenu";
-import { getRewardByDisabledStatus } from "../redux/rewardSlice";
+import { getRewardByDisabledStatus, getExchangeRewardByPupil } from "../redux/rewardSlice";
 import { createOrUpdate, getByPupilId } from "../redux/owned_rewardSlice";
 import { pupilById, updatePupilProfile } from "../redux/pupilSlice";
 import { createExchangeReward } from "../redux/owned_rewardSlice";
@@ -53,6 +53,10 @@ export default function RewardScreen({ navigation }) {
   const pupilError = useSelector((state) => state.pupil.error);
   const rawRewardList = useSelector(
     (state) => state.reward?.rewards || [],
+    isEqual
+  );
+  const exchangeRewards = useSelector(
+    (state) => state.reward?.exchangeRewards || { rewardIds: [], rewardCount: [] },
     isEqual
   );
   const rewardLoading = useSelector((state) => state.reward.loading);
@@ -93,6 +97,7 @@ export default function RewardScreen({ navigation }) {
 
         try {
           await dispatch(getRewardByDisabledStatus()).unwrap();
+          await dispatch(getExchangeRewardByPupil(pupilId)).unwrap();
 
           let targetPupilId = pupilId;
           if (!pupil || pupil.userId !== userId) {
@@ -172,7 +177,7 @@ export default function RewardScreen({ navigation }) {
       setIsValid(item.exchangePoint <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
       const ownedNumber = owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
-      setIsValid(100 <= ownedNumber); // Require 100 owned_rewards
+      setIsValid(100 <= ownedNumber);
     }
   };
 
@@ -181,6 +186,10 @@ export default function RewardScreen({ navigation }) {
   };
 
   const handleQuantityChange = (action) => {
+    if (selectedTab === "Exchange item") {
+      return;
+    }
+
     const currentQuantity = parseInt(quantity, 10) || 1;
     let newQuantity;
     if (action === "increment") {
@@ -196,12 +205,6 @@ export default function RewardScreen({ navigation }) {
     if (selectedTab === "Exchange points") {
       const totalPointsRequired = selectedReward?.exchangePoint * newQuantity;
       setIsValid(totalPointsRequired <= (pupil?.point || 0));
-    } else if (selectedTab === "Exchange item") {
-      const totalItemsRequired = 100 * newQuantity;
-      const ownedNumber = owned_rewards.find(
-        (o) => o.rewardId === selectedReward?.id
-      )?.quantity || 0;
-      setIsValid(totalItemsRequired <= ownedNumber && newQuantity >= 1);
     }
   };
 
@@ -251,10 +254,26 @@ export default function RewardScreen({ navigation }) {
     const rewardId = selectedReward.id;
     const exchangeQuantity = parseInt(quantity, 10);
     const exchangePoint = parseInt(selectedReward.exchangePoint, 10);
-    const exchangeReward = 100; // Fixed to 100 owned_rewards per real reward
+    const exchangeReward = 100;
+    const rewardName = {
+      en: selectedReward?.name?.en || t("Unknown_reward", { lng: "en" }),
+      vi: selectedReward?.name?.vi || t("Unknown_reward", { lng: "vi" }),
+    };
+
+    // console.log("Current language:", i18n.language);
+    // console.log("selectedReward:", selectedReward);
+    // console.log("rewardName:", rewardName);
+    // console.log("pupil.fullName:", pupil.fullName);
+    // console.log("exchangeQuantity:", exchangeQuantity);
 
     if (!rewardId) {
       Alert.alert(t("Error"), t("Missing_reward_id"));
+      return;
+    }
+
+    if (!pupil.fullName || !rewardName || isNaN(exchangeQuantity)) {
+      console.error("Invalid data:", { pupilFullName: pupil.fullName, rewardName, exchangeQuantity });
+      Alert.alert(t("Error"), t("Invalid_input"));
       return;
     }
 
@@ -319,7 +338,6 @@ export default function RewardScreen({ navigation }) {
           return;
         }
 
-        // Deduct owned rewards
         await dispatch(
           createOrUpdate({
             pupilId,
@@ -328,7 +346,6 @@ export default function RewardScreen({ navigation }) {
           })
         ).unwrap();
 
-        // Create exchange_reward entries and collect their IDs
         const exchangeRewardIds = [];
         for (let i = 0; i < exchangeQuantity; i++) {
           const exchangeResult = await dispatch(
@@ -337,60 +354,72 @@ export default function RewardScreen({ navigation }) {
               rewardId,
             })
           ).unwrap();
-          exchangeRewardIds.push(exchangeResult.id); // Assuming the backend returns the ID of the created exchange_reward
+          if (!exchangeResult?.id) {
+            throw new Error("createExchangeReward did not return an ID");
+          }
+          exchangeRewardIds.push(exchangeResult.id);
         }
 
         await fetchOwnedRewardsWithRetry(pupilId);
 
-        // Send notification to parent
         const now = new Date();
         const createdAt = now.toISOString();
-        const rewardName = selectedReward?.name?.[i18n.language] || selectedReward?.name?.en || t("Unknown_reward");
+        const buildNotificationText = (templateKey, lang, values) =>
+          t(templateKey, { ...values, lng: lang });
+
+        const buildMultilangText = (templateKey, values) => ({
+          en: buildNotificationText(templateKey, "en", values.en),
+          vi: buildNotificationText(templateKey, "vi", values.vi),
+        });
+
+        const titleValues = {
+          en: { pupilName: pupil.fullName, reward: rewardName.en },
+          vi: { pupilName: pupil.fullName, reward: rewardName.vi },
+        };
+
+        const contentValues = {
+          en: {
+            pupilName: pupil.fullName,
+            reward: rewardName.en,
+            quantity: exchangeQuantity,
+          },
+          vi: {
+            pupilName: pupil.fullName,
+            reward: rewardName.vi,
+            quantity: exchangeQuantity,
+          },
+        };
+
         for (const id of exchangeRewardIds) {
-          await dispatch(
+          dispatch(
             createUserNotification({
-              userId: userId,
-              title: {
-                en: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "en" }),
-                vi: t("notifyExchangeRewardRequestTitle", { pupilName: pupil.fullName, reward: rewardName }, { lng: "vi" }),
-              },
-              content: {
-                en: t("notifyExchangeRewardRequestContent", {
-                  pupilName: pupil.fullName,
-                  reward: rewardName,
-                  quantity: exchangeQuantity,
-                }, { lng: "en" }),
-                vi: t("notifyExchangeRewardRequestContent", {
-                  pupilName: pupil.fullName,
-                  reward: rewardName,
-                  quantity: exchangeQuantity,
-                }, { lng: "vi" }),
-              },
-              exchangedRewardId: id, // Use the first exchangeRewardId for simplicity
-              type: "EXCHANGE_REWARD_REQUEST",
+              userId,
+              title: buildMultilangText(
+                "notifyExchangeRewardRequestTitle",
+                titleValues
+              ),
+              content: buildMultilangText(
+                "notifyExchangeRewardRequestContent",
+                contentValues
+              ),
+              exchangedRewardId: id,
               isRead: false,
               createdAt,
             })
           );
         }
-        // Send notification to pupil
-        await dispatch(
+
+        dispatch(
           createPupilNotification({
-            pupilId: pupilId,
-            title: {
-              en: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "en" }),
-              vi: t("notifyExchangeRewardSentTitle", { reward: rewardName }, { lng: "vi" }),
-            },
-            content: {
-              en: t("notifyExchangeRewardSentContent", {
-                reward: rewardName,
-                quantity: exchangeQuantity,
-              }, { lng: "en" }),
-              vi: t("notifyExchangeRewardSentContent", {
-                reward: rewardName,
-                quantity: exchangeQuantity,
-              }, { lng: "vi" }),
-            },
+            pupilId,
+            title: buildMultilangText(
+              "notifyExchangeRewardSentTitle",
+              titleValues
+            ),
+            content: buildMultilangText(
+              "notifyExchangeRewardSentContent",
+              contentValues
+            ),
             isRead: false,
             createdAt,
           })
@@ -461,7 +490,7 @@ export default function RewardScreen({ navigation }) {
           rewardImage: reward.image,
           ownedNumber: owned ? parseInt(owned.quantity, 10) : 0,
           pupilPoint: pupil ? pupil.point : 0,
-          exchangeReward: 100, // Set fixed exchange requirement
+          exchangeReward: 100,
         };
       })
       .filter((target) => target !== null && target?.id !== undefined);
@@ -473,8 +502,8 @@ export default function RewardScreen({ navigation }) {
         rewardId: o.rewardId,
         rewardImage: "https://via.placeholder.com/60",
         name: {
-          vi: t("Unknown_reward", { id: o.rewardId }),
-          en: t("Unknown_reward", { id: o.rewardId }),
+          vi: t("Unknown_reward", { id: o.rewardId }, { lng: "vi" }),
+          en: t("Unknown_reward", { id: o.rewardId }, { lng: "en" }),
         },
         exchangePoint: 0,
         exchangeReward: 100,
@@ -493,6 +522,42 @@ export default function RewardScreen({ navigation }) {
   const selectedTarget = allTargets.find(
     (item) => item && item.id === selectedReward?.id
   );
+
+  const ownedExchangeRewards = useMemo(() => {
+    if (
+      !exchangeRewards ||
+      !exchangeRewards.rewardIds ||
+      !exchangeRewards.rewardCount ||
+      !Array.isArray(exchangeRewards.rewardIds) ||
+      !Array.isArray(exchangeRewards.rewardCount)
+    ) {
+      return [];
+    }
+
+    return exchangeRewards.rewardIds
+      .map((rewardId) => {
+        const rewardData = rawRewardList.find((r) => r && r.id === rewardId);
+        const rewardCountData = exchangeRewards.rewardCount.find(
+          (rc) => rc && rc.rewardId === rewardId
+        );
+
+        if (!rewardCountData) return null;
+
+        return {
+          id: rewardId,
+          rewardId,
+          rewardImage: rewardData?.image || "https://via.placeholder.com/60",
+          name: rewardData?.name || {
+            vi: t("Unknown_reward", { id: rewardId }, { lng: "vi" }),
+            en: t("Unknown_reward", { id: rewardId }, { lng: "en" }),
+          },
+          ownedNumber: rewardCountData.count || 0,
+          exchangeReward: 100,
+          pupilPoint: pupil ? pupil.point : 0,
+        };
+      })
+      .filter((item) => item !== null && item.ownedNumber > 0);
+  }, [exchangeRewards, rawRewardList, pupil, t]);
 
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
@@ -527,6 +592,7 @@ export default function RewardScreen({ navigation }) {
       marginBottom: 20,
     },
     tabButton: {
+      width: "40%",
       paddingVertical: 10,
       paddingHorizontal: 20,
       marginHorizontal: 5,
@@ -540,13 +606,14 @@ export default function RewardScreen({ navigation }) {
     tabText: {
       fontFamily: Fonts.NUNITO_MEDIUM,
       fontSize: 12,
+      textAlign: "center",
       color: theme.colors.black,
     },
     tabTextActive: {
       color: theme.colors.white,
     },
     cardTitle: {
-      width: "40%",
+      width: "50%",
       alignItems: "center",
       marginHorizontal: 20,
       padding: 5,
@@ -1006,22 +1073,28 @@ export default function RewardScreen({ navigation }) {
       <View style={styles.cardOwn}>
         <Text style={styles.cardTitleText}>{t("Own")}</Text>
       </View>
-      {allTargets.filter((item) => item && item.id && item.ownedNumber > 0)
-        .length === 0 && (
+      {(selectedTab === "Exchange points"
+        ? allTargets.filter((item) => item && item.id && item.ownedNumber > 0)
+        : ownedExchangeRewards
+      ).length === 0 && (
           <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
         )}
       <FlatList
-        data={allTargets.filter((item) => {
-          if (!item || !item.id) return null;
-          const rewardData = rawRewardList.find((r) => r && r.id === item.id);
-          if (!rewardData) return null;
-          return item.ownedNumber > 0;
-        })}
+        data={
+          selectedTab === "Exchange points"
+            ? allTargets.filter((item) => {
+              if (!item || !item.id) return null;
+              const rewardData = rawRewardList.find((r) => r && r.id === item.id);
+              if (!rewardData) return null;
+              return item.ownedNumber > 0;
+            })
+            : ownedExchangeRewards
+        }
         keyExtractor={(item) => item.id.toString() + "-own"}
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.itemOwnContainer}
-        extraData={allTargets}
+        extraData={[selectedTab, allTargets, ownedExchangeRewards]}
         renderItem={({ item }) => (
           <View style={styles.itemOwn}>
             <TouchableOpacity onPress={() => handleOwnRewardPress(item)}>
@@ -1049,7 +1122,9 @@ export default function RewardScreen({ navigation }) {
                 <Text style={styles.modalText}>{t("Loading_reward_details")}</Text>
               ) : rewardError ? (
                 <Text style={styles.errorText}>
-                  {t("Error_loading_rewards", { error: rewardError?.en || rewardError?.vi || rewardError })}
+                  {t("Error_loading_rewards", {
+                    error: rewardError?.en || rewardError?.vi || rewardError,
+                  })}
                 </Text>
               ) : (
                 <>
@@ -1061,52 +1136,55 @@ export default function RewardScreen({ navigation }) {
                     resizeMode="contain"
                   />
                   <Text style={styles.modalText}>
-                    {selectedReward?.name?.en || selectedReward?.name?.vi || t("Unknown_reward")}
+                    {selectedReward?.name?.en ||
+                      selectedReward?.name?.vi ||
+                      t("Unknown_reward")}
                   </Text>
                   <Text style={styles.rewardInfoText}>
-                    {selectedReward?.description?.en || selectedReward?.description?.vi || t("No_description")}
+                    {selectedReward?.description?.en ||
+                      selectedReward?.description?.vi ||
+                      t("No_description")}
                   </Text>
-                  <View style={styles.quantityContainer}>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={() => handleQuantityChange("decrement")}
-                      disabled={quantity <= 1}
-                    >
-                      <Text style={styles.quantityButtonText}>-</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.quantityText}>{quantity}</Text>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={() => handleQuantityChange("increment")}
-                    >
-                      <Text style={styles.quantityButtonText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {!isValid && (
-                    <Text style={styles.errorText}>
-                      {selectedTab === "Exchange points"
-                        ? t("Not_enough_points", {
-                          required: selectedReward.exchangePoint * quantity,
-                          available: pupil?.point || 0
-                        })
-                        : t("Not_enough_items", {
-                          required: selectedReward.exchangeReward * quantity,
-                          available: allTargets.find((item) => item.id === selectedReward?.id)?.ownedNumber || 0
-                        })}
-                    </Text>
+                  {selectedTab === "Exchange points" && (
+                    <View style={styles.quantityContainer}>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => handleQuantityChange("decrement")}
+                        disabled={quantity <= 1}
+                      >
+                        <Text style={styles.quantityButtonText}>-</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.quantityText}>{quantity}</Text>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => handleQuantityChange("increment")}
+                      >
+                        <Text style={styles.quantityButtonText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {selectedTab === "Exchange item" && (
+                    <View style={styles.quantityContainer}>
+                      <Text style={styles.quantityText}>1</Text>
+                    </View>
                   )}
                   <View style={styles.buttonContainer}>
                     <TouchableOpacity
                       disabled={isExchanging || !isValid}
                       style={
                         isExchanging || !isValid
-                          ? { ...styles.exchangeButton, backgroundColor: theme.colors.grayDark }
+                          ? {
+                            ...styles.exchangeButton,
+                            backgroundColor: theme.colors.grayDark,
+                          }
                           : styles.exchangeButton
                       }
                       onPress={debouncedHandleExchange}
                     >
                       <Text style={styles.exchangeButtonText}>
-                        {isExchanging || isRefreshing ? t("Exchanging") : t("Exchange")}
+                        {isExchanging || isRefreshing
+                          ? t("Exchanging")
+                          : t("Exchange")}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -1155,7 +1233,9 @@ export default function RewardScreen({ navigation }) {
                 </TouchableOpacity>
               </LinearGradient>
               <Text style={styles.modalText}>
-                {selectedRewardOwn?.name?.en || selectedRewardOwn?.name?.vi || t("Unknown_reward")}
+                {selectedRewardOwn?.name?.en ||
+                  selectedRewardOwn?.name?.vi ||
+                  t("Unknown_reward")}
               </Text>
               <Text style={styles.rewardInfoText}>
                 {(() => {
@@ -1163,7 +1243,9 @@ export default function RewardScreen({ navigation }) {
                     (r) => r && r.id === selectedRewardOwn.id
                   );
                   return (
-                    reward?.description?.en || reward?.description?.vi || t("No_description")
+                    reward?.description?.en ||
+                    reward?.description?.vi ||
+                    t("No_description")
                   );
                 })()}
               </Text>

@@ -26,7 +26,7 @@ export default function TargetScreen({ navigation, route }) {
   // console.log("focusGoalId", focusGoalId);
   const [selectedTab, setSelectedTab] = useState("target");
   const [mergedGoals, setMergedGoals] = useState([]);
-  console.log("mergedGoals", mergedGoals);
+  // console.log("mergedGoals", mergedGoals);
   const { t, i18n } = useTranslation("target");
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
   const pupilData = useSelector((state) => state.pupil.pupil);
