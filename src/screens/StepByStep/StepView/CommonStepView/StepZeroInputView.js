@@ -15,7 +15,7 @@ export default function StepZeroInput({
   autoNumber2,
   grade,
 }) {
-  const isLock = !!routeOperator && autoNumber1 !== '' && autoNumber2 !== '';
+  const isLock = !!routeOperator && autoNumber1 !== "" && autoNumber2 !== "";
   const isGradeOne = grade === "1";
 
   return (
@@ -39,11 +39,7 @@ export default function StepZeroInput({
               <Text style={styles.operatorSymbol}>{op}</Text>
               {isGradeOne && (op === "×" || op === "÷") && (
                 <View style={styles.lockOverlay}>
-                  <Ionicons
-                    name="lock-closed"
-                    size={40}
-                    color="#ffffff"
-                  />
+                  <Ionicons name="lock-closed" size={40} color="#ffffff" />
                 </View>
               )}
             </View>

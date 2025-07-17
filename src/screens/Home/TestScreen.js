@@ -33,8 +33,8 @@ import {
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
-  const { skillName, lessonId, pupilId, levelIds } = route.params;
-  // console.log("levelIds", levelIds);
+  const { skillName, lessonId, pupilId, levelIds, skillIcon } = route.params;
+  console.log("levelIds", levelIds);
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -96,8 +96,8 @@ export default function TestScreen({ navigation, route }) {
   useEffect(() => {
     if (!currentQ) return;
     if (!shuffledOptions[currentQ.id]) {
-      const options = [...(currentQ.option || []), currentQ.answer].map(
-        (option, index) => ({
+      const options = [...(currentQ.option || []), currentQ.answer]
+        .map((option, index) => ({
           value: option,
           id: `${currentQ.id}-option-${index}`, // Unique ID for each option
           levelId: currentQ.levelId || currentQ.level,
@@ -331,7 +331,8 @@ export default function TestScreen({ navigation, route }) {
 
   const progress = Math.min(
     Math.max(
-      timer / ((validTests.length > 20 ? 30 : validTests.length > 10 ? 20 : 10) * 60),
+      timer /
+        ((validTests.length > 20 ? 30 : validTests.length > 10 ? 20 : 10) * 60),
       0
     ),
     1
@@ -573,7 +574,7 @@ export default function TestScreen({ navigation, route }) {
     },
     modalResultText: {
       fontSize: 20,
-      textAlign: 'right',
+      textAlign: "right",
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
       flexShrink: 1,
@@ -814,9 +815,7 @@ export default function TestScreen({ navigation, route }) {
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("wrong")}:</Text>
-                <Text style={styles.modalResultText}>
-                  {wrongCount}
-                </Text>
+                <Text style={styles.modalResultText}>{wrongCount}</Text>
               </View>
               <View style={styles.modalRow}>
                 <Text style={styles.modalText}>{t("time")}:</Text>
