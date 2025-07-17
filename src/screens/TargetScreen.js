@@ -26,7 +26,7 @@ export default function TargetScreen({ navigation, route }) {
   // console.log("focusGoalId", focusGoalId);
   const [selectedTab, setSelectedTab] = useState("target");
   const [mergedGoals, setMergedGoals] = useState([]);
-  console.log("mergedGoals", mergedGoals);
+  // console.log("mergedGoals", mergedGoals);
   const { t, i18n } = useTranslation("target");
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
   const pupilData = useSelector((state) => state.pupil.pupil);
@@ -65,12 +65,12 @@ export default function TargetScreen({ navigation, route }) {
           if (goal.lessonId) {
             try {
               lesson = await dispatch(getLessonById(goal.lessonId)).unwrap();
-            } catch { }
+            } catch {}
           }
           if (goal.rewardId) {
             try {
               reward = await dispatch(getRewardById(goal.rewardId)).unwrap();
-            } catch { }
+            } catch {}
           }
           return {
             ...goal,
@@ -95,23 +95,26 @@ export default function TargetScreen({ navigation, route }) {
     if (goals.length > 0) fetchDetailsForGoals();
   }, [goals]);
   useEffect(() => {
-    // console.log("⏩ mergedGoals.length =", mergedGoals.length);
-    // console.log("🎯 Scrolling to index =", index);
+    if (!focusGoalId || filteredTargets.length === 0) return;
 
-    if (!focusGoalId || mergedGoals.length === 0) return;
-    const index = mergedGoals.findIndex((goal) => goal.id === focusGoalId);
-    if (index >= 0 && index < mergedGoals.length) {
+    const index = filteredTargets.findIndex((goal) => goal.id === focusGoalId);
+
+    if (index >= 0 && index < filteredTargets.length) {
       setTimeout(() => {
-        if (flatListRef.current && mergedGoals.length > index) {
-          flatListRef.current.scrollToIndex({
-            index,
-            animated: true,
-            viewPosition: 0.5,
-          });
+        if (flatListRef.current) {
+          try {
+            flatListRef.current.scrollToIndex({
+              index,
+              animated: true,
+              viewPosition: 0.5,
+            });
+          } catch (e) {
+            console.warn("Scroll to index failed:", e);
+          }
         }
       }, 100);
     }
-  }, [mergedGoals, focusGoalId]);
+  }, [filteredTargets, focusGoalId]);
 
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
@@ -325,9 +328,9 @@ export default function TargetScreen({ navigation, route }) {
               colors={
                 isExpired
                   ? [theme.colors.grayLight, theme.colors.grayDark]
-                  : !item.isSuccess
-                    ? theme.colors.gradientBluePrimary
-                    : theme.colors.gradientGreen
+                  : item.isCompleted
+                  ? theme.colors.gradientGreen
+                  : theme.colors.gradientBluePrimary
               }
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 0 }}
@@ -382,8 +385,8 @@ export default function TargetScreen({ navigation, route }) {
                     {isExpired
                       ? t("expired")
                       : `${t("end")}: ${new Date(
-                        item.dateEnd
-                      ).toLocaleDateString("en-GB")}`}
+                          item.dateEnd
+                        ).toLocaleDateString("en-GB")}`}
                   </Text>
 
                   {isExpired && (

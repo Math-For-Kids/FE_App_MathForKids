@@ -44,10 +44,10 @@ export const getByPupilId = createAsyncThunk(
 );
 // Thunk: Đếm số lượng owned_reward theo pupilId
 export const countByPupilId = createAsyncThunk(
-  "owned_reward/countByPupilId",
+  "exchangereward/countRewardByPupilId",
   async (pupilId, { rejectWithValue }) => {
     try {
-      const res = await Api.get(`/ownereward/countByPupilId/${pupilId}`);
+      const res = await Api.get(`/exchangereward/countRewardByPupilId/${pupilId}`);
       // Kiểm tra xem res.data có tồn tại và có thuộc tính count không
       return typeof res.data?.count === "number" ? res.data.count : 0;
     } catch (err) {

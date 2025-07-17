@@ -153,6 +153,8 @@ export default function GoalScreen() {
             return level?.name?.[lang] || id;
           })
           .join(", ");
+
+      // Notification cho phụ huynh
       // Hàm tạo nội dung
       const buildNotificationText = (templateKey, lang, values) =>
         i18n.getFixedT(lang)(templateKey, values);
@@ -274,18 +276,6 @@ export default function GoalScreen() {
     if (!found.isBlock && found.isCompleted) return theme.colors.gradientGreen;
     return theme.colors.gradientBluePrimary;
   };
-  const getLessonBorderColor = (lessonId) => {
-    const found = filteredAvailableLessons?.find((a) => a.id === lessonId);
-
-    if (!found) return theme.colors.purpleBorderDark; // Mặc định nếu không tìm thấy
-
-    if (found.isBlock && !found.isCompleted)
-      return theme.colors.orangeBorderDark;
-    if (!found.isBlock && found.isCompleted)
-      return theme.colors.GreenBorderDark;
-    return theme.colors.blueDark; // Bài đang học
-  };
-
   const getLessonLabel = (lessonId) => {
     const found = filteredAvailableLessons?.find((a) => a.id === lessonId);
     if (!found) return t("lessonNotStarted");
@@ -415,6 +405,8 @@ export default function GoalScreen() {
       width: "100%",
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
+      borderWidth: 1,
+      borderColor: theme.colors.blueDark,
       marginVertical: 10,
       overflow: "hidden",
       elevation: 3,
@@ -464,13 +456,7 @@ export default function GoalScreen() {
                   ? getLessonGradient(item.value?.id)
                   : theme.colors.gradientBluePrimary
               }
-              style={[
-                styles.modalButton,
-                title === t("selectLesson") && {
-                  borderColor: getLessonBorderColor(item.value?.id),
-                  borderWidth: 1,
-                },
-              ]}
+              style={styles.modalButton}
             >
               <TouchableOpacity
                 onPress={() => {
@@ -490,8 +476,7 @@ export default function GoalScreen() {
                   <Text
                     style={{
                       fontSize: 10,
-                      color: theme.colors.black,
-                      fontFamily: Fonts.NUNITO_MEDIUM,
+                      color: theme.colors.grayDark,
                       position: "absolute",
                       top: 5,
                       right: 10,
@@ -694,13 +679,13 @@ export default function GoalScreen() {
           >
             {exercise.length > 0
               ? exercise
-                  .map(
-                    (id) =>
-                      enabledLevels?.find((lvl) => lvl.id === id)?.name[
-                        i18n.language
-                      ] || id
-                  )
-                  .join(", ")
+                .map(
+                  (id) =>
+                    enabledLevels?.find((lvl) => lvl.id === id)?.name[
+                    i18n.language
+                    ] || id
+                )
+                .join(", ")
               : t("selectLevel")}
           </Text>
 

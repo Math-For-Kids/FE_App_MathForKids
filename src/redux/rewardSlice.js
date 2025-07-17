@@ -5,11 +5,20 @@ export const getRewardByDisabledStatus = createAsyncThunk(
   "reward/filterByDisabledStatus",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await Api.get(
-        `/reward/filterByDisabledStatus?isDisabled=false`
-      );
-      // console.log("reward:", res.data.data);
+      const res = await Api.get(`/reward/filterByDisabledStatus?isDisabled=false`);
       return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+export const getExchangeRewardByPupil = createAsyncThunk(
+  "exchangereward/getByPupilId",
+  async (pupilId, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/exchangereward/getByPupilId/${pupilId}`);
+      return res.data.data; // Chỉ lấy phần data từ res.data
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
@@ -30,11 +39,12 @@ export const getRewardById = createAsyncThunk(
     }
   }
 );
+
 export const getExchangeReward = createAsyncThunk(
   "exchangereward/getById",
-  async (exchangeRewardId, { rejectWithValue }) => {
+  async (exchangedRewardId, { rejectWithValue }) => {
     try {
-      const res = await Api.get(`/exchangereward/${exchangeRewardId}`);
+      const res = await Api.get(`/exchangereward/${exchangedRewardId}`);
       return res.data;
     } catch (err) {
       if (err.response?.status === 404) {
@@ -44,13 +54,12 @@ export const getExchangeReward = createAsyncThunk(
     }
   }
 );
+
 export const updateExchangeReward = createAsyncThunk(
   "exchangereward/update",
-  async ({ exchangeRewardId, isAccept }, { rejectWithValue }) => {
+  async ({ exchangedRewardId, isAccept }, { rejectWithValue }) => {
     try {
-      const res = await Api.patch(`/exchangereward/${exchangeRewardId}`, {
-        isAccept,
-      });
+      const res = await Api.patch(`/exchangereward/${exchangedRewardId}`, { isAccept });
       return res.data;
     } catch (err) {
       if (err.response?.status === 404) {
@@ -66,7 +75,7 @@ const rewardSlice = createSlice({
   name: "reward",
   initialState: {
     rewards: [], // Lưu danh sách phần thưởng
-    exchangeRewards: {},
+    exchangeRewards: { rewardIds: []}, // Cập nhật initialState để phù hợp với response
     selectedReward: null, // Lưu phần thưởng được lấy theo ID
     loading: false,
     error: null,
@@ -120,6 +129,21 @@ const rewardSlice = createSlice({
         state.exchangeRewards = action.payload;
       })
       .addCase(getExchangeReward.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getExchangeRewardByPupil.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getExchangeRewardByPupil.fulfilled, (state, action) => {
+        state.loading = false;
+        state.exchangeRewards = {
+          rewardIds: action.payload.rewardIds || [], // Danh sách rewardId không trùng lặp
+          rewardCount: action.payload.rewardCount || [], // Danh sách { rewardId, count }
+        };
+      })
+      .addCase(getExchangeRewardByPupil.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

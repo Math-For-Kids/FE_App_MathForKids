@@ -37,8 +37,8 @@ export default function SkillScreen({ navigation, route }) {
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
-  console.log("levelIds", levelIds);
-  console.log("level", level);
+  // console.log("levelIds", levelIds);
+  // console.log("level", level);
   const { t, i18n } = useTranslation("skill");
   const dispatch = useDispatch();
   const { levels, levelIdCounts, loading, error } = useSelector(
@@ -139,6 +139,7 @@ export default function SkillScreen({ navigation, route }) {
       title,
       grade,
       pupilId: pupilId,
+      skillIcon: skillIcon,
     });
   };
 
@@ -298,8 +299,8 @@ export default function SkillScreen({ navigation, route }) {
               isDisabled
                 ? getDisabledGradient()
                 : selectedLevels.includes(item.id)
-                ? getSelectedGradient()
-                : getGradientBySkill()
+                  ? getSelectedGradient()
+                  : getGradientBySkill()
             }
             style={[
               styles.levelCard,

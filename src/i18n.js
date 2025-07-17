@@ -80,7 +80,8 @@ i18n.use(initReactI18next).init({
     "target",
   ],
   defaultNS: "goal", // ✅ Đặt default là goal để t("skill_Addition") hoạt động
-  defaultNS: "reward",
+  // defaultNS: "reward",
+  // defaultNS: ["goal", "reward"],
   resources: {
     en: {
       setting: en,

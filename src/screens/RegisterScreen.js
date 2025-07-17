@@ -36,6 +36,7 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState();
   const [showPicker, setShowPicker] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handlePinChange = (value, index) => {
     const updated = [...pin];
@@ -45,21 +46,28 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const handleSend = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     const pinCode = pin.join("").trim();
     if (!fullName.trim()) {
+      setIsLoading(false);
       return Alert.alert(t("invalidTitle"), t("emptyFullName"));
     }
     if (!/^[0-9]{9,15}$/.test(phone)) {
+      setIsLoading(false);
       return Alert.alert(t("invalidTitle"), t("invalidPhone"));
     }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setIsLoading(false);
       return Alert.alert(t("invalidTitle"), t("invalidEmail"));
     }
     if (!/^\d{4}$/.test(pinCode)) {
+      setIsLoading(false);
       return Alert.alert(t("invalidTitle"), t("invalidPin"));
     }
     // Kiểm tra ngày hợp lệ
     if (!dateOfBirth || dateOfBirth > new Date()) {
+      setIsLoading(false);
       return Alert.alert(t("invalidTitle"), t("invalidDob"));
     }
 
@@ -75,6 +83,7 @@ export default function RegisterScreen({ navigation }) {
 
     // Kiểm tra tuổi hợp lệ (18–100)
     if (finalAge < 18 || finalAge > 100) {
+      setIsLoading(false);
       return Alert.alert(t("invalidTitle"), t("invalidAgeRange"));
     }
     const userData = {
@@ -118,6 +127,8 @@ export default function RegisterScreen({ navigation }) {
           ? payload[i18n.language] || payload.en
           : String(payload);
       Alert.alert(t("errorTitle"), errMsg);
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 

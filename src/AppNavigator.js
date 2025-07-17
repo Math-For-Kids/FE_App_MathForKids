@@ -43,7 +43,8 @@ import ExerciseDetailScreen from "./screens/Home/ExerciseDetailScreen";
 import ExerciseResultScreen from "./screens/Home/ExerciseResultScreen";
 import TestScreen from "./screens/Home/TestScreen";
 import StepByStepScreen from "./screens/StepByStep/StepByStepScreen";
-import StatisticScreen from "./screens/StatisticScreen";
+// import StatisticScreen from "./screens/StatisticScreen";
+import StatisticScreen from "./screens/Statistic/StatisticScreen";
 import GoalScreen from "./screens/GoalScreen";
 import SettingScreen from "./screens/SettingScreen";
 const Stack = createStackNavigator();
@@ -104,10 +105,7 @@ export default function AppNavigator() {
         name="CreatePupilAccountScreen"
         component={CreatePupilAccountScreen}
       />
-      <Stack.Screen
-        name="NotificationScreen"
-        component={NotificationScreen}
-      />
+      <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
       <Stack.Screen name="RankScreen" component={RankScreen} />
       <Stack.Screen name="TargetScreen" component={TargetScreen} />
       <Stack.Screen name="RewardScreen" component={RewardScreen} />
@@ -150,10 +148,7 @@ export default function AppNavigator() {
         component={PracticeMultiplicationTableScreen}
       />
       <Stack.Screen name="LessonScreen" component={LessonScreen} />
-      <Stack.Screen
-        name="LessonDetailScreen"
-        component={LessonDetailScreen}
-      />
+      <Stack.Screen name="LessonDetailScreen" component={LessonDetailScreen} />
       <Stack.Screen name="ExerciseScreen" component={ExerciseScreen} />
       <Stack.Screen
         name="ExerciseDetailScreen"
