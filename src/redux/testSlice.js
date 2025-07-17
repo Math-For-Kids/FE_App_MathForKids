@@ -55,6 +55,17 @@ export const countCompletedTestPupil = createAsyncThunk(
         }
     }
 )
+export const getUserPointStatsComparison = createAsyncThunk(
+    "test/getUserPointStatsComparison",
+    async ({ pupilId, grade, ranges }, { rejectWithValue }) => {
+        try {
+            const res = await Api.get(`/test/getUserPointStatsComparison/${pupilId}?grade=${grade}&ranges=${ranges}`);
+            return res.data;
+        } catch (error) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+)
 const testsSlice = createSlice({
     name: "test",
     initialState: {
@@ -63,13 +74,18 @@ const testsSlice = createSlice({
             completedLessons: 0,
             completedTest: 0
         },
+        userpoints: null,
         tests: [],
         loading: false,
         error: null,
         createdTest: null,
         createdTestQuestion: null
     },
-    reducers: {},
+    reducers: {
+        resetUserPoints: (state) => {
+            state.userpoints = null;
+        }
+    },
     extraReducers: (builder) => {
         builder
             // Get Random Tests
@@ -123,8 +139,20 @@ const testsSlice = createSlice({
             .addCase(countCompletedTestPupil.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            .addCase(getUserPointStatsComparison.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getUserPointStatsComparison.fulfilled, (state, action) => {
+                state.loading = false;
+                state.userpoints = action.payload; // Store the object directly
+            })
+            .addCase(getUserPointStatsComparison.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
     },
 });
-
+export const { resetUserPoints } = testsSlice.actions;
 export default testsSlice.reducer;

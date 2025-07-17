@@ -21,11 +21,11 @@ export default function StepZeroInput({
   return (
     <View style={styles.stepZeroContainer}>
       <View style={styles.operatorRow}>
-        {["+", "-", "x", "÷"].map((op) => (
+        {["+", "-", "×", "÷"].map((op) => (
           <TouchableOpacity
             key={op}
             onPress={() => {
-              if (!isLock && !(isGradeOne && (op === "x" || op === "÷"))) {
+              if (!isLock && !(isGradeOne && (op === "×" || op === "÷"))) {
                 setOperator(op);
               }
             }}
@@ -33,11 +33,11 @@ export default function StepZeroInput({
               styles.operatorButton,
               operator === op ? styles.operatorActive : styles.operatorInactive,
             ]}
-            disabled={isLock || (isGradeOne && (op === "x" || op === "÷"))}
+            disabled={isLock || (isGradeOne && (op === "×" || op === "÷"))}
           >
             <View style={styles.operatorSymbolContainer}>
               <Text style={styles.operatorSymbol}>{op}</Text>
-              {isGradeOne && (op === "x" || op === "÷") && (
+              {isGradeOne && (op === "×" || op === "÷") && (
                 <View style={styles.lockOverlay}>
                   <Ionicons
                     name="lock-closed"
