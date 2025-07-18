@@ -32,8 +32,12 @@ export default function ProfileScreen({ navigation }) {
   const allPupils = useSelector((state) => state.pupil.pupils); // Get all pupils from Redux state
   const rewardCount = useSelector((state) => state.owned_reward.count); // Get reward count from Redux state
   const [rank, setRank] = useState(null); // State to store the user's rank
-  const completedExerciseData = useSelector((state) => state.completed_exercise.counts);
-  const completedLessonData = useSelector((state) => state.completedLesson.counts);
+  const completedExerciseData = useSelector(
+    (state) => state.completed_exercise.counts
+  );
+  const completedLessonData = useSelector(
+    (state) => state.completedLesson.counts
+  );
   const completedTestData = useSelector((state) => state.test.counts);
 
   // Fetch pupil data and reward count
@@ -42,10 +46,15 @@ export default function ProfileScreen({ navigation }) {
       dispatch(pupilById(pupilId));
       dispatch(countByPupilId(pupilId)); // Fetch reward count for the current pupil
       dispatch(getAllPupils()); // Fetch all pupils
-      dispatch(countCompletedExercisePupil({ pupilId, grade: pupil?.grade || "1" }))
-      dispatch(countCompletedLessonPupil({ pupilId, grade: pupil?.grade || "1" }))
-      dispatch(countCompletedTestPupil({ pupilId, grade: pupil?.grade || "1" }))
-
+      dispatch(
+        countCompletedExercisePupil({ pupilId, grade: pupil?.grade || "1" })
+      );
+      dispatch(
+        countCompletedLessonPupil({ pupilId, grade: pupil?.grade || "1" })
+      );
+      dispatch(
+        countCompletedTestPupil({ pupilId, grade: pupil?.grade || "1" })
+      );
     }
   }, [pupilId, pupil?.grade]);
 
@@ -62,8 +71,8 @@ export default function ProfileScreen({ navigation }) {
   const avatar = pupil?.image
     ? { uri: pupil.image }
     : pupil?.gender === "female"
-      ? theme.icons.avatarFemale
-      : theme.icons.avatarMale;
+    ? theme.icons.avatarFemale
+    : theme.icons.avatarMale;
 
   const achievements = [
     { icon: theme.icons.achievement, label: t("top"), value: rank || "..." },
@@ -71,7 +80,8 @@ export default function ProfileScreen({ navigation }) {
     { icon: theme.icons.badge, label: t("badge"), value: rewardCount || "0" }, // Use rewardCount from Redux
   ];
   const exerciseProgress = completedExerciseData?.totalLessons
-    ? completedExerciseData.completedExercises / completedExerciseData.totalLessons
+    ? completedExerciseData.completedExercises /
+      completedExerciseData.totalLessons
     : 0;
   const lessonProgress = completedLessonData?.totalCount
     ? completedLessonData.completedCount / completedLessonData.totalCount
@@ -148,7 +158,7 @@ export default function ProfileScreen({ navigation }) {
     },
     avatar: { width: 60, height: 60, borderRadius: 50 },
     name: {
-      width: "80%",
+      width: "70%",
       fontSize: 24,
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.blueDark,
@@ -277,7 +287,8 @@ export default function ProfileScreen({ navigation }) {
               style={styles.name}
               numberOfLines={1}
               adjustsFontSizeToFit
-              Caves minimumFontScale={0.5}
+              Caves
+              minimumFontScale={0.5}
             >
               {pupil?.fullName}
             </Text>

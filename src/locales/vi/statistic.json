@@ -31,5 +31,9 @@
   "details": "Chi tiết theo kỹ năng",
   "level": "Level",
   "correct": "Đúng",
-  "wrong": "Sai"
+  "wrong": "Sai",
+  "thisRange": "Trước",
+  "lastRange": "Sau",
+  "this": "T",
+  "last": "S"
 }

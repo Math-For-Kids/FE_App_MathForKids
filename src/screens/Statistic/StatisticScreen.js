@@ -18,6 +18,7 @@ import {
   getAnswerStats,
 } from "../../redux/statisticSlice";
 import { notificationsByUserId } from "../../redux/userNotificationSlice";
+import { getEnabledLevels } from "../../redux/levelSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import FloatingMenu from "../../components/FloatingMenu";
@@ -38,20 +39,26 @@ export default function StatisticScreen({ navigation }) {
   const pupils = useSelector((state) => state.pupil.pupils || []);
   const { pointStats, answerStats } = useSelector((state) => state.statistic);
   const notifications = useSelector((state) => state.notifications.list || []);
+  const levels = useSelector((state) => state.level.levels || []);
   const newNotificationCount = notifications.filter((n) => !n.isRead).length;
-  console.log("pointStats", JSON.stringify(pointStats, null, 2));
-  console.log("answerStats", JSON.stringify(answerStats, null, 2));
 
   const [selectedPupil, setSelectedPupil] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState("thisMonth");
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
+  const [selectedType, setSelectedType] = useState("all");
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
 
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(users?.id)
   );
-  const periods = ["thisWeek", "thisMonth", "thisQuarter"];
 
+  const getLevelNameById = (id) => {
+    const level = levels.find((lv) => lv.id === id);
+    return level?.name?.[i18n.language] || level?.name?.vi || "-";
+  };
+
+  const periods = ["thisWeek", "thisMonth", "thisQuarter"];
   const periodRanges = {
     thisWeek: ["thisWeek", "lastWeek"],
     thisMonth: ["thisMonth", "lastMonth"],
@@ -61,6 +68,7 @@ export default function StatisticScreen({ navigation }) {
   useEffect(() => {
     if (isFocused) {
       dispatch(getAllPupils());
+      dispatch(getEnabledLevels());
       dispatch(notificationsByUserId(users.id));
     }
   }, [isFocused, users?.id]);
@@ -68,7 +76,6 @@ export default function StatisticScreen({ navigation }) {
   useEffect(() => {
     if (selectedPupil && selectedPupil.grade && selectedPeriod) {
       const ranges = periodRanges[selectedPeriod] || ["thisMonth", "lastMonth"];
-      // Ensure ranges are in English
       const rangesInEnglish = ranges.map((key) => key);
 
       dispatch(
@@ -102,7 +109,18 @@ export default function StatisticScreen({ navigation }) {
     division: t("skill.div"),
   };
 
-  const chartSkills = skillTypes.map((type) => skillLabels[type]);
+  const skillTypeOptions = ["all", ...skillTypes];
+
+  const rawSkills = skillTypes.filter((type) =>
+    answerStats?.statsByType?.some((s) => s.type === type)
+  );
+
+  const validSkills =
+    selectedType === "all"
+      ? rawSkills
+      : rawSkills.filter((type) => type === selectedType);
+
+  const chartSkills = validSkills.map((type) => skillLabels[type]);
 
   const getWeightedScore = (type, rangeName) => {
     const found = pointStats?.compareByType?.find((s) => s.type === type);
@@ -119,10 +137,14 @@ export default function StatisticScreen({ navigation }) {
   const thisRange = periodRanges[selectedPeriod]?.[0];
   const lastRange = periodRanges[selectedPeriod]?.[1];
 
-  const thisMonth = skillTypes.map((type) => getWeightedScore(type, thisRange));
-  const lastMonth = skillTypes.map((type) => getWeightedScore(type, lastRange));
+  const thisMonth = validSkills.map((type) =>
+    getWeightedScore(type, thisRange)
+  );
+  const lastMonth = validSkills.map((type) =>
+    getWeightedScore(type, lastRange)
+  );
 
-  const trueRatio = skillTypes.map((type) => {
+  const trueRatio = validSkills.map((type) => {
     const found = answerStats?.statsByType?.find((s) => s.type === type);
     const data = found?.ranges?.[thisRange] || [];
     const total = data.reduce((acc, lv) => acc + lv.correct + lv.wrong, 0);
@@ -134,42 +156,67 @@ export default function StatisticScreen({ navigation }) {
   });
 
   const falseRatio = trueRatio.map((v) => 100 - v);
-  const createBarDetails = (skillTypes, answerStats, range) => {
+
+  const createBarDetails = (validSkills, answerStats, range) => {
     const bars = [];
 
-    skillTypes.forEach((type) => {
+    validSkills.forEach((type) => {
       const stat = answerStats?.statsByType?.find((s) => s.type === type);
       const rangeData = stat?.ranges?.[range] || [];
 
-      const correctTotal = rangeData.reduce((a, lv) => a + lv.correct, 0);
-      const wrongTotal = rangeData.reduce((a, lv) => a + lv.wrong, 0);
-      const total = correctTotal + wrongTotal;
+      if (!rangeData.length) {
+        bars.push({
+          percent: 0,
+          correct: 0,
+          wrong: 0,
+          type,
+        });
+        bars.push({
+          percent: 0,
+          correct: 0,
+          wrong: 0,
+          type,
+        });
+        return;
+      }
 
-      const truePercent =
-        total > 0 ? Math.round((correctTotal * 100) / total) : 0;
-      const falsePercent = 100 - truePercent;
+      const totalCorrect = rangeData.reduce((sum, lv) => sum + lv.correct, 0);
+      const totalWrong = rangeData.reduce((sum, lv) => sum + lv.wrong, 0);
+      const totalAll = totalCorrect + totalWrong;
 
-      // Lấy level đầu tiên (hoặc rỗng)
-      const firstLevel = rangeData[0] || {};
+      const percentTrue =
+        totalAll > 0 ? Math.round((totalCorrect * 100) / totalAll) : 0;
+      const percentFalse = 100 - percentTrue;
 
       bars.push({
-        percent: truePercent,
-        levelId: firstLevel.levelId || "-",
-        correct: firstLevel.correct || 0,
-        wrong: firstLevel.wrong || 0,
+        percent: percentTrue,
+        correct: totalCorrect,
+        wrong: totalWrong,
+        type,
       });
 
       bars.push({
-        percent: falsePercent,
-        levelId: firstLevel.levelId || "-",
-        correct: firstLevel.correct || 0,
-        wrong: firstLevel.wrong || 0,
+        percent: percentFalse,
+        correct: totalCorrect,
+        wrong: totalWrong,
+        type,
       });
     });
 
     return bars;
   };
-  const barDetails = createBarDetails(skillTypes, answerStats, thisRange);
+
+  const barDetails = createBarDetails(validSkills, answerStats, thisRange);
+  const barDetailsThisRange = createBarDetails(
+    validSkills,
+    answerStats,
+    thisRange
+  );
+  const barDetailsLastRange = createBarDetails(
+    validSkills,
+    answerStats,
+    lastRange
+  );
 
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
@@ -302,6 +349,48 @@ export default function StatisticScreen({ navigation }) {
           </TouchableOpacity>
         </Modal>
 
+        {/* Type Dropdown */}
+        <View style={styles.periodWrapper}>
+          <TouchableOpacity
+            onPress={() => setShowTypeDropdown(true)}
+            style={styles.gradeRow}
+          >
+            <Text style={styles.grade}>
+              {selectedType === "all"
+                ? t("allSkills")
+                : skillLabels[selectedType]}
+            </Text>
+            <Ionicons
+              name="caret-down-outline"
+              size={20}
+              color={theme.colors.blueDark}
+            />
+          </TouchableOpacity>
+        </View>
+        <Modal transparent visible={showTypeDropdown} animationType="fade">
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            onPressOut={() => setShowTypeDropdown(false)}
+          >
+            <View style={styles.dropdownDay}>
+              {skillTypeOptions.map((type, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedType(type);
+                    setShowTypeDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>
+                    {type === "all" ? t("allSkills") : skillLabels[type]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
         {/* Charts */}
         <AcademicChart
           t={t}
@@ -322,6 +411,9 @@ export default function StatisticScreen({ navigation }) {
           answerStats={answerStats}
           thisRange={thisRange}
           barDetails={barDetails}
+          rangeLabel={t(thisRange)}
+          barDetailsThis={barDetailsThisRange}
+          barDetailsLast={barDetailsLastRange}
         />
       </ScrollView>
 

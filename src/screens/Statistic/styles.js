@@ -246,5 +246,11 @@ export default function createStyles(theme) {
       color: theme.colors.black,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
+    note: {
+      fontSize: 14,
+      lineHeight: 25,
+      color: theme.colors.white,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+    },
   });
 }
