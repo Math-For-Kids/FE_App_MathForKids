@@ -257,7 +257,7 @@ export default function RankScreen({ navigation }) {
             >
               <View style={styles.leftContainer}>
                 <View style={styles.avatarContainer}>
-                  <Image source={item.image || theme.icons.top3} style={styles.avatar} />
+                  <Image source={item.image ? { uri: item.image } : theme.icons.badge} style={styles.avatar} />
                   {(index === 0 || index === 1 || index === 2) && (
                     <View style={styles.star}>
                       <AnimatedStar

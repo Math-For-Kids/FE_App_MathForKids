@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
@@ -32,6 +33,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
     skillIcon,
   } = route.params;
   // console.log("fsesfroute.params", route.params);
+  const { levels } = useSelector((state) => state.level);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");
@@ -52,7 +54,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
 
   const getQuestionColor = (question) => {
     const selected = answers[question.id];
-    return selected && selected === question.answer
+    return selected && selected === extractAnswerValue(question.answer, question.level)
       ? getCorrectBackground()
       : theme.colors.redTomato;
   };
@@ -72,9 +74,19 @@ export default function ExerciseResultScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.redDark;
     return theme.colors.pinkDark;
   };
+  const extractAnswerValue = (value, questionLevel) => {
+    const questionLevelObj = levels.find(
+      (level) => String(level.id) === String(questionLevel)
+    );
+    const isEasyLevel = questionLevelObj
+      ? questionLevelObj.level === 1 || questionLevelObj.name?.en === "Easy" : false;
+    if (isEasyLevel && typeof value === "string" && value.includes("=")) {
+      return value.split("=")[1].trim();
+    }
+    return value;
+  }
 
   const extractNumbers = (answerText) => {
-    // console.log("Extracting numbers from answerText:", answerText); // Debug log
     if (!answerText || typeof answerText !== "string") {
       console.warn("Invalid answerText:", answerText);
       return { number1: "", number2: "" };
@@ -82,18 +94,11 @@ export default function ExerciseResultScreen({ navigation, route }) {
     // Match patterns like "4 + 3 = 7" or "4 + 3" or "4+3=7" or "4+3"
     let match = answerText.match(/(\d+)\s*[\+\-\×\÷xX]\s*(\d+)/);
     if (match) {
-      // console.log("Extracted numbers:", {
-      //   number1: match[1],
-      //   number2: match[2],
-      // }); // Debug log
       return { number1: match[1], number2: match[2] };
     }
+
     match = answerText.match(/(\d+)\s*và\s+(\d+)/i);
     if (match) {
-      // console.log("Extracted number:", {
-      //   number1: match[1],
-      //   number2: match[2],
-      // });
       return { number1: match[1], number2: match[2] };
     }
     console.warn("No numbers found in answerText:", answerText);
@@ -322,7 +327,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
                   {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  {t("correctAnswer")}: {selectedQuestion.answer}
+                  {t("correctAnswer")}: {extractAnswerValue(selectedQuestion.answer, selectedQuestion.level)}
                 </Text>
 
                 <TouchableOpacity

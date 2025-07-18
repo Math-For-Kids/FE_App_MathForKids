@@ -47,7 +47,18 @@ export default function AssessmentScreen({ navigation, route }) {
     dispatch(getRandomAssessments({ grade }));
     dispatch(getEnabledLevels());
   }, []);
-
+  const extractAnswerValue = (value, questionLevel) => {
+    const questionLevelObj = levels.find(
+      (level) => String(level.id) === String(questionLevel)
+    );
+    const isEasyLevel = questionLevelObj
+      ? questionLevelObj.level === 1 || questionLevelObj.name?.en === "Easy"
+      : false;
+    if (isEasyLevel && typeof value === "string" && value.includes("=")) {
+      return value.split("=")[1].trim();
+    }
+    return value;
+  };
   // Memoize the questions array to prevent re-randomization on every render
   const questions = useMemo(() => {
     // console.log("Assessments:", assessments);
@@ -56,10 +67,15 @@ export default function AssessmentScreen({ navigation, route }) {
       const wrongOptions = (assessment.option || []).map((opt) => opt[i18n.language] || "");
       const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(Boolean);
       const shuffledOptions = allOptions
-        .map((value) => ({ value, sort: Math.random() }))
+        .map((value) => ({
+          value: extractAnswerValue(value, assessment.levelId),
+          sort: Math.random()
+        }))
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value);
-      const answerIndex = shuffledOptions.indexOf(correctAnswer);
+      const answerIndex = shuffledOptions.indexOf(
+        extractAnswerValue(correctAnswer, assessment.levelId)
+      );
       return {
         id: assessment.id || index,
         question: assessment.question?.[i18n.language],
@@ -600,7 +616,7 @@ export default function AssessmentScreen({ navigation, route }) {
                                 isSelected && styles.selectedOptionText,
                               ]}
                             >
-                              {opt}
+                              {extractAnswerValue(opt, item.levelId)}
                             </Text>
                           </TouchableOpacity>
                         );
@@ -624,7 +640,7 @@ export default function AssessmentScreen({ navigation, route }) {
                                 isSelected && styles.selectedOptionText,
                               ]}
                             >
-                              {opt}
+                              {extractAnswerValue(opt, item.levelId)}
                             </Text>
                           </TouchableOpacity>
                         );

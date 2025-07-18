@@ -33,7 +33,7 @@ export default function SkillScreen({ navigation, route }) {
     levelId,
     levelIds,
   } = route.params;
-  // console.log("skillIcon", skillIcon);
+  console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
@@ -73,7 +73,7 @@ export default function SkillScreen({ navigation, route }) {
         title,
         grade,
         pupilId,
-        skillIcon,
+        skillIcon: skillIcon,
       });
     }
   }, []);

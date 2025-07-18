@@ -21,7 +21,7 @@ import completedLessonReducer from "./completedLessonSlice";
 import testReducer from "./testSlice";
 import levelReducer from "./levelSlice";
 import assessmentReducer from "./assessmentSlice";
-
+import statisticReducer from "./statisticSlice";
 const rootReducer = combineReducers({
   auth: authReducer,
   pupil: pupilReducer,
@@ -40,8 +40,7 @@ const rootReducer = combineReducers({
   test: testReducer,
   assessment: assessmentReducer,
   completedLesson: completedLessonReducer,
-
-
+  statistic: statisticReducer,
   // thêm các reducer khác nếu cần
 });
 
