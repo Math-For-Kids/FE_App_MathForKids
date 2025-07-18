@@ -7,6 +7,7 @@ import {
   Image,
   Modal,
   Dimensions,
+  StyleSheet,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
@@ -17,17 +18,19 @@ import {
   getUserPointStatsComparison,
   getAnswerStats,
 } from "../../redux/statisticSlice";
+import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
 import { notificationsByUserId } from "../../redux/userNotificationSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import FloatingMenu from "../../components/FloatingMenu";
 import AcademicChart from "./AcademicChart";
 import TrueFalseChart from "./TrueFalseChart";
+import GoalChart from "./GoalChart";
 import createStyles from "./styles";
 
 export default function StatisticScreen({ navigation }) {
   const { theme } = useTheme();
-  const { t, i18n } = useTranslation("statistic");
+  const { t } = useTranslation("statistic");
   const screenWidth = Dimensions.get("window").width - 32;
   const styles = createStyles(theme);
 
@@ -36,57 +39,32 @@ export default function StatisticScreen({ navigation }) {
 
   const users = useSelector((state) => state.auth.user);
   const pupils = useSelector((state) => state.pupil.pupils || []);
-  const { pointStats, answerStats } = useSelector((state) => state.statistic);
+  const lessons = useSelector((state) => state.lesson.lessons || []);
+  const { pointStats, answerStats, loading, error } = useSelector(
+    (state) => state.statistic
+  );
   const notifications = useSelector((state) => state.notifications.list || []);
   const newNotificationCount = notifications.filter((n) => !n.isRead).length;
-  console.log("pointStats", JSON.stringify(pointStats, null, 2));
-  console.log("answerStats", JSON.stringify(answerStats, null, 2));
 
   const [selectedPupil, setSelectedPupil] = useState(null);
+  const [selectedSkill, setSelectedSkill] = useState(null);
+  const [selectedLesson, setSelectedLesson] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState("thisMonth");
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showPupilDropdown, setShowPupilDropdown] = useState(false);
+  const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+  const [showLessonDropdown, setShowLessonDropdown] = useState(false);
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
+  const [selectedChart, setSelectedChart] = useState("progress");
 
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(users?.id)
   );
   const periods = ["thisWeek", "thisMonth", "thisQuarter"];
-
   const periodRanges = {
     thisWeek: ["thisWeek", "lastWeek"],
     thisMonth: ["thisMonth", "lastMonth"],
     thisQuarter: ["thisQuarter", "lastQuarter"],
   };
-
-  useEffect(() => {
-    if (isFocused) {
-      dispatch(getAllPupils());
-      dispatch(notificationsByUserId(users.id));
-    }
-  }, [isFocused, users?.id]);
-
-  useEffect(() => {
-    if (selectedPupil && selectedPupil.grade && selectedPeriod) {
-      const ranges = periodRanges[selectedPeriod] || ["thisMonth", "lastMonth"];
-      // Ensure ranges are in English
-      const rangesInEnglish = ranges.map((key) => key);
-
-      dispatch(
-        getUserPointStatsComparison({
-          pupilId: selectedPupil.id,
-          grade: selectedPupil.grade,
-          ranges: rangesInEnglish,
-        })
-      );
-      dispatch(
-        getAnswerStats({
-          pupilId: selectedPupil.id,
-          grade: selectedPupil.grade,
-          ranges: rangesInEnglish,
-        })
-      );
-    }
-  }, [selectedPupil, selectedPeriod]);
 
   const skillTypes = useMemo(() => {
     if (selectedPupil?.grade === 1) {
@@ -102,10 +80,68 @@ export default function StatisticScreen({ navigation }) {
     division: t("skill.div"),
   };
 
-  const chartSkills = skillTypes.map((type) => skillLabels[type]);
+  useEffect(() => {
+    if (isFocused) {
+      dispatch(getAllPupils());
+      dispatch(notificationsByUserId(users.id));
+      if (selectedPupil && selectedPupil.grade) {
+        dispatch(
+          getLessonsByGradeAndType({
+            pupilId: selectedPupil.id,
+            grade: selectedPupil.grade,
+            type: selectedSkill || null,
+          })
+        );
+        console.log("Fetching lessons for:", {
+          pupilId: selectedPupil.id,
+          grade: selectedPupil.grade,
+          type: selectedSkill,
+        });
+      }
+    }
+  }, [isFocused, users?.id, selectedPupil, selectedSkill]);
+
+  useEffect(() => {
+    console.log("Lessons in store:", lessons);
+  }, [lessons]);
+
+  useEffect(() => {
+    if (selectedPupil && selectedPupil.grade && selectedPeriod) {
+      const ranges = periodRanges[selectedPeriod] || ["thisMonth", "lastMonth"];
+      const rangesInEnglish = ranges.map((key) => key);
+
+      dispatch(
+        getUserPointStatsComparison({
+          pupilId: selectedPupil.id,
+          grade: selectedPupil.grade,
+          ranges: rangesInEnglish,
+          lessonId: selectedLesson?.id || null,
+          skill: selectedSkill || null,
+        })
+      );
+      dispatch(
+        getAnswerStats({
+          pupilId: selectedPupil.id,
+          grade: selectedPupil.grade,
+          ranges: rangesInEnglish,
+          lessonId: selectedLesson?.id || null,
+          skill: selectedSkill || null,
+        })
+      );
+    }
+  }, [selectedPupil, selectedPeriod, selectedLesson, selectedSkill]);
+
+  const chartSkills = selectedSkill
+    ? [skillLabels[selectedSkill]]
+    : skillTypes.map((type) => skillLabels[type]);
 
   const getWeightedScore = (type, rangeName) => {
-    const found = pointStats?.compareByType?.find((s) => s.type === type);
+    if (!pointStats || !Array.isArray(pointStats.compareByType)) {
+      console.warn("pointStats.compareByType is not an array or is undefined");
+      return 0;
+    }
+
+    const found = pointStats.compareByType.find((s) => s.type === type);
     const rangeData = found?.ranges?.[rangeName];
     if (!rangeData) return 0;
 
@@ -119,37 +155,53 @@ export default function StatisticScreen({ navigation }) {
   const thisRange = periodRanges[selectedPeriod]?.[0];
   const lastRange = periodRanges[selectedPeriod]?.[1];
 
-  const thisMonth = skillTypes.map((type) => getWeightedScore(type, thisRange));
-  const lastMonth = skillTypes.map((type) => getWeightedScore(type, lastRange));
+  const thisMonth = (selectedSkill ? [selectedSkill] : skillTypes).map((type) =>
+    getWeightedScore(type, thisRange)
+  );
+  const lastMonth = (selectedSkill ? [selectedSkill] : skillTypes).map((type) =>
+    getWeightedScore(type, lastRange)
+  );
 
-  const trueRatio = skillTypes.map((type) => {
+  const trueRatio = (selectedSkill ? [selectedSkill] : skillTypes).map((type) => {
     const found = answerStats?.statsByType?.find((s) => s.type === type);
     const data = found?.ranges?.[thisRange] || [];
-    const total = data.reduce((acc, lv) => acc + lv.correct + lv.wrong, 0);
+    const total =
+      Array.isArray(data) && data.length > 0
+        ? data.reduce((acc, lv) => acc + (lv.correct || 0) + (lv.wrong || 0), 0)
+        : 0;
     return total === 0
       ? 0
       : Math.round(
-          (data.reduce((acc, lv) => acc + lv.correct, 0) * 100) / total
-        );
+        (Array.isArray(data) && data.length > 0
+          ? data.reduce((acc, lv) => acc + (lv.correct || 0), 0)
+          : 0) * 100 / total
+      );
   });
 
   const falseRatio = trueRatio.map((v) => 100 - v);
+
   const createBarDetails = (skillTypes, answerStats, range) => {
     const bars = [];
 
-    skillTypes.forEach((type) => {
+    (selectedSkill ? [selectedSkill] : skillTypes).forEach((type) => {
       const stat = answerStats?.statsByType?.find((s) => s.type === type);
-      const rangeData = stat?.ranges?.[range] || [];
+      const rangeData = Array.isArray(stat?.ranges?.[range])
+        ? stat.ranges[range]
+        : [];
 
-      const correctTotal = rangeData.reduce((a, lv) => a + lv.correct, 0);
-      const wrongTotal = rangeData.reduce((a, lv) => a + lv.wrong, 0);
+      const correctTotal =
+        rangeData.length > 0
+          ? rangeData.reduce((a, lv) => a + (lv.correct || 0), 0)
+          : 0;
+      const wrongTotal =
+        rangeData.length > 0
+          ? rangeData.reduce((a, lv) => a + (lv.wrong || 0), 0)
+          : 0;
       const total = correctTotal + wrongTotal;
 
-      const truePercent =
-        total > 0 ? Math.round((correctTotal * 100) / total) : 0;
+      const truePercent = total > 0 ? Math.round((correctTotal * 100) / total) : 0;
       const falsePercent = 100 - truePercent;
 
-      // Lấy level đầu tiên (hoặc rỗng)
       const firstLevel = rangeData[0] || {};
 
       bars.push({
@@ -170,6 +222,12 @@ export default function StatisticScreen({ navigation }) {
     return bars;
   };
   const barDetails = createBarDetails(skillTypes, answerStats, thisRange);
+
+  const filteredLessons = useMemo(() => {
+    return lessons.filter(
+      (lesson) => !selectedSkill || lesson.type === selectedSkill
+    );
+  }, [lessons, selectedSkill]);
 
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
@@ -219,110 +277,292 @@ export default function StatisticScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView>
-        {/* Pupil Dropdown */}
-        <View style={styles.gradeWrapper}>
+        {/* Chart Type Buttons */}
+        <View style={styles.chartTypeWrapper}>
           <TouchableOpacity
-            onPress={() => setShowDropdown(true)}
-            style={styles.gradeRow}
+            style={[
+              styles.chartTypeButton,
+              selectedChart === "progress" && styles.chartTypeButtonSelected,
+            ]}
+            onPress={() => setSelectedChart("progress")}
           >
-            <Text style={styles.grade}>
-              {selectedPupil?.fullName || t("selectPupil")}
+            <Text
+              style={[
+                styles.chartTypeText,
+                selectedChart === "progress" && styles.chartTypeTextSelected,
+              ]}
+            >
+              {t("progress")}
             </Text>
-            <Ionicons
-              name="caret-down-outline"
-              size={20}
-              color={theme.colors.blueDark}
-            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.chartTypeButton,
+              selectedChart === "trueFalse" && styles.chartTypeButtonSelected,
+            ]}
+            onPress={() => setSelectedChart("trueFalse")}
+          >
+            <Text
+              style={[
+                styles.chartTypeText,
+                selectedChart === "trueFalse" && styles.chartTypeTextSelected,
+              ]}
+            >
+              {t("trueFalse")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.chartTypeButton,
+              selectedChart === "goal" && styles.chartTypeButtonSelected,
+            ]}
+            onPress={() => setSelectedChart("goal")}
+          >
+            <Text
+              style={[
+                styles.chartTypeText,
+                selectedChart === "goal" && styles.chartTypeTextSelected,
+              ]}
+            >
+              {t("goal")}
+            </Text>
           </TouchableOpacity>
         </View>
-        <Modal transparent visible={showDropdown} animationType="fade">
-          <TouchableOpacity
-            style={styles.dropdown}
-            activeOpacity={1}
-            onPressOut={() => setShowDropdown(false)}
-          >
-            <View>
-              {filteredPupils.map((pupil, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedPupil(pupil);
-                    setShowDropdown(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{pupil.fullName}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </TouchableOpacity>
-        </Modal>
 
-        {/* Period Dropdown */}
-        <View style={styles.periodWrapper}>
-          <TouchableOpacity
-            onPress={() => setShowPeriodDropdown(true)}
-            style={styles.gradeRow}
-          >
-            <Text style={styles.grade}>
-              {`${t(periodRanges[selectedPeriod][0])}, ${t(
-                periodRanges[selectedPeriod][1]
-              )}`}
-            </Text>
-            <Ionicons
-              name="caret-down-outline"
-              size={20}
-              color={theme.colors.blueDark}
-            />
-          </TouchableOpacity>
+        {/* Dropdowns */}
+        <View style={styles.dropdownContainer}>
+          {/* Pupil Dropdown */}
+          <View style={styles.dropdownWrapper}>
+            <TouchableOpacity
+              style={styles.dropdownRow}
+              onPress={() => setShowPupilDropdown(true)}
+            >
+              <Text style={styles.dropdownText} numberOfLines={1}>
+                {selectedPupil?.fullName || t("selectPupil")}
+              </Text>
+              <Ionicons
+                name="caret-down-outline"
+                size={20}
+                color={theme.colors.blueDark}
+              />
+            </TouchableOpacity>
+            <Modal
+              transparent
+              visible={showPupilDropdown}
+              animationType="fade"
+              onRequestClose={() => setShowPupilDropdown(false)}
+            >
+              <TouchableOpacity
+                style={styles.dropdownModal}
+                activeOpacity={1}
+                onPressOut={() => setShowPupilDropdown(false)}
+              >
+                <View style={styles.dropdownContent}>
+                  {filteredPupils.map((pupil, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setSelectedPupil(pupil);
+                        setShowPupilDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownItemText}>
+                        {pupil.fullName}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </View>
+
+          {/* Skill Dropdown */}
+          <View style={styles.dropdownWrapper}>
+            <TouchableOpacity
+              style={styles.dropdownRow}
+              onPress={() => setShowSkillDropdown(true)}
+            >
+              <Text style={styles.dropdownText} numberOfLines={1}>
+                {selectedSkill ? skillLabels[selectedSkill] : t("selectSkill")}
+              </Text>
+              <Ionicons
+                name="caret-down-outline"
+                size={20}
+                color={theme.colors.blueDark}
+              />
+            </TouchableOpacity>
+            <Modal
+              transparent
+              visible={showSkillDropdown}
+              animationType="fade"
+              onRequestClose={() => setShowSkillDropdown(false)}
+            >
+              <TouchableOpacity
+                style={styles.dropdownModal}
+                activeOpacity={1}
+                onPressOut={() => setShowSkillDropdown(false)}
+              >
+                <View style={styles.dropdownContent}>
+                  {skillTypes.map((skill, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setSelectedSkill(skill);
+                        if (selectedLesson?.type !== skill) setSelectedLesson(null);
+                        setShowSkillDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownItemText}>
+                        {skillLabels[skill]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </View>
+
+          {/* Lesson Dropdown */}
+          <View style={styles.dropdownWrapper}>
+            <TouchableOpacity
+              style={styles.dropdownRow}
+              onPress={() => setShowLessonDropdown(true)}
+            >
+              <Text style={styles.dropdownText} numberOfLines={1}>
+                {selectedLesson?.name[t.language] || selectedLesson?.name.en || t("selectLesson")}
+              </Text>
+              <Ionicons
+                name="caret-down-outline"
+                size={20}
+                color={theme.colors.blueDark}
+              />
+            </TouchableOpacity>
+            <Modal
+              transparent
+              visible={showLessonDropdown}
+              animationType="fade"
+              onRequestClose={() => setShowLessonDropdown(false)}
+            >
+              <TouchableOpacity
+                style={styles.dropdownModal}
+                activeOpacity={1}
+                onPressOut={() => setShowLessonDropdown(false)}
+              >
+                <View style={styles.dropdownContent}>
+                  {filteredLessons.length > 0 ? (
+                    filteredLessons.map((lesson, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setSelectedLesson(lesson);
+                          setShowLessonDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>
+                          {lesson.name[t.language] || lesson.name.en || t("noLessonName")}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <Text style={styles.dropdownItemText}>
+                      {t("noLessonsAvailable")}
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </View>
+
+          {/* Period Dropdown */}
+          <View style={styles.dropdownWrapper}>
+            <TouchableOpacity
+              style={styles.dropdownRow}
+              onPress={() => setShowPeriodDropdown(true)}
+            >
+              <Text style={styles.dropdownText} numberOfLines={1}>
+                {t(periodRanges[selectedPeriod][0])}
+              </Text>
+              <Ionicons
+                name="caret-down-outline"
+                size={20}
+                color={theme.colors.blueDark}
+              />
+            </TouchableOpacity>
+            <Modal
+              transparent
+              visible={showPeriodDropdown}
+              animationType="fade"
+              onRequestClose={() => setShowPeriodDropdown(false)}
+            >
+              <TouchableOpacity
+                style={styles.dropdownModal}
+                activeOpacity={1}
+                onPressOut={() => setShowPeriodDropdown(false)}
+              >
+                <View style={styles.dropdownContent}>
+                  {periods.map((period, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setSelectedPeriod(period);
+                        setShowPeriodDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownItemText}>
+                        {t(periodRanges[period][0])}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </View>
         </View>
-        <Modal transparent visible={showPeriodDropdown} animationType="fade">
-          <TouchableOpacity
-            style={{ flex: 1 }}
-            onPressOut={() => setShowPeriodDropdown(false)}
-          >
-            <View style={styles.dropdownDay}>
-              {periods.map((period, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedPeriod(period);
-                    setShowPeriodDropdown(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>
-                    {`${t(periodRanges[period][0])}, ${t(
-                      periodRanges[period][1]
-                    )}`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </TouchableOpacity>
-        </Modal>
 
         {/* Charts */}
-        <AcademicChart
-          t={t}
-          styles={styles}
-          skills={chartSkills}
-          lastMonth={lastMonth}
-          thisMonth={thisMonth}
-          screenWidth={screenWidth}
-        />
-
-        <TrueFalseChart
-          t={t}
-          styles={styles}
-          skills={chartSkills}
-          trueRatio={trueRatio}
-          falseRatio={falseRatio}
-          screenWidth={screenWidth}
-          answerStats={answerStats}
-          thisRange={thisRange}
-          barDetails={barDetails}
-        />
+        {loading ? (
+          <Text style={styles.loadingText}>Loading statistics...</Text>
+        ) : error ? (
+          <Text style={styles.errorText}>Error: {error}</Text>
+        ) : (
+          <>
+            {selectedChart === "progress" && (
+              <AcademicChart
+                t={t}
+                styles={styles}
+                skills={chartSkills}
+                lastMonth={lastMonth}
+                thisMonth={thisMonth}
+                screenWidth={screenWidth}
+              />
+            )}
+            {selectedChart === "trueFalse" && (
+              <TrueFalseChart
+                t={t}
+                styles={styles}
+                skills={chartSkills}
+                trueRatio={trueRatio}
+                falseRatio={falseRatio}
+                screenWidth={screenWidth}
+                answerStats={answerStats}
+                thisRange={thisRange}
+                barDetails={barDetails}
+              />
+            )}
+            {selectedChart === "goal" && (
+              <GoalChart
+                t={t}
+                styles={styles}
+                skills={chartSkills}
+                screenWidth={screenWidth}
+              />
+            )}
+          </>
+        )}
       </ScrollView>
 
       <FloatingMenu />

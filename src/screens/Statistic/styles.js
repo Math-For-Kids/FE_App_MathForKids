@@ -79,6 +79,11 @@ export default function createStyles(theme) {
       width: 30,
       height: 30,
     },
+    dropdownpupil: {
+      flexDirection: "row",
+      justifyContent: "center",
+      padding: 10,
+    },
     gradeWrapper: {
       flexDirection: "row",
       alignItems: "center",
@@ -114,14 +119,14 @@ export default function createStyles(theme) {
       gap: 5,
     },
     periodWrapper: {
-      width: "60%",
+      width: "45%",
+      alignSelf: "flex-end",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 20,
       paddingVertical: 6,
-      marginTop: 20,
-      marginHorizontal: 20,
+      marginLeft: 20,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
       // elevation: 3,
@@ -157,7 +162,7 @@ export default function createStyles(theme) {
       // elevation: 20,
     },
     academicChartContainer: {
-      marginTop: 80,
+      marginTop: 10,
       alignItems: "center",
     },
     chartName: {
@@ -266,6 +271,82 @@ export default function createStyles(theme) {
     filterTextSelected: {
       color: "#fff",
       fontWeight: "bold",
+    },
+    chartTypeWrapper: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginHorizontal: 16,
+      marginVertical: 10,
+    },
+    chartTypeButton: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      backgroundColor: theme.colors.white,
+      borderRadius: 8,
+      alignItems: "center",
+      marginHorizontal: 4,
+      borderWidth: 1,
+      borderColor: theme.colors.blueDark,
+    },
+    chartTypeButtonSelected: {
+      backgroundColor: theme.colors.green,
+    },
+    chartTypeText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.colors.blueDark,
+    },
+    chartTypeTextSelected: {
+      color: theme.colors.white,
+    },
+    dropdownContainer: {
+      flexDirection: "column",
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    dropdownWrapper: {
+      marginBottom: 8,
+    },
+    dropdownRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 10,
+      backgroundColor: theme.colors.white,
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
+    },
+    dropdownText: {
+      fontSize: 14,
+      color: theme.colors.blueDark,
+      flex: 1,
+    },
+    dropdownModal: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    dropdownContent: {
+      backgroundColor: theme.colors.white,
+      borderRadius: 10,
+      padding: 10,
+      width: "80%",
+      maxHeight: "50%",
+    },
+    loadingText: {
+      fontSize: 16,
+      color: theme.colors.blueDark,
+      textAlign: "center",
+      marginTop: 20,
+    },
+    errorText: {
+      fontSize: 16,
+      color: theme.colors.red,
+      textAlign: "center",
+      marginTop: 20,
     },
   });
 }

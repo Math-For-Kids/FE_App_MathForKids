@@ -107,14 +107,14 @@ export default function PracticeMultiplicationTableScreen({
         score: finalScore,
         correctCount: newCorrectCount,
         wrongCount: newWrongCount,
-        skillName,
-        expression,
-        lessonId,
-        levelIds,
-        pupilId,
-        title,
-        grade,
-        skillIcon: skillIcon,
+        // skillName,
+        // expression,
+        // lessonId,
+        // levelIds,
+        // pupilId,
+        // title,
+        // grade,
+        // skillIcon: skillIcon,
       });
     }
   };
