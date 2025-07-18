@@ -246,5 +246,26 @@ export default function createStyles(theme) {
       color: theme.colors.black,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
+    filterContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginVertical: 10,
+    },
+    filterButton: {
+      padding: 10,
+      borderRadius: 5,
+      backgroundColor: "#e0e0e0",
+    },
+    filterButtonSelected: {
+      backgroundColor: "#007AFF",
+    },
+    filterText: {
+      fontSize: 14,
+      color: "#000",
+    },
+    filterTextSelected: {
+      color: "#fff",
+      fontWeight: "bold",
+    },
   });
 }

@@ -45,10 +45,10 @@ export default function AccountScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(userId)
   );
-  // console.log("filteredPupils", filteredPupils);
+  console.log("filteredPupils", userId);
   useEffect(() => {
     if (isFocused && userId) {
-      dispatch(getAllPupils())
+      dispatch(getAllPupils(userId))
         .unwrap()
         .catch((err) => {
           const msg =

@@ -16,10 +16,10 @@ export const createPupil = createAsyncThunk(
 
 // Thunk: Lấy danh sách tất cả học sinh
 export const getAllPupils = createAsyncThunk(
-  "pupil/getAll",
-  async (_, { rejectWithValue }) => {
+  "pupil/getEnabledPupil",
+  async (userId, { rejectWithValue }) => {
     try {
-      const res = await Api.get("/pupil");
+      const res = await Api.get(`/pupil/getEnabledPupil/${userId}`);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -93,7 +93,7 @@ const pupilSlice = createSlice({
       })
       .addCase(getAllPupils.fulfilled, (state, action) => {
         state.loading = false;
-        state.pupils = action.payload.data || [];
+        state.pupils = action.payload || [];
         state.nextPageToken = action.payload.nextPageToken || null;
       })
       .addCase(getAllPupils.rejected, (state, action) => {

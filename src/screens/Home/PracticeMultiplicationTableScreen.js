@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
@@ -108,6 +109,12 @@ export default function PracticeMultiplicationTableScreen({
         wrongCount: newWrongCount,
         skillName,
         expression,
+        lessonId,
+        levelIds,
+        pupilId,
+        title,
+        grade,
+        skillIcon: skillIcon,
       });
     }
   };
