@@ -53,8 +53,6 @@ export default function TestScreen({ navigation, route }) {
   const [finalScore, setFinalScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
-  // const currentQ = tests[currentQuestion - 1];
-  // const totalQuestions = tests.length;
   const validTests = tests.filter((item) => item.question && item.answer);
   const totalQuestions = validTests.length;
   const currentQ = validTests[currentQuestion - 1];
@@ -82,7 +80,6 @@ export default function TestScreen({ navigation, route }) {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timerRef.current);
   }, [validTests.length, t, showResultModal]);
 
@@ -103,9 +100,9 @@ export default function TestScreen({ navigation, route }) {
         .map((option, index) => ({
           value: option,
           id: `${currentQ.id}-option-${index}`, // Unique ID for each option
-        }))
-        .sort(() => Math.random() - 0.5);
-
+          levelId: currentQ.levelId || currentQ.level,
+        })
+      ).sort(() => Math.random() - 0.5);
       setShuffledOptions((prev) => ({
         ...prev,
         [currentQ.id]: options,
@@ -145,9 +142,21 @@ export default function TestScreen({ navigation, route }) {
     ]).start();
   }, [currentQuestion, validTests.length, showResultModal]);
 
-  const handleAnswer = (val) => {
+  const extractAnswerValue = (value, questionLevel) => {
+    const questionLevelObj = levels.find(
+      (level) => String(level.id) === String(questionLevel)
+    );
+    const isEasyLevel = questionLevelObj
+      ? questionLevelObj.level === 1 : false;
+    if (isEasyLevel && typeof value === "string" && value.includes("=")) {
+      return value.split("=")[1].trim();
+    }
+    return value;
+  }
+
+  const handleAnswer = (val, levelId) => {
     if (!currentQ) return;
-    setUserAnswers((prev) => ({ ...prev, [currentQ.id]: val }));
+    setUserAnswers((prev) => ({ ...prev, [currentQ.id]: extractAnswerValue(val, levelId) }));
     if (currentQuestion < validTests.length) {
       setTimeout(() => {
         setCurrentQuestion(currentQuestion + 1);
@@ -163,7 +172,6 @@ export default function TestScreen({ navigation, route }) {
 
   const calculateScore = () => {
     if (!validTests.length) {
-      // console.log("No tests available");
       return { score: 0, correct: 0, wrong: 0 };
     }
     let rawScore = 0;
@@ -178,7 +186,7 @@ export default function TestScreen({ navigation, route }) {
       const questionLevel = questionLevelObj ? questionLevelObj.level : 1;
       maxScore += questionLevel;
 
-      if (userAnswers[q.id] !== undefined && userAnswers[q.id] === q.answer) {
+      if (userAnswers[q.id] !== undefined && userAnswers[q.id] === extractAnswerValue(q.answer, q.levelId)) {
         rawScore += questionLevel;
         correct++;
       } else if (userAnswers[q.id] !== undefined) {
@@ -187,18 +195,6 @@ export default function TestScreen({ navigation, route }) {
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
-    // console.log(
-    //   "Calculate Results - Raw Score:",
-    //   rawScore,
-    //   "Max Score:",
-    //   maxScore,
-    //   "Correct:",
-    //   correct,
-    //   "Wrong:",
-    //   wrong,
-    //   "Score:",
-    //   Math.round(score)
-    // );
     return { score: Math.round(score), correct, wrong };
   };
 
@@ -253,7 +249,6 @@ export default function TestScreen({ navigation, route }) {
             createMultipleTestQuestions(questionPayloads)
           ).unwrap();
         }
-
         await dispatch(getGoalsWithin30Days(pupilId));
         setShowResultModal(true);
 
@@ -781,15 +776,14 @@ export default function TestScreen({ navigation, route }) {
               key={option.id} // Use unique ID from shuffled options
               style={[
                 styles.answerButton,
-                userAnswers[currentQ.id] === option.value
+                userAnswers[currentQ.id] === extractAnswerValue(option.value, option.levelId)
                   ? styles.answerSelectedButton
                   : null,
               ]}
               onPress={() => handleAnswer(option.value)}
             >
-              <Text style={styles.answerText}>
-                {option.value?.[i18n.language]}
-              </Text>
+              <Text style={styles.answerText}>{extractAnswerValue(option.value?.[i18n.language], option.levelId)}</Text>
+
             </TouchableOpacity>
           ))}
         </View>

@@ -45,7 +45,6 @@ export default function AccountScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(userId)
   );
-  // console.log("filteredPupils", filteredPupils);
   useEffect(() => {
     if (isFocused && userId) {
       dispatch(getAllPupils(userId))

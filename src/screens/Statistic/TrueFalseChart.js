@@ -1,258 +1,394 @@
-import React, { useState } from "react";
-import { View, Text } from "react-native";
-import { BarChart } from "react-native-chart-kit";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, Image, Dimensions } from "react-native";
+import { BarChart } from "react-native-gifted-charts";
+import { LineChart } from "react-native-chart-kit";
+import moment from "moment";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "../../themes/ThemeContext";
+import { Fonts } from "../../../constants/Fonts";
+const screenWidth = Dimensions.get("window").width;
+const sanitize = (value) =>
+  Number.isFinite(value) && !isNaN(value) ? value : 0;
 
 export default function TrueFalseChart({
   t,
   styles,
-  skills,
-  trueRatio,
-  falseRatio,
-  screenWidth,
-  thisRange,
-  rangeLabel,
-  barDetailsThis = [],
-  barDetailsLast = [],
+  accuracyByMonth = [],
+  retryList = [],
+  correct = 0,
+  wrong = 0,
+  total = 0,
+  data = [],
+  weakSkills = [],
+  rangeType = "month",
 }) {
-  const [selectedSkillIndex, setSelectedSkillIndex] = useState(null);
-
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language;
+  const { theme } = useTheme();
+  const [selectedPoint, setSelectedPoint] = useState(null);
+  const [selectedBarIndex, setSelectedBarIndex] = useState(null);
+  const [selectedBarLevelIndex, setSelectedBarLevelIndex] = useState(null);
+  // Tim levelName theo exerciseId
+  const enrichedRetryList = retryList.map((retryItem) => {
+    const match = data.find((item) => item.exerciseId === retryItem.exerciseId);
+    return {
+      ...retryItem,
+      levelName:
+        match?.levelName?.[i18n.language] || match?.levelName?.en || null,
+    };
+  });
+  // Xử lý label hiển thị theo rangeType
+  const getLabelFromRange = (rangeKey) => {
+    if (rangeType === "week") return t("week") + " " + rangeKey.split("-W")[1];
+    if (rangeType === "quarter")
+      return t("quarter") + " " + rangeKey.split("-Q")[1];
+    return moment(rangeKey).format("MM/YYYY");
+  };
   const chartData = {
-    labels: [
-      `${t("true")}(${t("last")})`,
-      `${t("true")}(${t("this")})`,
-      `${t("false")}(${t("last")})`,
-      `${t("false")}(${t("this")})`,
-      "", // cho cột dummy nếu có
-    ],
+    labels: accuracyByMonth.map((m) => getLabelFromRange(m.range)),
     datasets: [
       {
-        data: skills
-          .flatMap((_, i) => {
-            const idx = i * 2;
-            return [
-              barDetailsLast[idx]?.percent || 0, // đúng (last)
-              barDetailsThis[idx]?.percent || 0, // đúng (this)
-              barDetailsLast[idx + 1]?.percent || 0, // sai (last)
-              barDetailsThis[idx + 1]?.percent || 0, // sai (this)
-            ];
-          })
-          .concat(100), // dummy spacer
-        colors: skills
-          .flatMap(() => [
-            () => "#648568ff", // đúng (last)
-            () => styles.noteTrue.backgroundColor, // đúng (this)
-            () => "#754b4bff", // sai (last)
-            () => styles.noteFalse.backgroundColor, // sai (this)
-          ])
-          .concat(() => "#fff"),
+        data: accuracyByMonth.map((m) => sanitize(m.accuracy)),
+        color: () => theme.colors.blueDark,
+        strokeWidth: 2,
+      },
+      {
+        data: accuracyByMonth.map((m) => sanitize(100 - m.accuracy)),
+        color: () => theme.colors.redTomato,
+        strokeWidth: 2,
       },
     ],
+    legend: [t("correct"), t("wrong")],
   };
-
-  const chartConfig = {
-    backgroundGradientFrom: styles.container.backgroundColor || "#fff",
-    backgroundGradientTo: styles.container.backgroundColor || "#fff",
-    decimalPlaces: 0,
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    labelColor: () => styles.noteText.color || "#000",
-    propsForBackgroundLines: {
-      stroke: "#e3e3e3",
-    },
-    barPercentage: 0.65,
-  };
-
-  const chartHeight = 215;
-  const maxPercent = 110;
-
-  const renderBarLabels = () => {
-    if (selectedSkillIndex === null) return null;
-    const realSkillCount = skills.length;
-    if (selectedSkillIndex >= realSkillCount) return null;
-    const columnWidth = screenWidth / (realSkillCount * 4);
-    if (selectedSkillIndex * 4 + 3 >= barDetailsThis.length) return null;
-
-    const startIdx = selectedSkillIndex * 4;
-    const barThisTrue = barDetailsThis[startIdx + 2];
-    const barThisFalse = barDetailsThis[startIdx + 3];
-    const barLastTrue = barDetailsLast[startIdx];
-    const barLastFalse = barDetailsLast[startIdx + 1];
-
-    const left = columnWidth * startIdx + columnWidth;
-    const top =
-      chartHeight -
-      ((barThisTrue?.percent || 0) / maxPercent) * chartHeight -
-      200;
-
-    return (
-      <View
-        pointerEvents="none"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: screenWidth,
-          height: chartHeight,
-        }}
-      >
-        <View
-          style={{
-            position: "absolute",
-            left,
-            top: Math.max(0, top),
-            width: 120,
-            alignItems: "flex-start",
-            backgroundColor: "#fff",
-            padding: 6,
-            borderRadius: 6,
-            borderWidth: 1,
-            borderColor: "#ccc",
-            shadowColor: "#000",
-            shadowOpacity: 0.1,
-            shadowRadius: 2,
-          }}
-        >
-          <Text style={{ fontSize: 12, fontWeight: "bold" }}>
-            {skills[selectedSkillIndex]}
-          </Text>
-          <Text style={{ fontSize: 10, color: "#333" }}>
-            {t("thisRange")} - {t("correct")}: {barThisTrue?.correct || 0},{" "}
-            {t("wrong")}: {barThisFalse?.wrong || 0}
-          </Text>
-          <Text style={{ fontSize: 10, color: "#666" }}>
-            {t("lastRange")} - {t("correct")}: {barLastTrue?.correct || 0},{" "}
-            {t("wrong")}: {barLastFalse?.wrong || 0}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-
-  const avgTrue = trueRatio.reduce((a, b) => a + b, 0) / trueRatio.length || 0;
-  const avgFalse = 100 - avgTrue;
-
-  const summaryComment = t("summaryTF", {
-    true: Math.round(avgTrue),
-    false: Math.round(avgFalse),
+  //Bieu do hieu xuat
+  const resultByRange = {};
+  // Gom dữ liệu đúng/sai theo từng rangeKey
+  accuracyByMonth.forEach((m) => {
+    resultByRange[m.range] = { correct: m.correct, wrong: m.wrong };
   });
+  // Sắp xếp các range theo thời gian
+  const sortedRanges = Object.keys(resultByRange).sort();
+  // Tạo dữ liệu cho stackedBar chart
+  const stackedBarData = sortedRanges.map((range, index) => ({
+    label: getLabelFromRange(range),
+    stacks: [
+      { value: resultByRange[range].correct, color: theme.colors.green },
+      { value: resultByRange[range].wrong, color: theme.colors.redDark },
+    ],
+    onPress: () => setSelectedBarIndex(index),
+  }));
 
-  const detailedComments = skills.map((skill, i) => {
-    const correct = trueRatio[i];
-    const incorrect = falseRatio[i];
-    if (correct >= 90) {
-      return `${skill}: ${t("excellentAccuracy", { correct })}`;
-    } else if (correct >= 70) {
-      return `${skill}: ${t("goodAccuracy", { correct, incorrect })}`;
+  const chartHeight = 240;
+  const maxValue = 30;
+  const unitHeight = chartHeight / maxValue;
+  const barWidth = 28;
+  const spacing = 40;
+  const leftOffset = 16;
+  const tooltipWidth = selectedBarIndex === 0 ? -135 : -195;
+  const totals =
+    stackedBarData[selectedBarIndex]?.stacks?.reduce(
+      (sum, s) => sum + s.value,
+      0
+    ) || 0;
+  const offset = 45;
+
+  const topOffset = chartHeight - totals * unitHeight - offset;
+  const left =
+    leftOffset +
+    selectedBarIndex * (barWidth + spacing) +
+    barWidth / 2 -
+    tooltipWidth / 2;
+
+  // Bieu do cau dung sai theo cao do
+  const resultByLevel = {};
+  data.forEach((item) => {
+    const level =
+      item.levelName?.[i18n.language] || item.levelName?.en || "Unknown";
+    if (!resultByLevel[level]) {
+      resultByLevel[level] = { correct: 0, wrong: 0 };
+    }
+    resultByLevel[level][item.isCorrect ? "correct" : "wrong"] += 1;
+  });
+  const levelLabels = Object.keys(resultByLevel);
+  const stackedLevelData = levelLabels.map((level, index) => {
+    const { correct, wrong } = resultByLevel[level];
+    const total = correct + wrong;
+    const correctPercent = total > 0 ? (correct / total) * 100 : 0;
+    const wrongPercent = total > 0 ? (wrong / total) * 100 : 0;
+    return {
+      label: level,
+      stacks: [
+        { value: correctPercent, color: theme.colors.greenDark },
+        { value: wrongPercent, color: theme.colors.redTomato },
+      ],
+      onPress: () => setSelectedBarLevelIndex(index),
+    };
+  });
+  const yAxisLabelTexts = Array.from({ length: 11 }, (_, i) => `${i * 10}%`);
+  // Thong ke cau dung/sai nhieu nhat o level nao
+  const levelStats = {};
+  data.forEach((item) => {
+    const levelName = item.levelName?.vi || item.levelName?.en || "Unknown";
+    if (!levelStats[levelName]) {
+      levelStats[levelName] = { correct: 0, wrong: 0 };
+    }
+    if (item.isCorrect) {
+      levelStats[levelName].correct += 1;
     } else {
-      return `${skill}: ${t("lowAccuracy", { correct })}`;
+      levelStats[levelName].wrong += 1;
     }
   });
+  // Tìm level sai nhiều nhất
+  const mostWrongLevel = Object.entries(levelStats).reduce(
+    (max, [level, stats]) => {
+      return stats.wrong > (max?.stats?.wrong || 0) ? { level, stats } : max;
+    },
+    null
+  );
+  // Tìm level đúng nhiều nhất
+  const mostCorrectLevel = Object.entries(levelStats).reduce(
+    (max, [level, stats]) => {
+      return stats.correct > (max?.stats?.correct || 0)
+        ? { level, stats }
+        : max;
+    },
+    null
+  );
+  useEffect(() => {
+    if (selectedBarIndex !== null) {
+      const timeout = setTimeout(() => {
+        setSelectedBarIndex(null);
+      }, 3000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [selectedBarIndex]);
+  useEffect(() => {
+    if (selectedBarLevelIndex !== null) {
+      const timeout = setTimeout(() => {
+        setSelectedBarLevelIndex(null);
+      }, 3000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [selectedBarLevelIndex]);
 
   return (
-    <>
-      <View style={styles.tfChartContainer}>
-        <Text style={styles.chartName}>{t("trueFalseRatio")}</Text>
-
-        <View style={{ position: "relative" }}>
-          <BarChart
+    <ScrollView contentContainerStyle={styles.containerTF}>
+      {/* Biểu đồ Accuracy */}
+      {accuracyByMonth.length > 0 && (
+        <>
+          <Text style={styles.chartTitle}>{t("accuracyOverTime")}</Text>
+          <LineChart
             data={chartData}
-            width={screenWidth}
-            height={250}
+            width={screenWidth - 32}
+            height={240}
             fromZero
-            segments={4}
-            chartConfig={chartConfig}
-            showBarTops={false}
-            withInnerLines
-            withHorizontalLabels
-            withCustomBarColorFromData
-            flatColor
+            yAxisSuffix="%"
+            chartConfig={{
+              backgroundGradientFrom: theme.colors.white,
+              backgroundGradientTo: theme.colors.white,
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+              labelColor: () => theme.colors.black,
+              propsForDots: {
+                r: "5",
+                strokeWidth: "2",
+                stroke: theme.colors.white,
+              },
+            }}
+            bezier
+            style={{ marginVertical: 8, borderRadius: 16 }}
+            onDataPointClick={({ value, index, dataset, x, y }) => {
+              setSelectedPoint({ value, index, datasetIndex: dataset, x, y });
+              setTimeout(() => setSelectedPoint(null), 3000);
+            }}
+            renderDotContent={({ x, y, index }) =>
+              selectedPoint?.index === index &&
+              selectedPoint?.x === x &&
+              selectedPoint?.y === y ? (
+                <View
+                  key={`dot-${index}`}
+                  style={{
+                    position: "absolute",
+                    top: y - 300,
+                    left: x - 20,
+                    backgroundColor: theme.colors.red,
+                    padding: 4,
+                    borderRadius: 4,
+                  }}
+                >
+                  <Text style={{ color: theme.colors.white, fontSize: 10 }}>
+                    {selectedPoint.value.toFixed(1)}%
+                  </Text>
+                </View>
+              ) : null
+            }
           />
-          {renderBarLabels()}
-        </View>
+        </>
+      )}
 
-        {/* Label kỹ năng để chọn */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-around",
-            marginTop: 8,
-            paddingHorizontal: 10,
-          }}
-        >
-          {skills.map((skill, i) => {
-            const isSelected = selectedSkillIndex === i;
+      {/* Biểu đồ đúng/sai theo tháng */}
+      {stackedBarData.length > 0 && (
+        <>
+          <Text style={styles.chartTitle}>{t("correctWrongByMonth")}</Text>
+          <View style={styles.chartWrapper}>
+            <BarChart
+              stackData={stackedBarData}
+              barWidth={40}
+              spacing={60}
+              height={240}
+              yAxisColor={{ color: theme.colors.black }}
+              xAxisColor={{ color: theme.colors.black }}
+              xAxisLabelTextStyle={styles.chartAxisLabel}
+              yAxisTextStyle={styles.chartAxisText}
+              showValuesOnTopOfBars
+              selectedIndex={selectedBarIndex}
+              showTooltip={false}
+            />
+            {selectedBarIndex !== null && (
+              <View style={styles.tooltipContainer}>
+                <Text style={styles.tooltipText}>
+                  {t("total")}:{" "}
+                  {stackedBarData[selectedBarIndex]?.stacks[0].value +
+                    stackedBarData[selectedBarIndex]?.stacks[1].value}
+                </Text>
+                <Text style={styles.correctText}>
+                  {t("correct")}:{" "}
+                  {stackedBarData[selectedBarIndex]?.stacks[0].value}
+                </Text>
+                <Text style={styles.wrongText}>
+                  {t("wrong")}:{" "}
+                  {stackedBarData[selectedBarIndex]?.stacks[1].value}
+                </Text>
+              </View>
+            )}
+          </View>
+        </>
+      )}
+
+      {/* Tinh theo level */}
+      {stackedLevelData.length > 0 && (
+        <>
+          <Text style={styles.chartTitle}>{t("accuracyByLevel")}</Text>
+          <View style={styles.chartWrapperWithMargin}>
+            <BarChart
+              stackData={stackedLevelData}
+              barWidth={40}
+              spacing={40}
+              height={240}
+              yAxisColor={{ color: theme.colors.black }}
+              xAxisColor={{ color: theme.colors.black }}
+              maxValue={100}
+              yAxisLabelTexts={yAxisLabelTexts}
+              xAxisLabelTextStyle={styles.chartAxisLabel}
+              yAxisTextStyle={styles.chartAxisText}
+              showValuesOnTopOfBars={true}
+            />
+            {selectedBarLevelIndex !== null && (
+              <View style={styles.levelTooltipContainer}>
+                <Text style={styles.levelLabel}>
+                  {levelLabels[selectedBarLevelIndex]}
+                </Text>
+                <Text style={styles.levelCorrect}>
+                  {t("correct")}:{" "}
+                  {resultByLevel[levelLabels[selectedBarLevelIndex]].correct} (
+                  {sanitize(
+                    (resultByLevel[levelLabels[selectedBarLevelIndex]].correct /
+                      (resultByLevel[levelLabels[selectedBarLevelIndex]]
+                        .correct +
+                        resultByLevel[levelLabels[selectedBarLevelIndex]]
+                          .wrong)) *
+                      100
+                  ).toFixed(1)}
+                  %)
+                </Text>
+                <Text style={styles.levelWrong}>
+                  {t("wrong")}:{" "}
+                  {resultByLevel[levelLabels[selectedBarLevelIndex]].wrong} (
+                  {sanitize(
+                    (resultByLevel[levelLabels[selectedBarLevelIndex]].wrong /
+                      (resultByLevel[levelLabels[selectedBarLevelIndex]]
+                        .correct +
+                        resultByLevel[levelLabels[selectedBarLevelIndex]]
+                          .wrong)) *
+                      100
+                  ).toFixed(1)}
+                  %)
+                </Text>
+              </View>
+            )}
+          </View>
+        </>
+      )}
+
+      {/* Tổng quan */}
+      <View style={styles.summaryTFContainer}>
+        <Text style={styles.summaryTitle}>{t("summary")}</Text>
+        <Text style={styles.summaryItem}>
+          {t("correct")}: {correct} / {total} (
+          {sanitize((correct / total) * 100).toFixed(1)}%)
+        </Text>
+        <Text style={styles.summaryItem}>
+          {t("wrong")}: {wrong}
+        </Text>
+        {weakSkills.length > 0 && (
+          <Text style={styles.summaryItem}>
+            {t("weakSkills")}: {weakSkills.map((s) => t(s)).join(", ")}
+          </Text>
+        )}
+        {accuracyByMonth.length > 1 &&
+          (() => {
+            const [current, previous] = [
+              accuracyByMonth[0]?.accuracy || 0,
+              accuracyByMonth[1]?.accuracy || 0,
+            ];
+            const diff = sanitize(previous - current);
             return (
-              <Text
-                key={i}
-                onPress={() => setSelectedSkillIndex(isSelected ? null : i)}
-                style={{
-                  fontSize: 14,
-                  fontWeight: isSelected ? "bold" : "normal",
-                  color: isSelected ? "#ffffffff" : "#000",
-                }}
-              >
-                {skill}
+              <Text style={styles.summaryItem}>
+                {t("accuracyChange")}: {diff >= 0 ? "▲" : "▼"}{" "}
+                {Math.abs(diff).toFixed(1)}% (
+                {t(diff >= 0 ? "improved" : "declined")})
               </Text>
             );
-          })}
-        </View>
-      </View>
+          })()}
 
-      {/* Chú thích */}
-      <View style={styles.chartNoteContainer}>
-        <View>
-          <View style={styles.chartNote}>
-            <View
-              style={{
-                width: 14,
-                height: 14,
-                backgroundColor: "#91caff",
-                marginRight: 4,
-              }}
-            />
-            <Text style={styles.note}>
-              {t("true")} ({t("lastRange")})
-            </Text>
-          </View>
-          <View style={styles.chartNote}>
-            <View
-              style={{
-                width: 14,
-                height: 14,
-                backgroundColor: "#fcb3b3",
-                marginRight: 4,
-              }}
-            />
-            <Text style={styles.note}>
-              {t("false")} ({t("lastRange")})
-            </Text>
-          </View>
-        </View>
-        <View>
-          <View style={styles.chartNote}>
-            <View style={[styles.noteTrue, { marginRight: 4 }]} />
-            <Text style={styles.note}>
-              {t("true")} ({t("thisRange")})
-            </Text>
-          </View>
-          <View style={styles.chartNote}>
-            <View style={[styles.noteFalse, { marginRight: 4 }]} />
-            <Text style={styles.note}>
-              {t("false")} ({t("thisRange")})
-            </Text>
-          </View>
-        </View>
-      </View>
-      {/* Nhận xét */}
-      <View style={styles.commentContainer}>
-        <Text style={styles.commentTitle}>{t("summary")}</Text>
-        <Text style={styles.commentText}>{summaryComment}</Text>
-        <Text style={styles.commentTitle}>{t("skillComments")}</Text>
-        {detailedComments.map((line, idx) => (
-          <Text key={idx} style={styles.commentText}>
-            {line}
+        {mostWrongLevel && (
+          <Text style={styles.summaryItem}>
+            {t("mostWrongLevel")}: {mostWrongLevel.level} (
+            {mostWrongLevel.stats.wrong} {t("times")})
           </Text>
-        ))}
+        )}
+
+        {mostCorrectLevel && (
+          <Text style={styles.summaryItem}>
+            {t("mostCorrectLevel")}: {mostCorrectLevel.level} (
+            {mostCorrectLevel.stats.correct} {t("times")})
+          </Text>
+        )}
       </View>
-    </>
+      {/* Danh sách cần luyện lại */}
+      {enrichedRetryList.length > 0 && (
+        <View style={styles.retryContainer}>
+          <Text style={styles.retryTitle}>{t("shouldRetry")}</Text>
+          {enrichedRetryList.map((r, i) => (
+            <View key={i} style={styles.retryItem}>
+              <Text style={styles.retryText}>
+                {r.question?.[currentLang] || r.question?.en || t("noQuestion")}
+              </Text>
+              {r.image && (
+                <Image source={{ uri: r.image }} style={styles.retryImage} />
+              )}
+              <Text style={styles.retryCount}>
+                {t("wrongTimes")}: {r.wrongTimes}
+              </Text>
+              <Text style={styles.retryCount}>
+                {t("level")}: {r.levelName}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </ScrollView>
   );
 }

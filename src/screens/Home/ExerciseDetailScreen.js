@@ -77,7 +77,21 @@ export default function ExerciseScreen({ navigation, route }) {
   const isExpression = (value) =>
     (typeof value === "string" && value.includes("=")) || value.length >= 6;
 
-  const handleSelect = (questionId, value, optionIndex) => {
+  const extractAnswerValue = (value, questionLevel) => {
+    const questionLevelObj = levels.find(
+      (level) => String(level.id) === String(questionLevel)
+    );
+    const isEasyLevel = questionLevelObj
+      ? questionLevelObj.level === 1 || questionLevelObj.name.en === "Easy"
+      : false;
+    console.log("levels:", levels, "questionLevel:", questionLevel);
+    if (isEasyLevel && typeof value === "string" && value.includes("=")) {
+      return value.split("=")[1].trim();
+    }
+    return value;
+  };
+
+  const handleSelect = (questionId, value, optionIndex, questionLevel) => {
     const optionRef = optionRefs.current[`q${questionId}-opt${optionIndex}`];
     const boxRef = boxRefs.current[`box${questionId}`];
 
@@ -88,14 +102,14 @@ export default function ExerciseScreen({ navigation, route }) {
             x: px + width / 2 - 25,
             y: py + height / 2 - 25,
           });
-          setFlyingValue(value);
+          setFlyingValue(extractAnswerValue(value, questionLevel));
           setIsFlying(true);
           Animated.timing(flyingAnim, {
             toValue: { x: bpx + bWidth / 2 - 25, y: bpy + bHeight / 2 - 25 },
             duration: 800,
             useNativeDriver: true,
           }).start(() => {
-            setSelectedAnswers((prev) => ({ ...prev, [questionId]: value }));
+            setSelectedAnswers((prev) => ({ ...prev, [questionId]: extractAnswerValue(value, questionLevel) }));
             setIsFlying(false);
           });
         });
@@ -133,7 +147,7 @@ export default function ExerciseScreen({ navigation, route }) {
       maxScore += questionLevel;
 
       const selected = selectedAnswers[q.id];
-      if (selected && selected === q.answer) {
+      if (selected && selected === extractAnswerValue(q.answer, q.level)) {
         correct++;
         rawScore += questionLevel;
       } else {
@@ -162,7 +176,7 @@ export default function ExerciseScreen({ navigation, route }) {
   };
 
   const shouldUseSingleRow = (options) =>
-    options.every((opt) => opt.length <= 5);
+    options.every((opt) => extractAnswerValue(opt, 1).length <= 5);
 
   const handleSubmit = async () => {
     if (!pupilId) {
@@ -219,8 +233,8 @@ export default function ExerciseScreen({ navigation, route }) {
     );
   };
 
-  const renderOption = (questionId, value, optIndex, style) => {
-    if (selectedAnswers[questionId] === value) return null;
+  const renderOption = (questionId, value, optIndex, style, questionLevel) => {
+    if (selectedAnswers[questionId] === extractAnswerValue(value, questionLevel)) return null;
     const optionStyle = [
       styles.option,
       style,
@@ -233,9 +247,9 @@ export default function ExerciseScreen({ navigation, route }) {
         ref={(ref) =>
           (optionRefs.current[`q${questionId}-opt${optIndex}`] = ref)
         }
-        onPress={() => handleSelect(questionId, value, optIndex)}
+        onPress={() => handleSelect(questionId, value, optIndex, questionLevel)}
       >
-        <Text style={styles.optionText}>{value}</Text>
+        <Text style={styles.optionText}>{extractAnswerValue(value, questionLevel)}</Text>
       </TouchableOpacity>
     );
   };
@@ -494,7 +508,7 @@ export default function ExerciseScreen({ navigation, route }) {
                           borderRadius: 10,
                           width: 150,
                         }),
-                      })
+                      }, q.level)
                     )}
                   </View>
                 ) : (
@@ -514,7 +528,7 @@ export default function ExerciseScreen({ navigation, route }) {
                               borderRadius: 10,
                               width: 150,
                             }),
-                          })
+                          }, q.level)
                         )}
                     </View>
                     <View
@@ -536,8 +550,7 @@ export default function ExerciseScreen({ navigation, route }) {
                                 borderRadius: 10,
                                 width: 150,
                               }),
-                            }
-                          )
+                            }, q.level)
                         )}
                     </View>
                   </>

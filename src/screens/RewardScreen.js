@@ -177,7 +177,7 @@ export default function RewardScreen({ navigation }) {
       setIsValid(item.exchangePoint <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
       const ownedNumber = owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
-      setIsValid(100 <= ownedNumber);
+      setIsValid(50 <= ownedNumber);
     }
   };
 
@@ -254,7 +254,7 @@ export default function RewardScreen({ navigation }) {
     const rewardId = selectedReward.id;
     const exchangeQuantity = parseInt(quantity, 10);
     const exchangePoint = parseInt(selectedReward.exchangePoint, 10);
-    const exchangeReward = 100;
+    const exchangeReward = 50;
     const rewardName = {
       en: selectedReward?.name?.en || t("Unknown_reward", { lng: "en" }),
       vi: selectedReward?.name?.vi || t("Unknown_reward", { lng: "vi" }),
@@ -490,7 +490,7 @@ export default function RewardScreen({ navigation }) {
           rewardImage: reward.image,
           ownedNumber: owned ? parseInt(owned.quantity, 10) : 0,
           pupilPoint: pupil ? pupil.point : 0,
-          exchangeReward: 100,
+          exchangeReward: 50,
         };
       })
       .filter((target) => target !== null && target?.id !== undefined);
@@ -506,7 +506,7 @@ export default function RewardScreen({ navigation }) {
           en: t("Unknown_reward", { id: o.rewardId }, { lng: "en" }),
         },
         exchangePoint: 0,
-        exchangeReward: 100,
+        exchangeReward: 50,
         ownedNumber: parseInt(o.quantity, 10),
         pupilPoint: pupil ? pupil.point : 0,
       }));
@@ -552,7 +552,7 @@ export default function RewardScreen({ navigation }) {
             en: t("Unknown_reward", { id: rewardId }, { lng: "en" }),
           },
           ownedNumber: rewardCountData.count || 0,
-          exchangeReward: 100,
+          exchangeReward: 50,
           pupilPoint: pupil ? pupil.point : 0,
         };
       })

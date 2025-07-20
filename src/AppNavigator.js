@@ -47,6 +47,7 @@ import StepByStepScreen from "./screens/StepByStep/StepByStepScreen";
 import StatisticScreen from "./screens/Statistic/StatisticScreen";
 import GoalScreen from "./screens/GoalScreen";
 import SettingScreen from "./screens/SettingScreen";
+import TestListScreen from "./screens/Statistic/TestListScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -127,6 +128,7 @@ export default function AppNavigator() {
         <>
           <Stack.Screen name="StatisticScreen" component={StatisticScreen} />
           <Stack.Screen name="GoalScreen" component={GoalScreen} />
+          <Stack.Screen name="TestListScreen" component={TestListScreen} />
         </>
       )}
 

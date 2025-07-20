@@ -79,6 +79,11 @@ export default function createStyles(theme) {
       width: 30,
       height: 30,
     },
+    dropdownpupil: {
+      flexDirection: "row",
+      justifyContent: "center",
+      padding: 10,
+    },
     gradeWrapper: {
       flexDirection: "row",
       alignItems: "center",
@@ -114,14 +119,14 @@ export default function createStyles(theme) {
       gap: 5,
     },
     periodWrapper: {
-      width: "60%",
+      width: "45%",
+      alignSelf: "flex-end",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 20,
       paddingVertical: 6,
-      marginTop: 20,
-      marginHorizontal: 20,
+      marginLeft: 20,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
       // elevation: 3,
@@ -157,7 +162,7 @@ export default function createStyles(theme) {
       // elevation: 20,
     },
     academicChartContainer: {
-      marginTop: 80,
+      marginTop: 10,
       alignItems: "center",
     },
     chartName: {
@@ -246,11 +251,224 @@ export default function createStyles(theme) {
       color: theme.colors.black,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
-    note: {
+    filterContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginVertical: 10,
+    },
+    filterButton: {
+      padding: 10,
+      borderRadius: 5,
+      backgroundColor: "#e0e0e0",
+    },
+    filterButtonSelected: {
+      backgroundColor: "#007AFF",
+    },
+    filterText: {
       fontSize: 14,
-      lineHeight: 25,
+      color: "#000",
+    },
+    filterTextSelected: {
+      color: "#fff",
+      fontWeight: "bold",
+    },
+    chartTypeWrapper: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginHorizontal: 16,
+      marginVertical: 10,
+    },
+    chartTypeButton: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      backgroundColor: theme.colors.white,
+      borderRadius: 8,
+      alignItems: "center",
+      marginHorizontal: 4,
+      borderWidth: 1,
+      borderColor: theme.colors.blueDark,
+    },
+    chartTypeButtonSelected: {
+      backgroundColor: theme.colors.green,
+    },
+    chartTypeText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.colors.blueDark,
+    },
+    chartTypeTextSelected: {
       color: theme.colors.white,
+    },
+    dropdownContainer: {
+      flexDirection: "column",
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    dropdownWrapper: {
+      marginBottom: 8,
+    },
+    dropdownRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 10,
+      backgroundColor: theme.colors.white,
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
+    },
+    dropdownText: {
+      fontSize: 14,
+      color: theme.colors.blueDark,
+      flex: 1,
+    },
+    dropdownModal: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    dropdownContent: {
+      backgroundColor: theme.colors.white,
+      borderRadius: 10,
+      padding: 10,
+      width: "80%",
+      maxHeight: "50%",
+    },
+    loadingText: {
+      fontSize: 16,
+      color: theme.colors.blueDark,
+      textAlign: "center",
+      marginTop: 20,
+    },
+    errorText: {
+      fontSize: 16,
+      color: theme.colors.red,
+      textAlign: "center",
+      marginTop: 20,
+    },
+    weakSkillContainer: {
+      margin: 16,
+      backgroundColor: "#ffe5e5",
+      padding: 12,
+      borderRadius: 10,
+    },
+    weakSkillTitle: {
+      fontWeight: "bold",
+      color: "#cc0000",
+    },
+    weakSkillItem: {
+      marginTop: 4,
+    },
+    retryContainer: {
+      marginVertical: 20,
+      backgroundColor: "#e6f7ff",
+      padding: 12,
+      borderRadius: 10,
+    },
+    retryTitle: {
+      fontWeight: "bold",
+      color: "#006699",
+    },
+    retryItem: {
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: "#fff",
+      borderRadius: 20,
+      padding: 10,
+    },
+    retryText: {
+      fontSize: 14,
+    },
+    retryImage: {
+      height: 100,
+      resizeMode: "contain",
+      marginVertical: 4,
+    },
+    retryCount: {
+      color: "#333",
+      fontStyle: "italic",
+    },
+    containerTF: { paddingHorizontal: 16, paddingBottom: 60 },
+    summaryTFContainer: {
+      backgroundColor: theme.colors.cardBackground,
+      padding: 10,
+      borderTopLeftRadius: 20,
+      borderBottomRightRadius: 20,
+      marginTop: 20,
+    },
+    chartTitle: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_BOLD,
+      marginBottom: 8,
+      color: theme.colors.white,
+    },
+    tooltipContainer: {
+      position: "absolute",
+      backgroundColor: theme.colors.white,
+      borderRadius: 6,
+      padding: 6,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
+      zIndex: 10,
+    },
+    tooltipText: {
+      color: theme.colors.black,
+      fontSize: 12,
       fontFamily: Fonts.NUNITO_MEDIUM,
+    },
+    correctText: {
+      color: theme.colors.green,
+      fontSize: 12,
+    },
+    wrongText: {
+      color: theme.colors.redDark,
+      fontSize: 12,
+    },
+    levelTooltipContainer: {
+      position: "absolute",
+      top: 5,
+      left: 5,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: 6,
+      padding: 6,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
+      zIndex: 10,
+    },
+    levelLabel: {
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      fontSize: 12,
+    },
+    levelCorrect: {
+      color: theme.colors.GreenDark,
+      fontSize: 12,
+    },
+    levelWrong: {
+      color: theme.colors.redTomato,
+      fontSize: 12,
+    },
+    chartWrapper: {
+      position: "relative",
+      backgroundColor: theme.colors.cardBackground,
+      padding: 12,
+      borderRadius: 12,
+    },
+    chartWrapperWithMargin: {
+      position: "relative",
+      backgroundColor: theme.colors.cardBackground,
+      padding: 12,
+      borderRadius: 12,
+      marginTop: 10,
+    },
+    chartAxisLabel: {
+      color: theme.colors.black,
+      fontSize: 12,
+    },
+    chartAxisText: {
+      color: theme.colors.black,
+      fontSize: 12,
     },
   });
 }
