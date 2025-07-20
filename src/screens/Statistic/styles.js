@@ -161,23 +161,7 @@ export default function createStyles(theme) {
       textAlign: "center",
       // elevation: 20,
     },
-    academicChartContainer: {
-      marginTop: 10,
-      alignItems: "center",
-    },
-    chartName: {
-      color: theme.colors.white,
-      fontSize: 22,
-      fontFamily: Fonts.NUNITO_MEDIUM,
-      marginBottom: 10,
-    },
-    chartNoteContainer: {
-      marginTop: 10,
-      flexDirection: "row",
-      justifyContent: "center",
-      gap: 20,
-    },
-    chartNote: { flexDirection: "row", alignItems: "center" },
+  
     tfChartContainer: { marginTop: 30, alignItems: "center" },
     noteTrue: {
       width: 12,
@@ -222,20 +206,10 @@ export default function createStyles(theme) {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.green,
     },
-    commentText: {
-      fontSize: 14,
-      fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.black,
-    },
     skillName: {
       fontWeight: "bold",
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
-    },
-    noteText: {
-      fontSize: 12,
-      color: theme.colors.black,
-      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     filterContainer: {
       flexDirection: "row",
