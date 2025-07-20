@@ -30,7 +30,7 @@ import createStyles from "./styles";
 
 export default function StatisticScreen({ navigation }) {
   const { theme } = useTheme();
-  const { t } = useTranslation("statistic");
+  const { t, i18n } = useTranslation("statistic");
   const screenWidth = Dimensions.get("window").width - 32;
   const styles = createStyles(theme);
 
@@ -79,7 +79,6 @@ export default function StatisticScreen({ navigation }) {
     multiplication: t("skill.mul"),
     division: t("skill.div"),
   };
-
   useEffect(() => {
     if (isFocused) {
       dispatch(getAllPupils());
@@ -89,25 +88,22 @@ export default function StatisticScreen({ navigation }) {
           getLessonsByGradeAndType({
             pupilId: selectedPupil.id,
             grade: selectedPupil.grade,
-            type: selectedSkill || null,
+            type: selectedSkill || null, // Raw skill key
           })
         );
         console.log("Fetching lessons for:", {
           pupilId: selectedPupil.id,
           grade: selectedPupil.grade,
-          type: selectedSkill,
+          type: selectedSkill, // Should be "addition", etc.
         });
       }
     }
   }, [isFocused, users?.id, selectedPupil, selectedSkill]);
 
-  useEffect(() => {
-    console.log("Lessons in store:", lessons);
-  }, [lessons]);
 
   useEffect(() => {
     if (selectedPupil && selectedPupil.grade && selectedPeriod) {
-      const ranges = periodRanges[selectedPeriod] || ["thisMonth", "lastMonth"];
+      const ranges = periodRanges[selectedPeriod];
       const rangesInEnglish = ranges.map((key) => key);
 
       dispatch(
@@ -116,7 +112,7 @@ export default function StatisticScreen({ navigation }) {
           grade: selectedPupil.grade,
           ranges: rangesInEnglish,
           lessonId: selectedLesson?.id || null,
-          skill: selectedSkill || null,
+          skill: selectedSkill || null, // Raw skill key
         })
       );
       dispatch(
@@ -125,23 +121,23 @@ export default function StatisticScreen({ navigation }) {
           grade: selectedPupil.grade,
           ranges: rangesInEnglish,
           lessonId: selectedLesson?.id || null,
-          skill: selectedSkill || null,
+          skill: selectedSkill || null, // Raw skill key
         })
       );
     }
   }, [selectedPupil, selectedPeriod, selectedLesson, selectedSkill]);
-
+  // In StatisticScreen.js
   const chartSkills = selectedSkill
     ? [skillLabels[selectedSkill]]
     : skillTypes.map((type) => skillLabels[type]);
 
   const getWeightedScore = (type, rangeName) => {
     if (!pointStats || !Array.isArray(pointStats.compareByType)) {
-      console.warn("pointStats.compareByType is not an array or is undefined");
+      // console.warn("pointStats.compareByType is not an array or is undefined");
       return 0;
     }
 
-    const found = pointStats.compareByType.find((s) => s.type === type);
+    const found = pointStats.compareByType.find((s) => s.type === type); // Uses raw key
     const rangeData = found?.ranges?.[rangeName];
     if (!rangeData) return 0;
 
@@ -163,7 +159,7 @@ export default function StatisticScreen({ navigation }) {
   );
 
   const trueRatio = (selectedSkill ? [selectedSkill] : skillTypes).map((type) => {
-    const found = answerStats?.statsByType?.find((s) => s.type === type);
+    const found = answerStats?.statsByType?.find((s) => s.type === type); // Uses raw key
     const data = found?.ranges?.[thisRange] || [];
     const total =
       Array.isArray(data) && data.length > 0
@@ -184,7 +180,7 @@ export default function StatisticScreen({ navigation }) {
     const bars = [];
 
     (selectedSkill ? [selectedSkill] : skillTypes).forEach((type) => {
-      const stat = answerStats?.statsByType?.find((s) => s.type === type);
+      const stat = answerStats?.statsByType?.find((s) => s.type === type); // Uses raw key
       const rangeData = Array.isArray(stat?.ranges?.[range])
         ? stat.ranges[range]
         : [];
@@ -225,7 +221,7 @@ export default function StatisticScreen({ navigation }) {
 
   const filteredLessons = useMemo(() => {
     return lessons.filter(
-      (lesson) => !selectedSkill || lesson.type === selectedSkill
+      (lesson) => !selectedSkill || lesson.type === selectedSkill // Uses raw key
     );
   }, [lessons, selectedSkill]);
 
@@ -292,7 +288,7 @@ export default function StatisticScreen({ navigation }) {
                 selectedChart === "progress" && styles.chartTypeTextSelected,
               ]}
             >
-              {t("progress")}
+              {t("academicProgress")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -300,7 +296,7 @@ export default function StatisticScreen({ navigation }) {
               styles.chartTypeButton,
               selectedChart === "trueFalse" && styles.chartTypeButtonSelected,
             ]}
-            onPress={() => setSelectedChart("trueFalse")}
+            onPress={() => setSelectedSkill("trueFalse")}
           >
             <Text
               style={[
@@ -308,7 +304,7 @@ export default function StatisticScreen({ navigation }) {
                 selectedChart === "trueFalse" && styles.chartTypeTextSelected,
               ]}
             >
-              {t("trueFalse")}
+              {t("trueFalseRatio")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -316,7 +312,7 @@ export default function StatisticScreen({ navigation }) {
               styles.chartTypeButton,
               selectedChart === "goal" && styles.chartTypeButtonSelected,
             ]}
-            onPress={() => setSelectedChart("goal")}
+            onPress={() => setSelectedSkill("goal")}
           >
             <Text
               style={[
@@ -409,7 +405,7 @@ export default function StatisticScreen({ navigation }) {
                       key={index}
                       style={styles.dropdownItem}
                       onPress={() => {
-                        setSelectedSkill(skill);
+                        setSelectedSkill(skill); // Store raw skill key
                         if (selectedLesson?.type !== skill) setSelectedLesson(null);
                         setShowSkillDropdown(false);
                       }}
@@ -431,7 +427,7 @@ export default function StatisticScreen({ navigation }) {
               onPress={() => setShowLessonDropdown(true)}
             >
               <Text style={styles.dropdownText} numberOfLines={1}>
-                {selectedLesson?.name[t.language] || selectedLesson?.name.en || t("selectLesson")}
+                {selectedLesson?.name[i18n.language] || t("selectLesson")}
               </Text>
               <Ionicons
                 name="caret-down-outline"
@@ -462,7 +458,7 @@ export default function StatisticScreen({ navigation }) {
                         }}
                       >
                         <Text style={styles.dropdownItemText}>
-                          {lesson.name[t.language] || lesson.name.en || t("noLessonName")}
+                          {lesson.name[i18n.language] || t("noLessonName")}
                         </Text>
                       </TouchableOpacity>
                     ))
@@ -513,7 +509,7 @@ export default function StatisticScreen({ navigation }) {
                       }}
                     >
                       <Text style={styles.dropdownItemText}>
-                        {t(periodRanges[period][0])}
+                        {t(periodRanges[period][1])}, {t(periodRanges[period][0])}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -527,17 +523,21 @@ export default function StatisticScreen({ navigation }) {
         {loading ? (
           <Text style={styles.loadingText}>Loading statistics...</Text>
         ) : error ? (
-          <Text style={styles.errorText}>Error: {error}</Text>
+          <Text style={styles.errorText}> {t("error")}</Text>
         ) : (
           <>
-            {selectedChart === "progress" && (
+            {!loading && selectedChart === "progress" && (
               <AcademicChart
                 t={t}
                 styles={styles}
-                skills={chartSkills}
-                lastMonth={lastMonth}
-                thisMonth={thisMonth}
                 screenWidth={screenWidth}
+                skills={selectedSkill ? [selectedSkill] : skillTypes} // Pass raw keys instead of chartSkills
+                pointStats={pointStats}
+                selectedPeriod={selectedPeriod}
+                language={i18n.language}
+                filteredLessons={filteredLessons}
+                thisRange={thisRange}
+                lastRange={lastRange}
               />
             )}
             {selectedChart === "trueFalse" && (

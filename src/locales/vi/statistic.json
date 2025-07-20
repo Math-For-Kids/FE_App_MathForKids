@@ -1,16 +1,17 @@
 {
   "hello": "Xin chào!",
   "selectPupil": "Chọn học sinh",
-  "thisWeek": "Tuần này",
+  "thisWeek": "Tuần hiện tại",
   "lastWeek": "Tuần trước",
-  "thisMonth": "Tháng này",
+  "thisMonth": "Tháng hiện tại",
   "lastMonth": "Tháng trước",
-  "thisQuarter": "Quý này",
+  "thisQuarter": "Quý hiện tại",
   "lastQuarter": "Quý trước",
   "academicProgress": "Tiến độ học tập",
   "comment": "Nhận xét",
   "summary": "Tổng kết",
   "trueFalseRatio": "Tỷ lệ đúng/sai",
+  "goal": "Tiến độ nhiệm vụ",
   "true": "Đúng",
   "false": "Sai",
   "improvedBy": "Tăng {{value}}%. Tiếp tục phát huy.",
@@ -29,7 +30,9 @@
     "div": "Chia"
   },
   "details": "Chi tiết theo kỹ năng",
-  "level": "Level",
+  "selectLesson": "Chọn bài học",
+  "error": "Lỗi: Thiếu pupilId, lessonId (params) hoặc grade (query).",
+  "level": "Cấp độ",
   "correct": "Đúng",
   "wrong": "Sai"
 }
