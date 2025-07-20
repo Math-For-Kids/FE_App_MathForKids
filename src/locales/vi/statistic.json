@@ -31,7 +31,7 @@
   },
   "details": "Chi tiết theo kỹ năng",
   "selectLesson": "Chọn bài học",
-  "error": "Lỗi: Thiếu pupilId, lessonId (params) hoặc grade (query).",
+  "error": "Vui lòng cung cấp đủ thông tin",
   "level": "Cấp độ",
   "correct": "Đúng",
   "wrong": "Sai"

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 
@@ -11,6 +11,16 @@ export default function AcademicChart({
   thisRange,
   lastRange,
 }) {
+  // Check if pointStats is undefined or empty
+  if (!pointStats || !pointStats.compareByType || Object.keys(pointStats.compareByType).length === 0) {
+    return (
+      <View style={styles.academicChartContainers}>
+        <Text style={styles.chartName}>{t("academicProgress")}</Text>
+        {/* <Text style={styles.commentText}>{t("noSignificantChanges")}</Text> */}
+      </View>
+    );
+  }
+
   const scoreCategories = ["≥9", "≥7", "≥5", "<5"];
 
   // Aggregate data across all skills for each score category
@@ -123,12 +133,13 @@ export default function AcademicChart({
     .filter((item) => Math.abs(item.categoryChange) > 5); // Filter for significant changes only
 
   return (
-    <View style={styles.academicChartContainer}>
+    <View style={styles.academicChartContainers}>
       <Text style={styles.chartName}>{t("academicProgress")}</Text>
+
       <BarChart
         data={groupedBarChartData}
         width={screenWidth}
-        height={250}
+        height={300}
         fromZero
         segments={segments} // Use dynamic segments
         chartConfig={chartConfig}
@@ -136,16 +147,17 @@ export default function AcademicChart({
         withInnerLines
         withHorizontalLabels
         withCustomBarColorFromData
+        style={styles.academicChartContainer}
         flatColor
       />
       <View style={styles.chartNoteContainer}>
         <View style={styles.chartNote}>
           <View style={styles.noteLast} />
-          <Text style={styles.noteText}>{t(lastRange)}</Text>
+          <Text style={styles.noteTexts}>{t(lastRange)}</Text>
         </View>
         <View style={styles.chartNote}>
           <View style={styles.noteThis} />
-          <Text style={styles.noteText}>{t(thisRange)}</Text>
+          <Text style={styles.noteTexts}>{t(thisRange)}</Text>
         </View>
       </View>
 

@@ -178,20 +178,6 @@ export default function createStyles(theme) {
       gap: 20,
     },
     chartNote: { flexDirection: "row", alignItems: "center" },
-    noteLast: {
-      width: 12,
-      height: 12,
-      backgroundColor: theme.colors.grayLight,
-      marginRight: 6,
-      borderRadius: 2,
-    },
-    noteThis: {
-      width: 12,
-      height: 12,
-      backgroundColor: theme.colors.blueDark,
-      marginRight: 6,
-      borderRadius: 2,
-    },
     tfChartContainer: { marginTop: 30, alignItems: "center" },
     noteTrue: {
       width: 12,
@@ -348,5 +334,73 @@ export default function createStyles(theme) {
       textAlign: "center",
       marginTop: 20,
     },
+    // phuc thêm
+    academicChartContainer: {
+      backgroundColor: "#F8FAFC", // Màu nền nhạt, sạch sẽ
+      borderRadius: 12, // Bo góc nhẹ
+      margin: 16, // Khoảng cách bên trong
+      shadowColor: "#000", // Bóng đổ
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3, // Bóng đổ cho Android
+    },
+    chartName: {
+      fontSize: 20, // Kích thước chữ tiêu đề
+      fontWeight: "600", // Độ đậm trung bình
+      color: "#1F2937", // Màu xám đậm
+      marginBottom: 12, // Khoảng cách dưới tiêu đề
+      textAlign: "center", // Căn giữa
+    },
+    chartNoteContainer: {
+      flexDirection: "row", // Sắp xếp ngang
+      justifyContent: "center", // Căn giữa các chú thích
+      marginTop: 12, // Khoảng cách trên
+    },
+    chartNote: {
+      flexDirection: "row", // Sắp xếp ô màu và chữ ngang
+      alignItems: "center", // Căn giữa theo chiều dọc
+      marginHorizontal: 12, // Khoảng cách giữa các chú thích
+    },
+    noteLast: {
+      width: 20,
+      height: 20,
+      backgroundColor: "#8884d8", // Màu tím cho last period
+      marginRight: 5,
+    },
+    noteThis: {
+      width: 20,
+      height: 20,
+      backgroundColor: "#82ca9d", // Màu xanh cho this period
+      marginRight: 5,
+    },
+    noteTexts: {
+      fontSize: 14, // Kích thước chữ chú thích
+      color: "#ffffffff", // Xám trung tính
+      fontWeight: "500",
+    },
+    commentText: {
+      fontSize: 14, // Kích thước chữ bình luận
+      color: "#4B5563", // Xám trung tính
+      lineHeight: 20, // Khoảng cách dòng
+      marginBottom: 4, // Khoảng cách giữa các dòng bình luận
+    },
+    noteText: {
+      color: "#4B5563", // Màu chữ cho nhãn biểu đồ
+    },
+    //   noteLast: {
+    //   width: 12,
+    //   height: 12,
+    //   backgroundColor: theme.colors.grayLight,
+    //   marginRight: 6,
+    //   borderRadius: 2,
+    // },
+    // noteThis: {
+    //   width: 12,
+    //   height: 12,
+    //   backgroundColor: theme.colors.blueDark,
+    //   marginRight: 6,
+    //   borderRadius: 2,
+    // },
   });
 }

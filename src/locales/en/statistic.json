@@ -32,7 +32,7 @@
   },
   "details": "Detail skill",
   "selectLesson": "Select lesson",
-  "error": "Lỗi: Missing pupilId, lessonId (params) or grade (query).",
+  "error": "Please provide complete information",
   "level": "Level",
   "correct": "Correct",
   "wrong": "Wrong"
