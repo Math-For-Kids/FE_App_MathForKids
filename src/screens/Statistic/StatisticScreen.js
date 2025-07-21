@@ -91,20 +91,17 @@ export default function StatisticScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(users?.id)
   );
-  const periods = ["thisWeek", "thisMonth", "thisQuarter"];
-
+  
   const today = dayjs();
   const formatMonth = (date) => date.format("YYYY-MM");
   const formatWeek = (date) => `${date.format("YYYY")}-W${date.isoWeek()}`;
   const formatQuarter = (date) => `${date.year()}-Q${date.quarter()}`;
 
+  const periods = ["thisWeek", "thisMonth", "thisQuarter"];
   const periodRanges = {
-    thisWeek: [formatWeek(today), formatWeek(today.subtract(1, "week"))],
-    thisMonth: [formatMonth(today), formatMonth(today.subtract(1, "month"))],
-    thisQuarter: [
-      formatQuarter(today),
-      formatQuarter(today.subtract(1, "quarter")),
-    ],
+    thisWeek: ["thisWeek", "lastWeek"],
+    thisMonth: ["thisMonth", "lastMonth"],
+    thisQuarter: ["thisQuarter", "lastQuarter"],
   };
   const rangeTypeOptions = {
     week: [formatWeek(today), formatWeek(today.subtract(1, "week"))],

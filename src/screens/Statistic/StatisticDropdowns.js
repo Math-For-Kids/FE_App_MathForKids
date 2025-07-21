@@ -164,7 +164,7 @@ export default function StatisticDropdowns({
           onPress={() => setShowLessonDropdown(true)}
         >
           <Text style={styles.dropdownText} numberOfLines={1}>
-            {selectedLesson?.name?.[t.language] ||
+            {selectedLesson?.name?.[i18n.language] ||
               selectedLesson?.name?.en ||
               t("selectLesson")}
           </Text>
@@ -197,7 +197,7 @@ export default function StatisticDropdowns({
                     }}
                   >
                     <Text style={styles.dropdownItemText}>
-                      {lesson.name?.[t.language] ||
+                      {lesson.name?.[i18n.language] ||
                         lesson.name?.en ||
                         t("noLessonName")}
                     </Text>
@@ -230,7 +230,7 @@ export default function StatisticDropdowns({
           </TouchableOpacity>
           <Modal
             transparent
-            visible={showRangeTypeDropdown} 
+            visible={showRangeTypeDropdown}
             animationType="fade"
             onRequestClose={() => setShowRangeTypeDropdown(false)}
           >
@@ -302,8 +302,8 @@ export default function StatisticDropdowns({
                         <Text style={styles.dropdownItemText}>
                           {typeof test.lessonName === "object"
                             ? test.lessonName[i18n.language] ||
-                              test.lessonName.en ||
-                              `${t("test")} ${index + 1}`
+                            test.lessonName.en ||
+                            `${t("test")} ${index + 1}`
                             : test.lessonName || `${t("test")} ${index + 1}`}
                           {` (ID: ${test})`}
                         </Text>
@@ -359,7 +359,7 @@ export default function StatisticDropdowns({
                     }}
                   >
                     <Text style={styles.dropdownItemText}>
-                      {t(periodRanges[period][0])}
+                      {t(periodRanges[period][1])}, {t(periodRanges[period][0])}
                     </Text>
                   </TouchableOpacity>
                 ))}

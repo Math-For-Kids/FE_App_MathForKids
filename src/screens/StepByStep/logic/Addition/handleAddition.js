@@ -68,7 +68,9 @@ export const handleAddition = (n1, n2, steps, setRemember, t) => {
 
   if (carry > 0) {
     resultDigits.push(carry);
-    carryDigits.push(0);
+    carryDigits.push(carry);
+    digits1.push(0);
+    digits2.push(0);
     const label = labelMap[digits1.length] || `10^${digits1.length}`;
     subSteps.push(
       t("addition.step_final_carry", {

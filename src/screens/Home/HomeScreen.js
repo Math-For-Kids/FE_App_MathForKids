@@ -23,6 +23,8 @@ export default function HomeScreen({ navigation, route }) {
   const { pupilId } = route.params || {};
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
+  const user = useSelector((state) => state.auth.user);
+  const userId = user?.id;
 
   const { t } = useTranslation("home");
 
@@ -37,7 +39,7 @@ export default function HomeScreen({ navigation, route }) {
 
   useEffect(() => {
     if (isFocused && pupilId) {
-      dispatch(getAllPupils());
+      dispatch(getAllPupils(userId));
       dispatch(notificationsByPupilId(pupilId));
     }
   }, [isFocused, pupilId]);

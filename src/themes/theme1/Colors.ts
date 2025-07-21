@@ -49,7 +49,7 @@ export const LightColors = {
   gradientPink: ["#FFAEBC", "#F761DF"],
 
   // Private
-  cardBackground: "#FFFFFF",
+  cardBackground: "#FFFF",
   backBackgound: "rgba(0,0,0,0.1)",
   homeColor: "#029DF0",
   backgroundLogoLoading: "#029DF0",
@@ -74,6 +74,9 @@ export const LightColors = {
   redBorderDark: "#FD8550",
   pinkBorderDark: "#F761DF",
   comment: "#FF4E46",
+  text: "#000000",
+  border: "#1EFF37",
+  borderorange: "#FD8550",
 };
 
 export const DarkColors = {
@@ -116,7 +119,7 @@ export const DarkColors = {
   pinkLight: "#5D3A9B",
   redTomato: "#3B0A52",
   // Gradients
-  gradientBluePrimary: ["#5D3A9B", "#120024"],
+gradientBluePrimary: ["#5D3A9B", "#120024"],
   gradientBlue: ["#120024", "#5D3A9B"],
   gradientGreen: ["#120024", "#5D3A9B"],
   gradientPurple: ["#120024", "#5D3A9B"],
@@ -150,6 +153,7 @@ export const DarkColors = {
   redBorderDark: "#FFFFFF",
   pinkBorderDark: "#FFFFFF",
   comment: "#5D3A8B",
-  highlightText: "#3B0A52",
+  text: "#FFFFFF",
 };
 export type Theme1Colors = typeof LightColors;
+export type Theme1DarkColors = typeof DarkColors;

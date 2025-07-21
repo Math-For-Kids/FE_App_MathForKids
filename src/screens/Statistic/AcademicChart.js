@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text } from "react-native";
 import { BarChart } from "react-native-chart-kit";
+import { useTheme } from "../../themes/ThemeContext";
 
 export default function AcademicChart({
   t,
@@ -14,13 +15,16 @@ export default function AcademicChart({
   // Check if pointStats is undefined or empty
   if (!pointStats || !pointStats.compareByType || Object.keys(pointStats.compareByType).length === 0) {
     return (
-      <View style={styles.academicChartContainers}>
-        <Text style={styles.chartName}>{t("academicProgress")}</Text>
-        {/* <Text style={styles.commentText}>{t("noSignificantChanges")}</Text> */}
+      <View style={[styles.academicChartContainers, { justifyContent: "center", alignItems: "center" }]}>
+        <Text style={[styles.chartName, { textAlign: "center", marginTop: 10 }]}>{t("academicProgress")}</Text>
+        <Text style={[styles.commentText, { textAlign: "center", marginTop: 10 }]}>
+          {t("noSignificantChanges")}
+        </Text>
       </View>
     );
   }
 
+  const { theme } = useTheme();
   const scoreCategories = ["≥9", "≥7", "≥5", "<5"];
 
   // Aggregate data across all skills for each score category
@@ -42,7 +46,7 @@ export default function AcademicChart({
 
   // Prepare data for grouped bar chart
   const groupedBarChartData = {
-    labels: scoreCategories.flatMap((cat) => [cat, ""]), // Add spacing between categories
+    labels: scoreCategories.flatMap((cat) => [cat, ""]),
     datasets: [
       {
         data: aggregatedData.flat(),
@@ -58,7 +62,7 @@ export default function AcademicChart({
 
   // Calculate dynamic segments based on max data value
   const maxDataValue = Math.max(...groupedBarChartData.datasets[0].data, 1); // Avoid division by 0
-  const segments = Math.ceil(maxDataValue); // Dynamic segments: 2 for 0-1, 3 for 0-2, 4 for 0-3, etc.
+  const segments = Math.ceil(maxDataValue); // Dynamic segments
   const chartConfig = {
     backgroundGradientFrom: styles.container.backgroundColor || "#fff",
     backgroundGradientTo: styles.container.backgroundColor || "#fff",
@@ -128,49 +132,94 @@ export default function AcademicChart({
         comment = t("droppedBy", { value: Math.abs(categoryChange) });
       }
 
-      return { category, comment, categoryChange }; // Return object with category and change info
+      return { category, comment, categoryChange };
     })
-    .filter((item) => Math.abs(item.categoryChange) > 5); // Filter for significant changes only
+    .filter((item) => Math.abs(item.categoryChange) > 5);
 
   return (
-    <View style={styles.academicChartContainers}>
-      <Text style={styles.chartName}>{t("academicProgress")}</Text>
-
-      <BarChart
-        data={groupedBarChartData}
-        width={screenWidth}
-        height={300}
-        fromZero
-        segments={segments} // Use dynamic segments
-        chartConfig={chartConfig}
-        showBarTops={false}
-        withInnerLines
-        withHorizontalLabels
-        withCustomBarColorFromData
-        style={styles.academicChartContainer}
-        flatColor
-      />
-      <View style={styles.chartNoteContainer}>
-        <View style={styles.chartNote}>
-          <View style={styles.noteLast} />
-          <Text style={styles.noteTexts}>{t(lastRange)}</Text>
-        </View>
-        <View style={styles.chartNote}>
-          <View style={styles.noteThis} />
-          <Text style={styles.noteTexts}>{t(thisRange)}</Text>
+    <View style={[styles.academicChartContainers, { padding: 16, borderRadius: 12, marginVertical: 10, alignItems: "center" }]}>
+      <Text style={[styles.chartName, { fontSize: 18, fontWeight: "600", color: theme.colors.black, marginBottom: 12, textAlign: "center" }]}>
+        {t("academicProgress")}
+      </Text>
+      <View style={styles.back}>
+        <BarChart
+          data={groupedBarChartData}
+          width={screenWidth} // Reduce width to allow centering with padding
+          height={300}
+          fromZero
+          segments={segments}
+          chartConfig={chartConfig}
+          showBarTops={false}
+          withCustomBarColorFromData
+          showTooltip={false}
+          style={styles.academicChartContainer}
+          flatColor
+        />
+        <View style={[styles.chartNoteContainer, { flexDirection: "row", justifyContent: "center", marginBottom: 16, alignItems: "center" }]}>
+          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center", marginRight: 16 }]}>
+            <View style={[styles.noteLast, { width: 14, height: 14, borderRadius: 2 }]} />
+            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(lastRange)}</Text>
+          </View>
+          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center" }]}>
+            <View style={[styles.noteThis, { width: 14, height: 14, borderRadius: 2 }]} />
+            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(thisRange)}</Text>
+          </View>
         </View>
       </View>
-
-      {/* Comments below chart */}
-      <View style={styles.commentContainer}>
-        <Text style={styles.commentTitle}>{t("comment")}</Text>
-        <Text style={styles.commentText}>{generalComment}</Text>
-        <Text style={styles.commentTitle}>{t("scoreComments")}</Text>
-        {detailedComments.map((item, idx) => (
-          <Text key={idx} style={styles.commentText}>
-            {item.category}: {item.comment}
+      {/* Improved Comments Section */}
+      <View style={{
+        backgroundColor: theme.colors.white,
+        padding: 16,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: theme.colors.grayLight,
+        marginTop: 8,
+        width: "90%", // Restrict width to allow centering
+        alignSelf: "center",
+      }}>
+        <Text style={{
+          fontSize: 16,
+          fontWeight: "600",
+          color: theme.colors.black,
+          marginBottom: 8,
+          textAlign: "center",
+        }}>
+          {t("summary")}
+        </Text>
+        <View style={{ marginBottom: 12 }}>
+          <Text style={{
+            fontSize: 14,
+            color: percentChange > 5 ? theme.colors.green : percentChange < -5 ? theme.colors.redTomato : theme.colors.black,
+            fontWeight: "500",
+            textAlign: "center",
+          }}>
+            {t("overallProgress")}: {generalComment}
           </Text>
-        ))}
+        </View>
+        {detailedComments.length > 0 && (
+          <View>
+            <Text style={{
+              fontSize: 14,
+              fontWeight: "500",
+              color: theme.colors.black,
+              marginBottom: 8,
+              textAlign: "center",
+            }}>
+              {t("scoreBreakdown")}
+            </Text>
+            {detailedComments.map((item, idx) => (
+              <Text key={idx} style={{
+                fontSize: 14,
+                color: item.categoryChange > 5 ? theme.colors.green : theme.colors.redTomato,
+                marginBottom: 4,
+                paddingLeft: 8,
+                textAlign: "left", // Keep text left-aligned within centered container
+              }}>
+                • {item.category}: {item.comment}
+              </Text>
+            ))}
+          </View>
+        )}
       </View>
     </View>
   );

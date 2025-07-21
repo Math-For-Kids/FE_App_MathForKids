@@ -161,7 +161,37 @@ export default function createStyles(theme) {
       textAlign: "center",
       // elevation: 20,
     },
-  
+    academicChartContainer: {
+      marginTop: 10,
+      alignItems: "center",
+    },
+    chartName: {
+      color: theme.colors.white,
+      fontSize: 22,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      marginBottom: 10,
+    },
+    chartNoteContainer: {
+      marginTop: 10,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 20,
+    },
+    chartNote: { flexDirection: "row", alignItems: "center" },
+    noteLast: {
+      width: 12,
+      height: 12,
+      backgroundColor: theme.colors.grayLight,
+      marginRight: 6,
+      borderRadius: 2,
+    },
+    noteThis: {
+      width: 12,
+      height: 12,
+      backgroundColor: theme.colors.blueDark,
+      marginRight: 6,
+      borderRadius: 2,
+    },
     tfChartContainer: { marginTop: 30, alignItems: "center" },
     noteTrue: {
       width: 12,
@@ -206,10 +236,20 @@ export default function createStyles(theme) {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.green,
     },
+    commentText: {
+      fontSize: 14,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: theme.colors.black,
+    },
     skillName: {
       fontWeight: "bold",
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
+    },
+    noteText: {
+      fontSize: 12,
+      color: theme.colors.black,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     filterContainer: {
       flexDirection: "row",
@@ -308,11 +348,133 @@ export default function createStyles(theme) {
       textAlign: "center",
       marginTop: 20,
     },
+    weakSkillContainer: {
+      margin: 16,
+      backgroundColor: "#ffe5e5",
+      padding: 12,
+      borderRadius: 10,
+    },
+    weakSkillTitle: {
+      fontWeight: "bold",
+      color: "#cc0000",
+    },
+    weakSkillItem: {
+      marginTop: 4,
+    },
+    retryContainer: {
+      marginVertical: 20,
+      backgroundColor: "#e6f7ff",
+      padding: 12,
+      borderRadius: 10,
+    },
+    retryTitle: {
+      fontWeight: "bold",
+      color: "#006699",
+    },
+    retryItem: {
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: "#fff",
+      borderRadius: 20,
+      padding: 10,
+    },
+    retryText: {
+      fontSize: 14,
+    },
+    retryImage: {
+      height: 100,
+      resizeMode: "contain",
+      marginVertical: 4,
+    },
+    retryCount: {
+      color: "#333",
+      fontStyle: "italic",
+    },
+    containerTF: { paddingHorizontal: 16, paddingBottom: 60 },
+    summaryTFContainer: {
+      backgroundColor: theme.colors.cardBackground,
+      padding: 10,
+      borderTopLeftRadius: 20,
+      borderBottomRightRadius: 20,
+      marginTop: 20,
+    },
+    chartTitle: {
+      fontSize: 16,
+      fontFamily: Fonts.NUNITO_BOLD,
+      marginBottom: 8,
+      color: theme.colors.white,
+    },
+    tooltipContainer: {
+      position: "absolute",
+      backgroundColor: theme.colors.white,
+      borderRadius: 6,
+      padding: 6,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
+      zIndex: 10,
+    },
+    tooltipText: {
+      color: theme.colors.black,
+      fontSize: 12,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+    },
+    correctText: {
+      color: theme.colors.green,
+      fontSize: 12,
+    },
+    wrongText: {
+      color: theme.colors.redDark,
+      fontSize: 12,
+    },
+    levelTooltipContainer: {
+      position: "absolute",
+      top: 5,
+      left: 5,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: 6,
+      padding: 6,
+      borderWidth: 1,
+      borderColor: theme.colors.grayLight,
+      zIndex: 10,
+    },
+    levelLabel: {
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      fontSize: 12,
+    },
+    levelCorrect: {
+      color: theme.colors.GreenDark,
+      fontSize: 12,
+    },
+    levelWrong: {
+      color: theme.colors.redTomato,
+      fontSize: 12,
+    },
+    chartWrapper: {
+      position: "relative",
+      backgroundColor: theme.colors.cardBackground,
+      padding: 12,
+      borderRadius: 12,
+    },
+    chartWrapperWithMargin: {
+      position: "relative",
+      backgroundColor: theme.colors.cardBackground,
+      padding: 12,
+      borderRadius: 12,
+      marginTop: 10,
+    },
+    chartAxisLabel: {
+      color: theme.colors.black,
+      fontSize: 12,
+    },
+    chartAxisText: {
+      color: theme.colors.black,
+      fontSize: 12,
+    },
     // phuc thêm
     academicChartContainer: {
       backgroundColor: "#F8FAFC", // Màu nền nhạt, sạch sẽ
       borderRadius: 12, // Bo góc nhẹ
-      margin: 16, // Khoảng cách bên trong
+      margin: 16,
       shadowColor: "#000", // Bóng đổ
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
@@ -323,7 +485,6 @@ export default function createStyles(theme) {
       fontSize: 20, // Kích thước chữ tiêu đề
       fontWeight: "600", // Độ đậm trung bình
       color: "#1F2937", // Màu xám đậm
-      marginBottom: 12, // Khoảng cách dưới tiêu đề
       textAlign: "center", // Căn giữa
     },
     chartNoteContainer: {
@@ -362,19 +523,5 @@ export default function createStyles(theme) {
     noteText: {
       color: "#4B5563", // Màu chữ cho nhãn biểu đồ
     },
-    //   noteLast: {
-    //   width: 12,
-    //   height: 12,
-    //   backgroundColor: theme.colors.grayLight,
-    //   marginRight: 6,
-    //   borderRadius: 2,
-    // },
-    // noteThis: {
-    //   width: 12,
-    //   height: 12,
-    //   backgroundColor: theme.colors.blueDark,
-    //   marginRight: 6,
-    //   borderRadius: 2,
-    // },
   });
 }
