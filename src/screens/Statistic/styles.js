@@ -251,6 +251,11 @@ export default function createStyles(theme) {
       color: theme.colors.black,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
+    noteTextAca: {
+      fontSize: 12,
+      color: theme.colors.white,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+    },
     filterContainer: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -401,11 +406,14 @@ export default function createStyles(theme) {
     chartTitle: {
       fontSize: 16,
       fontFamily: Fonts.NUNITO_BOLD,
-      marginBottom: 8,
+      marginTop: 20,
+      marginBottom: 5,
       color: theme.colors.white,
     },
     tooltipContainer: {
       position: "absolute",
+      top: 5,
+      left: 50,
       backgroundColor: theme.colors.white,
       borderRadius: 6,
       padding: 6,
@@ -470,58 +478,67 @@ export default function createStyles(theme) {
       color: theme.colors.black,
       fontSize: 12,
     },
-    // phuc thêm
-    academicChartContainer: {
-      backgroundColor: "#F8FAFC", // Màu nền nhạt, sạch sẽ
-      borderRadius: 12, // Bo góc nhẹ
-      margin: 16,
-      shadowColor: "#000", // Bóng đổ
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3, // Bóng đổ cho Android
+    noteContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 8,
     },
-    chartName: {
-      fontSize: 20, // Kích thước chữ tiêu đề
-      fontWeight: "600", // Độ đậm trung bình
-      color: "#1F2937", // Màu xám đậm
-      textAlign: "center", // Căn giữa
+    noteItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: 8,
     },
-    chartNoteContainer: {
-      flexDirection: "row", // Sắp xếp ngang
-      justifyContent: "center", // Căn giữa các chú thích
-      marginTop: 12, // Khoảng cách trên
+    noteColorBox: {
+      width: 16,
+      height: 16,
+      borderRadius: 4,
+      marginRight: 4,
+    },
+    noteLabel: {
+      fontSize: 12,
+      color: "#333",
+    },
+    yAxisUnitLabel: {
+      fontSize: 12,
+      color: "#555",
+      alignSelf: "flex-start",
+      marginLeft: 4,
+      marginBottom: 4,
     },
     chartNote: {
-      flexDirection: "row", // Sắp xếp ô màu và chữ ngang
-      alignItems: "center", // Căn giữa theo chiều dọc
-      marginHorizontal: 12, // Khoảng cách giữa các chú thích
+      fontSize: 12,
+      color: theme.colors.white,
+      marginTop: 4,
+      marginHorizontal: 16,
+      fontStyle: "italic",
     },
-    noteLast: {
-      width: 20,
-      height: 20,
-      backgroundColor: "#8884d8", // Màu tím cho last period
-      marginRight: 5,
+    loadingContainer: {
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingVertical: 40,
     },
-    noteThis: {
-      width: 20,
-      height: 20,
-      backgroundColor: "#82ca9d", // Màu xanh cho this period
-      marginRight: 5,
+    loadingText: {
+      marginTop: 8,
+      fontSize: 14,
+      color: theme.colors.white,
     },
-    noteTexts: {
-      fontSize: 14, // Kích thước chữ chú thích
-      color: "#ffffffff", // Xám trung tính
-      fontWeight: "500",
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(255, 255, 255, 0.7)",
+      zIndex: 1000,
     },
-    commentText: {
-      fontSize: 14, // Kích thước chữ bình luận
-      color: "#4B5563", // Xám trung tính
-      lineHeight: 20, // Khoảng cách dòng
-      marginBottom: 4, // Khoảng cách giữa các dòng bình luận
-    },
-    noteText: {
-      color: "#4B5563", // Màu chữ cho nhãn biểu đồ
+    loadingText: {
+      marginTop: 8,
+      fontSize: 14,
+      color: theme.colors.white,
     },
   });
 }

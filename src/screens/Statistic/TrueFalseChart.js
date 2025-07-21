@@ -99,7 +99,7 @@ export default function TrueFalseChart({
     barWidth / 2 -
     tooltipWidth / 2;
 
-  // Bieu do cau dung sai theo cao do
+  // Bieu do cau dung sai theo cap do
   const resultByLevel = {};
   data.forEach((item) => {
     const level =
@@ -178,7 +178,15 @@ export default function TrueFalseChart({
       {/* Biểu đồ Accuracy */}
       {accuracyByMonth.length > 0 && (
         <>
-          <Text style={styles.chartTitle}>{t("accuracyOverTime")}</Text>
+          <Text
+            style={styles.chartTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            Caves
+            minimumFontScale={0.5}
+          >
+            {t("accuracyOverTime")}
+          </Text>
           <LineChart
             data={chartData}
             width={screenWidth - 32}
@@ -225,14 +233,56 @@ export default function TrueFalseChart({
               ) : null
             }
           />
+          <Text style={styles.chartNote}>
+            {t("accuracyOverTime")} – {t("comment")}:{" "}
+            {accuracyByMonth[0]?.accuracy >= 80
+              ? t("excellentAccuracy", { correct: accuracyByMonth[0].accuracy })
+              : accuracyByMonth[0]?.accuracy >= 50
+              ? t("goodAccuracy", {
+                  correct: accuracyByMonth[0].accuracy,
+                  incorrect: (100 - accuracyByMonth[0].accuracy).toFixed(1),
+                })
+              : t("lowAccuracy", { correct: accuracyByMonth[0].accuracy })}
+          </Text>
         </>
       )}
 
       {/* Biểu đồ đúng/sai theo tháng */}
       {stackedBarData.length > 0 && (
         <>
-          <Text style={styles.chartTitle}>{t("correctWrongByMonth")}</Text>
+          <Text
+            style={styles.chartTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            Caves
+            minimumFontScale={0.5}
+          >
+            {t("correctWrongByMonth")}
+          </Text>
           <View style={styles.chartWrapper}>
+            <View style={styles.noteContainer}>
+              <View style={styles.noteItem}>
+                <View
+                  style={[
+                    styles.noteColorBox,
+                    { backgroundColor: theme.colors.green },
+                  ]}
+                />
+                <Text style={styles.noteLabel}>{t("correct")}</Text>
+              </View>
+              <View style={styles.noteItem}>
+                <View
+                  style={[
+                    styles.noteColorBox,
+                    { backgroundColor: theme.colors.orangeLight },
+                  ]}
+                />
+                <Text style={styles.noteLabel}>{t("wrong")}</Text>
+              </View>
+            </View>
+            <Text style={styles.yAxisUnitLabel}>
+              {t("unit")}: {t("questions")}
+            </Text>
             <BarChart
               stackData={stackedBarData}
               barWidth={40}
@@ -264,14 +314,54 @@ export default function TrueFalseChart({
               </View>
             )}
           </View>
+          <Text style={styles.chartNote}>
+            {t("correctWrongByMonth")} –{" "}
+            {t("summaryTF", {
+              true:
+                stackedBarData[0]?.stacks?.[0]?.value +
+                  stackedBarData[1]?.stacks?.[0]?.value || 0,
+              false:
+                stackedBarData[0]?.stacks?.[1]?.value +
+                  stackedBarData[1]?.stacks?.[1]?.value || 0,
+            })}
+          </Text>
         </>
       )}
 
       {/* Tinh theo level */}
       {stackedLevelData.length > 0 && (
         <>
-          <Text style={styles.chartTitle}>{t("accuracyByLevel")}</Text>
+          <Text
+            style={styles.chartTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            Caves
+            minimumFontScale={0.5}
+          >
+            {t("accuracyByLevel")}
+          </Text>
           <View style={styles.chartWrapperWithMargin}>
+            <View style={styles.noteContainer}>
+              <View style={styles.noteItem}>
+                <View
+                  style={[
+                    styles.noteColorBox,
+                    { backgroundColor: theme.colors.greenDark },
+                  ]}
+                />
+                <Text style={styles.noteLabel}>{t("correct")}</Text>
+              </View>
+              <View style={styles.noteItem}>
+                <View
+                  style={[
+                    styles.noteColorBox,
+                    { backgroundColor: theme.colors.redTomato },
+                  ]}
+                />
+                <Text style={styles.noteLabel}>{t("wrong")}</Text>
+              </View>
+            </View>
+
             <BarChart
               stackData={stackedLevelData}
               barWidth={40}
@@ -319,6 +409,14 @@ export default function TrueFalseChart({
               </View>
             )}
           </View>
+          {mostWrongLevel && mostCorrectLevel && (
+            <Text style={styles.chartNote}>
+              {t("mostCorrectLevel")}: {mostCorrectLevel.level} (
+              {mostCorrectLevel.stats.correct} {t("times")}) –{" "}
+              {t("mostWrongLevel")}: {mostWrongLevel.level} (
+              {mostWrongLevel.stats.wrong} {t("times")})
+            </Text>
+          )}
         </>
       )}
 

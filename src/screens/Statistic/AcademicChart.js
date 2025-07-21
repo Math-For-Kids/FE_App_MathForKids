@@ -81,7 +81,10 @@ export default function AcademicChart({
     return skills.reduce((acc, skill) => {
       const stat = pointStats?.compareByType?.[skill] || {};
       const rangeData = stat?.[range] || {};
-      return scoreCategories.reduce((sum, cat) => sum + (rangeData[cat] || 0), 0);
+      return scoreCategories.reduce(
+        (sum, cat) => sum + (rangeData[cat] || 0),
+        0
+      );
     }, 0);
   };
 
@@ -123,7 +126,9 @@ export default function AcademicChart({
           ? thisPeriodTotal > 0
             ? 100
             : 0
-          : Math.round(((thisPeriodTotal - lastPeriodTotal) * 100) / lastPeriodTotal);
+          : Math.round(
+              ((thisPeriodTotal - lastPeriodTotal) * 100) / lastPeriodTotal
+            );
 
       let comment = t("noChange");
       if (categoryChange > 5) {
@@ -137,33 +142,29 @@ export default function AcademicChart({
     .filter((item) => Math.abs(item.categoryChange) > 5);
 
   return (
-    <View style={[styles.academicChartContainers, { padding: 16, borderRadius: 12, marginVertical: 10, alignItems: "center" }]}>
-      <Text style={[styles.chartName, { fontSize: 18, fontWeight: "600", color: theme.colors.black, marginBottom: 12, textAlign: "center" }]}>
-        {t("academicProgress")}
-      </Text>
-      <View style={styles.back}>
-        <BarChart
-          data={groupedBarChartData}
-          width={screenWidth} // Reduce width to allow centering with padding
-          height={300}
-          fromZero
-          segments={segments}
-          chartConfig={chartConfig}
-          showBarTops={false}
-          withCustomBarColorFromData
-          showTooltip={false}
-          style={styles.academicChartContainer}
-          flatColor
-        />
-        <View style={[styles.chartNoteContainer, { flexDirection: "row", justifyContent: "center", marginBottom: 16, alignItems: "center" }]}>
-          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center", marginRight: 16 }]}>
-            <View style={[styles.noteLast, { width: 14, height: 14, borderRadius: 2 }]} />
-            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(lastRange)}</Text>
-          </View>
-          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center" }]}>
-            <View style={[styles.noteThis, { width: 14, height: 14, borderRadius: 2 }]} />
-            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(thisRange)}</Text>
-          </View>
+    <View style={styles.academicChartContainer}>
+      <Text style={styles.chartName}>{t("academicProgress")}</Text>
+      <BarChart
+        data={groupedBarChartData}
+        width={screenWidth}
+        height={250}
+        fromZero
+        segments={segments} // Use dynamic segments
+        chartConfig={chartConfig}
+        showBarTops={false}
+        withInnerLines
+        withHorizontalLabels
+        withCustomBarColorFromData
+        flatColor
+      />
+      <View style={styles.chartNoteContainer}>
+        <View style={styles.chartNote}>
+          <View style={styles.noteLast} />
+          <Text style={styles.noteTextAca}>{t(lastRange)}</Text>
+        </View>
+        <View style={styles.chartNote}>
+          <View style={styles.noteThis} />
+          <Text style={styles.noteTextAca}>{t(thisRange)}</Text>
         </View>
       </View>
       {/* Improved Comments Section */}
