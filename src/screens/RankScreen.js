@@ -46,9 +46,11 @@ export default function RankScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const dispatch = useDispatch();
   const { pupils, loading, error } = useSelector((state) => state.pupil);
+  const user = useSelector((state) => state.auth.user);
+  const userId = user?.id;
 
   useEffect(() => {
-    dispatch(getAllPupils());
+    dispatch(getAllPupils(userId));
   }, [dispatch]);
 
   // Sort pupils by point in descending order

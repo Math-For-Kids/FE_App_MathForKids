@@ -35,6 +35,9 @@ export default function ProfileScreen({ navigation }) {
   const completedExerciseData = useSelector(
     (state) => state.completed_exercise.counts
   );
+  const user = useSelector((state) => state.auth.user);
+  const userId = user?.id;
+
   const completedLessonData = useSelector(
     (state) => state.completedLesson.counts
   );
@@ -45,7 +48,7 @@ export default function ProfileScreen({ navigation }) {
     if (pupilId) {
       dispatch(pupilById(pupilId));
       dispatch(countByPupilId(pupilId)); // Fetch reward count for the current pupil
-      dispatch(getAllPupils()); // Fetch all pupils
+      dispatch(getAllPupils(userId)); // Fetch all pupils
       dispatch(
         countCompletedExercisePupil({ pupilId, grade: pupil?.grade || "1" })
       );
@@ -71,8 +74,8 @@ export default function ProfileScreen({ navigation }) {
   const avatar = pupil?.image
     ? { uri: pupil.image }
     : pupil?.gender === "female"
-    ? theme.icons.avatarFemale
-    : theme.icons.avatarMale;
+      ? theme.icons.avatarFemale
+      : theme.icons.avatarMale;
 
   const achievements = [
     { icon: theme.icons.achievement, label: t("top"), value: rank || "..." },
@@ -81,7 +84,7 @@ export default function ProfileScreen({ navigation }) {
   ];
   const exerciseProgress = completedExerciseData?.totalLessons
     ? completedExerciseData.completedExercises /
-      completedExerciseData.totalLessons
+    completedExerciseData.totalLessons
     : 0;
   const lessonProgress = completedLessonData?.totalCount
     ? completedLessonData.completedCount / completedLessonData.totalCount

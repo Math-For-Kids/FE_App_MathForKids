@@ -8,10 +8,10 @@
   },
   "addition": {
     "step_intro": "Start adding from the Units column.",
-    "step_normal_with_remember": "Step {{step}}: {{d1}} + {{d2}} + {{carry}} = {{sum}}, write {{resultDigit}}, and carry {{carryOut}}.",
-    "step_normal_with_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, greater than 10, write {{resultDigit}}, and carry {{carry}}.",
-    "step_normal_no_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, write {{resultDigit}}, no carry needed.",
-    "step_final_carry": "Step {{step}}: All digits have been added, but there's still a carry of {{carry}}, so write it into the next column."
+    "step_normal_with_remember": "Step {{step}}: {{d1}} + {{d2}} + {{carry}} = {{sum}}, since it's greater than 10, write {{resultDigit}} and carry over {{carryOut}}.",
+    "step_normal_with_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, since it's greater than 10, write {{resultDigit}} and carry over {{carry}}.",
+    "step_normal_no_carry": "Step {{step}}: {{d1}} + {{d2}} = {{sum}}, write {{resultDigit}}, no need to carry.",
+    "step_final_carry": "Step {{step}}: All digits have been added, but there's still a carry of {{carry}}, so write it down in the next column."
   },
   "subtraction": {
     "error_min_lt_sub": "Cannot subtract: the minuend is smaller than the subtrahend.",
@@ -100,20 +100,22 @@
   "speech": {
     "selectOperator": "You selected {{operator}}. Please enter a new number."
   },
-  "step_main": "Step {{step}}: {{current}} divided by {{divisor}} equals {{result}}. Write {{result}} in the quotient. {{result}} × {{divisor}} = {{sub}}, then subtract: {{current}} - {{sub}} = {{remainder}}.",
-  "step_smaller_and_bring_down": "Step {{step}}: {{current}} is smaller than {{divisor}}, cannot divide yet. Bring down {{nextDigit}} to get {{afterBringDown}}.",
-  "step_smaller_write_zero": "Step {{step}}: {{current}} is smaller than {{divisor}}, write 0 in the quotient.",
+  "step_main": "Step {{step}}: {{current}} divided by {{divisor}} equals {{result}}. Write {{result}} in the answer. {{result}} × {{divisor}} = {{sub}}, then subtract: {{current}} - {{sub}} = {{remainder}}.",
+  "step_divide": "Step {{step}}: Divide {{current}} by {{divisor}}. Try to find what number times {{divisor}} is closest to {{current}} without going over. {{divisor}} × {{result}} = {{product}}, so we write {{result}} in the answer.",
+  "step_multiply": "Step {{step}}: Multiply {{result}} by {{divisor}}, we get {{product}}.",
+  "step_subtract": "Step {{step}}: Subtract {{product}} from {{current}}, we get {{remainder}}.",
+  "step_compare_less": "Step {{step}}: {{current}} is less than {{divisor}}, not enough to divide.",
+  "step_choose_number": "Step {{step}}: {{current}} is {{comparison}} {{divisor}}, so {{explanation}}",
+  "comparison.less": "less than",
+  "comparison.greater_equal": "greater than or equal to",
+  "explanation.less": "we can’t divide yet. Bring down the next digit.",
+  "explanation.greater_equal": "we can divide. Let’s begin dividing.",
+  "step_smaller_write_zero": "Step {{step}}: {{current}} is less than {{divisor}}, write 0 in the answer.",
   "step_cannot_divide": "Step {{step}}: {{dividend}} is smaller than {{divisor}}, cannot divide. Write 0.",
-  "step_compare_less": "Step {{step}}: {{current}} is smaller than {{divisor}}, not enough to divide.",
+  "less_then_bring_down": "Step {{step}}: Can’t divide yet. Write {{result}} in the answer and bring down the next digit.",
   "step_bring_down": "Step {{step}}: Bring down {{nextDigit}}, now we have {{afterBringDown}}.",
-  "step_divide": "Step {{step}}: Find the number that when multiplied by {{divisor}} is closest to {{current}} without exceeding it. {{divisor}} × {{result}} = {{product}}. So the quotient digit is {{result}}.",
-  "step_multiply": "Step {{step}}: Multiply {{result}} by {{divisor}} to get {{product}}.",
-  "step_subtract": "Step {{step}}: Subtract {{product}} from {{current}} to get {{remainder}}.",
-  "step_choose_number": "Step {{step}}: {{current}} {{comparison}} {{divisor}}, {{explanation}}",
-  "comparison.less": "is less than",
-  "comparison.greater_equal": "is greater than or equal to",
-  "explanation.less": "cannot divide yet. Take more digits.",
-  "explanation.greater_equal": "can divide. Proceed with division.",
-  "step_bring_down_after_subtract": "Step {{step}}: After subtracting, the remainder is {{remainder}}. Bring down {{nextDigit}}, we get {{afterBringDown}} to continue dividing.",
-  "result_with_remainder": "{{quotient}} remainder {{remainder}}"
+  "step_bring_down_after_subtract": "Step {{step}}: After subtracting, we have {{remainder}} left. Bring down {{nextDigit}}, now we get {{afterBringDown}} to continue dividing.",
+  "step_bring_down_extra": "Step {{step}}: Still not enough to divide, so bring down {{nextDigit}} to get {{afterBringDown}}.",
+  "step_down_to_number_two": "Step {{step}}: Bring down {{nextDigit}}, now we get {{afterBringDown}} to keep dividing.",
+  "result_with_remainder": "{{quotient}} with remainder {{remainder}}"
 }
