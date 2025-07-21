@@ -326,7 +326,7 @@ export default function TargetScreen({ navigation, route }) {
           return (
             <LinearGradient
               colors={
-                isExpired
+                !item.isCompleted && isExpired
                   ? [theme.colors.grayLight, theme.colors.grayDark]
                   : item.isCompleted
                   ? theme.colors.gradientGreen
@@ -345,7 +345,7 @@ export default function TargetScreen({ navigation, route }) {
             >
               <TouchableOpacity
                 style={styles.cardContent}
-                disabled={isExpired}
+                disabled={!item.isCompleted && isExpired}
                 onPress={() => {
                   if (isExpired) return;
                   navigation.navigate("SkillScreen", {
