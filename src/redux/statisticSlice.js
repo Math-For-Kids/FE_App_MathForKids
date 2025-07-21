@@ -4,10 +4,11 @@ import Api from "../api/api";
 // Thunk 1: Lấy thống kê điểm theo kỹ năng
 export const getUserPointStatsComparison = createAsyncThunk(
   "statistic/getUserPointStatsComparison",
-  async ({ pupilId, grade, ranges }, { rejectWithValue }) => {
+  async ({ pupilId, grade, ranges, lessonId }, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams({ grade });
       if (ranges?.length) params.append("ranges", ranges.join(","));
+      if (lessonId) params.append("lessonId", lessonId);
       const res = await Api.get(
         `/test/getUserPointStatsComparison/${pupilId}?${params.toString()}`
       );
@@ -21,13 +22,28 @@ export const getUserPointStatsComparison = createAsyncThunk(
 // Thunk 2: Lấy thống kê đúng/sai theo kỹ năng
 export const getAnswerStats = createAsyncThunk(
   "statistic/getAnswerStats",
-  async ({ pupilId, grade, ranges }, { rejectWithValue }) => {
+  async (
+    { pupilId, lessonId, grade, ranges, rangeType },
+    { rejectWithValue }
+  ) => {
     try {
-      const params = new URLSearchParams({ grade });
-      if (ranges?.length) params.append("ranges", ranges.join(","));
-      const res = await Api.get(
-        `/test/getAnswerStats/${pupilId}?${params.toString()}`
-      );
+      const query = new URLSearchParams();
+
+      if (grade) query.append("grade", grade);
+
+      if (ranges) {
+        const rangeStr = Array.isArray(ranges)
+          ? ranges.join(",")
+          : String(ranges);
+        query.append("ranges", rangeStr);
+      }
+
+      if (rangeType) query.append("rangeType", rangeType); // ✅ Thêm dòng này
+
+      const lessonSegment = lessonId ? `/${lessonId}` : "";
+      const url = `/test/getAnswerStats/${pupilId}${lessonSegment}?${query.toString()}`;
+
+      const res = await Api.get(url);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

@@ -1,34 +1,68 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { BarChart } from "react-native-chart-kit";
+import { useTheme } from "../../themes/ThemeContext";
 
 export default function AcademicChart({
   t,
   styles,
   skills,
-  lastMonth,
-  thisMonth,
+  pointStats,
   screenWidth,
+  thisRange,
+  lastRange,
 }) {
+  // Check if pointStats is undefined or empty
+  if (!pointStats || !pointStats.compareByType || Object.keys(pointStats.compareByType).length === 0) {
+    return (
+      <View style={[styles.academicChartContainers, { justifyContent: "center", alignItems: "center" }]}>
+        <Text style={[styles.chartName, { textAlign: "center", marginTop: 10 }]}>{t("academicProgress")}</Text>
+        <Text style={[styles.commentText, { textAlign: "center", marginTop: 10 }]}>
+          {t("noSignificantChanges")}
+        </Text>
+      </View>
+    );
+  }
+
+  const { theme } = useTheme();
+  const scoreCategories = ["≥9", "≥7", "≥5", "<5"];
+
+  // Aggregate data across all skills for each score category
+  const aggregatedData = scoreCategories.map((category) => {
+    const thisPeriodTotal = skills.reduce((sum, skill) => {
+      const stat = pointStats?.compareByType?.[skill] || {};
+      const thisPeriodData = stat?.[thisRange] || {};
+      return sum + (thisPeriodData[category] || 0);
+    }, 0);
+
+    const lastPeriodTotal = skills.reduce((sum, skill) => {
+      const stat = pointStats?.compareByType?.[skill] || {};
+      const lastPeriodData = stat?.[lastRange] || {};
+      return sum + (lastPeriodData[category] || 0);
+    }, 0);
+
+    return [lastPeriodTotal, thisPeriodTotal, 0]; // [last, this, spacer]
+  });
+
+  // Prepare data for grouped bar chart
   const groupedBarChartData = {
-    labels: skills.flatMap((skill) => [skill, ""]),
+    labels: scoreCategories.flatMap((cat) => [cat, ""]),
     datasets: [
       {
-        data: skills
-          .flatMap((_, i) => [lastMonth[i], thisMonth[i], 0])
-          .concat(100),
-        colors: skills
-          .flatMap(() => [
-            () => styles.noteLast.backgroundColor,
-            () => styles.noteThis.backgroundColor,
-            () => "rgba(0,0,0,0)",
-          ])
-          .concat(() => "#fff"),
+        data: aggregatedData.flat(),
+        colors: scoreCategories.flatMap(() => [
+          () => styles.noteLast.backgroundColor,
+          () => styles.noteThis.backgroundColor,
+          () => "rgba(0,0,0,0)", // Transparent for spacer
+        ]),
       },
     ],
-    legend: [t("lastMonth"), t("thisMonth")],
+    legend: [t(lastRange), t(thisRange)],
   };
 
+  // Calculate dynamic segments based on max data value
+  const maxDataValue = Math.max(...groupedBarChartData.datasets[0].data, 1); // Avoid division by 0
+  const segments = Math.ceil(maxDataValue); // Dynamic segments
   const chartConfig = {
     backgroundGradientFrom: styles.container.backgroundColor || "#fff",
     backgroundGradientTo: styles.container.backgroundColor || "#fff",
@@ -39,18 +73,28 @@ export default function AcademicChart({
       stroke: "#e3e3e3",
     },
     barPercentage: 0.65,
+    formatYLabel: (value) => `${Math.round(value)}`,
   };
 
-  // Nhận xét tổng thể
-  const avgLast = lastMonth.reduce((a, b) => a + b, 0) / lastMonth.length || 0;
-  const avgThis = thisMonth.reduce((a, b) => a + b, 0) / thisMonth.length || 0;
-  const diff = avgThis - avgLast;
+  // Calculate overall statistics for comments
+  const calculateTotalStats = (range) => {
+    return skills.reduce((acc, skill) => {
+      const stat = pointStats?.compareByType?.[skill] || {};
+      const rangeData = stat?.[range] || {};
+      return scoreCategories.reduce((sum, cat) => sum + (rangeData[cat] || 0), 0);
+    }, 0);
+  };
+
+  const thisTotal = calculateTotalStats(thisRange);
+  const lastTotal = calculateTotalStats(lastRange);
+
+  // Generate comments
   const percentChange =
-    avgLast === 0
-      ? avgThis > 0
+    lastTotal === 0
+      ? thisTotal > 0
         ? 100
         : 0
-      : Math.round((diff * 100) / avgLast);
+      : Math.round(((thisTotal - lastTotal) * 100) / lastTotal);
 
   let generalComment = t("noChange");
   if (percentChange > 5) {
@@ -59,61 +103,123 @@ export default function AcademicChart({
     generalComment = t("droppedBy", { value: Math.abs(percentChange) });
   }
 
-  // Nhận xét chi tiết từng kỹ năng
-  const detailedComments = skills.map((skill, i) => {
-    const last = lastMonth[i];
-    const current = thisMonth[i];
-    const diff = current - last;
-    const change =
-      last === 0 ? (current > 0 ? 100 : 0) : Math.round((diff * 100) / last);
+  // Detailed comments for each score category, only for significant changes
+  const detailedComments = scoreCategories
+    .map((category) => {
+      const thisPeriodTotal = skills.reduce((sum, skill) => {
+        const stat = pointStats?.compareByType?.[skill] || {};
+        const thisPeriodData = stat?.[thisRange] || {};
+        return sum + (thisPeriodData[category] || 0);
+      }, 0);
 
-    let comment = t("noChange");
-    if (change > 5) {
-      comment = t("improvedBy", { value: change });
-    } else if (change < -5) {
-      comment = t("droppedBy", { value: Math.abs(change) });
-    }
+      const lastPeriodTotal = skills.reduce((sum, skill) => {
+        const stat = pointStats?.compareByType?.[skill] || {};
+        const lastPeriodData = stat?.[lastRange] || {};
+        return sum + (lastPeriodData[category] || 0);
+      }, 0);
 
-    return `${skill}: ${comment}`;
-  });
+      const categoryChange =
+        lastPeriodTotal === 0
+          ? thisPeriodTotal > 0
+            ? 100
+            : 0
+          : Math.round(((thisPeriodTotal - lastPeriodTotal) * 100) / lastPeriodTotal);
+
+      let comment = t("noChange");
+      if (categoryChange > 5) {
+        comment = t("improvedBy", { value: categoryChange });
+      } else if (categoryChange < -5) {
+        comment = t("droppedBy", { value: Math.abs(categoryChange) });
+      }
+
+      return { category, comment, categoryChange };
+    })
+    .filter((item) => Math.abs(item.categoryChange) > 5);
 
   return (
-    <View style={styles.academicChartContainer}>
-      <Text style={styles.chartName}>{t("academicProgress")}</Text>
-      <BarChart
-        data={groupedBarChartData}
-        width={screenWidth}
-        height={250}
-        fromZero
-        segments={4}
-        chartConfig={chartConfig}
-        showBarTops={false}
-        withInnerLines
-        withHorizontalLabels
-        withCustomBarColorFromData
-        flatColor
-      />
-      <View style={styles.chartNoteContainer}>
-        <View style={styles.chartNote}>
-          <View style={styles.noteLast} />
-          <Text style={styles.noteText}>{t("lastMonth")}</Text>
-        </View>
-        <View style={styles.chartNote}>
-          <View style={styles.noteThis} />
-          <Text style={styles.noteText}>{t("thisMonth")}</Text>
+    <View style={[styles.academicChartContainers, { padding: 16, borderRadius: 12, marginVertical: 10, alignItems: "center" }]}>
+      <Text style={[styles.chartName, { fontSize: 18, fontWeight: "600", color: theme.colors.black, marginBottom: 12, textAlign: "center" }]}>
+        {t("academicProgress")}
+      </Text>
+      <View style={styles.back}>
+        <BarChart
+          data={groupedBarChartData}
+          width={screenWidth} // Reduce width to allow centering with padding
+          height={300}
+          fromZero
+          segments={segments}
+          chartConfig={chartConfig}
+          showBarTops={false}
+          withCustomBarColorFromData
+          showTooltip={false}
+          style={styles.academicChartContainer}
+          flatColor
+        />
+        <View style={[styles.chartNoteContainer, { flexDirection: "row", justifyContent: "center", marginBottom: 16, alignItems: "center" }]}>
+          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center", marginRight: 16 }]}>
+            <View style={[styles.noteLast, { width: 14, height: 14, borderRadius: 2 }]} />
+            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(lastRange)}</Text>
+          </View>
+          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center" }]}>
+            <View style={[styles.noteThis, { width: 14, height: 14, borderRadius: 2 }]} />
+            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(thisRange)}</Text>
+          </View>
         </View>
       </View>
-
-      {/* Nhận xét dưới biểu đồ */}
-      <View style={styles.commentContainer}>
-        <Text style={styles.commentTitle}>{t("comment")}</Text>
-        <Text style={styles.commentText}>{generalComment}</Text>
-        <Text style={styles.commentTitle}>{t("skillComments")}</Text>
-        {detailedComments.map((line, idx) => (
-          <Text key={idx} style={styles.commentText}>
-            {line}
+      {/* Improved Comments Section */}
+      <View style={{
+        backgroundColor: theme.colors.white,
+        padding: 16,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: theme.colors.grayLight,
+        marginTop: 8,
+        width: "90%", // Restrict width to allow centering
+        alignSelf: "center",
+      }}>
+        <Text style={{
+          fontSize: 16,
+          fontWeight: "600",
+          color: theme.colors.black,
+          marginBottom: 8,
+          textAlign: "center",
+        }}>
+          {t("summary")}
+        </Text>
+        <View style={{ marginBottom: 12 }}>
+          <Text style={{
+            fontSize: 14,
+            color: percentChange > 5 ? theme.colors.green : percentChange < -5 ? theme.colors.redTomato : theme.colors.black,
+            fontWeight: "500",
+            textAlign: "center",
+          }}>
+            {t("overallProgress")}: {generalComment}
           </Text>
-        ))}
+        </View>
+        {detailedComments.length > 0 && (
+          <View>
+            <Text style={{
+              fontSize: 14,
+              fontWeight: "500",
+              color: theme.colors.black,
+              marginBottom: 8,
+              textAlign: "center",
+            }}>
+              {t("scoreBreakdown")}
+            </Text>
+            {detailedComments.map((item, idx) => (
+              <Text key={idx} style={{
+                fontSize: 14,
+                color: item.categoryChange > 5 ? theme.colors.green : theme.colors.redTomato,
+                marginBottom: 4,
+                paddingLeft: 8,
+                textAlign: "left", // Keep text left-aligned within centered container
+              }}>
+                • {item.category}: {item.comment}
+              </Text>
+            ))}
+          </View>
+        )}
       </View>
     </View>
   );

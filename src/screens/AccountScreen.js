@@ -45,7 +45,6 @@ export default function AccountScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(userId)
   );
-  console.log("filteredPupils", userId);
   useEffect(() => {
     if (isFocused && userId) {
       dispatch(getAllPupils(userId))
@@ -349,8 +348,8 @@ export default function AccountScreen({ navigation }) {
                     pupil?.image
                       ? { uri: pupil?.image }
                       : pupil?.gender === "female"
-                        ? theme.icons.avatarFemale
-                        : theme.icons.avatarMale
+                      ? theme.icons.avatarFemale
+                      : theme.icons.avatarMale
                   }
                   style={styles.avatar}
                 />

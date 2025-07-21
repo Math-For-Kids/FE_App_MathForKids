@@ -9,8 +9,10 @@
   "lastQuarter": "Last quarter",
   "academicProgress": "Academic progress",
   "comment": "Comment",
+  "scoreComments": "Score comment",
   "summary": "Summary",
   "trueFalseRatio": "True/False Ratio",
+  "goal": "Goal progress",
   "true": "True",
   "false": "False",
   "improvedBy": "Increase {{value}}%. Keep it up.",
@@ -23,9 +25,15 @@
   "summaryTF": "{{true}}% correct, {{false}}% incorrect",
   "skillComments": "Skill comments",
   "skill": {
-    "add": "Add",
-    "sub": "Subtract",
-    "mul": "Multiply",
-    "div": "Divide"
-  }
+    "add": "Addition",
+    "sub": "Subtraction",
+    "mul": "Multiplication",
+    "div": "Division"
+  },
+  "details": "Detail skill",
+  "selectLesson": "Select lesson",
+  "error": "Please provide complete information",
+  "level": "Level",
+  "correct": "Correct",
+  "wrong": "Wrong"
 }
