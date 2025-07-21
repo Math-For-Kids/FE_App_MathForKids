@@ -258,8 +258,6 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
   const remainder = current;
   const cleanedQuotient = quotient.replace(/^0+/, "") || "0";
   const finalQuotient = sign < 0 ? `-${cleanedQuotient}` : cleanedQuotient;
-  console.log("subSteps", JSON.stringify(subSteps, null, 2));
-
 
   steps[2].dividend = absN1.toString();
   steps[2].divisor = absN2.toString();
