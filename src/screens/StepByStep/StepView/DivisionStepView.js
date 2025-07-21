@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { Fonts } from "../../../../constants/Fonts";
 import * as Speech from "expo-speech";
 
-export const DivisionStepView = ({ steps, columnStepIndex }) => {
+export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
   const { theme } = useTheme?.();
   const { t, i18n } = useTranslation("stepbystep") || {
     t: (key, params) => key,
@@ -20,6 +20,20 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
   const currentStep = columnStepIndex ?? 0;
   const step = subSteps[currentStep];
 
+  const getSkillColor = () => {
+    switch (skillName) {
+      case "Addition":
+        return theme.colors.GreenDark;
+      case "Subtraction":
+        return theme.colors.purpleDark;
+      case "Multiplication":
+        return theme.colors.orangeDark;
+      case "Division":
+        return theme.colors.redDark;
+      default:
+        return theme.colors.pinkDark;
+    }
+  };
   const divideStepIndices = subSteps
     .map((s, i) => (["step_divide", "less_then_bring_down"].includes(s.key)
       ? i : null))
@@ -74,7 +88,7 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
       .split("")
       .map((char, i) => {
         let color = theme.colors.text;
-        if (i === currentQuotientIndex) color = "#FD8550";
+        if (i === currentQuotientIndex) color = getSkillColor();
 
         return (
           <Text key={i} style={{ color }}>
@@ -108,7 +122,7 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
       padding: 10,
       borderWidth: 1,
       width: 300,
-      borderColor: theme.colors.borderorange,
+      borderColor: getSkillColor(),
       alignItems: "center",
     },
     innerBox: {
@@ -151,7 +165,7 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
     stepText: {
       fontSize: 14,
       fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.borderorange,
+      color: getSkillColor(),
       marginHorizontal: 12,
       textAlign: "center",
     },
@@ -164,7 +178,7 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
       maxHeight: 140,
       width: 300,
       borderWidth: 1,
-      borderColor: theme.colors.borderorange,
+      borderColor: getSkillColor(),
     },
   });
 
@@ -214,7 +228,7 @@ export const DivisionStepView = ({ steps, columnStepIndex }) => {
                           style={[
                             styles.lineText,
                             {
-                              color: isCurrent ? "#FD8550" : theme.colors.text,
+                              color: isCurrent ? getSkillColor() : theme.colors.text,
                               paddingLeft: indent * indentSpacing,
                             },
                           ]}
