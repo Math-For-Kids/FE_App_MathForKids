@@ -7,6 +7,7 @@ import {
   Image,
   Modal,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
@@ -92,20 +93,26 @@ export default function StatisticScreen({ navigation }) {
     (p) => String(p.userId) === String(users?.id)
   );
   const periods = ["thisWeek", "thisMonth", "thisQuarter"];
+  const periodRanges = {
+    thisWeek: ["thisWeek", "lastWeek"],
+    thisMonth: ["thisMonth", "lastMonth"],
+    thisQuarter: ["thisQuarter", "lastQuarter"],
+  };
 
   const today = dayjs();
   const formatMonth = (date) => date.format("YYYY-MM");
   const formatWeek = (date) => `${date.format("YYYY")}-W${date.isoWeek()}`;
   const formatQuarter = (date) => `${date.year()}-Q${date.quarter()}`;
 
-  const periodRanges = {
-    thisWeek: [formatWeek(today), formatWeek(today.subtract(1, "week"))],
-    thisMonth: [formatMonth(today), formatMonth(today.subtract(1, "month"))],
-    thisQuarter: [
-      formatQuarter(today),
-      formatQuarter(today.subtract(1, "quarter")),
-    ],
-  };
+  //   const periodRanges = {
+  //     thisWeek: [formatWeek(today), formatWeek(today.subtract(1, "week"))],
+  //     thisMonth: [formatMonth(today), formatMonth(today.subtract(1, "month"))],
+  //     thisQuarter: [
+  //       formatQuarter(today),
+  //       formatQuarter(today.subtract(1, "quarter")),
+  //     ],
+  //   };
+
   const rangeTypeOptions = {
     week: [formatWeek(today), formatWeek(today.subtract(1, "week"))],
     month: [formatMonth(today), formatMonth(today.subtract(1, "month"))],
@@ -142,7 +149,6 @@ export default function StatisticScreen({ navigation }) {
     multiplication: t("skill.mul"),
     division: t("skill.div"),
   };
-
   useEffect(() => {
     if (isFocused) {
       dispatch(getAllPupils());
@@ -152,13 +158,21 @@ export default function StatisticScreen({ navigation }) {
           getLessonsByGradeAndType({
             pupilId: selectedPupil.id,
             grade: selectedPupil.grade,
-            type: selectedSkill || null,
+            type: selectedSkill || null, // Raw skill key
           })
         );
+        console.log("Fetching lessons for:", {
+          pupilId: selectedPupil.id,
+          grade: selectedPupil.grade,
+          type: selectedSkill, // Should be "addition", etc.
+        });
       }
     }
   }, [isFocused, users?.id, selectedPupil, selectedSkill]);
 
+  useEffect(() => {
+    console.log("Lessons in store:", lessons);
+  }, [lessons]);
   useEffect(() => {
     if (selectedPupil && selectedLesson?.id) {
       dispatch(
@@ -169,17 +183,27 @@ export default function StatisticScreen({ navigation }) {
       );
     }
   }, [selectedPupil, selectedLesson]);
-
   useEffect(() => {
     if (selectedPupil && selectedPupil.grade && selectedPeriod) {
       const ranges = periodRanges[selectedPeriod] || ["thisMonth", "lastMonth"];
+      const rangesInEnglish = ranges.map((key) => key);
+
       dispatch(
         getUserPointStatsComparison({
           pupilId: selectedPupil.id,
           grade: selectedPupil.grade,
-          ranges,
+          ranges: rangesInEnglish,
           lessonId: selectedLesson?.id || null,
-          skill: selectedSkill || null,
+          skill: selectedSkill || null, // Raw skill key
+        })
+      );
+      dispatch(
+        getAnswerStats({
+          pupilId: selectedPupil.id,
+          grade: selectedPupil.grade,
+          ranges: rangesInEnglish,
+          lessonId: selectedLesson?.id || null,
+          skill: selectedSkill || null, // Raw skill key
         })
       );
     }
@@ -187,7 +211,7 @@ export default function StatisticScreen({ navigation }) {
   useEffect(() => {
     const fetchStats = async () => {
       if (!selectedPupil || !selectedRangeType) {
-        console.log("⛔ Thiếu selectedPupil hoặc selectedRangeType");
+        console.log("Thiếu selectedPupil hoặc selectedRangeType");
         return;
       }
 
@@ -207,14 +231,14 @@ export default function StatisticScreen({ navigation }) {
         // testId: selectedTest?.id || null,
       };
 
-      console.log("📥 Params getAnswerStats:", payload);
+      console.log("Params getAnswerStats:", payload);
 
       const resultAction = await dispatch(getAnswerStats(payload));
 
       if (getAnswerStats?.fulfilled.match(resultAction)) {
         const raw = resultAction.payload;
 
-        console.log("✅ getAnswerStats result:", raw);
+        console.log("getAnswerStats result:", raw);
 
         const transformed = {
           ...raw,
@@ -228,7 +252,7 @@ export default function StatisticScreen({ navigation }) {
 
         setChartData(transformed);
       } else {
-        console.log("❌ getAnswerStats failed:", resultAction);
+        console.log("getAnswerStats failed:", resultAction);
       }
 
       setLoading(false);
@@ -249,7 +273,11 @@ export default function StatisticScreen({ navigation }) {
     : skillTypes.map((type) => skillLabels[type]);
 
   const getWeightedScore = (type, rangeName) => {
-    if (!pointStats || !Array.isArray(pointStats.compareByType)) return 0;
+    if (!pointStats || !Array.isArray(pointStats.compareByType)) {
+      // console.warn("pointStats.compareByType is not an array or is undefined");
+      return 0;
+    }
+
     const found = pointStats.compareByType.find((s) => s.type === type);
     const rangeData = found?.ranges?.[rangeName];
     if (!rangeData) return 0;
@@ -273,7 +301,7 @@ export default function StatisticScreen({ navigation }) {
 
   const filteredLessons = useMemo(() => {
     return lessons.filter(
-      (lesson) => !selectedSkill || lesson.type === selectedSkill
+      (lesson) => !selectedSkill || lesson.type === selectedSkill // Uses raw key
     );
   }, [lessons, selectedSkill]);
 
@@ -388,22 +416,30 @@ export default function StatisticScreen({ navigation }) {
           showRangeDropdown={showRangeDropdown}
           setShowRangeDropdown={setShowRangeDropdown}
           data={answerStats}
+          testDetail={testDetail}
         />
 
         {loading ? (
-          <Text style={styles.loadingText}>{t("loadingStats")}</Text>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.white} />
+            <Text style={styles.loadingText}>{t("loadingStats")}</Text>
+          </View>
         ) : error ? (
-          <Text style={styles.errorText}>Error: {error}</Text>
+          <Text style={styles.errorText}> {t("error")}</Text>
         ) : (
           <>
-            {selectedChart === "progress" && (
+            {!loading && selectedChart === "progress" && (
               <AcademicChart
                 t={t}
                 styles={styles}
-                skills={chartSkills}
-                lastMonth={lastMonth}
-                thisMonth={thisMonth}
                 screenWidth={screenWidth}
+                skills={selectedSkill ? [selectedSkill] : skillTypes} // Pass raw keys instead of chartSkills
+                pointStats={pointStats}
+                selectedPeriod={selectedPeriod}
+                language={i18n.language}
+                filteredLessons={filteredLessons}
+                thisRange={thisRange}
+                lastRange={lastRange}
               />
             )}
             {selectedChart === "trueFalse" && (

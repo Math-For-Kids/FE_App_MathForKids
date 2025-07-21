@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
+import { ActivityIndicator, Alert } from "react-native";
 export default function StatisticDropdowns({
   t,
   i18n,
@@ -44,6 +44,14 @@ export default function StatisticDropdowns({
   data,
 }) {
   const navigation = useNavigation();
+  const [isLoadingTestData, setIsLoadingTestData] = useState(false);
+  const isTestDropdownEnabled =
+    selectedChart === "trueFalse" &&
+    selectedPupil &&
+    selectedSkill &&
+    selectedLesson &&
+    selectedRangeType;
+
   const handleSelectTest = (test) => {
     setSelectedTest(test);
     setShowTestDropdown(false);
@@ -164,7 +172,7 @@ export default function StatisticDropdowns({
           onPress={() => setShowLessonDropdown(true)}
         >
           <Text style={styles.dropdownText} numberOfLines={1}>
-            {selectedLesson?.name?.[t.language] ||
+            {selectedLesson?.name?.[i18n.language] ||
               selectedLesson?.name?.en ||
               t("selectLesson")}
           </Text>
@@ -197,7 +205,7 @@ export default function StatisticDropdowns({
                     }}
                   >
                     <Text style={styles.dropdownItemText}>
-                      {lesson.name?.[t.language] ||
+                      {lesson.name?.[i18n.language] ||
                         lesson.name?.en ||
                         t("noLessonName")}
                     </Text>
@@ -230,7 +238,7 @@ export default function StatisticDropdowns({
           </TouchableOpacity>
           <Modal
             transparent
-            visible={showRangeTypeDropdown} 
+            visible={showRangeTypeDropdown}
             animationType="fade"
             onRequestClose={() => setShowRangeTypeDropdown(false)}
           >
@@ -250,9 +258,7 @@ export default function StatisticDropdowns({
                         setShowRangeTypeDropdown(false);
                       }}
                     >
-                      <Text style={styles.dropdownItemText}>
-                        {t(typeKey)}
-                      </Text>
+                      <Text style={styles.dropdownItemText}>{t(typeKey)}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -266,8 +272,21 @@ export default function StatisticDropdowns({
       {selectedChart === "trueFalse" && (
         <View style={styles.dropdownWrapper}>
           <TouchableOpacity
-            style={styles.dropdownRow}
-            onPress={() => setShowTestDropdown(true)}
+            style={[
+              styles.dropdownRow,
+              !isTestDropdownEnabled && { backgroundColor: "#eee" }, // màu xám khi disabled
+            ]}
+            disabled={!isTestDropdownEnabled}
+            onPress={() => {
+              if (isTestDropdownEnabled) {
+                setShowTestDropdown(true);
+              } else {
+                Alert.alert(
+                  t("incompleteSelection"),
+                  t("pleaseSelectAllBeforeViewingTests")
+                );
+              }
+            }}
           >
             <Text style={styles.dropdownText} numberOfLines={1}>
               {selectedTest ? t(selectedTest) : t("selectTest")}
@@ -359,7 +378,7 @@ export default function StatisticDropdowns({
                     }}
                   >
                     <Text style={styles.dropdownItemText}>
-                      {t(periodRanges[period][0])}
+                      {t(periodRanges[period][1])}, {t(periodRanges[period][0])}
                     </Text>
                   </TouchableOpacity>
                 ))}

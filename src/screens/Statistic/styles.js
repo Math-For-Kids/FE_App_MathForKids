@@ -251,6 +251,11 @@ export default function createStyles(theme) {
       color: theme.colors.black,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
+    noteTextAca: {
+      fontSize: 12,
+      color: theme.colors.white,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+    },
     filterContainer: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -401,11 +406,14 @@ export default function createStyles(theme) {
     chartTitle: {
       fontSize: 16,
       fontFamily: Fonts.NUNITO_BOLD,
-      marginBottom: 8,
+      marginTop: 20,
+      marginBottom: 5,
       color: theme.colors.white,
     },
     tooltipContainer: {
       position: "absolute",
+      top: 5,
+      left: 50,
       backgroundColor: theme.colors.white,
       borderRadius: 6,
       padding: 6,
@@ -469,6 +477,68 @@ export default function createStyles(theme) {
     chartAxisText: {
       color: theme.colors.black,
       fontSize: 12,
+    },
+    noteContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 8,
+    },
+    noteItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: 8,
+    },
+    noteColorBox: {
+      width: 16,
+      height: 16,
+      borderRadius: 4,
+      marginRight: 4,
+    },
+    noteLabel: {
+      fontSize: 12,
+      color: "#333",
+    },
+    yAxisUnitLabel: {
+      fontSize: 12,
+      color: "#555",
+      alignSelf: "flex-start",
+      marginLeft: 4,
+      marginBottom: 4,
+    },
+    chartNote: {
+      fontSize: 12,
+      color: theme.colors.white,
+      marginTop: 4,
+      marginHorizontal: 16,
+      fontStyle: "italic",
+    },
+    loadingContainer: {
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingVertical: 40,
+    },
+    loadingText: {
+      marginTop: 8,
+      fontSize: 14,
+      color: theme.colors.white,
+    },
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(255, 255, 255, 0.7)",
+      zIndex: 1000,
+    },
+    loadingText: {
+      marginTop: 8,
+      fontSize: 14,
+      color: theme.colors.white,
     },
   });
 }

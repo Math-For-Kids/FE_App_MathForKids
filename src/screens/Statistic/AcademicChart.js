@@ -6,29 +6,49 @@ export default function AcademicChart({
   t,
   styles,
   skills,
-  lastMonth,
-  thisMonth,
+  pointStats,
   screenWidth,
+  thisRange,
+  lastRange,
 }) {
+  const scoreCategories = ["≥9", "≥7", "≥5", "<5"];
+
+  // Aggregate data across all skills for each score category
+  const aggregatedData = scoreCategories.map((category) => {
+    const thisPeriodTotal = skills.reduce((sum, skill) => {
+      const stat = pointStats?.compareByType?.[skill] || {};
+      const thisPeriodData = stat?.[thisRange] || {};
+      return sum + (thisPeriodData[category] || 0);
+    }, 0);
+
+    const lastPeriodTotal = skills.reduce((sum, skill) => {
+      const stat = pointStats?.compareByType?.[skill] || {};
+      const lastPeriodData = stat?.[lastRange] || {};
+      return sum + (lastPeriodData[category] || 0);
+    }, 0);
+
+    return [lastPeriodTotal, thisPeriodTotal, 0]; // [last, this, spacer]
+  });
+
+  // Prepare data for grouped bar chart
   const groupedBarChartData = {
-    labels: skills.flatMap((skill) => [skill, ""]),
+    labels: scoreCategories.flatMap((cat) => [cat, ""]), // Add spacing between categories
     datasets: [
       {
-        data: skills
-          .flatMap((_, i) => [lastMonth[i], thisMonth[i], 0])
-          .concat(100),
-        colors: skills
-          .flatMap(() => [
-            () => styles.noteLast.backgroundColor,
-            () => styles.noteThis.backgroundColor,
-            () => "rgba(0,0,0,0)",
-          ])
-          .concat(() => "#fff"),
+        data: aggregatedData.flat(),
+        colors: scoreCategories.flatMap(() => [
+          () => styles.noteLast.backgroundColor,
+          () => styles.noteThis.backgroundColor,
+          () => "rgba(0,0,0,0)", // Transparent for spacer
+        ]),
       },
     ],
-    legend: [t("lastMonth"), t("thisMonth")],
+    legend: [t(lastRange), t(thisRange)],
   };
 
+  // Calculate dynamic segments based on max data value
+  const maxDataValue = Math.max(...groupedBarChartData.datasets[0].data, 1); // Avoid division by 0
+  const segments = Math.ceil(maxDataValue); // Dynamic segments: 2 for 0-1, 3 for 0-2, 4 for 0-3, etc.
   const chartConfig = {
     backgroundGradientFrom: styles.container.backgroundColor || "#fff",
     backgroundGradientTo: styles.container.backgroundColor || "#fff",
@@ -39,18 +59,31 @@ export default function AcademicChart({
       stroke: "#e3e3e3",
     },
     barPercentage: 0.65,
+    formatYLabel: (value) => `${Math.round(value)}`,
   };
 
-  // Nhận xét tổng thể
-  const avgLast = lastMonth.reduce((a, b) => a + b, 0) / lastMonth.length || 0;
-  const avgThis = thisMonth.reduce((a, b) => a + b, 0) / thisMonth.length || 0;
-  const diff = avgThis - avgLast;
+  // Calculate overall statistics for comments
+  const calculateTotalStats = (range) => {
+    return skills.reduce((acc, skill) => {
+      const stat = pointStats?.compareByType?.[skill] || {};
+      const rangeData = stat?.[range] || {};
+      return scoreCategories.reduce(
+        (sum, cat) => sum + (rangeData[cat] || 0),
+        0
+      );
+    }, 0);
+  };
+
+  const thisTotal = calculateTotalStats(thisRange);
+  const lastTotal = calculateTotalStats(lastRange);
+
+  // Generate comments
   const percentChange =
-    avgLast === 0
-      ? avgThis > 0
+    lastTotal === 0
+      ? thisTotal > 0
         ? 100
         : 0
-      : Math.round((diff * 100) / avgLast);
+      : Math.round(((thisTotal - lastTotal) * 100) / lastTotal);
 
   let generalComment = t("noChange");
   if (percentChange > 5) {
@@ -59,23 +92,40 @@ export default function AcademicChart({
     generalComment = t("droppedBy", { value: Math.abs(percentChange) });
   }
 
-  // Nhận xét chi tiết từng kỹ năng
-  const detailedComments = skills.map((skill, i) => {
-    const last = lastMonth[i];
-    const current = thisMonth[i];
-    const diff = current - last;
-    const change =
-      last === 0 ? (current > 0 ? 100 : 0) : Math.round((diff * 100) / last);
+  // Detailed comments for each score category, only for significant changes
+  const detailedComments = scoreCategories
+    .map((category) => {
+      const thisPeriodTotal = skills.reduce((sum, skill) => {
+        const stat = pointStats?.compareByType?.[skill] || {};
+        const thisPeriodData = stat?.[thisRange] || {};
+        return sum + (thisPeriodData[category] || 0);
+      }, 0);
 
-    let comment = t("noChange");
-    if (change > 5) {
-      comment = t("improvedBy", { value: change });
-    } else if (change < -5) {
-      comment = t("droppedBy", { value: Math.abs(change) });
-    }
+      const lastPeriodTotal = skills.reduce((sum, skill) => {
+        const stat = pointStats?.compareByType?.[skill] || {};
+        const lastPeriodData = stat?.[lastRange] || {};
+        return sum + (lastPeriodData[category] || 0);
+      }, 0);
 
-    return `${skill}: ${comment}`;
-  });
+      const categoryChange =
+        lastPeriodTotal === 0
+          ? thisPeriodTotal > 0
+            ? 100
+            : 0
+          : Math.round(
+              ((thisPeriodTotal - lastPeriodTotal) * 100) / lastPeriodTotal
+            );
+
+      let comment = t("noChange");
+      if (categoryChange > 5) {
+        comment = t("improvedBy", { value: categoryChange });
+      } else if (categoryChange < -5) {
+        comment = t("droppedBy", { value: Math.abs(categoryChange) });
+      }
+
+      return { category, comment, categoryChange }; // Return object with category and change info
+    })
+    .filter((item) => Math.abs(item.categoryChange) > 5); // Filter for significant changes only
 
   return (
     <View style={styles.academicChartContainer}>
@@ -85,7 +135,7 @@ export default function AcademicChart({
         width={screenWidth}
         height={250}
         fromZero
-        segments={4}
+        segments={segments} // Use dynamic segments
         chartConfig={chartConfig}
         showBarTops={false}
         withInnerLines
@@ -96,22 +146,22 @@ export default function AcademicChart({
       <View style={styles.chartNoteContainer}>
         <View style={styles.chartNote}>
           <View style={styles.noteLast} />
-          <Text style={styles.noteText}>{t("lastMonth")}</Text>
+          <Text style={styles.noteTextAca}>{t(lastRange)}</Text>
         </View>
         <View style={styles.chartNote}>
           <View style={styles.noteThis} />
-          <Text style={styles.noteText}>{t("thisMonth")}</Text>
+          <Text style={styles.noteTextAca}>{t(thisRange)}</Text>
         </View>
       </View>
 
-      {/* Nhận xét dưới biểu đồ */}
+      {/* Comments below chart */}
       <View style={styles.commentContainer}>
         <Text style={styles.commentTitle}>{t("comment")}</Text>
         <Text style={styles.commentText}>{generalComment}</Text>
-        <Text style={styles.commentTitle}>{t("skillComments")}</Text>
-        {detailedComments.map((line, idx) => (
+        <Text style={styles.commentTitle}>{t("scoreComments")}</Text>
+        {detailedComments.map((item, idx) => (
           <Text key={idx} style={styles.commentText}>
-            {line}
+            {item.category}: {item.comment}
           </Text>
         ))}
       </View>

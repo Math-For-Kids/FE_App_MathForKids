@@ -4,10 +4,11 @@ import Api from "../api/api";
 // Thunk 1: Lấy thống kê điểm theo kỹ năng
 export const getUserPointStatsComparison = createAsyncThunk(
   "statistic/getUserPointStatsComparison",
-  async ({ pupilId, grade, ranges }, { rejectWithValue }) => {
+  async ({ pupilId, grade, ranges, lessonId }, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams({ grade });
       if (ranges?.length) params.append("ranges", ranges.join(","));
+      if (lessonId) params.append("lessonId", lessonId);
       const res = await Api.get(
         `/test/getUserPointStatsComparison/${pupilId}?${params.toString()}`
       );
