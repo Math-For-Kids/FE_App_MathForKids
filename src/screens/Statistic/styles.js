@@ -177,7 +177,17 @@ export default function createStyles(theme) {
       justifyContent: "center",
       gap: 20,
     },
-    chartNote: { flexDirection: "row", alignItems: "center" },
+    chartNote: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.colors.grayLight,
+    },
+    chartTFNote: {
+      backgroundColor: theme.colors.black,
+      borderTopLeftRadius: 20,
+      borderBottomRightRadius: 20,
+      padding: 10,
+    },
     noteLast: {
       width: 12,
       height: 12,

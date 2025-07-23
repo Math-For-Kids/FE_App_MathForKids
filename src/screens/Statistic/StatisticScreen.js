@@ -118,14 +118,33 @@ export default function StatisticScreen({ navigation }) {
   //     ],
   //   };
 
-  const rangeTypeOptions = {
-    week: [formatWeek(today), formatWeek(today.subtract(1, "week"))],
-    month: [formatMonth(today), formatMonth(today.subtract(1, "month"))],
-    quarter: [
-      formatQuarter(today),
-      formatQuarter(today.subtract(1, "quarter")),
-    ],
-  };
+  const rangeTypeOptions = [
+    {
+      label: `${formatWeek(today.subtract(1, "week"))} - ${formatWeek(
+        today
+      )} (lastWeek - thisWeek)`,
+      rangeType: "week",
+      ranges: [formatWeek(today.subtract(1, "week")), formatWeek(today)],
+    },
+    {
+      label: `${formatMonth(today.subtract(1, "month"))} - ${formatMonth(
+        today
+      )} (lastMonth - thisMonth)`,
+      rangeType: "month",
+      ranges: [formatMonth(today.subtract(1, "month")), formatMonth(today)],
+    },
+    {
+      label: `${formatQuarter(today.subtract(1, "quarter"))} - ${formatQuarter(
+        today
+      )} (lastQuarter - thisQuarter)`,
+      rangeType: "quarter",
+      ranges: [
+        formatQuarter(today.subtract(1, "quarter")),
+        formatQuarter(today),
+      ],
+    },
+  ];
+
   const testDetail = (answerStats?.data || []).filter(
     (detail) => String(detail.testId) === String(selectedTest?.id)
   );
@@ -202,13 +221,13 @@ export default function StatisticScreen({ navigation }) {
           skill: selectedSkill || null, // Raw skill key
         })
       );
+      const [startRange, endRange] = selectedRange || [];
       dispatch(
         getAnswerStats({
-          pupilId: selectedPupil.id,
-          grade: selectedPupil.grade,
-          ranges: rangesInEnglish,
-          lessonId: selectedLesson?.id || null,
-          skill: selectedSkill || null, // Raw skill key
+          pupilId: selectedPupil?.id,
+          skill: selectedSkill,
+          rangeType: selectedRangeType, // "week", "month", "quarter"
+          ranges: selectedRange,
         })
       );
       dispatch(
@@ -231,9 +250,7 @@ export default function StatisticScreen({ navigation }) {
 
       setLoading(true);
 
-      const ranges = rangeTypeOptions[selectedRangeType] || [
-        formatMonth(today),
-      ];
+      const ranges = selectedRange;
 
       const payload = {
         pupilId: selectedPupil.id,
@@ -279,6 +296,7 @@ export default function StatisticScreen({ navigation }) {
     selectedLesson,
     // selectedTest,
     selectedRangeType,
+    selectedRange,
   ]);
   const testLists = answerStats?.tests.map((d) => d.testId);
   //   console.log("testLists", testLists);
@@ -305,14 +323,6 @@ export default function StatisticScreen({ navigation }) {
 
   const thisRange = periodRanges[selectedPeriod]?.[0];
   const lastRange = periodRanges[selectedPeriod]?.[1];
-
-  const thisMonth = (selectedSkill ? [selectedSkill] : skillTypes).map((type) =>
-    getWeightedScore(type, thisRange)
-  );
-  const lastMonth = (selectedSkill ? [selectedSkill] : skillTypes).map((type) =>
-    getWeightedScore(type, lastRange)
-  );
-
   const filteredLessons = useMemo(() => {
     return lessons.filter(
       (lesson) => !selectedSkill || lesson.type === selectedSkill // Uses raw key
@@ -367,7 +377,8 @@ export default function StatisticScreen({ navigation }) {
 
       <ScrollView>
         <View style={styles.chartTypeWrapper}>
-          {["progress", "trueFalse", "goal"].map((chart) => (
+          {/* , "goal" */}
+          {["progress", "trueFalse"].map((chart) => (
             <TouchableOpacity
               key={chart}
               style={[
@@ -422,6 +433,7 @@ export default function StatisticScreen({ navigation }) {
           periods={periods}
           periodRanges={periodRanges}
           selectedRangeType={selectedRangeType}
+          setSelectedRange={setSelectedRange}
           setSelectedRangeType={setSelectedRangeType}
           showRangeTypeDropdown={showRangeTypeDropdown}
           setShowRangeTypeDropdown={setShowRangeTypeDropdown}
@@ -480,6 +492,7 @@ export default function StatisticScreen({ navigation }) {
                     total={answerStats?.total || 0}
                     data={answerStats?.data || []}
                     rangeType={selectedRangeType}
+                    selectedRange={selectedRange}
                   />
                 )}
               </>
