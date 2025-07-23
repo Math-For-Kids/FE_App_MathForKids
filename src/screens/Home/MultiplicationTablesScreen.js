@@ -17,7 +17,7 @@ import * as Speech from "expo-speech";
 export default function MultiplicationTableScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("multiplicationtable");
-  const { skillName } = route.params;
+  const { skillName, pupilId, grade } = route.params;
 
   const tables = [
     { icon: theme.icons.multiplication2, labelKey: "tableTwo", number: 2 },
@@ -129,12 +129,11 @@ export default function MultiplicationTableScreen({ navigation, route }) {
       textAlign: "center",
     },
   });
-
   return (
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("HomeScreen", { pupilId, grade })}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -173,6 +172,8 @@ export default function MultiplicationTableScreen({ navigation, route }) {
               onPress={() =>
                 navigation.navigate("MultiplicationTableDetailScreen", {
                   skillName,
+                  pupilId,
+                  grade,
                   table: item.number,
                   title: t(item.labelKey),
                 })

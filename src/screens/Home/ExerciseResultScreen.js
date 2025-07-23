@@ -243,18 +243,26 @@ export default function ExerciseResultScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("SkillScreen", {
-              skillName,
-              skillIcon,
-              grade,
-              pupilId,
-              title,
-              lessonId,
-              levelIds,
-              fromExercise: true,
-            })
-          }
+          onPress={() => {
+            if (!lessonId) {
+              navigation.navigate("MultiplicationTableScreen", {
+                skillName: "Expression",
+                pupilId,
+                grade,
+              });
+            } else {
+              navigation.navigate("SkillScreen", {
+                skillName,
+                skillIcon,
+                grade,
+                pupilId,
+                title,
+                lessonId,
+                levelIds,
+                fromExercise: true,
+              });
+            }
+          }}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -275,7 +283,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
           {t("score")}: {score}
         </Text>
         <Text style={styles.correctText}>
-          {t("score")}: {correctCount}
+          {t("correct")}: {correctCount}
         </Text>
         <Text style={styles.wrongText}>
           {t("wrong")} <Text style={styles.wrongNumber}>{wrongCount}</Text>
@@ -327,22 +335,25 @@ export default function ExerciseResultScreen({ navigation, route }) {
                   {answers[selectedQuestion.id] || "None"}
                 </Text>
                 <Text style={styles.modalAnswerText}>
-                  {t("correctAnswer")}: {extractAnswerValue(selectedQuestion.answer, selectedQuestion.level)}
+                  {t("correctAnswer")}:{" "}
+                  {selectedQuestion.expression
+                    ? selectedQuestion.expression
+                    : extractAnswerValue(selectedQuestion.answer, selectedQuestion.level)}
                 </Text>
-
                 <TouchableOpacity
                   style={styles.stepByStepButton}
                   onPress={() => {
-                    const answerText = selectedQuestion.answer || "";
-
-                    const { number1, number2 } = extractNumbers(answerText);
+                    // const answerText = selectedQuestion.answer || "";
+                    // const { number1, number2 } = extractNumbers(answerText);
+                    const textToExtract = selectedQuestion.expression || selectedQuestion.answer || "";
+                    const { number1, number2, operator } = extractNumbers(textToExtract);
                     if (!number1 || !number2) {
                       console.warn(
                         "Navigation skipped: Invalid numbers extracted",
                         {
                           number1,
                           number2,
-                          answerText,
+                          textToExtract,
                         }
                       );
                       return;

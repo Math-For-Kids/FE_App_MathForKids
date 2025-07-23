@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getAllPupils } from "../../redux/pupilSlice";
 import {
   getUserPointStatsComparison,
+  getUserPointFullLesson,
   getAnswerStats,
 } from "../../redux/statisticSlice";
 import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
@@ -49,7 +50,7 @@ export default function StatisticScreen({ navigation }) {
   const pupils = useSelector((state) => state.pupil.pupils || []);
   const lessons = useSelector((state) => state.lesson.lessons || []);
   const testList = useSelector((state) => state.test.tests || []);
-  const { pointStats, answerStats, error } = useSelector(
+  const { pointStats, fullLessonStats, answerStats, error } = useSelector(
     (state) => state.statistic || {}
   );
   //   console.log("answerStats", answerStats);
@@ -92,6 +93,10 @@ export default function StatisticScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(users?.id)
   );
+  const today = dayjs();
+  const formatMonth = (date) => date.format("YYYY-MM");
+  const formatWeek = (date) => `${date.format("YYYY")}-W${date.isoWeek()}`;
+  const formatQuarter = (date) => `${date.year()}-Q${date.quarter()}`;
   const periods = ["thisWeek", "thisMonth", "thisQuarter"];
   const periodRanges = {
     thisWeek: ["thisWeek", "lastWeek"],
@@ -203,6 +208,15 @@ export default function StatisticScreen({ navigation }) {
           grade: selectedPupil.grade,
           ranges: rangesInEnglish,
           lessonId: selectedLesson?.id || null,
+          skill: selectedSkill || null, // Raw skill key
+        })
+      );
+      dispatch(
+        getUserPointFullLesson({
+          pupilId: selectedPupil.id,
+          grade: selectedPupil.grade,
+          ranges,
+          type: selectedSkill,
           skill: selectedSkill || null, // Raw skill key
         })
       );
@@ -435,11 +449,15 @@ export default function StatisticScreen({ navigation }) {
                 screenWidth={screenWidth}
                 skills={selectedSkill ? [selectedSkill] : skillTypes} // Pass raw keys instead of chartSkills
                 pointStats={pointStats}
+                fullLessonStats={fullLessonStats}
                 selectedPeriod={selectedPeriod}
                 language={i18n.language}
                 filteredLessons={filteredLessons}
                 thisRange={thisRange}
                 lastRange={lastRange}
+                grade={selectedPupil?.grade || null} // Pass grade from selectedPupil
+                type={selectedSkill || null} // Pass type (skill) from selectedSkill
+                pupilId={selectedPupil?.id || null} // Pass pupilId from selectedPupil
               />
             )}
             {selectedChart === "trueFalse" && (

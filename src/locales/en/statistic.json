@@ -7,7 +7,9 @@
   "lastMonth": "Last month",
   "thisQuarter": "This quarter",
   "lastQuarter": "Last quarter",
-  "progress": "Learning progress",
+  "progress": "Academic progress",
+  "academicProgress": "Academic progress",
+
   "comment": "Comment",
   "summary": "Summary",
   "trueFalse": "Correct/Incorrect ratio",
@@ -31,9 +33,19 @@
   },
   "details": "Details by skill",
   "selectLesson": "Select lesson",
-  "error": "Error: Missing pupilId, lessonId (params), or grade (query).",
+  "selectSkill": "Select skill",
+  "error": "Please provide complete information",
   "level": "Level",
   "correct": "Correct",
+  "notificationMessage": "Notification: ",
+  "lowScores": "low scores",
+  "improvementSuggestion": "Improvement suggestion.",
+  "noDataAvailable": "No data available.",
+  "improvementNoticed": "There is improvement with {{lowScoreReduction}} reduction in low scores.",
+  "moreLowScores": "More low scores with {{lowScoreIncrease}} increase in low hands.",
+  "moreHighScores": "More high scores with {{highScoreIncrease}} increase in high hands.",
+  "needsImprovement": "needs improvement",
+  "noLessonsNeedImprovement": "No lessons need improvement."
   "wrong": "Incorrect",
   "thisRange": "Current",
   "lastRange": "Previous",
@@ -76,3 +88,4 @@
   "pleaseSelectAllBeforeViewingTests": "Please select pupil, skill, lesson, and range type before viewing tests.",
   "noTestAvailable": "No test available."
 }
+
