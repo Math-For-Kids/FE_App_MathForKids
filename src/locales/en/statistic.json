@@ -9,7 +9,6 @@
   "lastQuarter": "Last quarter",
   "progress": "Academic progress",
   "academicProgress": "Academic progress",
-
   "comment": "Comment",
   "summary": "Summary",
   "trueFalse": "Correct/Incorrect ratio",
@@ -33,9 +32,8 @@
   },
   "details": "Details by skill",
   "selectLesson": "Select lesson",
-  "selectSkill": "Select skill",
   "error": "Please provide complete information",
-  "level": "Level",
+  "level": "Cấp độ",
   "correct": "Correct",
   "notificationMessage": "Notification: ",
   "lowScores": "low scores",
@@ -45,7 +43,7 @@
   "moreLowScores": "More low scores with {{lowScoreIncrease}} increase in low hands.",
   "moreHighScores": "More high scores with {{highScoreIncrease}} increase in high hands.",
   "needsImprovement": "needs improvement",
-  "noLessonsNeedImprovement": "No lessons need improvement."
+  "noLessonsNeedImprovement": "No lessons need improvement.",
   "wrong": "Incorrect",
   "thisRange": "Current",
   "lastRange": "Previous",
@@ -88,4 +86,3 @@
   "pleaseSelectAllBeforeViewingTests": "Please select pupil, skill, lesson, and range type before viewing tests.",
   "noTestAvailable": "No test available."
 }
-

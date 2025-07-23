@@ -96,7 +96,12 @@ export default function TestListScreen({ route }) {
       </Text>
 
       {questions.map((q, index) => (
-        <View key={q.exerciseId || index} style={styles.questionBlock}>
+        <View
+          key={`${q.testId || "noTest"}_${
+            q.exerciseId || "noExercise"
+          }_${index}`}
+          style={styles.questionBlock}
+        >
           <Text style={styles.questionText}>
             {index + 1}. {q.question?.[i18n.language] || q.question?.en}
           </Text>

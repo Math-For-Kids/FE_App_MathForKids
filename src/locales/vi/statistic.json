@@ -60,7 +60,7 @@
   "mostWrongLevel": "Sai nhiều nhất ở cấp độ",
   "mostCorrectLevel": "Đúng nhiều nhất ở cấp độ",
   "times": "lần",
-  "pleaseSelectPupilAndRangeType": "Vui lòng chọn học sinh và kiểu khoảng thời gian trước khi xem thống kê.",
+  "pleaseSelectPupilAndRangeType": "Vui lòng chọn đầy đủ thông tin.",
   "accuracyOverTime": "Biểu đồ thể hiện sự tiến bộ theo thời gian",
   "correctWrongByMonth": "Tỉ lệ câu đúng và sai qua các giai đoạn",
   "accuracyByLevel": "Kết quả đúng/sai theo độ khó câu hỏi",

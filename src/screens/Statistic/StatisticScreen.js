@@ -93,10 +93,7 @@ export default function StatisticScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(users?.id)
   );
-  const today = dayjs();
-  const formatMonth = (date) => date.format("YYYY-MM");
-  const formatWeek = (date) => `${date.format("YYYY")}-W${date.isoWeek()}`;
-  const formatQuarter = (date) => `${date.year()}-Q${date.quarter()}`;
+
   const periods = ["thisWeek", "thisMonth", "thisQuarter"];
   const periodRanges = {
     thisWeek: ["thisWeek", "lastWeek"],
@@ -109,34 +106,25 @@ export default function StatisticScreen({ navigation }) {
   const formatWeek = (date) => `${date.format("YYYY")}-W${date.isoWeek()}`;
   const formatQuarter = (date) => `${date.year()}-Q${date.quarter()}`;
 
-  //   const periodRanges = {
-  //     thisWeek: [formatWeek(today), formatWeek(today.subtract(1, "week"))],
-  //     thisMonth: [formatMonth(today), formatMonth(today.subtract(1, "month"))],
-  //     thisQuarter: [
-  //       formatQuarter(today),
-  //       formatQuarter(today.subtract(1, "quarter")),
-  //     ],
-  //   };
-
   const rangeTypeOptions = [
     {
       label: `${formatWeek(today.subtract(1, "week"))} - ${formatWeek(
         today
-      )} (lastWeek - thisWeek)`,
+      )} (${t("lastWeek")} - ${t("thisWeek")})`,
       rangeType: "week",
       ranges: [formatWeek(today.subtract(1, "week")), formatWeek(today)],
     },
     {
       label: `${formatMonth(today.subtract(1, "month"))} - ${formatMonth(
         today
-      )} (lastMonth - thisMonth)`,
+      )} (${t("lastMonth")} - ${t("thisMonth")})`,
       rangeType: "month",
       ranges: [formatMonth(today.subtract(1, "month")), formatMonth(today)],
     },
     {
       label: `${formatQuarter(today.subtract(1, "quarter"))} - ${formatQuarter(
         today
-      )} (lastQuarter - thisQuarter)`,
+      )} (${t("lastQuarter")} - ${t("thisQuarter")})`,
       rangeType: "quarter",
       ranges: [
         formatQuarter(today.subtract(1, "quarter")),
@@ -210,24 +198,13 @@ export default function StatisticScreen({ navigation }) {
   useEffect(() => {
     if (selectedPupil && selectedPupil.grade && selectedPeriod) {
       const ranges = periodRanges[selectedPeriod] || ["thisMonth", "lastMonth"];
-      const rangesInEnglish = ranges.map((key) => key);
-
       dispatch(
         getUserPointStatsComparison({
           pupilId: selectedPupil.id,
           grade: selectedPupil.grade,
-          ranges: rangesInEnglish,
+          ranges,
           lessonId: selectedLesson?.id || null,
           skill: selectedSkill || null, // Raw skill key
-        })
-      );
-      const [startRange, endRange] = selectedRange || [];
-      dispatch(
-        getAnswerStats({
-          pupilId: selectedPupil?.id,
-          skill: selectedSkill,
-          rangeType: selectedRangeType, // "week", "month", "quarter"
-          ranges: selectedRange,
         })
       );
       dispatch(
@@ -239,8 +216,26 @@ export default function StatisticScreen({ navigation }) {
           skill: selectedSkill || null, // Raw skill key
         })
       );
+      if (
+        selectedPupil &&
+        selectedLesson?.id &&
+        selectedRangeType &&
+        selectedRange
+      ) {
+        dispatch(
+          getAnswerStats({
+            pupilId: selectedPupil?.id,
+            grade: selectedPupil?.grade,
+            skill: selectedSkill,
+            lessonId: selectedLesson.id,
+            rangeType: selectedRangeType,
+            ranges: selectedRange,
+          })
+        );
+      }
     }
   }, [selectedPupil, selectedPeriod, selectedLesson, selectedSkill]);
+
   useEffect(() => {
     const fetchStats = async () => {
       if (!selectedPupil || !selectedRangeType) {
