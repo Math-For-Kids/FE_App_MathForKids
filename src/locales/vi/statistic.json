@@ -7,10 +7,10 @@
   "lastMonth": "Tháng trước",
   "thisQuarter": "Quý hiện tại",
   "lastQuarter": "Quý trước",
-  "academicProgress": "Tiến độ học tập",
+  "progress": "Tiến độ học tập",
   "comment": "Nhận xét",
   "summary": "Tổng kết",
-  "trueFalseRatio": "Tỷ lệ đúng/sai",
+  "trueFalse": "Tỷ lệ đúng/sai",
   "goal": "Tiến độ nhiệm vụ",
   "true": "Đúng",
   "false": "Sai",
@@ -33,6 +33,7 @@
   "selectLesson": "Chọn bài học",
   "selectSkill": "Chọn kỹ năng",
   "error": "Vui lòng cung cấp đủ thông tin",
+
   "correct": "Đúng",
   "wrong": "Sai",
   "thisRange": "Trước",
@@ -60,7 +61,6 @@
   "correctAnswer": "Đáp án đúng",
   "selectedAnswer": "Đáp án học sinh chọn",
   "incorrect": "Sai",
-  "level": "Cấp độ",
   "mostWrongLevel": "Sai nhiều nhất ở cấp độ",
   "mostCorrectLevel": "Đúng nhiều nhất ở cấp độ",
   "times": "lần",
@@ -77,4 +77,12 @@
   "improvementNoticed": "Có sự cải thiện với việc giảm {{lowScoreReduction}} điểm thấp.",
   "moreLowScores": "Nhiều điểm thấp hơn với mức tăng {{lowScoreIncrease}} bài thấp.",
   "moreHighScores": "Nhiều điểm cao hơn với mức tăng {{highScoreIncrease}} bài cao."
+  "selectSkill": "Chọn kỹ năng",
+  "selectTest": "Chọn bài kiểm tra",
+  "unit": "Đơn vị",
+  "questions": "câu",
+  "loadingStats": "Đang tải thống kê...",
+  "incompleteSelection": "Thiếu thông tin",
+  "pleaseSelectAllBeforeViewingTests": "Vui lòng chọn đầy đủ học sinh, kỹ năng, bài học và loại thời gian.",
+  "noTestAvailable": "Không có bài kiểm tra nào khả dụng."
 }

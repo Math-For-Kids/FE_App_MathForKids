@@ -123,10 +123,10 @@ export const AdditionStepView = ({
       marginRight: 16,
       width: 300,
       borderWidth: 1,
-      color: theme.colors.border,
-      borderColor: theme.colors.border,
+      color: getSkillColor(),
+      borderColor: getSkillColor(),
     },
-    boxaddition: {
+    additionBox: {
       backgroundColor: theme.colors.cardBackground,
       borderRadius: 12,
       padding: 10,
@@ -135,7 +135,7 @@ export const AdditionStepView = ({
       marginRight: 16,
       width: 300,
       borderWidth: 1,
-      borderColor: theme.colors.border,
+      borderColor: getSkillColor(),
     },
   });
 
@@ -146,7 +146,7 @@ export const AdditionStepView = ({
           {subTextLines[Math.max(0, currentStep)]}
         </Text>
       )}
-      <View style={styles.boxaddition}>
+      <View style={styles.additionBox}>
         <View style={styles.innerBox}>
           <View style={styles.row}>
             {labels.map((label, i) => (

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
+import { ActivityIndicator, Alert } from "react-native";
 export default function StatisticDropdowns({
   t,
   i18n,
@@ -44,6 +44,14 @@ export default function StatisticDropdowns({
   data,
 }) {
   const navigation = useNavigation();
+  const [isLoadingTestData, setIsLoadingTestData] = useState(false);
+  const isTestDropdownEnabled =
+    selectedChart === "trueFalse" &&
+    selectedPupil &&
+    selectedSkill &&
+    selectedLesson &&
+    selectedRangeType;
+
   const handleSelectTest = (test) => {
     setSelectedTest(test);
     setShowTestDropdown(false);
@@ -250,9 +258,7 @@ export default function StatisticDropdowns({
                         setShowRangeTypeDropdown(false);
                       }}
                     >
-                      <Text style={styles.dropdownItemText}>
-                        {t(typeKey)}
-                      </Text>
+                      <Text style={styles.dropdownItemText}>{t(typeKey)}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -266,8 +272,21 @@ export default function StatisticDropdowns({
       {selectedChart === "trueFalse" && (
         <View style={styles.dropdownWrapper}>
           <TouchableOpacity
-            style={styles.dropdownRow}
-            onPress={() => setShowTestDropdown(true)}
+            style={[
+              styles.dropdownRow,
+              !isTestDropdownEnabled && { backgroundColor: "#eee" }, // màu xám khi disabled
+            ]}
+            disabled={!isTestDropdownEnabled}
+            onPress={() => {
+              if (isTestDropdownEnabled) {
+                setShowTestDropdown(true);
+              } else {
+                Alert.alert(
+                  t("incompleteSelection"),
+                  t("pleaseSelectAllBeforeViewingTests")
+                );
+              }
+            }}
           >
             <Text style={styles.dropdownText} numberOfLines={1}>
               {selectedTest ? t(selectedTest) : t("selectTest")}
