@@ -67,7 +67,7 @@ export default function VerifyOTP({ navigation, route }) {
         {
           text: "OK",
           onPress: () =>
-            navigation.navigate(isLogin ? "AccountScreen" : "StatisticScreen"),
+            navigation.navigate(isLogin ? "AccountScreen" : "AccountScreen"),
         },
       ]);
     } catch (err) {
