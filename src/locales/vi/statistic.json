@@ -31,6 +31,7 @@
   },
   "details": "Chi tiết theo kỹ năng",
   "selectLesson": "Chọn bài học",
+  "selectSkill": "Chọn kỹ năng",
   "error": "Vui lòng cung cấp đủ thông tin",
   "correct": "Đúng",
   "wrong": "Sai",
@@ -66,5 +67,14 @@
   "pleaseSelectPupilAndRangeType": "Vui lòng chọn học sinh và kiểu khoảng thời gian trước khi xem thống kê.",
   "accuracyOverTime": "Biểu đồ thể hiện sự tiến bộ theo thời gian",
   "correctWrongByMonth": "Số câu đúng và sai qua các giai đoạn học",
-  "accuracyByLevel": "Kết quả đúng/sai theo độ khó câu hỏi"
+  "accuracyByLevel": "Kết quả đúng/sai theo độ khó câu hỏi",
+  "notificationMessage": "Thông báo: ",
+  "lowScores": "điểm thấp",
+  "improvementSuggestion": "Đề xuất cải thiện.",
+  "noDataAvailable": "Không có dữ liệu.",
+  "noLessonsNeedImprovement": "Không có bài học nào cần cải thiện.",
+  "needsImprovement": "cần cải thiện",
+  "improvementNoticed": "Có sự cải thiện với việc giảm {{lowScoreReduction}} điểm thấp.",
+  "moreLowScores": "Nhiều điểm thấp hơn với mức tăng {{lowScoreIncrease}} bài thấp.",
+  "moreHighScores": "Nhiều điểm cao hơn với mức tăng {{highScoreIncrease}} bài cao."
 }

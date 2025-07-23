@@ -1,226 +1,228 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import { View, Text } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 import { useTheme } from "../../themes/ThemeContext";
+import { useDispatch, useSelector } from "react-redux";
+import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
 
-export default function AcademicChart({
+// Component hiển thị biểu đồ cột so sánh điểm số học tập
+export default React.memo(function AcademicChart({
   t,
   styles,
   skills,
   pointStats,
+  fullLessonStats,
   screenWidth,
   thisRange,
   lastRange,
+  language,
+  grade,
+  type,
+  pupilId,
 }) {
-  // Check if pointStats is undefined or empty
-  if (!pointStats || !pointStats.compareByType || Object.keys(pointStats.compareByType).length === 0) {
+  const dispatch = useDispatch();
+  const { theme } = useTheme();
+  // Sắp xếp thứ tự danh mục điểm số: <5, ≥5, ≥7, ≥9
+  const scoreCategories = ["<5", "≥5", "≥7", "≥9"];
+  const lessons = useSelector((state) => state.lesson.lessons);
+
+  // Lấy dữ liệu bài học dựa trên grade, type và pupilId
+  useEffect(() => {
+    if (grade && type && pupilId) {
+      dispatch(getLessonsByGradeAndType({ grade, type, pupilId }));
+    }
+  }, [dispatch, grade, type, pupilId]);
+
+  // Phân tích sự cải thiện dựa trên pointStats
+  const improvementAnalysis = useMemo(() => {
+    if (!pointStats?.compareByType || !Object.keys(pointStats.compareByType).length) {
+      return t("noDataAvailable");
+    }
+
+    const calculateScores = (range) => {
+      let highScores = 0;
+      let lowScores = 0;
+      skills.forEach((skill) => {
+        const skillData = pointStats.compareByType[skill]?.[range];
+        if (skillData) {
+          highScores += (skillData["≥9"] || 0) + (skillData["≥7"] || 0);
+          lowScores += skillData["<5"] || 0;
+        }
+      });
+      return { highScores, lowScores };
+    };
+
+    const thisPeriod = calculateScores(thisRange);
+    const lastPeriod = calculateScores(lastRange);
+
+    let improvementMessage = "";
+    if (thisPeriod.lowScores < lastPeriod.lowScores && thisPeriod.highScores >= lastPeriod.highScores) {
+      improvementMessage = t("improvementNoticed", {
+        range: thisRange,
+        lowScoreReduction: lastPeriod.lowScores - thisPeriod.lowScores,
+      });
+    } else if (thisPeriod.lowScores > lastPeriod.lowScores) {
+      improvementMessage = t("moreLowScores", {
+        range: thisRange,
+        lowScoreIncrease: thisPeriod.lowScores - lastPeriod.lowScores,
+      });
+    } else if (thisPeriod.highScores > lastPeriod.highScores) {
+      improvementMessage = t("moreHighScores", {
+        range: thisRange,
+        highScoreIncrease: thisPeriod.highScores - lastPeriod.highScores,
+      });
+    } else {
+      improvementMessage = t("noSignificantChange", { range: thisRange });
+    }
+
+    return improvementMessage;
+  }, [pointStats, thisRange, lastRange, skills, t]);
+
+  // Tạo thông báo về các bài học cần cải thiện
+  const notificationMessage = useMemo(() => {
+    if (!fullLessonStats?.compareByLesson) return [t("noDataAvailable")];
+
+    const lessonNameMap = lessons.reduce((map, lesson) => {
+      if (lesson.id && lesson.name?.[language]) {
+        map[lesson.id] = lesson.name[language];
+      }
+      return map;
+    }, {});
+
+    const scoresByLesson = Object.entries(fullLessonStats.compareByLesson).flatMap(([skill, lessons]) =>
+      Object.entries(lessons).map(([lessonKey, data]) => ({
+        lessonId: lessonKey.split(": ")[1],
+        highScores: (data[thisRange]?.["≥9"] || 0) + (data[thisRange]?.["≥7"] || 0),
+        lowScores: data[thisRange]?.["<5"] || 0,
+      }))
+    );
+
+    const lessonsToImprove = scoresByLesson
+      .filter(({ highScores, lowScores }) => lowScores > highScores)
+      .map(({ lessonId }) => `${lessonNameMap[lessonId] || lessonId} ${t("needsImprovement")}.`);
+
+    return lessonsToImprove.length
+      ? [...lessonsToImprove, improvementAnalysis]
+      : [t("noLessonsNeedImprovement"), improvementAnalysis];
+  }, [fullLessonStats, thisRange, language, t, lessons, improvementAnalysis]);
+
+  // Kiểm tra nếu không có dữ liệu để hiển thị
+  if (!pointStats?.compareByType || !Object.keys(pointStats.compareByType).length) {
     return (
-      <View style={[styles.academicChartContainers, { justifyContent: "center", alignItems: "center" }]}>
-        <Text style={[styles.chartName, { textAlign: "center", marginTop: 10 }]}>{t("academicProgress")}</Text>
-        <Text style={[styles.commentText, { textAlign: "center", marginTop: 10 }]}>
-          {t("noSignificantChanges")}
-        </Text>
+      <View style={[styles.academicChartContainers, { justifyContent: "center", alignItems: "center", padding: 20 }]}>
+        <Text style={[styles.chartName, { textAlign: "center", fontSize: 20, fontWeight: "600" }]}>{t("academicProgress")}</Text>
       </View>
     );
   }
 
-  const { theme } = useTheme();
-  const scoreCategories = ["≥9", "≥7", "≥5", "<5"];
-
-  // Aggregate data across all skills for each score category
+  // Tổng hợp dữ liệu cho biểu đồ
   const aggregatedData = scoreCategories.map((category) => {
     const thisPeriodTotal = skills.reduce((sum, skill) => {
-      const stat = pointStats?.compareByType?.[skill] || {};
-      const thisPeriodData = stat?.[thisRange] || {};
-      return sum + (thisPeriodData[category] || 0);
+      const skillData = pointStats.compareByType[skill]?.[thisRange]?.[category] || 0;
+      return sum + skillData;
     }, 0);
-
-    const lastPeriodTotal = skills.reduce((sum, skill) => {
-      const stat = pointStats?.compareByType?.[skill] || {};
-      const lastPeriodData = stat?.[lastRange] || {};
-      return sum + (lastPeriodData[category] || 0);
-    }, 0);
-
-    return [lastPeriodTotal, thisPeriodTotal, 0]; // [last, this, spacer]
+    const lastPeriodTotal = skills.reduce((sum, skill) => sum + (pointStats.compareByType[skill]?.[lastRange]?.[category] || 0), 0);
+    return [lastPeriodTotal, thisPeriodTotal, 0]; // 0 là placeholder cho khoảng trống
   });
 
-  // Prepare data for grouped bar chart
-  const groupedBarChartData = {
-    labels: scoreCategories.flatMap((cat) => [cat, ""]),
+  // Kiểm tra nếu không có dữ liệu để hiển thị biểu đồ
+  const shouldShowChart = aggregatedData.some((data) => data[0] > 0 || data[1] > 0);
+  if (!shouldShowChart) {
+    return (
+      <View style={[styles.academicChartContainers, { justifyContent: "center", alignItems: "center", padding: 20 }]}>
+        <Text style={[styles.chartName, { textAlign: "center", fontSize: 20, fontWeight: "600" }]}>{t("academicProgress")}</Text>
+      </View>
+    );
+  }
+
+  // Cấu hình dữ liệu cho biểu đồ
+  const chartData = {
+    labels: scoreCategories.flatMap((cat) => [cat, ""]), // Thêm khoảng trống giữa các nhóm cột
     datasets: [
       {
         data: aggregatedData.flat(),
         colors: scoreCategories.flatMap(() => [
-          () => styles.noteLast.backgroundColor,
-          () => styles.noteThis.backgroundColor,
-          () => "rgba(0,0,0,0)", // Transparent for spacer
+          () => "#FF6F61", // Màu đỏ cam cho giai đoạn trước
+          () => "#6BCB77", // Màu xanh lá cho giai đoạn hiện tại
+          () => "rgba(0,0,0,0)", // Khoảng trống giữa các cột
         ]),
       },
     ],
     legend: [t(lastRange), t(thisRange)],
   };
 
-  // Calculate dynamic segments based on max data value
-  const maxDataValue = Math.max(...groupedBarChartData.datasets[0].data, 1); // Avoid division by 0
-  const segments = Math.ceil(maxDataValue); // Dynamic segments
+  // Cấu hình giao diện cho biểu đồ, bao gồm đường dọc trục Y
   const chartConfig = {
-    backgroundGradientFrom: styles.container.backgroundColor || "#fff",
-    backgroundGradientTo: styles.container.backgroundColor || "#fff",
+    backgroundColor: "#F5F5F5", // Màu nền nhẹ
+    backgroundGradientFrom: "#F5F5F5",
+    backgroundGradientTo: "#F5F5F5",
     decimalPlaces: 0,
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    labelColor: () => styles.noteText.color || "#000",
+    color: () => theme.colors.black || "#333", // Màu chữ tối
+    labelColor: () => "#333", // Màu nhãn cột
+    barPercentage: 0.7, // Tăng chiều rộng cột
+    formatYLabel: (value) => `${Math.max(Math.round(value), 0)}`,
+    minY: 0,
+    maxY: Math.max(...aggregatedData.flat()) + 2, // Tăng maxY để có không gian
+    yAxisLabel: "", // Không hiển thị nhãn trục Y
+    withVerticalLines: true, // Bật đường dọc
+    withHorizontalLines: true, // Bật đường ngang
     propsForBackgroundLines: {
-      stroke: "#e3e3e3",
+      stroke: "#E0E0E0", // Màu đường lưới ngang nhạt
+      strokeWidth: 1,
     },
-    barPercentage: 0.65,
-    formatYLabel: (value) => `${Math.round(value)}`,
+    propsForVerticalLines: {
+      stroke: "#666", // Màu đường dọc đậm hơn để rõ ràng
+      strokeWidth: 2, // Độ dày đường dọc
+      strokeDashArray: "", // Đường liền, không nét đứt
+    },
+    propsForLabels: {
+      fontSize: 14, // Tăng kích thước chữ nhãn
+      fontWeight: "500",
+    },
   };
-
-  // Calculate overall statistics for comments
-  const calculateTotalStats = (range) => {
-    return skills.reduce((acc, skill) => {
-      const stat = pointStats?.compareByType?.[skill] || {};
-      const rangeData = stat?.[range] || {};
-      return scoreCategories.reduce((sum, cat) => sum + (rangeData[cat] || 0), 0);
-    }, 0);
-  };
-
-  const thisTotal = calculateTotalStats(thisRange);
-  const lastTotal = calculateTotalStats(lastRange);
-
-  // Generate comments
-  const percentChange =
-    lastTotal === 0
-      ? thisTotal > 0
-        ? 100
-        : 0
-      : Math.round(((thisTotal - lastTotal) * 100) / lastTotal);
-
-  let generalComment = t("noChange");
-  if (percentChange > 5) {
-    generalComment = t("improvedBy", { value: percentChange });
-  } else if (percentChange < -5) {
-    generalComment = t("droppedBy", { value: Math.abs(percentChange) });
-  }
-
-  // Detailed comments for each score category, only for significant changes
-  const detailedComments = scoreCategories
-    .map((category) => {
-      const thisPeriodTotal = skills.reduce((sum, skill) => {
-        const stat = pointStats?.compareByType?.[skill] || {};
-        const thisPeriodData = stat?.[thisRange] || {};
-        return sum + (thisPeriodData[category] || 0);
-      }, 0);
-
-      const lastPeriodTotal = skills.reduce((sum, skill) => {
-        const stat = pointStats?.compareByType?.[skill] || {};
-        const lastPeriodData = stat?.[lastRange] || {};
-        return sum + (lastPeriodData[category] || 0);
-      }, 0);
-
-      const categoryChange =
-        lastPeriodTotal === 0
-          ? thisPeriodTotal > 0
-            ? 100
-            : 0
-          : Math.round(((thisPeriodTotal - lastPeriodTotal) * 100) / lastPeriodTotal);
-
-      let comment = t("noChange");
-      if (categoryChange > 5) {
-        comment = t("improvedBy", { value: categoryChange });
-      } else if (categoryChange < -5) {
-        comment = t("droppedBy", { value: Math.abs(categoryChange) });
-      }
-
-      return { category, comment, categoryChange };
-    })
-    .filter((item) => Math.abs(item.categoryChange) > 5);
 
   return (
-    <View style={[styles.academicChartContainers, { padding: 16, borderRadius: 12, marginVertical: 10, alignItems: "center" }]}>
-      <Text style={[styles.chartName, { fontSize: 18, fontWeight: "600", color: theme.colors.black, marginBottom: 12, textAlign: "center" }]}>
+    <View style={[styles.academicChartContainers, { padding: 16, borderRadius: 12, alignItems: "center" }]}>
+      {/* Tiêu đề biểu đồ */}
+      <Text style={[styles.chartName, { fontSize: 22, fontWeight: "700", color: "#333", marginBottom: 16 }]}>
         {t("academicProgress")}
       </Text>
-      <View style={styles.back}>
+      <View style={[styles.back, { alignItems: "center" }]}>
+        {/* Biểu đồ cột */}
         <BarChart
-          data={groupedBarChartData}
-          width={screenWidth} // Reduce width to allow centering with padding
-          height={300}
+          data={chartData}
+          width={screenWidth} // Giảm chiều rộng để có lề
+          height={320} // Tăng chiều cao biểu đồ
+          spacing={80} // Tăng khoảng cách giữa các nhóm cột
           fromZero
-          segments={segments}
+          flatColor
+          segments={Math.max(...chartData.datasets[0].data, 1)}
           chartConfig={chartConfig}
-          showBarTops={false}
           withCustomBarColorFromData
           showTooltip={false}
+          showBarTops={false}
+          withVerticalLines={true} // Đảm bảo bật đường dọc
           style={styles.academicChartContainer}
-          flatColor
         />
-        <View style={[styles.chartNoteContainer, { flexDirection: "row", justifyContent: "center", marginBottom: 16, alignItems: "center" }]}>
-          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center", marginRight: 16 }]}>
-            <View style={[styles.noteLast, { width: 14, height: 14, borderRadius: 2 }]} />
-            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(lastRange)}</Text>
+        {/* Chú thích màu */}
+        <View style={[styles.chartNoteContainer, { flexDirection: "row", justifyContent: "center", marginTop: 16 }]}>
+          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center", marginRight: 20 }]}>
+            <View style={[{ width: 16, height: 16, backgroundColor: "#FF6F61", borderRadius: 4 }]} />
+            <Text style={[{ marginLeft: 8, color: "#333", fontSize: 14, fontWeight: "500" }]}>{t(lastRange)}</Text>
           </View>
           <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center" }]}>
-            <View style={[styles.noteThis, { width: 14, height: 14, borderRadius: 2 }]} />
-            <Text style={[styles.noteTexts, { marginLeft: 6, color: theme.colors.black, fontSize: 12, textAlign: "center" }]}>{t(thisRange)}</Text>
+            <View style={[{ width: 16, height: 16, backgroundColor: "#6BCB77", borderRadius: 4 }]} />
+            <Text style={[{ marginLeft: 8, color: "#333", fontSize: 14, fontWeight: "500" }]}>{t(thisRange)}</Text>
           </View>
         </View>
       </View>
-      {/* Improved Comments Section */}
-      <View style={{
-        backgroundColor: theme.colors.white,
-        padding: 16,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: theme.colors.grayLight,
-        marginTop: 8,
-        width: "90%", // Restrict width to allow centering
-        alignSelf: "center",
-      }}>
-        <Text style={{
-          fontSize: 16,
-          fontWeight: "600",
-          color: theme.colors.black,
-          marginBottom: 8,
-          textAlign: "center",
-        }}>
-          {t("summary")}
-        </Text>
-        <View style={{ marginBottom: 12 }}>
-          <Text style={{
-            fontSize: 14,
-            color: percentChange > 5 ? theme.colors.green : percentChange < -5 ? theme.colors.redTomato : theme.colors.black,
-            fontWeight: "500",
-            textAlign: "center",
-          }}>
-            {t("overallProgress")}: {generalComment}
-          </Text>
-        </View>
-        {detailedComments.length > 0 && (
-          <View>
-            <Text style={{
-              fontSize: 14,
-              fontWeight: "500",
-              color: theme.colors.black,
-              marginBottom: 8,
-              textAlign: "center",
-            }}>
-              {t("scoreBreakdown")}
-            </Text>
-            {detailedComments.map((item, idx) => (
-              <Text key={idx} style={{
-                fontSize: 14,
-                color: item.categoryChange > 5 ? theme.colors.green : theme.colors.redTomato,
-                marginBottom: 4,
-                paddingLeft: 8,
-                textAlign: "left", // Keep text left-aligned within centered container
-              }}>
-                • {item.category}: {item.comment}
-              </Text>
-            ))}
-          </View>
-        )}
+      {/* Phần tóm tắt */}
+      <View style={[styles.summaryTFContainer, { width: 330 }]}>
+        <Text style={styles.summaryTitle}>{t("summary")}</Text>
+        {notificationMessage.map((line, index) => (
+          <Text key={index} style={styles.summaryItem}>{line}</Text>
+        ))}
       </View>
     </View>
   );
-}
+});
