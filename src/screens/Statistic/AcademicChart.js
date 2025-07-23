@@ -35,7 +35,10 @@ export default React.memo(function AcademicChart({
 
   // Phân tích sự cải thiện dựa trên pointStats
   const improvementAnalysis = useMemo(() => {
-    if (!pointStats?.compareByType || !Object.keys(pointStats.compareByType).length) {
+    if (
+      !pointStats?.compareByType ||
+      !Object.keys(pointStats.compareByType).length
+    ) {
       return t("noDataAvailable");
     }
 
@@ -56,7 +59,10 @@ export default React.memo(function AcademicChart({
     const lastPeriod = calculateScores(lastRange);
 
     let improvementMessage = "";
-    if (thisPeriod.lowScores < lastPeriod.lowScores && thisPeriod.highScores >= lastPeriod.highScores) {
+    if (
+      thisPeriod.lowScores < lastPeriod.lowScores &&
+      thisPeriod.highScores >= lastPeriod.highScores
+    ) {
       improvementMessage = t("improvementNoticed", {
         range: thisRange,
         lowScoreReduction: lastPeriod.lowScores - thisPeriod.lowScores,
@@ -89,17 +95,23 @@ export default React.memo(function AcademicChart({
       return map;
     }, {});
 
-    const scoresByLesson = Object.entries(fullLessonStats.compareByLesson).flatMap(([skill, lessons]) =>
+    const scoresByLesson = Object.entries(
+      fullLessonStats.compareByLesson
+    ).flatMap(([skill, lessons]) =>
       Object.entries(lessons).map(([lessonKey, data]) => ({
         lessonId: lessonKey.split(": ")[1],
-        highScores: (data[thisRange]?.["≥9"] || 0) + (data[thisRange]?.["≥7"] || 0),
+        highScores:
+          (data[thisRange]?.["≥9"] || 0) + (data[thisRange]?.["≥7"] || 0),
         lowScores: data[thisRange]?.["<5"] || 0,
       }))
     );
 
     const lessonsToImprove = scoresByLesson
       .filter(({ highScores, lowScores }) => lowScores > highScores)
-      .map(({ lessonId }) => `${lessonNameMap[lessonId] || lessonId} ${t("needsImprovement")}.`);
+      .map(
+        ({ lessonId }) =>
+          `${lessonNameMap[lessonId] || lessonId} ${t("needsImprovement")}.`
+      );
 
     return lessonsToImprove.length
       ? [...lessonsToImprove, improvementAnalysis]
@@ -107,10 +119,25 @@ export default React.memo(function AcademicChart({
   }, [fullLessonStats, thisRange, language, t, lessons, improvementAnalysis]);
 
   // Kiểm tra nếu không có dữ liệu để hiển thị
-  if (!pointStats?.compareByType || !Object.keys(pointStats.compareByType).length) {
+  if (
+    !pointStats?.compareByType ||
+    !Object.keys(pointStats.compareByType).length
+  ) {
     return (
-      <View style={[styles.academicChartContainers, { justifyContent: "center", alignItems: "center", padding: 20 }]}>
-        <Text style={[styles.chartName, { textAlign: "center", fontSize: 20, fontWeight: "600" }]}>{t("academicProgress")}</Text>
+      <View
+        style={[
+          styles.academicChartContainers,
+          { justifyContent: "center", alignItems: "center", padding: 20 },
+        ]}
+      >
+        <Text
+          style={[
+            styles.chartName,
+            { textAlign: "center", fontSize: 20, fontWeight: "600" },
+          ]}
+        >
+          {t("academicProgress")}
+        </Text>
       </View>
     );
   }
@@ -118,19 +145,38 @@ export default React.memo(function AcademicChart({
   // Tổng hợp dữ liệu cho biểu đồ
   const aggregatedData = scoreCategories.map((category) => {
     const thisPeriodTotal = skills.reduce((sum, skill) => {
-      const skillData = pointStats.compareByType[skill]?.[thisRange]?.[category] || 0;
+      const skillData =
+        pointStats.compareByType[skill]?.[thisRange]?.[category] || 0;
       return sum + skillData;
     }, 0);
-    const lastPeriodTotal = skills.reduce((sum, skill) => sum + (pointStats.compareByType[skill]?.[lastRange]?.[category] || 0), 0);
+    const lastPeriodTotal = skills.reduce(
+      (sum, skill) =>
+        sum + (pointStats.compareByType[skill]?.[lastRange]?.[category] || 0),
+      0
+    );
     return [lastPeriodTotal, thisPeriodTotal, 0]; // 0 là placeholder cho khoảng trống
   });
 
   // Kiểm tra nếu không có dữ liệu để hiển thị biểu đồ
-  const shouldShowChart = aggregatedData.some((data) => data[0] > 0 || data[1] > 0);
+  const shouldShowChart = aggregatedData.some(
+    (data) => data[0] > 0 || data[1] > 0
+  );
   if (!shouldShowChart) {
     return (
-      <View style={[styles.academicChartContainers, { justifyContent: "center", alignItems: "center", padding: 20 }]}>
-        <Text style={[styles.chartName, { textAlign: "center", fontSize: 20, fontWeight: "600" }]}>{t("academicProgress")}</Text>
+      <View
+        style={[
+          styles.academicChartContainers,
+          { justifyContent: "center", alignItems: "center", padding: 20 },
+        ]}
+      >
+        <Text
+          style={[
+            styles.chartName,
+            { textAlign: "center", fontSize: 20, fontWeight: "600" },
+          ]}
+        >
+          {t("academicProgress")}
+        </Text>
       </View>
     );
   }
@@ -182,9 +228,19 @@ export default React.memo(function AcademicChart({
   };
 
   return (
-    <View style={[styles.academicChartContainers, { padding: 16, borderRadius: 12, alignItems: "center" }]}>
+    <View
+      style={[
+        styles.academicChartContainers,
+        { padding: 16, borderRadius: 12, alignItems: "center" },
+      ]}
+    >
       {/* Tiêu đề biểu đồ */}
-      <Text style={[styles.chartName, { fontSize: 22, fontWeight: "700", color: "#333", marginBottom: 16 }]}>
+      <Text
+        style={[
+          styles.chartName,
+          { fontSize: 22, fontWeight: "700", color: "#333", marginBottom: 16 },
+        ]}
+      >
         {t("academicProgress")}
       </Text>
       <View style={[styles.back, { alignItems: "center" }]}>
@@ -205,14 +261,69 @@ export default React.memo(function AcademicChart({
           style={styles.academicChartContainer}
         />
         {/* Chú thích màu */}
-        <View style={[styles.chartNoteContainer, { flexDirection: "row", justifyContent: "center", marginTop: 16 }]}>
-          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center", marginRight: 20 }]}>
-            <View style={[{ width: 16, height: 16, backgroundColor: "#FF6F61", borderRadius: 4 }]} />
-            <Text style={[{ marginLeft: 8, color: "#333", fontSize: 14, fontWeight: "500" }]}>{t(lastRange)}</Text>
+        <View
+          style={[
+            styles.chartNoteContainer,
+            { flexDirection: "row", justifyContent: "center", marginTop: 16 },
+          ]}
+        >
+          <View
+            style={[
+              styles.chartNote,
+              { flexDirection: "row", alignItems: "center", marginRight: 20 },
+            ]}
+          >
+            <View
+              style={[
+                {
+                  width: 16,
+                  height: 16,
+                  backgroundColor: "#FF6F61",
+                  borderRadius: 4,
+                },
+              ]}
+            />
+            <Text
+              style={[
+                {
+                  marginLeft: 8,
+                  color: "#333",
+                  fontSize: 14,
+                  fontWeight: "500",
+                },
+              ]}
+            >
+              {t(lastRange)}
+            </Text>
           </View>
-          <View style={[styles.chartNote, { flexDirection: "row", alignItems: "center" }]}>
-            <View style={[{ width: 16, height: 16, backgroundColor: "#6BCB77", borderRadius: 4 }]} />
-            <Text style={[{ marginLeft: 8, color: "#333", fontSize: 14, fontWeight: "500" }]}>{t(thisRange)}</Text>
+          <View
+            style={[
+              styles.chartNote,
+              { flexDirection: "row", alignItems: "center" },
+            ]}
+          >
+            <View
+              style={[
+                {
+                  width: 16,
+                  height: 16,
+                  backgroundColor: "#6BCB77",
+                  borderRadius: 4,
+                },
+              ]}
+            />
+            <Text
+              style={[
+                {
+                  marginLeft: 8,
+                  color: "#333",
+                  fontSize: 14,
+                  fontWeight: "500",
+                },
+              ]}
+            >
+              {t(thisRange)}
+            </Text>
           </View>
         </View>
       </View>
@@ -220,7 +331,9 @@ export default React.memo(function AcademicChart({
       <View style={[styles.summaryTFContainer, { width: 330 }]}>
         <Text style={styles.summaryTitle}>{t("summary")}</Text>
         {notificationMessage.map((line, index) => (
-          <Text key={index} style={styles.summaryItem}>{line}</Text>
+          <Text key={index} style={styles.summaryItem}>
+            {line}
+          </Text>
         ))}
       </View>
     </View>
