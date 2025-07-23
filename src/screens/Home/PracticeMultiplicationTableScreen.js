@@ -21,7 +21,7 @@ export default function PracticeMultiplicationTableScreen({
 }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("multiplicationtable");
-  const { table, title } = route.params;
+  const { table, title, pupilId, grade } = route.params;
 
   const [multiplier, setMultiplier] = useState(1);
   const [userAnswer, setUserAnswer] = useState("");
@@ -108,12 +108,8 @@ export default function PracticeMultiplicationTableScreen({
         correctCount: newCorrectCount,
         wrongCount: newWrongCount,
         skillName,
-        // lessonId,
-        // levelIds,
-        // pupilId,
-        // title,
-        // grade,
-        // skillIcon: skillIcon,
+        pupilId,
+        grade,
       });
     }
   };
@@ -254,7 +250,13 @@ export default function PracticeMultiplicationTableScreen({
     <View style={styles.container}>
       <LinearGradient colors={theme.colors.gradientPink} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("MultiplicationTableDetailScreen", {
+            skillName,
+            pupilId,
+            grade,
+            table,
+            title,
+          })}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />

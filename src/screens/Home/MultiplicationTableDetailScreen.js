@@ -11,7 +11,7 @@ import * as Speech from "expo-speech";
 export default function MultiplicationTableDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("multiplicationtable");
-  const { table, title, skillName } = route.params;
+  const { table, title, skillName, pupilId, grade } = route.params;
 
   const [currentIndex, setCurrentIndex] = useState(1);
 
@@ -21,6 +21,8 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
     } else {
       navigation.navigate("PracticeMultiplicationTableScreen", {
         skillName,
+        pupilId,
+        grade,
         table,
         title,
       });
@@ -173,7 +175,11 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={theme.colors.gradientPink} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("MultiplicationTableScreen", {
+            skillName,
+            pupilId,
+            grade,
+          })}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -250,16 +256,18 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
       </View>
 
       {/* Back Step */}
-      {currentIndex > 1 && (
-        <LinearGradient
-          colors={theme.colors.gradientPink}
-          style={styles.backStepButton}
-        >
-          <TouchableOpacity onPress={() => setCurrentIndex(currentIndex - 1)}>
-            <Ionicons name="play-back" size={30} color={theme.colors.white} />
-          </TouchableOpacity>
-        </LinearGradient>
-      )}
+      {
+        currentIndex > 1 && (
+          <LinearGradient
+            colors={theme.colors.gradientPink}
+            style={styles.backStepButton}
+          >
+            <TouchableOpacity onPress={() => setCurrentIndex(currentIndex - 1)}>
+              <Ionicons name="play-back" size={30} color={theme.colors.white} />
+            </TouchableOpacity>
+          </LinearGradient>
+        )
+      }
 
       {/* Next Step */}
       <TouchableOpacity style={styles.nextWrapper} onPress={nextStep}>
@@ -274,6 +282,6 @@ export default function MultiplicationTableDetailScreen({ navigation, route }) {
       </TouchableOpacity>
 
       <FloatingMenu />
-    </View>
+    </View >
   );
 }

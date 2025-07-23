@@ -9,13 +9,14 @@ export const getLessonsByGradeAndType = createAsyncThunk(
       const res = await Api.get("/completedlesson/getAll?pageSize=30", {
         params: { grade, type, pupilId },
       });
-      // return res.data.data;
       return Array.isArray(res.data.data) ? res.data.data : [];
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
+
+// Thunk: Lấy bài học theo ID
 export const getLessonById = createAsyncThunk(
   "lesson/getById",
   async (lessonId, { rejectWithValue }) => {
@@ -27,6 +28,7 @@ export const getLessonById = createAsyncThunk(
     }
   }
 );
+
 const lessonSlice = createSlice({
   name: "lesson",
   initialState: {
@@ -64,5 +66,8 @@ const lessonSlice = createSlice({
       });
   },
 });
+
+// Selector to get lessonDetail
+export const selectLessonDetail = (state) => state.lesson.lessonDetail;
 
 export default lessonSlice.reducer;
