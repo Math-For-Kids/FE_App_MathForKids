@@ -5,7 +5,6 @@ import { LineChart } from "react-native-chart-kit";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../themes/ThemeContext";
-import { Fonts } from "../../../constants/Fonts";
 const screenWidth = Dimensions.get("window").width;
 const sanitize = (value) =>
   Number.isFinite(value) && !isNaN(value) ? value : 0;
@@ -21,6 +20,7 @@ export default function TrueFalseChart({
   data = [],
   weakSkills = [],
   rangeType = "month",
+  selectedRange,
 }) {
   const { i18n } = useTranslation();
   const currentLang = i18n.language;
@@ -44,22 +44,33 @@ export default function TrueFalseChart({
       return t("quarter") + " " + rangeKey.split("-Q")[1];
     return moment(rangeKey).format("MM/YYYY");
   };
+  const accuracies = accuracyByMonth.map((m) => sanitize(m.accuracy));
+  const wrongs = accuracyByMonth.map((m) => sanitize(100 - m.accuracy));
+  const labels = accuracyByMonth.map((m) => getLabelFromRange(m.range));
+
   const chartData = {
-    labels: accuracyByMonth.map((m) => getLabelFromRange(m.range)),
+    labels,
     datasets: [
       {
-        data: accuracyByMonth.map((m) => sanitize(m.accuracy)),
+        data: wrongs,
+        color: () => theme.colors.redTomato,
+        strokeWidth: 2,
+      },
+      {
+        data: accuracies,
         color: () => theme.colors.blueDark,
         strokeWidth: 2,
       },
       {
-        data: accuracyByMonth.map((m) => sanitize(100 - m.accuracy)),
-        color: () => theme.colors.redTomato,
-        strokeWidth: 2,
+        data: [0, 0],
+        color: () => theme.colors.white,
+        strokeWidth: 0,
+        withDots: false,
       },
     ],
-    legend: [t("correct"), t("wrong")],
+    legend: [t("wrong"), t("correct")],
   };
+
   //Bieu do hieu xuat
   const resultByRange = {};
   // Gom dữ liệu đúng/sai theo từng rangeKey
@@ -158,7 +169,7 @@ export default function TrueFalseChart({
     if (selectedBarIndex !== null) {
       const timeout = setTimeout(() => {
         setSelectedBarIndex(null);
-      }, 3000);
+      }, 6000);
 
       return () => clearTimeout(timeout);
     }
@@ -167,11 +178,34 @@ export default function TrueFalseChart({
     if (selectedBarLevelIndex !== null) {
       const timeout = setTimeout(() => {
         setSelectedBarLevelIndex(null);
-      }, 3000);
+      }, 6000);
 
       return () => clearTimeout(timeout);
     }
   }, [selectedBarLevelIndex]);
+  // gui time cho bieu do 1
+  const selectedMonth = selectedPoint
+    ? accuracyByMonth[selectedPoint.index]
+    : null;
+  // gui time cho bieu do 2
+  const time = stackedBarData.at(-1)?.label || "";
+  const totalTrue = stackedBarData.reduce(
+    (sum, item) => sum + (item.stacks?.[0]?.value || 0),
+    0
+  );
+  const accuracy = total > 0 ? (totalTrue / total) * 100 : 0;
+  let comment = "";
+  if (accuracy >= 80) {
+    comment = t("excellentAccuracy", { correct: accuracy.toFixed(1), time });
+  } else if (accuracy >= 50) {
+    comment = t("goodAccuracy", {
+      correct: accuracy.toFixed(1),
+      incorrect: (100 - accuracy).toFixed(1),
+      time,
+    });
+  } else {
+    comment = t("lowAccuracy", { correct: accuracy.toFixed(1), time });
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.containerTF}>
@@ -193,10 +227,11 @@ export default function TrueFalseChart({
             height={240}
             fromZero
             yAxisSuffix="%"
+            bezier
             chartConfig={{
               backgroundGradientFrom: theme.colors.white,
               backgroundGradientTo: theme.colors.white,
-              decimalPlaces: 1,
+              decimalPlaces: 0,
               color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
               labelColor: () => theme.colors.black,
               propsForDots: {
@@ -204,12 +239,13 @@ export default function TrueFalseChart({
                 strokeWidth: "2",
                 stroke: theme.colors.white,
               },
+              useShadowColorFromDataset: true,
+              fillShadowGradientOpacity: 0.3,
             }}
-            bezier
             style={{ marginVertical: 8, borderRadius: 16 }}
             onDataPointClick={({ value, index, dataset, x, y }) => {
               setSelectedPoint({ value, index, datasetIndex: dataset, x, y });
-              setTimeout(() => setSelectedPoint(null), 3000);
+              setTimeout(() => setSelectedPoint(null), 6000);
             }}
             renderDotContent={({ x, y, index }) =>
               selectedPoint?.index === index &&
@@ -233,17 +269,28 @@ export default function TrueFalseChart({
               ) : null
             }
           />
-          <Text style={styles.chartNote}>
-            {t("accuracyOverTime")} – {t("comment")}:{" "}
-            {accuracyByMonth[0]?.accuracy >= 80
-              ? t("excellentAccuracy", { correct: accuracyByMonth[0].accuracy })
-              : accuracyByMonth[0]?.accuracy >= 50
-              ? t("goodAccuracy", {
-                  correct: accuracyByMonth[0].accuracy,
-                  incorrect: (100 - accuracyByMonth[0].accuracy).toFixed(1),
-                })
-              : t("lowAccuracy", { correct: accuracyByMonth[0].accuracy })}
-          </Text>
+          <View style={styles.chartTFNote}>
+            <Text style={styles.chartNote}>
+              {t("accuracyOverTime")} – {t("comment")}:{" "}
+              {selectedMonth
+                ? selectedMonth.accuracy >= 80
+                  ? t("excellentAccuracy", {
+                      correct: selectedMonth.accuracy,
+                      time: selectedMonth.range,
+                    })
+                  : selectedMonth.accuracy >= 50
+                  ? t("goodAccuracy", {
+                      correct: selectedMonth.accuracy,
+                      incorrect: (100 - selectedMonth.accuracy).toFixed(1),
+                      time: selectedMonth.range,
+                    })
+                  : t("lowAccuracy", {
+                      correct: selectedMonth.accuracy,
+                      time: selectedMonth.range,
+                    })
+                : t("tapToSeeComment")}
+            </Text>
+          </View>
         </>
       )}
 
@@ -259,7 +306,7 @@ export default function TrueFalseChart({
           >
             {t("correctWrongByMonth")}
           </Text>
-          <View style={styles.chartWrapper}>
+          <View style={[styles.chartWrapperWithMargin, { marginBottom: 10 }]}>
             <View style={styles.noteContainer}>
               <View style={styles.noteItem}>
                 <View
@@ -287,7 +334,7 @@ export default function TrueFalseChart({
               stackData={stackedBarData}
               barWidth={40}
               spacing={60}
-              height={240}
+              height={200}
               yAxisColor={{ color: theme.colors.black }}
               xAxisColor={{ color: theme.colors.black }}
               xAxisLabelTextStyle={styles.chartAxisLabel}
@@ -314,17 +361,43 @@ export default function TrueFalseChart({
               </View>
             )}
           </View>
-          <Text style={styles.chartNote}>
-            {t("correctWrongByMonth")} –{" "}
-            {t("summaryTF", {
-              true:
-                stackedBarData[0]?.stacks?.[0]?.value +
-                  stackedBarData[1]?.stacks?.[0]?.value || 0,
-              false:
-                stackedBarData[0]?.stacks?.[1]?.value +
-                  stackedBarData[1]?.stacks?.[1]?.value || 0,
-            })}
-          </Text>
+          {stackedBarData.length > 0 && (
+            <View style={styles.chartTFNote}>
+              <Text style={styles.chartNote}>
+                {t("correctWrongByMonth")} – {t("comment")}:{" "}
+                {t("tapToSeeComment")}
+              </Text>
+
+              {selectedBarIndex !== null &&
+                (() => {
+                  const item = stackedBarData[selectedBarIndex];
+                  const trueVal = item.stacks?.[0]?.value || 0;
+                  const falseVal = item.stacks?.[1]?.value || 0;
+                  const total = trueVal + falseVal;
+                  const accuracy = total > 0 ? (trueVal / total) * 100 : 0;
+
+                  return (
+                    <Text style={styles.chartNote}>
+                      {accuracy >= 80
+                        ? t("excellentAccuracy", {
+                            correct: accuracy.toFixed(1),
+                            time: item.label,
+                          })
+                        : accuracy >= 50
+                        ? t("goodAccuracy", {
+                            correct: accuracy.toFixed(1),
+                            incorrect: (100 - accuracy).toFixed(1),
+                            time: item.label,
+                          })
+                        : t("lowAccuracy", {
+                            correct: accuracy.toFixed(1),
+                            time: item.label,
+                          })}
+                    </Text>
+                  );
+                })()}
+            </View>
+          )}
         </>
       )}
 
@@ -340,7 +413,7 @@ export default function TrueFalseChart({
           >
             {t("accuracyByLevel")}
           </Text>
-          <View style={styles.chartWrapperWithMargin}>
+          <View style={[styles.chartWrapperWithMargin, { marginBottom: 10 }]}>
             <View style={styles.noteContainer}>
               <View style={styles.noteItem}>
                 <View
@@ -366,7 +439,7 @@ export default function TrueFalseChart({
               stackData={stackedLevelData}
               barWidth={40}
               spacing={40}
-              height={240}
+              height={200}
               yAxisColor={{ color: theme.colors.black }}
               xAxisColor={{ color: theme.colors.black }}
               maxValue={100}
@@ -410,61 +483,121 @@ export default function TrueFalseChart({
             )}
           </View>
           {mostWrongLevel && mostCorrectLevel && (
-            <Text style={styles.chartNote}>
-              {t("mostCorrectLevel")}: {mostCorrectLevel.level} (
-              {mostCorrectLevel.stats.correct} {t("times")}) –{" "}
-              {t("mostWrongLevel")}: {mostWrongLevel.level} (
-              {mostWrongLevel.stats.wrong} {t("times")})
-            </Text>
+            <View style={styles.chartTFNote}>
+              <Text style={styles.chartNote}>
+                {t("mostCorrectLevel")}: {mostCorrectLevel.level} (
+                {mostCorrectLevel.stats.correct} {t("times")}) –{" "}
+                {t("mostWrongLevel")}: {mostWrongLevel.level} (
+                {mostWrongLevel.stats.wrong} {t("times")})
+              </Text>
+            </View>
           )}
         </>
       )}
 
-      {/* Tổng quan */}
       <View style={styles.summaryTFContainer}>
-        <Text style={styles.summaryTitle}>{t("summary")}</Text>
+        {/* Tổng kết tiêu đề */}
+        <Text style={styles.summaryTitle}>
+          {t("summary")} ({selectedRange?.join(" → ")})
+        </Text>
+
+        {/* Tổng đúng/sai toàn giai đoạn */}
         <Text style={styles.summaryItem}>
-          {t("correct")}: {correct} / {total} (
+          {t("performance")}: {correct} / {total} (
           {sanitize((correct / total) * 100).toFixed(1)}%)
         </Text>
-        <Text style={styles.summaryItem}>
-          {t("wrong")}: {wrong}
-        </Text>
+
+        {/* So sánh xu hướng giữa 2 giai đoạn */}
+        {Array.isArray(accuracyByMonth) &&
+          accuracyByMonth.length > 1 &&
+          (() => {
+            const [prev, curr] = accuracyByMonth;
+            const prevAcc = sanitize(
+              (prev.correct / (prev.correct + prev.wrong)) * 100
+            );
+            const currAcc = sanitize(
+              (curr.correct / (curr.correct + curr.wrong)) * 100
+            );
+            const diff = sanitize(currAcc - prevAcc);
+
+            return (
+              <Text style={styles.summaryItem}>
+                {t("trend")}: {diff >= 0 ? "▲" : "▼"}{" "}
+                {Math.abs(diff).toFixed(1)}% (
+                {t(diff >= 0 ? "increased" : "decreased")})
+              </Text>
+            );
+          })()}
+
+        {/* Chi tiết đúng/sai theo từng giai đoạn */}
+        {Array.isArray(accuracyByMonth) &&
+          accuracyByMonth.map((item, index) => {
+            const correct = sanitize(item.correct || 0);
+            const wrong = sanitize(item.wrong || 0);
+            const total = correct + wrong;
+            const acc = total > 0 ? (correct / total) * 100 : 0;
+            const wr = total > 0 ? (wrong / total) * 100 : 0;
+
+            return (
+              <Text
+                key={item.range || item.month || index}
+                style={styles.summaryItem}
+              >
+                {item.range || item.month}: {t("correct")}: {correct}/{total} (
+                {acc.toFixed(1)}%), {t("wrong")}: {wrong}/{total} (
+                {wr.toFixed(1)}%)
+              </Text>
+            );
+          })}
+
+        {/* Nhận định cải thiện */}
+        {Array.isArray(accuracyByMonth) &&
+          accuracyByMonth.length > 1 &&
+          (() => {
+            const [prev, curr] = accuracyByMonth;
+            const prevAcc = sanitize(
+              (prev.correct / (prev.correct + prev.wrong)) * 100
+            );
+            const currAcc = sanitize(
+              (curr.correct / (curr.correct + curr.wrong)) * 100
+            );
+
+            const comment =
+              currAcc >= 80
+                ? t("greatProgress")
+                : currAcc >= prevAcc
+                ? t("improving")
+                : t("needImprovement");
+
+            return (
+              <Text style={styles.summaryItem}>
+                {t("insight")}: {comment}
+              </Text>
+            );
+          })()}
+
+        {/* Kỹ năng yếu */}
         {weakSkills.length > 0 && (
           <Text style={styles.summaryItem}>
             {t("weakSkills")}: {weakSkills.map((s) => t(s)).join(", ")}
           </Text>
         )}
-        {accuracyByMonth.length > 1 &&
-          (() => {
-            const [current, previous] = [
-              accuracyByMonth[0]?.accuracy || 0,
-              accuracyByMonth[1]?.accuracy || 0,
-            ];
-            const diff = sanitize(previous - current);
-            return (
-              <Text style={styles.summaryItem}>
-                {t("accuracyChange")}: {diff >= 0 ? "▲" : "▼"}{" "}
-                {Math.abs(diff).toFixed(1)}% (
-                {t(diff >= 0 ? "improved" : "declined")})
-              </Text>
-            );
-          })()}
 
-        {mostWrongLevel && (
-          <Text style={styles.summaryItem}>
-            {t("mostWrongLevel")}: {mostWrongLevel.level} (
-            {mostWrongLevel.stats.wrong} {t("times")})
-          </Text>
-        )}
-
+        {/* Cấp độ đúng/sai nhiều nhất */}
         {mostCorrectLevel && (
           <Text style={styles.summaryItem}>
             {t("mostCorrectLevel")}: {mostCorrectLevel.level} (
             {mostCorrectLevel.stats.correct} {t("times")})
           </Text>
         )}
+        {mostWrongLevel && (
+          <Text style={styles.summaryItem}>
+            {t("mostWrongLevel")}: {mostWrongLevel.level} (
+            {mostWrongLevel.stats.wrong} {t("times")})
+          </Text>
+        )}
       </View>
+
       {/* Danh sách cần luyện lại */}
       {enrichedRetryList.length > 0 && (
         <View style={styles.retryContainer}>

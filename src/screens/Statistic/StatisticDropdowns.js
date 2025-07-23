@@ -39,6 +39,7 @@ export default function StatisticDropdowns({
   selectedRangeType,
   setShowRangeTypeDropdown,
   rangeType,
+  setSelectedRange,
   showRangeTypeDropdown,
   setSelectedRangeType,
   data,
@@ -249,16 +250,17 @@ export default function StatisticDropdowns({
             >
               <View style={styles.dropdownContent}>
                 <ScrollView style={{ maxHeight: 300 }}>
-                  {Object.keys(rangeType).map((typeKey, index) => (
+                  {rangeType.map((type, index) => (
                     <TouchableOpacity
                       key={index}
                       style={styles.dropdownItem}
                       onPress={() => {
-                        setSelectedRangeType(typeKey);
+                        setSelectedRangeType(type.rangeType);
+                        setSelectedRange(type.ranges);
                         setShowRangeTypeDropdown(false);
                       }}
                     >
-                      <Text style={styles.dropdownItemText}>{t(typeKey)}</Text>
+                      <Text style={styles.dropdownItemText}>{type.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -321,8 +323,8 @@ export default function StatisticDropdowns({
                         <Text style={styles.dropdownItemText}>
                           {typeof test.lessonName === "object"
                             ? test.lessonName[i18n.language] ||
-                            test.lessonName.en ||
-                            `${t("test")} ${index + 1}`
+                              test.lessonName.en ||
+                              `${t("test")} ${index + 1}`
                             : test.lessonName || `${t("test")} ${index + 1}`}
                           {` (ID: ${test})`}
                         </Text>
