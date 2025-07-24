@@ -8,5 +8,6 @@
   "end": "End",
   "noTasks": "No tasks available",
   "taskExpired": "The task has expired!",
-  "request": "Complete the lesson:"
+  "request": "Complete the lesson:",
+  "taskCompleted": "Well done!"
 }

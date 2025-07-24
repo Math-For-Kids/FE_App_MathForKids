@@ -21,5 +21,11 @@
   "invalidDob": "Ngày sinh không hợp lệ.",
   "errorTitle": "Lỗi",
   "selectDob": "Chọn ngày sinh",
-  "invalidAgeRange": "Tuổi phải từ 18 đến 100."
+  "invalidAgeRange": "Tuổi phải từ 18 đến 100.",
+  "emptyPhone": "Vui lòng nhập số điện thoại",
+  "emptyEmail": "Vui lòng nhập email",
+  "emptyAddress": "Vui lòng nhập địa chỉ",
+  "emptyPin": "Vui lòng nhập mã PIN",
+  "emptyDob": "Vui lòng chọn ngày sinh",
+  "gender": "Giới tính"
 }
