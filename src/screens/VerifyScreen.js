@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
@@ -18,15 +19,19 @@ import {
   setUser,
   updateUser,
 } from "../redux/authSlice";
+import { useTranslation } from "react-i18next";
+
 export default function VerifyOTP({ navigation, route }) {
   const { theme } = useTheme();
   const { userId, contact, isEmail, isLogin } = route.params;
   const dispatch = useDispatch();
+  const { i18n } = useTranslation();
+  const [isResending, setIsResending] = useState(false);
 
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputs = useRef([]);
   const [focusedIndex, setFocusedIndex] = useState(null);
-
+  const [errors, setErrors] = useState({});
   const handleChange = (text, index) => {
     const newOtp = [...otp];
     newOtp[index] = text;
@@ -40,17 +45,25 @@ export default function VerifyOTP({ navigation, route }) {
   };
 
   const handleVerify = async () => {
-    const otpCode = otp.join("");
+    const otpCode = otp.join("").trim();
+
+    // Kiểm tra nếu chưa đủ 4 chữ số OTP
     if (otpCode.length !== 4) {
-      return Alert.alert("Error", "Please enter the full 4-digit OTP");
+      setErrors({ otp: "Please enter the full 4-digit OTP" });
+      return;
     }
+
+    setErrors({}); // Xóa lỗi cũ nếu có
 
     try {
       const result = await dispatch(verifyOTP({ userId, otpCode })).unwrap();
-      // console.log("Verified user:", result);
+
+      // Nếu đang là đăng ký mới → cập nhật trạng thái đã xác thực
       if (!isLogin) {
         await dispatch(updateUser({ id: result.id, data: { isVerify: true } }));
       }
+
+      // Lưu thông tin người dùng vào store
       dispatch(
         setUser({
           id: result.id,
@@ -63,30 +76,67 @@ export default function VerifyOTP({ navigation, route }) {
         })
       );
 
+      // Thông báo thành công và chuyển trang
       Alert.alert("Success", "OTP Verified!", [
         {
           text: "OK",
-          onPress: () =>
-            navigation.navigate(isLogin ? "AccountScreen" : "AccountScreen"),
+          onPress: () => navigation.navigate("AccountScreen"),
         },
       ]);
     } catch (err) {
-      console.error("OTP verify failed:", err);
-      Alert.alert("Error", err?.message || "Failed to verify OTP");
+      let msg = "Failed to verify OTP";
+
+      if (err && typeof err === "object") {
+        if (
+          typeof err.message === "object" &&
+          (err.message.vi || err.message.en)
+        ) {
+          msg =
+            err.message[i18n.language] ||
+            err.message.en ||
+            err.message.vi ||
+            msg;
+        } else if (err.vi || err.en) {
+          msg = err[i18n.language] || err.en || err.vi;
+        } else if (typeof err.message === "string") {
+          msg = err.message;
+        }
+      } else if (typeof err === "string") {
+        msg = err;
+      }
+
+      // ✅ Thêm alert để hiển thị thông báo lỗi
+      Alert.alert("Error", msg);
+      setErrors({ otp: msg });
     }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    setIsResending(true); // 👉 Bắt đầu loading
+
     const resendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
     const targetKey = isEmail ? "email" : "phoneNumber";
 
-    dispatch(resendAction({ userId, [targetKey]: contact })).then((res) => {
+    try {
+      const res = await dispatch(
+        resendAction({ userId, [targetKey]: contact })
+      );
+
       if (!res.error) {
         Alert.alert("Success", "OTP resent successfully!");
       } else {
-        Alert.alert("Error", "Failed to resend OTP: " + res.payload);
+        const msg =
+          typeof res.payload === "object"
+            ? res.payload?.[i18n.language] || res.payload?.en || res.payload?.vi
+            : String(res.payload);
+
+        Alert.alert("Error", "Failed to resend OTP: " + msg);
       }
-    });
+    } catch (err) {
+      Alert.alert("Error", "Unexpected error when resending OTP.");
+    } finally {
+      setIsResending(false); // 👉 Kết thúc loading
+    }
   };
 
   const styles = StyleSheet.create({
@@ -125,7 +175,7 @@ export default function VerifyOTP({ navigation, route }) {
       flexDirection: "row",
       justifyContent: "space-between",
       width: "80%",
-      marginBottom: 30,
+      marginBottom: 5,
     },
     otpInput: {
       width: 55,
@@ -147,6 +197,7 @@ export default function VerifyOTP({ navigation, route }) {
       paddingVertical: 12,
       marginBottom: 20,
       elevation: 8,
+      marginTop: 20,
     },
     verifyText: {
       color: theme.colors.white,
@@ -161,6 +212,11 @@ export default function VerifyOTP({ navigation, route }) {
     resendLink: {
       color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_MEDIUM,
+    },
+    errorText: {
+      color: "red",
+      fontSize: 12,
+      alignSelf: "flex-start",
     },
   });
 
@@ -191,7 +247,7 @@ export default function VerifyOTP({ navigation, route }) {
             />
           ))}
         </View>
-
+        {errors.otp && <Text style={styles.errorText}>{errors.otp}</Text>}
         <LinearGradient
           colors={theme.colors.gradientBluePrimary}
           start={{ x: 1, y: 0 }}
@@ -205,9 +261,13 @@ export default function VerifyOTP({ navigation, route }) {
 
         <Text style={styles.resendText}>Didn’t receive a code?</Text>
         <Text style={styles.resendText}>
-          <Text style={styles.resendLink} onPress={handleResend}>
-            Resend
-          </Text>
+          {isResending ? (
+            <ActivityIndicator size="small" color={theme.colors.blueDark} />
+          ) : (
+            <Text style={styles.resendLink} onPress={handleResend}>
+              Resend
+            </Text>
+          )}
         </Text>
       </View>
     </LinearGradient>

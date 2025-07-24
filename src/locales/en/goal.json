@@ -40,5 +40,12 @@
   "lessonLocked": "Incompleted",
   "lessonCompleted": "Completed",
   "lessonInProgress": "In progress",
-  "alertDateStartDate": "The end date cannot be earlier than the start date."
+  "alertDateStartDate": "The end date cannot be earlier than the start date.",
+  "selectAccountError": "Please select student",
+  "selectSkillTypeError": "Please select skill",
+  "selectLessonError": "Please select lesson",
+  "selectExerciseError": "Please select level",
+  "selectRewardError": "Please select reward",
+  "selectRewardQuantityError": "Please select reward quantity",
+  "alertFailTitle": "Failed"
 }

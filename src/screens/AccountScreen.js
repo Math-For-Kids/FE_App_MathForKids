@@ -29,7 +29,7 @@ export default function AccountScreen({ navigation }) {
   const { t, i18n } = useTranslation("account");
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
-
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [pin, setPin] = useState(["", "", "", ""]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -128,12 +128,20 @@ export default function AccountScreen({ navigation }) {
 
   const handleVerifyPin = () => {
     const entered = pin.join("");
+    const newErrors = {};
+
     if (entered.length < 4) {
-      return Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
+      const msg = t("invalidPinMsg");
+      newErrors.pin = msg;
+      setErrors(newErrors);
+      return;
     }
+
     if (entered === String(user?.pin)) {
+      setErrors({});
       handleApplySettings(user);
       setModalVisible(false);
+
       setTimeout(() => {
         if (redirectToCreatePupil) {
           navigation.navigate("CreatePupilAccountScreen");
@@ -146,7 +154,9 @@ export default function AccountScreen({ navigation }) {
         setRedirectToCreatePupil(false);
       }, 300);
     } else {
-      Alert.alert(t("incorrectPinTitle"), t("incorrectPinMsg"));
+      const msg = t("incorrectPinMsg");
+      Alert.alert(t("errorTitle"), msg);
+      setErrors({});
     }
   };
 
@@ -250,9 +260,7 @@ export default function AccountScreen({ navigation }) {
       elevation: 3,
     },
     ForgotText: {
-      position: "absolute",
-      top: -105,
-      right: 0,
+      width: "30%",
       fontSize: 14,
       fontFamily: Fonts.NUNITO_LIGHT_ITALIC,
       color: theme.colors.blueDark,
@@ -412,6 +420,12 @@ export default function AccountScreen({ navigation }) {
                 />
               ))}
             </View>
+            {errors.pin && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.pin}
+              </Text>
+            )}
+
             <TouchableOpacity
               onPress={() => navigation.navigate("ForgetPinScreen")}
             >
@@ -428,6 +442,7 @@ export default function AccountScreen({ navigation }) {
                 onPress={() => {
                   setModalVisible(false);
                   setRedirectToCreatePupil(false);
+                  setErrors({});
                 }}
                 style={styles.buttonCancel}
               >

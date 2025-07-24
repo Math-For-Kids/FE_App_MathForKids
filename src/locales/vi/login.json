@@ -1,14 +1,14 @@
 {
   "title": "Đăng nhập",
-  "placeholder": "Email hoặc số điện thoại",
-  "loginButton": "Gửi mã OTP",
-  "noAccount": "Chưa có tài khoản?",
-  "registerLink": "Đăng ký ngay",
+  "placeholder": "Nhập số điện thoại hoặc email",
+  "loginButton": "Đăng nhập",
+  "noAccount": "Bạn chưa có tài khoản?",
+  "registerLink": "Đăng ký",
   "errorTitle": "Lỗi",
-  "errorEnterContact": "Vui lòng nhập email hoặc số điện thoại.",
   "invalidTitle": "Không hợp lệ",
-  "errorInvalidContact": "Định dạng không đúng. Hãy nhập lại.",
-  "loginFailedTitle": "Đăng nhập thất bại",
-  "errorSendOtp": "Gửi OTP thất bại. Vui lòng thử lại.",
-  "errorNoUserId": "Không tìm thấy ID người dùng."
+  "errorEnterContact": "Vui lòng nhập số điện thoại hoặc email của bạn.",
+  "errorInvalidContact": "Định dạng số điện thoại hoặc email không hợp lệ.",
+  "errorSendOtp": "Gửi OTP không thành công.",
+  "errorNoUserId": "Không tìm thấy ID người dùng.",
+  "loginFailedTitle": "Đăng nhập không thành công"
 }

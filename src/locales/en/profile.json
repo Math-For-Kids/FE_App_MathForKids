@@ -61,5 +61,16 @@
   "checkvalidategrade1": "Students in Grade 1 must be at least 6 years old.",
   "checkvalidategrade2": "Students in Grade 2 must be at least 7 years old.",
   "checkvalidategrade3": "Students in Grade 3 must be at least 8 years old.",
-  "requiredField": "{{field}} is required."
+  "requiredField": "{{field}} is required.",
+  "fieldRequired": "Please do not leave blank.",
+  "ageRangeInvalid": "Age must be between 18 and 100.",
+  "emailRequired": "Please enter an email.",
+  "invalidEmailTitle": "Invalid email",
+  "invalidEmailMessage": "Please enter a valid email address.",
+  "invalidPinMessage": "Please enter 4-digit PIN.",
+  "otpOrUpdateFailed": "Authentication failed or update failed.",
+  "successTitle": "Success",
+  "emailUpdateSuccess": "Email updated successfully.",
+  "invalidPhoneMsg": "Please enter a valid phone number (10–11 digits).",
+  "updatePhoneSuccess": "Phone number updated successfully!"
 }

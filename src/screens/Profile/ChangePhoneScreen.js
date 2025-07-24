@@ -20,14 +20,25 @@ import {
 } from "../../redux/profileSlice";
 import { verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
+const parseErrorMessage = (error, t, fallbackKey = "unknownError") => {
+  if (typeof error === "object") {
+    if (error.vi || error.en) return error;
+    if (error.message && (error.message.vi || error.message.en))
+      return error.message;
+  }
+  if (typeof error === "string") {
+    return { vi: error, en: error };
+  }
+  return { vi: t(fallbackKey), en: t(fallbackKey) };
+};
 
 export default function ChangePhoneScreen({ navigation }) {
   const { theme } = useTheme();
-  const { t } = useTranslation("profile");
+  const { t, i18n } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const profile = useSelector((state) => state.profile.info);
-
+  const [errors, setErrors] = useState({});
   const [newPhone, setNewPhone] = useState("");
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
   const [pin, setPin] = useState(["", "", "", ""]);
@@ -39,40 +50,46 @@ export default function ChangePhoneScreen({ navigation }) {
     const joinedPin = pin.join("");
 
     if (!/^\d{4}$/.test(joinedPin)) {
-      Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
+      setErrors({ pin: t("invalidPinMessage") });
       return;
     }
 
     try {
       await dispatch(
-        verifyOnlyOTP({ userId: user.id, otpCode: joinedPin })
+        verifyOnlyOTP({ userId: user?.id, otpCode: joinedPin })
       ).unwrap();
+
       await dispatch(
-        updateProfile({ id: user.id, data: { phoneNumber: newPhone } })
+        updateProfile({ id: user?.id, data: { phoneNumber: newPhone } })
       ).unwrap();
-      dispatch(profileById(user.id));
-      Alert.alert(t("success"), t("updateSuccess"));
-      setPin(["", "", "", ""]);
+
+      await dispatch(profileById(user?.id)).unwrap();
+      setErrors({});
+      Alert.alert(t("successTitle"), t("updatePhoneSuccess"));
       setPinModalVisible(false);
+      setPin(["", "", "", ""]);
       navigation.navigate("PrivacyScreen");
     } catch (error) {
+      const message = parseErrorMessage(error, t, "otpOrUpdateFailed");
       Alert.alert(
-        t("error"),
-        typeof error === "string" ? error : t("verifyOtpFailed")
+        t("errorTitle"),
+        message[i18n.language] || message.vi || message.en
       );
     }
   };
 
   const handleOpenPinModal = async () => {
     if (!validatePhone(newPhone)) {
-      Alert.alert(t("invalidPhoneTitle"), t("invalidPhoneMsg"));
+      setErrors({ newPhone: t("invalidPhoneMsg") });
+      return;
+    }
+    if (newPhone === profile?.phoneNumber) {
+      setErrors({ newPhone: t("phoneAlreadyExistsMsg") });
       return;
     }
 
-    if (newPhone === profile?.phoneNumber) {
-      Alert.alert(t("phoneAlreadyExistsTitle"), t("phoneAlreadyExistsMsg"));
-      return;
-    }
+    // Clear error nếu hợp lệ
+    setErrors({});
 
     try {
       await dispatch(
@@ -193,7 +210,7 @@ export default function ChangePhoneScreen({ navigation }) {
       flexDirection: "row",
       gap: 10,
       width: "80%",
-      marginBottom: 20,
+      marginBottom: 5,
     },
     pinBox: {
       borderWidth: 1,
@@ -211,6 +228,7 @@ export default function ChangePhoneScreen({ navigation }) {
       flexDirection: "row",
       gap: 40,
       width: "100%",
+      marginTop: 20,
     },
     cancelButton: {
       flex: 1,
@@ -274,6 +292,11 @@ export default function ChangePhoneScreen({ navigation }) {
             placeholderTextColor={theme.colors.grayMedium}
             color={theme.colors.blueDark}
           />
+          {errors.newPhone && (
+            <Text style={{ color: theme.colors.red, marginBottom: 10 }}>
+              {errors.newPhone}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -300,6 +323,12 @@ export default function ChangePhoneScreen({ navigation }) {
                 />
               ))}
             </View>
+            {errors.pin && (
+              <Text style={{ color: theme.colors.red, fontSize: 12 }}>
+                {errors.pin}
+              </Text>
+            )}
+
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
                 style={styles.cancelButton}

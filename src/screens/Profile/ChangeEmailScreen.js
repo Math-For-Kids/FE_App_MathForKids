@@ -36,7 +36,7 @@ const parseErrorMessage = (error, t, fallbackKey = "unknownError") => {
 
 export default function ChangeEmailScreen({ navigation }) {
   const { theme } = useTheme();
-  const { t } = useTranslation("profile");
+  const { t, i18n } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const profile = useSelector((state) => state.profile?.info);
@@ -44,7 +44,7 @@ export default function ChangeEmailScreen({ navigation }) {
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
   const [pin, setPin] = useState(["", "", "", ""]);
   const [pinModalVisible, setPinModalVisible] = useState(false);
-
+  const [errors, setErrors] = useState({});
   const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
   useEffect(() => {
@@ -55,8 +55,9 @@ export default function ChangeEmailScreen({ navigation }) {
 
   const handleConfirmPin = async () => {
     const joinedPin = pin.join("");
+
     if (!/^\d{4}$/.test(joinedPin)) {
-      Alert.alert(t("invalidPinTitle"), t("invalidPinMessage"));
+      setErrors({ pin: t("invalidPinMessage") });
       return;
     }
 
@@ -64,29 +65,43 @@ export default function ChangeEmailScreen({ navigation }) {
       await dispatch(
         verifyOnlyOTP({ userId: user?.id, otpCode: joinedPin })
       ).unwrap();
+
       await dispatch(
         updateProfile({ id: user?.id, data: { email: newEmail } })
       ).unwrap();
+
       await dispatch(profileById(user?.id)).unwrap();
 
+      setErrors({});
       Alert.alert(t("successTitle"), t("emailUpdateSuccess"));
       setPinModalVisible(false);
       setPin(["", "", "", ""]);
       navigation.navigate("PrivacyScreen");
     } catch (error) {
-      const { vi } = parseErrorMessage(error, t, "otpOrUpdateFailed");
-      Alert.alert(t("errorTitle"), vi);
+      const message = parseErrorMessage(error, t, "otpOrUpdateFailed");
+      Alert.alert(
+        t("errorTitle"),
+        message[i18n.language] || message.vi || message.en
+      );
     }
   };
 
   const handleOpenPinModal = async () => {
-    if (!validateEmail(newEmail)) {
-      Alert.alert(t("invalidEmailTitle"), t("invalidEmailMessage"));
-      return;
+    const validationErrors = {};
+
+    const trimmedEmail = newEmail.trim().toLowerCase();
+    const currentEmail = profile.email?.trim().toLowerCase();
+
+    if (!trimmedEmail) {
+      validationErrors.newEmail = t("emailRequired");
+    } else if (!validateEmail(trimmedEmail)) {
+      validationErrors.newEmail = t("invalidEmailMessage");
+    } else if (trimmedEmail === currentEmail) {
+      validationErrors.newEmail = t("emailDuplicateMessage");
     }
 
-    if (newEmail.trim().toLowerCase() === profile.email?.trim().toLowerCase()) {
-      Alert.alert(t("emailDuplicateTitle"), t("emailDuplicateMessage"));
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -94,14 +109,24 @@ export default function ChangeEmailScreen({ navigation }) {
       await dispatch(
         sendOtpToUpdateEmail({ id: user?.id, email: user?.email, newEmail })
       ).unwrap();
+
+      setErrors({});
       setPinModalVisible(true);
     } catch (error) {
-      const { vi, en } = parseErrorMessage(error, t, "sendOtpFailed");
+      const message = parseErrorMessage(error, t, "sendOtpFailed");
+      const text =
+        message[i18n.language] ||
+        message.vi ||
+        message.en ||
+        t("sendOtpFailed");
 
-      if (vi.includes("đã được sử dụng") || en.includes("already used")) {
-        Alert.alert(t("emailAlreadyExists"), vi);
+      if (
+        text.toLowerCase().includes("đã được sử dụng") ||
+        text.toLowerCase().includes("already used")
+      ) {
+        Alert.alert(t("emailAlreadyExists"), text);
       } else {
-        Alert.alert(t("sendOtpFailedTitle"), vi);
+        Alert.alert(t("sendOtpFailedTitle"), text);
       }
     }
   };
@@ -203,7 +228,7 @@ export default function ChangeEmailScreen({ navigation }) {
       flexDirection: "row",
       gap: 10,
       width: "80%",
-      marginBottom: 20,
+      marginBottom: 5,
     },
     pinBox: {
       borderWidth: 1,
@@ -221,6 +246,7 @@ export default function ChangeEmailScreen({ navigation }) {
       flexDirection: "row",
       gap: 40,
       width: "100%",
+      marginTop: 20,
     },
     cancelButton: {
       flex: 1,
@@ -284,6 +310,11 @@ export default function ChangeEmailScreen({ navigation }) {
             placeholderTextColor={theme.colors.grayMedium}
             color={theme.colors.blueDark}
           />
+          {errors.newEmail && (
+            <Text style={{ color: "red", marginTop: -15, marginBottom: 10 }}>
+              {errors.newEmail}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -310,6 +341,10 @@ export default function ChangeEmailScreen({ navigation }) {
                 />
               ))}
             </View>
+            {errors.pin && (
+              <Text style={{ color: "red", fontSize: 12 }}>{errors.pin}</Text>
+            )}
+
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
                 style={styles.cancelButton}

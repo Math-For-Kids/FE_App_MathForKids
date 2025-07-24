@@ -40,6 +40,11 @@ export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const [selectedAccount, setSelectedAccount] = useState();
+  const [errors, setErrors] = useState({
+    dateStart: "",
+    dateEnd: "",
+  });
+
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -115,17 +120,20 @@ export default function GoalScreen() {
   }, [selectedAccount, skillType, startDate, endDate]);
 
   const handleSaveGoal = async () => {
-    if (
-      !selectedAccount ||
-      !skillType ||
-      !lesson ||
-      exercise.length === 0 ||
-      !reward ||
-      !rewardQuantity
-    ) {
-      alert(t("alertIncomplete"));
+    const newErrors = {};
+    if (!selectedAccount) newErrors.selectedAccount = t("selectAccountError");
+    if (!skillType) newErrors.skillType = t("selectSkillTypeError");
+    if (!lesson) newErrors.lesson = t("selectLessonError");
+    if (exercise.length === 0) newErrors.exercise = t("selectExerciseError");
+    if (!reward) newErrors.reward = t("selectRewardError");
+    if (!rewardQuantity)
+      newErrors.rewardQuantity = t("selectRewardQuantityError");
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     const goalData = {
       pupilId: selectedAccount,
@@ -242,7 +250,7 @@ export default function GoalScreen() {
           })
         );
       }
-
+      setErrors({ dateStart: "", dateEnd: "" });
       alert(t("alertSuccess"));
       navigation.goBack();
     } catch (err) {
@@ -549,8 +557,13 @@ export default function GoalScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-
+        {errors.selectedAccount && (
+          <Text style={{ color: theme.colors.red, textAlign: "center" }}>
+            {errors.selectedAccount}
+          </Text>
+        )}
         <View style={styles.dateRow}>
+          {/* Start Date */}
           <View style={styles.dateInput}>
             <Text style={styles.label}>{t("dateStart")}</Text>
             <TouchableOpacity onPress={() => setShowStartPicker(true)}>
@@ -560,6 +573,11 @@ export default function GoalScreen() {
                 style={styles.input}
               />
             </TouchableOpacity>
+            {errors.dateStart ? (
+              <Text style={{ color: theme.colors.red, marginLeft: 12 }}>
+                {errors.dateStart}
+              </Text>
+            ) : null}
             {showStartPicker && (
               <DateTimePicker
                 value={startDate}
@@ -572,23 +590,36 @@ export default function GoalScreen() {
                     minStartDate.setDate(endDate.getDate() - 7);
 
                     if (selectedDate < minStartDate) {
-                      alert(t("alertStartTooEarly"));
+                      setErrors((prev) => ({
+                        ...prev,
+                        dateStart: t("alertStartTooEarly"),
+                      }));
                       return;
                     }
                     if (selectedDate > endDate) {
-                      alert(t("alertStartAfterEnd"));
+                      setErrors((prev) => ({
+                        ...prev,
+                        dateStart: t("alertStartAfterEnd"),
+                      }));
                       return;
                     }
                     if (selectedDate < new Date()) {
-                      alert(t("alertStartBeforeToday"));
+                      setErrors((prev) => ({
+                        ...prev,
+                        dateStart: t("alertStartBeforeToday"),
+                      }));
                       return;
                     }
+
+                    setErrors((prev) => ({ ...prev, dateStart: "" }));
                     setStartDate(selectedDate);
                   }
                 }}
               />
             )}
           </View>
+
+          {/* End Date */}
           <View style={styles.dateInput}>
             <Text style={styles.label}>{t("dateEnd")}</Text>
             <TouchableOpacity onPress={() => setShowEndPicker(true)}>
@@ -598,6 +629,11 @@ export default function GoalScreen() {
                 style={styles.input}
               />
             </TouchableOpacity>
+            {errors.dateEnd ? (
+              <Text style={{ color: theme.colors.red, marginLeft: 12 }}>
+                {errors.dateEnd}
+              </Text>
+            ) : null}
             {showEndPicker && (
               <DateTimePicker
                 value={endDate}
@@ -610,13 +646,21 @@ export default function GoalScreen() {
                     maxEndDate.setDate(startDate.getDate() + 7);
 
                     if (selectedDate > maxEndDate) {
-                      alert(t("alertDateLimit"));
+                      setErrors((prev) => ({
+                        ...prev,
+                        dateEnd: t("alertDateLimit"),
+                      }));
                       return;
                     }
                     if (selectedDate < startDate) {
-                      alert(t("alertDateStartDate"));
+                      setErrors((prev) => ({
+                        ...prev,
+                        dateEnd: t("alertDateStartDate"),
+                      }));
                       return;
                     }
+
+                    setErrors((prev) => ({ ...prev, dateEnd: "" }));
                     setEndDate(selectedDate);
                   }
                 }}
@@ -644,7 +688,11 @@ export default function GoalScreen() {
             color={theme.colors.blueDark}
           />
         </TouchableOpacity>
-
+        {errors.skillType && (
+          <Text style={{ color: theme.colors.red, marginLeft: 12 }}>
+            {errors.skillType}
+          </Text>
+        )}
         <Text style={styles.label}>{t("lesson")}</Text>
         <TouchableOpacity
           onPress={() => setShowLessonModal(true)}
@@ -665,7 +713,11 @@ export default function GoalScreen() {
             color={theme.colors.blueDark}
           />
         </TouchableOpacity>
-
+        {errors.lesson && (
+          <Text style={{ color: theme.colors.red, marginLeft: 12 }}>
+            {errors.lesson}
+          </Text>
+        )}
         <Text style={styles.label}>{t("exercise")}</Text>
         <TouchableOpacity
           onPress={() => setShowExerciseModal(true)}
@@ -679,13 +731,13 @@ export default function GoalScreen() {
           >
             {exercise.length > 0
               ? exercise
-                .map(
-                  (id) =>
-                    enabledLevels?.find((lvl) => lvl.id === id)?.name[
-                    i18n.language
-                    ] || id
-                )
-                .join(", ")
+                  .map(
+                    (id) =>
+                      enabledLevels?.find((lvl) => lvl.id === id)?.name[
+                        i18n.language
+                      ] || id
+                  )
+                  .join(", ")
               : t("selectLevel")}
           </Text>
 
@@ -695,7 +747,11 @@ export default function GoalScreen() {
             color={theme.colors.blueDark}
           />
         </TouchableOpacity>
-
+        {errors.exercise && (
+          <Text style={{ color: theme.colors.red, marginLeft: 12 }}>
+            {errors.exercise}
+          </Text>
+        )}
         <Text style={styles.label}>{t("reward")}</Text>
         <TouchableOpacity
           onPress={() => setShowRewardModal(true)}
@@ -714,6 +770,11 @@ export default function GoalScreen() {
             color={theme.colors.blueDark}
           />
         </TouchableOpacity>
+        {errors.reward && (
+          <Text style={{ color: theme.colors.red, marginLeft: 12 }}>
+            {errors.reward}
+          </Text>
+        )}
         <Text style={styles.label}>{t("selectRewardQuantity")}</Text>
         <RadioButton.Group
           onValueChange={(newValue) => setRewardQuantity(newValue)}
@@ -732,6 +793,11 @@ export default function GoalScreen() {
               </View>
             ))}
           </View>
+          {errors.rewardQuantity && (
+            <Text style={{ color: theme.colors.red, marginLeft: 12 }}>
+              {errors.rewardQuantity}
+            </Text>
+          )}
         </RadioButton.Group>
       </ScrollView>
 

@@ -382,14 +382,16 @@ export default function TargetScreen({ navigation, route }) {
                   </Text>
 
                   <Text style={styles.cardDateEnd}>
-                    {isExpired
-                      ? t("expired")
+                    {item.isCompleted
+                      ? t("taskCompleted") // -> ví dụ: "Hoàn thành tốt!"
+                      : isExpired
+                      ? t("expired") // -> "Đã hết hạn"
                       : `${t("end")}: ${new Date(
                           item.dateEnd
                         ).toLocaleDateString("en-GB")}`}
                   </Text>
 
-                  {isExpired && (
+                  {isExpired && !item.isCompleted && (
                     <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
                       {t("taskExpired")}
                     </Text>
