@@ -8,7 +8,6 @@ import {
     Modal,
     Image,
     TextInput,
-    Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
@@ -19,6 +18,9 @@ import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
 
 export default function ChangeProfilePupilScreen({ navigation }) {
     const { theme } = useTheme();
@@ -30,9 +32,20 @@ export default function ChangeProfilePupilScreen({ navigation }) {
     const [editedProfile, setEditedProfile] = useState({});
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [currentField, setCurrentField] = useState("");
+    const [showError, setShowError] = useState(false);
+    const [errorContent, setErrorContent] = useState({
+        title: "",
+        description: "",
+    });
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [successContent, setSuccessContent] = useState({
+        title: "",
+        description: "",
+    });
 
     const users = useSelector((state) => state.auth.user);
     const pupils = useSelector((state) => state.pupil.pupils || []);
+    const loading = useSelector((state) => state.pupil.loading);
 
     useEffect(() => {
         if (isFocused && users?.id) {
@@ -43,42 +56,74 @@ export default function ChangeProfilePupilScreen({ navigation }) {
     useEffect(() => {
         if (selectedPupil) {
             const dobSeconds = selectedPupil?.dateOfBirth?.seconds || 0;
-            const formattedDate =
-                dobSeconds && dobSeconds > 0
-                    ? new Date(dobSeconds * 1000).toLocaleDateString("vi-VN")
-                    : "";
+            const dobDate = dobSeconds ? new Date(dobSeconds * 1000) : null;
+            const isoDate = dobDate ? dobDate.toISOString() : "";
 
             setEditedProfile({
                 fullName: selectedPupil.fullName || "",
                 nickName: selectedPupil.nickName || "",
                 grade: selectedPupil.grade || "",
-                dateOfBirth: formattedDate,
-                gender: selectedPupil.gender || "",
+                dateOfBirth: isoDate,
+                gender: selectedPupil.gender || "", // Lưu giá trị gốc (male/female)
             });
         }
     }, [selectedPupil]);
 
+    const formatDateForDisplay = (isoStr) => {
+        if (!isoStr) return t("selectDate");
+        const date = new Date(isoStr);
+        return isNaN(date) ? t("selectDate") : date.toLocaleDateString("vi-VN");
+    };
+
+    const getFormatGender = (gender) => {
+        if (!gender) return t("selectOption");
+        return gender.toLowerCase() === "male" ? t("male") : t("female");
+    };
+
     const handleChange = (field, value) => {
         setEditedProfile((prev) => ({ ...prev, [field]: value }));
     };
+    const validateInputs = () => {
+        const requiredFields = [
+            { field: "fullName", label: t("fullName") },
+            { field: "nickName", label: t("nickName") },
+            { field: "grade", label: t("grade") },
+            { field: "dateOfBirth", label: t("birthday") },
+            { field: "gender", label: t("gender") },
+        ];
 
-    const handleSave = async () => {
-        // Check for empty fields
-        for (const [key, value] of Object.entries(editedProfile)) {
-            if (!value || value.trim() === "") {
-                Alert.alert("Missing Info", `Please fill in ${key}.`);
-                return;
+        for (const { field, label } of requiredFields) {
+            if (
+                !editedProfile[field] ||
+                editedProfile[field] === "none" ||
+                editedProfile[field].trim() === ""
+            ) {
+                setErrorContent({
+                    title: t("errorTitle"),
+                    description: t("requiredField", { field: label }),
+                });
+                setShowError(true);
+                return false;
             }
         }
+        return true;
+    };
+    const handleSave = async () => {
+        if (!validateInputs()) {
+            return;
+        }
 
-        // Validate age based on grade
-        const age =
-            new Date().getFullYear() -
-            new Date(editedProfile.dateOfBirth).getFullYear();
+        // Kiểm tra tuổi dựa trên grade
+        const dobDate = new Date(editedProfile.dateOfBirth);
+        const age = new Date().getFullYear() - dobDate.getFullYear();
         const grade = parseInt(editedProfile.grade, 10);
 
-        if (isNaN(age) || !editedProfile.dateOfBirth) {
-            Alert.alert("Invalid Date", "Please select a valid date of birth.");
+        if (isNaN(dobDate.getTime()) || !editedProfile.dateOfBirth) {
+            setErrorContent({
+                title: t("errorTitle"),
+                description: t("invalidDate"),
+            });
+            setShowError(true);
             return;
         }
 
@@ -87,30 +132,50 @@ export default function ChangeProfilePupilScreen({ navigation }) {
             (grade === 2 && age < 7) ||
             (grade === 3 && age < 8)
         ) {
-            Alert.alert(
-                "Invalid Age",
-                `Age must be at least ${grade + 5} years for Grade ${grade}.`
-            );
+            setErrorContent({
+                title: t("errorTitle"),
+                description: t("invalidAge", { minAge: grade + 5, grade }),
+            });
+            setShowError(true);
             return;
         }
 
         try {
+            // Chuẩn bị dữ liệu để gửi lên server
+            const profileData = {
+                ...editedProfile,
+                dateOfBirth: new Date(editedProfile.dateOfBirth).toISOString(),
+                gender: editedProfile.gender.toLowerCase(), // Đảm bảo gender là lowercase (male/female)
+            };
+
             await dispatch(
-                updatePupilProfile({ id: selectedPupil.id, data: editedProfile })
+                updatePupilProfile({ id: selectedPupil.id, data: profileData })
             ).unwrap();
             dispatch(getAllPupils(users.id));
-            Alert.alert("Success", "Pupil profile updated successfully!");
+            setSuccessContent({
+                title: t("successTitle"),
+                description: t("profileUpdated"),
+            });
+            setShowSuccess(true);
             setModalVisible(false);
             setSelectedPupil(null);
         } catch (error) {
-            Alert.alert("Error", "Failed to update pupil profile");
+            setErrorContent({
+                title: t("errorTitle"),
+                description: t("updateProfileFailed"),
+            });
+            setShowError(true);
         }
     };
 
     const handleDropdownToggle = (fieldName) => {
-        // Toggle dropdown: if the same field is clicked, close it; otherwise, open the new one
         setCurrentField((prev) => (prev === fieldName ? "" : fieldName));
     };
+
+    const genderOptions = [
+        { display: t("male"), value: "male" },
+        { display: t("female"), value: "female" },
+    ];
 
     const pupilFields = [
         { label: t("fullName"), fieldName: "fullName", type: "text" },
@@ -126,7 +191,7 @@ export default function ChangeProfilePupilScreen({ navigation }) {
             label: t("gender"),
             fieldName: "gender",
             type: "dropdown",
-            options: [t("male"), t("female")],
+            options: genderOptions,
         },
     ];
 
@@ -153,7 +218,7 @@ export default function ChangeProfilePupilScreen({ navigation }) {
         },
         backIcon: {
             width: 24,
-            height: 24
+            height: 24,
         },
         titlelable1: {
             width: "100%",
@@ -342,7 +407,9 @@ export default function ChangeProfilePupilScreen({ navigation }) {
                                                 style={styles.dropdownButton}
                                             >
                                                 <Text style={styles.dropdownButtonText}>
-                                                    {editedProfile[field.fieldName] || "Select option..."}
+                                                    {field.fieldName === "gender"
+                                                        ? getFormatGender(editedProfile[field.fieldName])
+                                                        : editedProfile[field.fieldName] || t("selectOption")}
                                                 </Text>
                                             </TouchableOpacity>
                                             {currentField === field.fieldName && (
@@ -351,12 +418,17 @@ export default function ChangeProfilePupilScreen({ navigation }) {
                                                         <TouchableOpacity
                                                             key={i}
                                                             onPress={() => {
-                                                                handleChange(field.fieldName, opt);
+                                                                handleChange(
+                                                                    field.fieldName,
+                                                                    field.fieldName === "gender" ? opt.value : opt
+                                                                );
                                                                 setCurrentField("");
                                                             }}
                                                             style={styles.dropdownItem}
                                                         >
-                                                            <Text style={styles.dropdownItemText}>{opt}</Text>
+                                                            <Text style={styles.dropdownItemText}>
+                                                                {field.fieldName === "gender" ? opt.display : opt}
+                                                            </Text>
                                                         </TouchableOpacity>
                                                     ))}
                                                 </View>
@@ -374,7 +446,7 @@ export default function ChangeProfilePupilScreen({ navigation }) {
                                                         { textAlign: "center", width: "100%" },
                                                     ]}
                                                 >
-                                                    {editedProfile.dateOfBirth || "Select date"}
+                                                    {formatDateForDisplay(editedProfile.dateOfBirth)}
                                                 </Text>
                                             </TouchableOpacity>
                                             {showDatePicker && (
@@ -389,10 +461,7 @@ export default function ChangeProfilePupilScreen({ navigation }) {
                                                     onChange={(event, selectedDate) => {
                                                         setShowDatePicker(false);
                                                         if (selectedDate) {
-                                                            const isoDate = selectedDate
-                                                                .toISOString()
-                                                                .split("T")[0];
-                                                            handleChange("dateOfBirth", isoDate);
+                                                            handleChange("dateOfBirth", selectedDate.toISOString());
                                                         }
                                                     }}
                                                 />
@@ -406,7 +475,9 @@ export default function ChangeProfilePupilScreen({ navigation }) {
                                                     handleChange(field.fieldName, text)
                                                 }
                                                 style={styles.inputTextBox}
-                                                placeholder={`Enter ${field.label.toLowerCase()}`}
+                                                placeholder={t("placeholder", {
+                                                    field: field.label.toLowerCase(),
+                                                })}
                                                 placeholderTextColor={theme.colors.grayMedium}
                                             />
                                         </View>
@@ -432,6 +503,20 @@ export default function ChangeProfilePupilScreen({ navigation }) {
                     </View>
                 </View>
             </Modal>
+
+            <FullScreenLoading visible={loading} color={theme.colors.white} />
+            <MessageError
+                visible={showError}
+                title={errorContent.title}
+                description={errorContent.description}
+                onClose={() => setShowError(false)}
+            />
+            <MessageSuccess
+                visible={showSuccess}
+                title={successContent.title}
+                description={successContent.description}
+                onClose={() => setShowSuccess(false)}
+            />
         </LinearGradient>
     );
 }

@@ -61,7 +61,28 @@ export default function TestScreen({ navigation, route }) {
   const validTests = tests.filter((item) => item.question && item.answer);
   const totalQuestions = validTests.length;
   const currentQ = validTests[currentQuestion - 1];
+  const [fromTimeUp, setFromTimeUp] = useState(false);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmContent, setConfirmContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningContent, setWarningContent] = useState({
+    title: "",
+    description: "",
+  });
   // Hàm reset tất cả trạng thái
   const resetTestState = () => {
     setUserAnswers({});
@@ -300,28 +321,33 @@ export default function TestScreen({ navigation, route }) {
         }
 
         if (score >= 9) {
-          const unlockResult = await dispatch(
-            completeAndUnlockNextLesson({ pupilId, lessonId })
-          ).unwrap();
-          const exercise = levelIds.join(",");
-          const res = await dispatch(
-            autoMarkCompletedGoals({ pupilId, lessonId, exercise })
-          );
+          let exercise = levelIds ? levelIds.join(",") : null; // Check if levelIds exists
+          let unlockResult = null; // Initialize as null
 
-          if (res.payload?.message?.[i18n.language]) {
-            setSuccessContent({
-              title: t("success"),
-              description: res.payload.message[i18n.language],
-            });
-            setShowSuccess(true);
-          } else if (res.error?.message?.[i18n.language]) {
-            setErrorContent({
-              title: t("error"),
-              description: res.error.message[i18n.language],
-            });
-            setShowError(true);
+          if (exercise === null) {
+            unlockResult = await dispatch(
+              completeAndUnlockNextLesson({ pupilId, lessonId })
+            ).unwrap();
+          } else {
+            const res = await dispatch(
+              autoMarkCompletedGoals({ pupilId, lessonId, exercise })
+            );
+
+            if (res.payload?.message?.[i18n.language]) {
+              setSuccessContent({
+                title: t("success"),
+                description: res.payload.message[i18n.language],
+              });
+              setShowSuccess(true);
+            } else if (res.error?.message?.[i18n.language]) {
+              setErrorContent({
+                title: t("error"),
+                description: res.error.message[i18n.language],
+              });
+              setShowError(true);
+            }
+            setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
           }
-          setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
         } else {
           setNextLessonName(null);
         }
@@ -924,6 +950,7 @@ export default function TestScreen({ navigation, route }) {
         description={confirmContent.description}
         onConfirm={confirmContent.onConfirm}
         onCancel={() => setShowConfirm(false)}
+        onClose={() => navigation.goBack()}
       />
     </View >
   );

@@ -264,10 +264,17 @@ export default function GoalScreen() {
         );
       }
       setErrors({ dateStart: "", dateEnd: "" });
-      alert(t("alertSuccess"));
-      navigation.goBack();
+      setSuccessContent({
+        title: t("success"),
+        description: t("confirmSubmissionDescription"),
+      });
+      setShowSuccess(true);
     } catch (err) {
-      alert(t("alertFail", { error: err?.message || err }));
+      setErrorContent({
+        title: t("error"),
+        description: t("errorDescription"),
+      });
+      setShowError(true);
     }
   };
 
@@ -744,13 +751,13 @@ export default function GoalScreen() {
           >
             {exercise.length > 0
               ? exercise
-                  .map(
-                    (id) =>
-                      enabledLevels?.find((lvl) => lvl.id === id)?.name[
-                        i18n.language
-                      ] || id
-                  )
-                  .join(", ")
+                .map(
+                  (id) =>
+                    enabledLevels?.find((lvl) => lvl.id === id)?.name[
+                    i18n.language
+                    ] || id
+                )
+                .join(", ")
               : t("selectLevel")}
           </Text>
 
@@ -928,6 +935,7 @@ export default function GoalScreen() {
         description={successContent.description}
         onClose={() => {
           setShowSuccess(false);
+          navigation.goBack();
         }}
       />
     </LinearGradient>

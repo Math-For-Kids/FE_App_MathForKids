@@ -196,6 +196,7 @@ export default function HomeScreen({ navigation, route }) {
       width: 100,
       borderWidth: 1,
       borderColor: theme.colors.white,
+       zIndex: 2000,
     },
     grade: {
       fontSize: 14,
@@ -216,6 +217,7 @@ export default function HomeScreen({ navigation, route }) {
       borderRadius: 5,
       elevation: 3,
       paddingVertical: 0,
+      zIndex: 2001,
     },
     dropdownItem: {
       paddingVertical: 6,
@@ -278,8 +280,8 @@ export default function HomeScreen({ navigation, route }) {
                   filteredPupils?.image
                     ? { uri: filteredPupils?.image }
                     : filteredPupils?.gender === "female"
-                    ? theme.icons.avatarFemale
-                    : theme.icons.avatarMale
+                      ? theme.icons.avatarFemale
+                      : theme.icons.avatarMale
                 }
                 style={styles.avatar}
               />
@@ -317,6 +319,7 @@ export default function HomeScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </LinearGradient>
+
       <View style={styles.gradeWrapper}>
         <TouchableOpacity
           onPress={() => setShowDropdown(!showDropdown)}
@@ -349,6 +352,7 @@ export default function HomeScreen({ navigation, route }) {
           </View>
         )}
       </View>
+
       <Text style={styles.title}>{t("select_skill")}</Text>
       <ScrollView contentContainerStyle={styles.skillsContainer}>
         {skills.map((item, index) => (

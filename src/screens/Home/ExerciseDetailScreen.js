@@ -25,6 +25,8 @@ import {
 import MessageError from "../../components/MessageError";
 import MessageSuccess from "../../components/MessageSuccess";
 import MessageConfirm from "../../components/MessageConfirm";
+import FullScreenLoading from "../../components/FullScreenLoading";
+
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, skillIcon, lessonId, levelIds, pupilId, title, grade } =
@@ -209,51 +211,13 @@ export default function ExerciseScreen({ navigation, route }) {
       setShowError(true);
       return;
     }
+    // Show confirmation popup
+    setConfirmContent({
+      title: t("confirmSubmission"),
+      description: t("confirmSubmissionDescription"),
+    });
+    setShowConfirm(true);
 
-    // Hiển thị popup xác nhận
-    <MessageConfirm
-      visible={showConfirm}
-      title={confirmContent.title}
-      description={confirmContent.description}
-      onCancel={() => setShowConfirm(false)}
-      onConfirm={async () => {
-        setShowConfirm(false);
-        setIsSubmitting(true);
-        const { correct, wrong, score } = calculateResults();
-        try {
-          await dispatch(
-            createCompletedExercise({
-              pupilId,
-              lessonId,
-              levelId: levelIds,
-              point: score,
-            })
-          ).unwrap();
-          navigation.navigate("ExerciseResultScreen", {
-            skillName,
-            answers: selectedAnswers,
-            questions,
-            score,
-            correctCount: correct,
-            wrongCount: wrong,
-            lessonId,
-            levelIds,
-            pupilId,
-            title,
-            grade,
-            skillIcon: skillIcon,
-          });
-        } catch (err) {
-          setErrorContent({
-            title: t("error"),
-            description: t("failedToSubmitExercise"),
-          });
-          setShowError(true);
-        } finally {
-          setIsSubmitting(false);
-        }
-      }}
-    />;
   };
 
   const renderOption = (questionId, value, optIndex, style, questionLevel) => {
@@ -456,17 +420,6 @@ export default function ExerciseScreen({ navigation, route }) {
     },
   });
 
-  if (exerciseLoading && !isSubmitting) return;
-  <View style={styles.container}>
-    <Text style={styles.loadingText}>{t("loadingExercises")}</Text>
-  </View>;
-  if (exerciseError && !isSubmitting) return;
-  <View style={styles.container}>
-    <Text style={styles.errorText}>
-      {t("errorLoadingExercises")}: {exerciseError}
-    </Text>
-  </View>;
-
   return (
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
@@ -490,71 +443,52 @@ export default function ExerciseScreen({ navigation, route }) {
           <Image source={theme.icons.soundOn} style={styles.soundOnIcon} />
           <Text style={styles.requestText}>{t("chooseCorrectAnswer")}</Text>
         </View>
+        {exerciseLoading ? (
+          <FullScreenLoading visible={exerciseLoading} color={theme.colors.white} />
+        ) : exerciseError ? (
+          <View style={styles.container}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : (
+          <>
+            {questions.map((q, ind) => {
+              const options = generateOptions(q);
+              const useSingleRow = shouldUseSingleRow(options);
+              return (
+                <View key={q.id} style={styles.questionContainer}>
+                  <Text style={styles.questionText}>
+                    {t("question")} {ind + 1}: {q.question}
+                  </Text>
+                  <View style={styles.questionImageContainer}>
+                    {q.image && (
+                      <Image style={styles.questionImage} source={q.image} />
+                    )}
 
-        {questions.map((q, ind) => {
-          const options = generateOptions(q);
-          const useSingleRow = shouldUseSingleRow(options);
-          return (
-            <View key={q.id} style={styles.questionContainer}>
-              <Text style={styles.questionText}>
-                {t("question")} {ind + 1}: {q.question}
-              </Text>
-              <View style={styles.questionImageContainer}>
-                {q.image && (
-                  <Image style={styles.questionImage} source={q.image} />
-                )}
-
-                <View style={styles.selectedContainer}>
-                  <View
-                    style={styles.selectedAnswerBox}
-                    ref={(ref) => (boxRefs.current[`box${q.id}`] = ref)}
-                  >
-                    {selectedAnswers[q.id] !== undefined && (
-                      <View style={styles.selectedAnswerTextContainer}>
-                        <Text style={styles.selectedAnswerText}>
-                          {selectedAnswers[q.id]}
-                        </Text>
+                    <View style={styles.selectedContainer}>
+                      <View
+                        style={styles.selectedAnswerBox}
+                        ref={(ref) => (boxRefs.current[`box${q.id}`] = ref)}
+                      >
+                        {selectedAnswers[q.id] !== undefined && (
+                          <View style={styles.selectedAnswerTextContainer}>
+                            <Text style={styles.selectedAnswerText}>
+                              {selectedAnswers[q.id]}
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                    )}
+                    </View>
                   </View>
-                </View>
-              </View>
 
-              <View style={styles.optionsContainer}>
-                {useSingleRow ? (
-                  <View
-                    style={[
-                      styles.optionsRow,
-                      { justifyContent: "space-around" },
-                    ]}
-                  >
-                    {options.map((val, optIndex) =>
-                      renderOption(
-                        q.id,
-                        val,
-                        optIndex,
-                        {
-                          ...(isExpression(val) && {
-                            paddingHorizontal: 20,
-                            borderRadius: 10,
-                            width: 150,
-                          }),
-                        },
-                        q.level
-                      )
-                    )}
-                  </View>
-                ) : (
-                  <>
-                    <View
-                      style={[
-                        styles.optionsRow,
-                        { justifyContent: "space-around" },
-                      ]}
-                    >
-                      {options
-                        .slice(0, Math.ceil(options.length / 2))
-                        .map((val, optIndex) =>
+                  <View style={styles.optionsContainer}>
+                    {useSingleRow ? (
+                      <View
+                        style={[
+                          styles.optionsRow,
+                          { justifyContent: "space-around" },
+                        ]}
+                      >
+                        {options.map((val, optIndex) =>
                           renderOption(
                             q.id,
                             val,
@@ -569,37 +503,65 @@ export default function ExerciseScreen({ navigation, route }) {
                             q.level
                           )
                         )}
-                    </View>
-                    <View
-                      style={[
-                        styles.optionsRow,
-                        { justifyContent: "space-around" },
-                      ]}
-                    >
-                      {options
-                        .slice(Math.ceil(options.length / 2))
-                        .map((val, optIndex) =>
-                          renderOption(
-                            q.id,
-                            val,
-                            optIndex + Math.ceil(options.length / 2),
-                            {
-                              ...(isExpression(val) && {
-                                paddingHorizontal: 20,
-                                borderRadius: 10,
-                                width: 150,
-                              }),
-                            },
-                            q.level
-                          )
-                        )}
-                    </View>
-                  </>
-                )}
-              </View>
-            </View>
-          );
-        })}
+                      </View>
+                    ) : (
+                      <>
+                        <View
+                          style={[
+                            styles.optionsRow,
+                            { justifyContent: "space-around" },
+                          ]}
+                        >
+                          {options
+                            .slice(0, Math.ceil(options.length / 2))
+                            .map((val, optIndex) =>
+                              renderOption(
+                                q.id,
+                                val,
+                                optIndex,
+                                {
+                                  ...(isExpression(val) && {
+                                    paddingHorizontal: 20,
+                                    borderRadius: 10,
+                                    width: 150,
+                                  }),
+                                },
+                                q.level
+                              )
+                            )}
+                        </View>
+                        <View
+                          style={[
+                            styles.optionsRow,
+                            { justifyContent: "space-around" },
+                          ]}
+                        >
+                          {options
+                            .slice(Math.ceil(options.length / 2))
+                            .map((val, optIndex) =>
+                              renderOption(
+                                q.id,
+                                val,
+                                optIndex + Math.ceil(options.length / 2),
+                                {
+                                  ...(isExpression(val) && {
+                                    paddingHorizontal: 20,
+                                    borderRadius: 10,
+                                    width: 150,
+                                  }),
+                                },
+                                q.level
+                              )
+                            )}
+                        </View>
+                      </>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </>
+        )}
       </ScrollView>
       <LinearGradient colors={getGradient()} style={styles.submitButton}>
         <TouchableOpacity onPress={handleSubmit} disabled={isSubmitting}>
@@ -622,19 +584,61 @@ export default function ExerciseScreen({ navigation, route }) {
           <Text style={styles.optionText}>{flyingValue}</Text>
         </Animated.View>
       )}
-      <FloatingMenu />{" "}
+      <FloatingMenu />
       <MessageError
         visible={showError}
         title={errorContent.title}
         description={errorContent.description}
         onClose={() => setShowError(false)}
       />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => setShowSuccess(false)}
+      />
       <MessageConfirm
         visible={showConfirm}
         title={confirmContent.title}
         description={confirmContent.description}
-        // onClose={confirmPupilSelection}
         onCancel={() => setShowConfirm(false)}
+        onClose={async () => {
+          setShowConfirm(false);
+          setIsSubmitting(true);
+          const { correct, wrong, score } = calculateResults();
+          try {
+            await dispatch(
+              createCompletedExercise({
+                pupilId,
+                lessonId,
+                levelId: levelIds,
+                point: score,
+              })
+            ).unwrap();
+            navigation.navigate("ExerciseResultScreen", {
+              skillName,
+              answers: selectedAnswers,
+              questions,
+              score,
+              correctCount: correct,
+              wrongCount: wrong,
+              lessonId,
+              levelIds,
+              pupilId,
+              title,
+              grade,
+              skillIcon: skillIcon,
+            });
+          } catch (err) {
+            setErrorContent({
+              title: t("error"),
+              description: t("failedToSubmitExercise"),
+            });
+            setShowError(true);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
       />
     </View>
   );

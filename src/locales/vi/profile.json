@@ -21,6 +21,7 @@
   "grade": "Lớp",
   "male": "Nam",
   "female": "Nữ",
+  "nickName": "Biệt danh",
   "avatarUpdated": "Đã cập nhật hình đại diện!",
   "updateSuccess": "Hồ sơ đã cập nhật thành công!",
   "updateFailed": "Không cập nhật được hồ sơ",
@@ -64,7 +65,7 @@
   "requiredField": "{{field}} không được để trống.",
   "pupilProfiles": "Hồ sơ học sinh",
   "editPupilProfile": "Chỉnh sửa hồ sơ học sinh",
-  "selectpupil":"Chọn hồ sơ học sinh",
+  "selectpupil": "Chọn hồ sơ học sinh",
   "noPupilsFound": "Không tìm thấy học sinh",
   "fieldRequired": "Vui lòng không để trống.",
   "ageRangeInvalid": "Tuổi phải từ 18 đến 100.",
@@ -79,5 +80,10 @@
   "updatePhoneSuccess": "Cập nhật số điện thoại thành công!",
   "uploadFailed": "Tải ảnh lên thất bại",
   "profileUpdated": "Cập nhật hồ sơ thành công",
-  "updateProfileFailed": "Cập nhật hồ sơ thất bại"
+  "updateProfileFailed": "Cập nhật hồ sơ thất bại",
+  "error": "Thất bại",
+  "invalidDate": "Vui lòng chọn ngày sinh hợp lệ",
+  "invalidAge": "Tuổi phải ít nhất {{minAge}} cho lớp {{grade}}",
+  "selectOption": "Chọn...",
+  "selectDate": "Chọn ngày"
 }
