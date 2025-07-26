@@ -93,10 +93,7 @@ export default function StatisticScreen({ navigation }) {
   const filteredPupils = pupils.filter(
     (p) => String(p.userId) === String(users?.id)
   );
-  const today = dayjs();
-  const formatMonth = (date) => date.format("YYYY-MM");
-  const formatWeek = (date) => `${date.format("YYYY")}-W${date.isoWeek()}`;
-  const formatQuarter = (date) => `${date.year()}-Q${date.quarter()}`;
+
   const periods = ["thisWeek", "thisMonth", "thisQuarter"];
   const periodRanges = {
     thisWeek: ["thisWeek", "lastWeek"],
@@ -108,15 +105,6 @@ export default function StatisticScreen({ navigation }) {
   const formatMonth = (date) => date.format("YYYY-MM");
   const formatWeek = (date) => `${date.format("YYYY")}-W${date.isoWeek()}`;
   const formatQuarter = (date) => `${date.year()}-Q${date.quarter()}`;
-
-  //   const periodRanges = {
-  //     thisWeek: [formatWeek(today), formatWeek(today.subtract(1, "week"))],
-  //     thisMonth: [formatMonth(today), formatMonth(today.subtract(1, "month"))],
-  //     thisQuarter: [
-  //       formatQuarter(today),
-  //       formatQuarter(today.subtract(1, "quarter")),
-  //     ],
-  //   };
 
   const rangeTypeOptions = [
     {
@@ -210,24 +198,13 @@ export default function StatisticScreen({ navigation }) {
   useEffect(() => {
     if (selectedPupil && selectedPupil.grade && selectedPeriod) {
       const ranges = periodRanges[selectedPeriod] || ["thisMonth", "lastMonth"];
-      const rangesInEnglish = ranges.map((key) => key);
-
       dispatch(
         getUserPointStatsComparison({
           pupilId: selectedPupil.id,
           grade: selectedPupil.grade,
-          ranges: rangesInEnglish,
+          ranges,
           lessonId: selectedLesson?.id || null,
           skill: selectedSkill || null, // Raw skill key
-        })
-      );
-      const [startRange, endRange] = selectedRange || [];
-      dispatch(
-        getAnswerStats({
-          pupilId: selectedPupil?.id,
-          skill: selectedSkill,
-          rangeType: selectedRangeType, // "week", "month", "quarter"
-          ranges: selectedRange,
         })
       );
       dispatch(
@@ -239,8 +216,19 @@ export default function StatisticScreen({ navigation }) {
           skill: selectedSkill || null, // Raw skill key
         })
       );
+      if (selectedChart === "trueFalse" && selectedRangeType && selectedRange) {
+        dispatch(
+          getAnswerStats({
+            pupilId: selectedPupil?.id,
+            skill: selectedSkill,
+            rangeType: selectedRangeType,
+            ranges: selectedRange,
+          })
+        );
+      }
     }
   }, [selectedPupil, selectedPeriod, selectedLesson, selectedSkill]);
+
   useEffect(() => {
     const fetchStats = async () => {
       if (!selectedPupil || !selectedRangeType) {
@@ -513,4 +501,4 @@ export default function StatisticScreen({ navigation }) {
       <FloatingMenu />
     </LinearGradient>
   );
-}
+};

@@ -325,31 +325,54 @@ export default function createStyles(theme) {
     },
     dropdownRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
-      padding: 10,
-      backgroundColor: theme.colors.white,
-      borderRadius: 5,
+      justifyContent: "space-between",
+      backgroundColor: "#FFFFFF",
+      borderRadius: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
       borderWidth: 1,
-      borderColor: theme.colors.grayLight,
+      borderColor: "#E0E4E8", // Subtle border for definition
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3, // For Android shadow
     },
     dropdownText: {
       fontSize: 14,
-      color: theme.colors.blueDark,
-      flex: 1,
+      fontWeight: "500",
+      color: "#333333", // Dark text for readability
+      flex: 1, // Allow text to take available space
     },
     dropdownModal: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
+      backgroundColor: "rgba(0, 0, 0, 0.3)", // Semi-transparent overlay
       justifyContent: "center",
       alignItems: "center",
     },
     dropdownContent: {
-      backgroundColor: theme.colors.white,
+      backgroundColor: "#FFFFFF",
       borderRadius: 10,
       padding: 10,
-      width: "80%",
-      maxHeight: "50%",
+      width: "90%", // Responsive width
+      maxHeight: 400, // Limit height to avoid overflow
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 5,
+    },
+    dropdownItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: "#E0E4E8", // Separator line
+    },
+    dropdownItemText: {
+      fontSize: 16,
+      fontWeight: "400",
+      color: "#333333",
     },
     loadingText: {
       fontSize: 16,

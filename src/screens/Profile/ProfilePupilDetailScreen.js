@@ -632,14 +632,14 @@ export default function ProfilePupilScreen({ navigation }) {
         </View>
       </Modal>
 
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
+      {/* <TouchableOpacity onPress={() => setModalVisible(true)}>
         <LinearGradient
           colors={theme.colors.gradientBlue}
           style={styles.editButton}
         >
           <Text style={styles.fieldLabel}>{t("common:edit")}</Text>
         </LinearGradient>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <FloatingMenu />
     </LinearGradient>

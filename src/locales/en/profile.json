@@ -61,5 +61,9 @@
   "checkvalidategrade1": "Students in Grade 1 must be at least 6 years old.",
   "checkvalidategrade2": "Students in Grade 2 must be at least 7 years old.",
   "checkvalidategrade3": "Students in Grade 3 must be at least 8 years old.",
-  "requiredField": "{{field}} is required."
+  "requiredField": "{{field}} is required.",
+  "pupilProfiles": "Pupil Profiles",
+  "editPupilProfile": "Edit Pupil Profile",
+  "selectpupil":"Select student profile",
+  "noPupilsFound": "No pupils found"
 }

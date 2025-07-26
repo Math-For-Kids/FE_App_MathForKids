@@ -9,7 +9,6 @@
   "lastQuarter": "Last quarter",
   "progress": "Academic progress",
   "academicProgress": "Academic progress",
-
   "comment": "Comment",
   "summary": "Summary",
   "trueFalse": "Correct/Incorrect ratio",
@@ -45,7 +44,7 @@
   "moreLowScores": "More low scores with {{lowScoreIncrease}} increase in low hands.",
   "moreHighScores": "More high scores with {{highScoreIncrease}} increase in high hands.",
   "needsImprovement": "needs improvement",
-  "noLessonsNeedImprovement": "No lessons need improvement."
+  "noLessonsNeedImprovement": "No lessons need improvement.",
   "wrong": "Incorrect",
   "thisRange": "Current",
   "lastRange": "Previous",
@@ -79,13 +78,12 @@
   "accuracyOverTime": "Chart showing progress over time",
   "correctWrongByMonth": "Correct and incorrect answers over learning periods",
   "accuracyByLevel": "Correct/incorrect results by question difficulty",
-  "selectSkill": "Select skill",
   "selectTest": "Select test",
   "unit": "Unit",
   "questions": "questions",
   "loadingStats": "Loading statistics...",
   "incompleteSelection": "Missing selection",
   "pleaseSelectAllBeforeViewingTests": "Please select pupil, skill, lesson, and range type before viewing tests.",
+  "noSignificantChange":"No significant change",
   "noTestAvailable": "No test available."
 }
-

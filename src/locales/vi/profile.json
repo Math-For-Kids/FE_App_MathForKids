@@ -61,5 +61,9 @@
   "checkvalidategrade1": "Học sinh lớp 1 phải từ 6 tuổi trở lên.",
   "checkvalidategrade2": "Học sinh lớp 2 phải từ 7 tuổi trở lên.",
   "checkvalidategrade3": "Học sinh lớp 3 phải từ 8 tuổi trở lên.",
-  "requiredField": "{{field}} không được để trống."
+  "requiredField": "{{field}} không được để trống.",
+  "pupilProfiles": "Hồ sơ học sinh",
+  "editPupilProfile": "Chỉnh sửa hồ sơ học sinh",
+  "selectpupil":"Chọn hồ sơ học sinh",
+  "noPupilsFound": "Không tìm thấy học sinh"
 }
