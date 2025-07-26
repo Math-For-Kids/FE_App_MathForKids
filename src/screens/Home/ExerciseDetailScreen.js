@@ -22,7 +22,9 @@ import {
   createCompletedExercise,
   clearError,
 } from "../../redux/completedexerciseSlice";
-
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
+import MessageConfirm from "../../components/MessageConfirm";
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, skillIcon, lessonId, levelIds, pupilId, title, grade } =
@@ -50,7 +52,21 @@ export default function ExerciseScreen({ navigation, route }) {
   const [flyingValue, setFlyingValue] = useState(null);
   const [isFlying, setIsFlying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmContent, setConfirmContent] = useState({
+    title: "",
+    description: "",
+  });
   useEffect(() => {
     dispatch(getRandomExercises({ lessonId, levelIds }));
     dispatch(getEnabledLevels());
@@ -58,9 +74,12 @@ export default function ExerciseScreen({ navigation, route }) {
 
   useEffect(() => {
     if (completedError) {
-      Alert.alert(t("error"), completedError, [
-        { text: t("ok"), onPress: () => dispatch(clearError()) },
-      ]);
+      setErrorContent({
+        title: t("error"),
+        description: completedError,
+      });
+      setShowError(true);
+      dispatch(clearError());
     }
   }, [completedError, dispatch, t]);
 
@@ -109,7 +128,10 @@ export default function ExerciseScreen({ navigation, route }) {
             duration: 800,
             useNativeDriver: true,
           }).start(() => {
-            setSelectedAnswers((prev) => ({ ...prev, [questionId]: extractAnswerValue(value, questionLevel) }));
+            setSelectedAnswers((prev) => ({
+              ...prev,
+              [questionId]: extractAnswerValue(value, questionLevel),
+            }));
             setIsFlying(false);
           });
         });
@@ -180,61 +202,65 @@ export default function ExerciseScreen({ navigation, route }) {
 
   const handleSubmit = async () => {
     if (!pupilId) {
-      Alert.alert(t("error"), t("pupilIdMissing"));
+      setErrorContent({
+        title: t("error"),
+        description: t("pupilIdMissing"),
+      });
+      setShowError(true);
       return;
     }
 
     // Hiển thị popup xác nhận
-    Alert.alert(
-      t("confirmSubmission"), // Tiêu đề của popup
-      t("confirmSubmissionMessage"), // Nội dung của popup
-      [
-        {
-          text: t("cancel"), // Nút hủy
-          style: "cancel",
-        },
-        {
-          text: t("ok"), // Nút xác nhận
-          onPress: async () => {
-            setIsSubmitting(true);
-            const { correct, wrong, score } = calculateResults();
-            try {
-              await dispatch(
-                createCompletedExercise({
-                  pupilId,
-                  lessonId,
-                  levelId: levelIds,
-                  point: score,
-                })
-              ).unwrap();
-              navigation.navigate("ExerciseResultScreen", {
-                skillName,
-                answers: selectedAnswers,
-                questions,
-                score,
-                correctCount: correct,
-                wrongCount: wrong,
-                lessonId,
-                levelIds,
-                pupilId,
-                title,
-                grade,
-                skillIcon: skillIcon,
-              });
-            } catch (err) {
-              Alert.alert(t("error"), t("failedToSubmitExercise"));
-            } finally {
-              setIsSubmitting(false);
-            }
-          },
-        },
-      ],
-      { cancelable: true } // Cho phép nhấn ngoài popup để hủy
-    );
+    <MessageConfirm
+      visible={showConfirm}
+      title={confirmContent.title}
+      description={confirmContent.description}
+      onCancel={() => setShowConfirm(false)}
+      onConfirm={async () => {
+        setShowConfirm(false);
+        setIsSubmitting(true);
+        const { correct, wrong, score } = calculateResults();
+        try {
+          await dispatch(
+            createCompletedExercise({
+              pupilId,
+              lessonId,
+              levelId: levelIds,
+              point: score,
+            })
+          ).unwrap();
+          navigation.navigate("ExerciseResultScreen", {
+            skillName,
+            answers: selectedAnswers,
+            questions,
+            score,
+            correctCount: correct,
+            wrongCount: wrong,
+            lessonId,
+            levelIds,
+            pupilId,
+            title,
+            grade,
+            skillIcon: skillIcon,
+          });
+        } catch (err) {
+          setErrorContent({
+            title: t("error"),
+            description: t("failedToSubmitExercise"),
+          });
+          setShowError(true);
+        } finally {
+          setIsSubmitting(false);
+        }
+      }}
+    />;
   };
 
   const renderOption = (questionId, value, optIndex, style, questionLevel) => {
-    if (selectedAnswers[questionId] === extractAnswerValue(value, questionLevel)) return null;
+    if (
+      selectedAnswers[questionId] === extractAnswerValue(value, questionLevel)
+    )
+      return null;
     const optionStyle = [
       styles.option,
       style,
@@ -249,7 +275,9 @@ export default function ExerciseScreen({ navigation, route }) {
         }
         onPress={() => handleSelect(questionId, value, optIndex, questionLevel)}
       >
-        <Text style={styles.optionText}>{extractAnswerValue(value, questionLevel)}</Text>
+        <Text style={styles.optionText}>
+          {extractAnswerValue(value, questionLevel)}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -457,7 +485,6 @@ export default function ExerciseScreen({ navigation, route }) {
           {title[i18n.language]}
         </Text>
       </LinearGradient>
-
       <ScrollView>
         <View style={styles.requestContainer}>
           <Image source={theme.icons.soundOn} style={styles.soundOnIcon} />
@@ -502,13 +529,19 @@ export default function ExerciseScreen({ navigation, route }) {
                     ]}
                   >
                     {options.map((val, optIndex) =>
-                      renderOption(q.id, val, optIndex, {
-                        ...(isExpression(val) && {
-                          paddingHorizontal: 20,
-                          borderRadius: 10,
-                          width: 150,
-                        }),
-                      }, q.level)
+                      renderOption(
+                        q.id,
+                        val,
+                        optIndex,
+                        {
+                          ...(isExpression(val) && {
+                            paddingHorizontal: 20,
+                            borderRadius: 10,
+                            width: 150,
+                          }),
+                        },
+                        q.level
+                      )
                     )}
                   </View>
                 ) : (
@@ -522,13 +555,19 @@ export default function ExerciseScreen({ navigation, route }) {
                       {options
                         .slice(0, Math.ceil(options.length / 2))
                         .map((val, optIndex) =>
-                          renderOption(q.id, val, optIndex, {
-                            ...(isExpression(val) && {
-                              paddingHorizontal: 20,
-                              borderRadius: 10,
-                              width: 150,
-                            }),
-                          }, q.level)
+                          renderOption(
+                            q.id,
+                            val,
+                            optIndex,
+                            {
+                              ...(isExpression(val) && {
+                                paddingHorizontal: 20,
+                                borderRadius: 10,
+                                width: 150,
+                              }),
+                            },
+                            q.level
+                          )
                         )}
                     </View>
                     <View
@@ -550,7 +589,9 @@ export default function ExerciseScreen({ navigation, route }) {
                                 borderRadius: 10,
                                 width: 150,
                               }),
-                            }, q.level)
+                            },
+                            q.level
+                          )
                         )}
                     </View>
                   </>
@@ -560,7 +601,6 @@ export default function ExerciseScreen({ navigation, route }) {
           );
         })}
       </ScrollView>
-
       <LinearGradient colors={getGradient()} style={styles.submitButton}>
         <TouchableOpacity onPress={handleSubmit} disabled={isSubmitting}>
           <Text style={styles.submitText}>
@@ -568,7 +608,6 @@ export default function ExerciseScreen({ navigation, route }) {
           </Text>
         </TouchableOpacity>
       </LinearGradient>
-
       {isFlying && (
         <Animated.View
           style={[
@@ -583,8 +622,20 @@ export default function ExerciseScreen({ navigation, route }) {
           <Text style={styles.optionText}>{flyingValue}</Text>
         </Animated.View>
       )}
-
-      <FloatingMenu />
+      <FloatingMenu />{" "}
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        // onClose={confirmPupilSelection}
+        onCancel={() => setShowConfirm(false)}
+      />
     </View>
   );
 }

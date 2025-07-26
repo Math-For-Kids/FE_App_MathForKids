@@ -22,7 +22,8 @@ import {
   createCompletedExercise,
   clearError,
 } from "../../redux/completedexerciseSlice";
-
+import MessageError from "../../components/MessageError";
+import MessageConfirm from "../../components/MessageConfirm";
 export default function ExerciseScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, lessonId, levelIds, pupilId, title } = route.params;
@@ -47,7 +48,16 @@ export default function ExerciseScreen({ navigation, route }) {
   const [flyingValue, setFlyingValue] = useState(null);
   const [isFlying, setIsFlying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmContent, setConfirmContent] = useState({
+    title: "",
+    description: "",
+  });
   useEffect(() => {
     dispatch(getRandomExercises({ lessonId, levelIds }));
     dispatch(getEnabledLevels());
@@ -55,9 +65,12 @@ export default function ExerciseScreen({ navigation, route }) {
 
   useEffect(() => {
     if (completedError) {
-      Alert.alert(t("error"), completedError, [
-        { text: t("ok"), onPress: () => dispatch(clearError()) },
-      ]);
+      setErrorContent({
+        title: t("error"),
+        description: completedError,
+      });
+      setShowError(true);
+      dispatch(clearError());
     }
   }, [completedError, dispatch, t]);
 
@@ -161,53 +174,21 @@ export default function ExerciseScreen({ navigation, route }) {
   const shouldUseSingleRow = (options) =>
     options.every((opt) => opt.length <= 5);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!pupilId) {
-      Alert.alert(t("error"), t("pupilIdMissing"));
+      setErrorContent({
+        title: t("error"),
+        description: t("pupilIdMissing"),
+      });
+      setShowError(true);
       return;
     }
 
-    // Hiển thị popup xác nhận
-    Alert.alert(
-      t("confirmSubmission"), // Tiêu đề của popup
-      t("confirmSubmissionMessage"), // Nội dung của popup
-      [
-        {
-          text: t("cancel"), // Nút hủy
-          style: "cancel",
-        },
-        {
-          text: t("ok"), // Nút xác nhận
-          onPress: async () => {
-            setIsSubmitting(true);
-            const { correct, wrong, score } = calculateResults();
-            try {
-              await dispatch(
-                createCompletedExercise({
-                  pupilId,
-                  lessonId,
-                  levelId: levelIds,
-                  point: score,
-                })
-              ).unwrap();
-              navigation.navigate("ExerciseResultScreen", {
-                skillName,
-                answers: selectedAnswers,
-                questions,
-                score,
-                correctCount: correct,
-                wrongCount: wrong,
-              });
-            } catch (err) {
-              Alert.alert(t("error"), t("failedToSubmitExercise"));
-            } finally {
-              setIsSubmitting(false);
-            }
-          },
-        },
-      ],
-      { cancelable: true } // Cho phép nhấn ngoài popup để hủy
-    );
+    setConfirmContent({
+      title: t("confirmSubmission"),
+      description: t("confirmSubmissionMessage"),
+    });
+    setShowConfirm(true);
   };
 
   const renderOption = (questionId, value, optIndex, style) => {
@@ -560,8 +541,51 @@ export default function ExerciseScreen({ navigation, route }) {
           <Text style={styles.optionText}>{flyingValue}</Text>
         </Animated.View>
       )}
-
       <FloatingMenu />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={async () => {
+          setShowConfirm(false);
+          setIsSubmitting(true);
+          const { correct, wrong, score } = calculateResults();
+          try {
+            await dispatch(
+              createCompletedExercise({
+                pupilId,
+                lessonId,
+                levelId: levelIds,
+                point: score,
+              })
+            ).unwrap();
+
+            navigation.navigate("ExerciseResultScreen", {
+              skillName,
+              answers: selectedAnswers,
+              questions,
+              score,
+              correctCount: correct,
+              wrongCount: wrong,
+            });
+          } catch (err) {
+            setErrorContent({
+              title: t("error"),
+              description: t("failedToSubmitExercise"),
+            });
+            setShowError(true);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+      />
     </View>
   );
 }

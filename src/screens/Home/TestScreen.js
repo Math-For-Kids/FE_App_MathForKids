@@ -30,11 +30,16 @@ import {
   getGoalsWithin30Days,
   autoMarkCompletedGoals,
 } from "../../redux/goalSlice";
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
+import MessageConfirm from "../../components/MessageConfirm";
+import MessageWarning from "../../components/MessangeWarning";
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
   const { skillName, lessonId, pupilId, levelIds, skillIcon } = route.params;
-  console.log("levelIds", levelIds);
+  // console.log("levelIds", levelIds);
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -56,10 +61,32 @@ export default function TestScreen({ navigation, route }) {
   const validTests = tests.filter((item) => item.question && item.answer);
   const totalQuestions = validTests.length;
   const currentQ = validTests[currentQuestion - 1];
+  const [fromTimeUp, setFromTimeUp] = useState(false);
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmContent, setConfirmContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningContent, setWarningContent] = useState({
+    title: "",
+    description: "",
+  });
   // Consolidated timer logic
   useEffect(() => {
     if (!validTests.length || showResultModal) return;
-    let newTime = 10; // Default 10 minutes
+    let newTime = 1; // Default 10 minutes
     if (validTests.length > 10 && validTests.length <= 20) {
       newTime = 25;
     } else if (validTests.length > 20 && validTests.length <= 30) {
@@ -75,7 +102,13 @@ export default function TestScreen({ navigation, route }) {
           return 0;
         }
         if (prev === 60) {
-          Alert.alert(t("warning"), t("timeAlmostUp"));
+          setWarningContent({
+            title: t("warning"),
+            description: t("timeAlmostUp"),
+            onConfirm: () => setShowWarning(false),
+            showCancelButton: false,
+          });
+          setShowWarning(true);
         }
         return prev - 1;
       });
@@ -101,8 +134,8 @@ export default function TestScreen({ navigation, route }) {
           value: option,
           id: `${currentQ.id}-option-${index}`, // Unique ID for each option
           levelId: currentQ.levelId || currentQ.level,
-        })
-      ).sort(() => Math.random() - 0.5);
+        }))
+        .sort(() => Math.random() - 0.5);
       setShuffledOptions((prev) => ({
         ...prev,
         [currentQ.id]: options,
@@ -146,17 +179,19 @@ export default function TestScreen({ navigation, route }) {
     const questionLevelObj = levels.find(
       (level) => String(level.id) === String(questionLevel)
     );
-    const isEasyLevel = questionLevelObj
-      ? questionLevelObj.level === 1 : false;
+    const isEasyLevel = questionLevelObj ? questionLevelObj.level === 1 : false;
     if (isEasyLevel && typeof value === "string" && value.includes("=")) {
       return value.split("=")[1].trim();
     }
     return value;
-  }
+  };
 
   const handleAnswer = (val, levelId) => {
     if (!currentQ) return;
-    setUserAnswers((prev) => ({ ...prev, [currentQ.id]: extractAnswerValue(val, levelId) }));
+    setUserAnswers((prev) => ({
+      ...prev,
+      [currentQ.id]: extractAnswerValue(val, levelId),
+    }));
     if (currentQuestion < validTests.length) {
       setTimeout(() => {
         setCurrentQuestion(currentQuestion + 1);
@@ -186,7 +221,10 @@ export default function TestScreen({ navigation, route }) {
       const questionLevel = questionLevelObj ? questionLevelObj.level : 1;
       maxScore += questionLevel;
 
-      if (userAnswers[q.id] !== undefined && userAnswers[q.id] === extractAnswerValue(q.answer, q.levelId)) {
+      if (
+        userAnswers[q.id] !== undefined &&
+        userAnswers[q.id] === extractAnswerValue(q.answer, q.levelId)
+      ) {
         rawScore += questionLevel;
         correct++;
       } else if (userAnswers[q.id] !== undefined) {
@@ -209,6 +247,7 @@ export default function TestScreen({ navigation, route }) {
     const answeredCount = Object.keys(userAnswers).length;
     const totalTime =
       (validTests.length > 20 ? 35 : validTests.length > 10 ? 25 : 10) * 60;
+
     clearInterval(timerRef.current);
 
     const { score, correct, wrong } = calculateScore();
@@ -224,6 +263,7 @@ export default function TestScreen({ navigation, route }) {
         const usedTime = totalTime - timer;
         const actualElapsedTime = Math.max(0, usedTime);
         setElapsedTime(actualElapsedTime);
+
         const testPayload = {
           pupilId,
           lessonId,
@@ -249,6 +289,7 @@ export default function TestScreen({ navigation, route }) {
             createMultipleTestQuestions(questionPayloads)
           ).unwrap();
         }
+
         await dispatch(getGoalsWithin30Days(pupilId));
         setShowResultModal(true);
 
@@ -257,6 +298,7 @@ export default function TestScreen({ navigation, route }) {
             updatePupilProfile({ id: pupilId, data: { point: newPoint } })
           );
         }
+
         if (score >= 9) {
           const unlockResult = await dispatch(
             completeAndUnlockNextLesson({ pupilId, lessonId })
@@ -267,9 +309,17 @@ export default function TestScreen({ navigation, route }) {
           );
 
           if (res.payload?.message?.[i18n.language]) {
-            Alert.alert(t("success"), res.payload.message[i18n.language]);
+            setSuccessContent({
+              title: t("success"),
+              description: res.payload.message[i18n.language],
+            });
+            setShowSuccess(true);
           } else if (res.error?.message?.[i18n.language]) {
-            Alert.alert(t("error"), res.error.message[i18n.language]);
+            setErrorContent({
+              title: t("error"),
+              description: res.error.message[i18n.language],
+            });
+            setShowError(true);
           }
           setNextLessonName(
             unlockResult?.nextLessonName?.[i18n.language] || null
@@ -278,49 +328,65 @@ export default function TestScreen({ navigation, route }) {
           setNextLessonName(null);
         }
       } catch (error) {
-        Alert.alert(t("error"), error.message || t("submissionFailed"), [
-          { text: "OK" },
-        ]);
+        setErrorContent({
+          title: t("error"),
+          description: t("submissionFailed"),
+        });
+        setShowError(true);
       }
     };
 
-    if (answeredCount < validTests.length && timer > 0) {
-      Alert.alert(t("warning"), t("youHaveAnswered"), [
-        {
-          text: t("keepDoing"),
-          style: "cancel",
-          onPress: () => {
-            if (!showResultModal) {
-              timerRef.current = setInterval(() => {
-                setTimer((prev) => {
-                  if (prev <= 1) {
-                    clearInterval(timerRef.current);
-                    handleTimeUp();
-                    return 0;
-                  }
-                  if (prev === 60) {
-                    Alert.alert(t("warning"), t("timeAlmostUp"));
-                  }
-                  return prev - 1;
+    // 👇 Điều kiện hiện cảnh báo (nếu không phải do hết giờ)
+    if (!fromTimeUp && answeredCount < validTests.length && timer > 0) {
+      setWarningContent({
+        title: t("warning"),
+        description: t("youHaveAnswered"),
+        onCancel: () => {
+          clearInterval(timerRef.current); // ✅ clear để tránh đè timer
+          timerRef.current = setInterval(() => {
+            setTimer((prev) => {
+              if (prev <= 1) {
+                clearInterval(timerRef.current);
+                handleTimeUp();
+                return 0;
+              }
+              if (prev === 60) {
+                setWarningContent({
+                  title: t("warning"),
+                  description: t("timeAlmostUp"),
+                  onConfirm: () => setShowWarning(false),
+                  showCancelButton: false,
                 });
-              }, 1000);
-            }
-          },
+                setShowWarning(true);
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          setShowWarning(false);
         },
-        {
-          text: t("submit"),
-          style: "destructive",
-          onPress: doSubmit,
+        onConfirm: async () => {
+          setShowWarning(false);
+          await doSubmit();
         },
-      ]);
+      });
+      setShowWarning(true);
     } else {
+      setFromTimeUp(false);
       await doSubmit();
     }
   };
-
   const handleTimeUp = () => {
-    Alert.alert(t("timeUp"), t("autoSubmit"));
-    handleSubmit();
+    setFromTimeUp(true);
+    setWarningContent({
+      title: t("warning"),
+      description: t("timeEnd"),
+      onConfirm: async () => {
+        setShowWarning(false);
+        await handleSubmit();
+      },
+      showCancelButton: false,
+    });
+    setShowWarning(true);
   };
 
   const formatTime = (seconds) => {
@@ -643,19 +709,15 @@ export default function TestScreen({ navigation, route }) {
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
           onPress={() => {
-            Alert.alert(t("confirm"), t("wantToSkipTest"), [
-              {
-                text: t("no"),
-                style: "cancel",
+            setConfirmContent({
+              title: t("confirm"),
+              description: t("wantToSkipTest"),
+              onConfirm: () => {
+                setShowConfirm(false);
+                navigation.goBack();
               },
-              {
-                text: t("yes"),
-                style: "destructive",
-                onPress: () => {
-                  navigation.goBack();
-                },
-              },
-            ]);
+            });
+            setShowConfirm(true);
           }}
           style={styles.backButton}
         >
@@ -776,14 +838,19 @@ export default function TestScreen({ navigation, route }) {
               key={option.id} // Use unique ID from shuffled options
               style={[
                 styles.answerButton,
-                userAnswers[currentQ.id] === extractAnswerValue(option.value, option.levelId)
+                userAnswers[currentQ.id] ===
+                extractAnswerValue(option.value, option.levelId)
                   ? styles.answerSelectedButton
                   : null,
               ]}
               onPress={() => handleAnswer(option.value)}
             >
-              <Text style={styles.answerText}>{extractAnswerValue(option.value?.[i18n.language], option.levelId)}</Text>
-
+              <Text style={styles.answerText}>
+                {extractAnswerValue(
+                  option.value?.[i18n.language],
+                  option.levelId
+                )}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -846,6 +913,36 @@ export default function TestScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
+      <MessageWarning
+        visible={showWarning}
+        title={warningContent.title}
+        description={warningContent.description}
+        onCancel={warningContent.onCancel}
+        onConfirm={warningContent.onConfirm}
+        showCancelButton={warningContent.showCancelButton !== false}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onConfirm={confirmContent.onConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
     </View>
   );
 }

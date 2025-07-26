@@ -36,6 +36,9 @@ import { createPupilNotification } from "../redux/pupilNotificationSlice";
 import { createUserNotification } from "../redux/userNotificationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
 export default function GoalScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -44,7 +47,16 @@ export default function GoalScreen() {
     dateStart: "",
     dateEnd: "",
   });
-
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -60,9 +72,10 @@ export default function GoalScreen() {
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
   const dispatch = useDispatch();
-  const { pupils } = useSelector((state) => state.pupil);
-  const { user } = useSelector((state) => state.auth);
-  const { rewards } = useSelector((state) => state.reward);
+  const { pupils, pupilloading } = useSelector((state) => state.pupil);
+  const { user, authloading } = useSelector((state) => state.auth);
+  const { rewards, rewardloading } = useSelector((state) => state.reward);
+  const loading = pupilloading || authloading || rewardloading;
   const { filteredLessons, enabledLevels, availableLessons } = useSelector(
     (state) => state.goal
   );
@@ -902,6 +915,21 @@ export default function GoalScreen() {
         )}
 
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
     </LinearGradient>
   );
 }

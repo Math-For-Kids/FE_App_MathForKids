@@ -23,7 +23,11 @@ import {
 import { getEnabledLevels } from "../redux/levelSlice";
 import { completeAndUnlockNextLesson } from "../redux/completedLessonSlice";
 import { updatePupilProfile } from "../redux/pupilSlice";
-
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
+import MessageConfirm from "../components/MessageConfirm";
+import MessageWarning from "../components/MessangeWarning";
 export default function AssessmentScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { grade, pupilId } = route.params || {};
@@ -42,6 +46,26 @@ export default function AssessmentScreen({ navigation, route }) {
   const [score, setScore] = useState(0);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const languageButtonRef = useRef(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmContent, setConfirmContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningContent, setWarningContent] = useState({
+    title: "",
+    description: "",
+  });
   const flatListRef = useRef(null);
   useEffect(() => {
     dispatch(getRandomAssessments({ grade }));
@@ -64,12 +88,16 @@ export default function AssessmentScreen({ navigation, route }) {
     // console.log("Assessments:", assessments);
     return assessments.map((assessment, index) => {
       const correctAnswer = assessment.answer?.[i18n.language];
-      const wrongOptions = (assessment.option || []).map((opt) => opt[i18n.language] || "");
-      const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(Boolean);
+      const wrongOptions = (assessment.option || []).map(
+        (opt) => opt[i18n.language] || ""
+      );
+      const allOptions = [correctAnswer, ...wrongOptions.slice(0, 3)].filter(
+        Boolean
+      );
       const shuffledOptions = allOptions
         .map((value) => ({
           value: extractAnswerValue(value, assessment.levelId),
-          sort: Math.random()
+          sort: Math.random(),
         }))
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value);
@@ -237,8 +265,11 @@ export default function AssessmentScreen({ navigation, route }) {
       setScore(calculatedScore);
       setShowModal(true);
     } catch (error) {
-      console.error("Error in doSubmit:", error);
-      Alert.alert(t("error"), t("submissionFailed"));
+      setErrorContent({
+        title: t("error"),
+        description: t("submissionFailed"),
+      });
+      setShowError(true);
     }
   };
 
@@ -248,38 +279,35 @@ export default function AssessmentScreen({ navigation, route }) {
     );
 
     if (unanswered.length > 0) {
-      Alert.alert(
-        t("warning"),
-        t("unansweredQuestions", { count: unanswered.length }),
-        [
-          {
-            text: t("keepDoing"),
-            style: "cancel",
-            onPress: () => {
-              const firstUnansweredIndex = questions.findIndex(
-                (q) => selectedOptions[q.id] === undefined
-              );
-              if (firstUnansweredIndex !== -1 && flatListRef.current) {
-                try {
-                  flatListRef.current.scrollToIndex({
-                    index: firstUnansweredIndex,
-                    animated: true,
-                  });
-                } catch (error) {
-                  console.log("Error scrolling to index:", error);
-                }
-              }
-            },
-          },
-          {
-            text: t("submit"),
-            onPress: () => {
-              console.log("Submit pressed in Alert");
-              doSubmit();
-            },
-          },
-        ]
+      const firstUnansweredIndex = questions.findIndex(
+        (q) => selectedOptions[q.id] === undefined
       );
+
+      setWarningContent({
+        title: t("warning"),
+        description: t("unansweredQuestions", { count: unanswered.length }),
+        onCancel: () => {
+          setShowWarning(false);
+          if (firstUnansweredIndex !== -1 && flatListRef.current) {
+            try {
+              flatListRef.current.scrollToIndex({
+                index: firstUnansweredIndex,
+                animated: true,
+              });
+            } catch (error) {
+              console.log("Error scrolling to index:", error);
+            }
+          }
+        },
+        onConfirm: () => {
+          setShowWarning(false);
+          console.log("Submit pressed in MessageWarning");
+          doSubmit();
+        },
+        showCancelButton: true,
+      });
+
+      setShowWarning(true);
       return;
     }
     console.log("No unanswered questions, calling doSubmit");
@@ -683,7 +711,36 @@ export default function AssessmentScreen({ navigation, route }) {
             </View>
           </Modal>
         </>
-      )}
+      )}{" "}
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
+      <MessageWarning
+        visible={showWarning}
+        title={warningContent.title}
+        description={warningContent.description}
+        onCancel={warningContent.onCancel}
+        onConfirm={warningContent.onConfirm}
+        showCancelButton={warningContent.showCancelButton !== false}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onConfirm={confirmContent.onConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
     </LinearGradient>
   );
 }

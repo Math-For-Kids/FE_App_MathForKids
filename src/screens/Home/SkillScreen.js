@@ -20,7 +20,7 @@ import {
 } from "../../redux/levelSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native"; // Thêm import này
-
+import FullScreenLoading from "../../components/FullScreenLoading";
 export default function SkillScreen({ navigation, route }) {
   const { theme } = useTheme();
   const {
@@ -299,8 +299,8 @@ export default function SkillScreen({ navigation, route }) {
               isDisabled
                 ? getDisabledGradient()
                 : selectedLevels.includes(item.id)
-                  ? getSelectedGradient()
-                  : getGradientBySkill()
+                ? getSelectedGradient()
+                : getGradientBySkill()
             }
             style={[
               styles.levelCard,
@@ -352,7 +352,6 @@ export default function SkillScreen({ navigation, route }) {
           <Text style={styles.skillName}>{t(skillName)}</Text>
         </View>
       </LinearGradient>
-
       <View style={styles.grid}>
         {actions.map((action, index) => (
           <LinearGradient
@@ -399,7 +398,6 @@ export default function SkillScreen({ navigation, route }) {
           </LinearGradient>
         ))}
       </View>
-
       <Modal
         animationType="fade"
         transparent={true}
@@ -447,8 +445,8 @@ export default function SkillScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </View>
   );
 }

@@ -15,7 +15,7 @@ import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllPupils } from "../redux/pupilSlice";
-
+import FullScreenLoading from "../components/FullScreenLoading";
 const AnimatedStar = ({ color }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
@@ -55,7 +55,9 @@ export default function RankScreen({ navigation }) {
 
   // Sort pupils by point in descending order
   // const sortedPupils = [...pupils].sort((a, b) => b.point - a.point);
-  const sortedPupils = [...pupils].sort((a, b) => b.point - a.point).slice(0, 5);
+  const sortedPupils = [...pupils]
+    .sort((a, b) => b.point - a.point)
+    .slice(0, 5);
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -79,7 +81,7 @@ export default function RankScreen({ navigation }) {
     },
     backIcon: {
       width: 24,
-      height: 24
+      height: 24,
     },
     title: {
       fontSize: 36,
@@ -88,7 +90,7 @@ export default function RankScreen({ navigation }) {
       textAlign: "left", // Căn trái tiêu đề
     },
     topContainer: {
-      paddingHorizontal: 10
+      paddingHorizontal: 10,
     },
     top23: {
       flexDirection: "row",
@@ -193,7 +195,10 @@ export default function RankScreen({ navigation }) {
 
   if (loading) {
     return (
-      <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
+      <LinearGradient
+        colors={theme.colors.gradientBlue}
+        style={styles.container}
+      >
         <Text style={styles.loadingText}>Loading...</Text>
       </LinearGradient>
     );
@@ -201,7 +206,10 @@ export default function RankScreen({ navigation }) {
 
   if (error) {
     return (
-      <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
+      <LinearGradient
+        colors={theme.colors.gradientBlue}
+        style={styles.container}
+      >
         <Text style={styles.errorText}>Error: {error}</Text>
       </LinearGradient>
     );
@@ -259,7 +267,12 @@ export default function RankScreen({ navigation }) {
             >
               <View style={styles.leftContainer}>
                 <View style={styles.avatarContainer}>
-                  <Image source={item.image ? { uri: item.image } : theme.icons.badge} style={styles.avatar} />
+                  <Image
+                    source={
+                      item.image ? { uri: item.image } : theme.icons.badge
+                    }
+                    style={styles.avatar}
+                  />
                   {(index === 0 || index === 1 || index === 2) && (
                     <View style={styles.star}>
                       <AnimatedStar
@@ -267,8 +280,8 @@ export default function RankScreen({ navigation }) {
                           index === 0
                             ? theme.colors.starColor
                             : index === 1
-                              ? theme.colors.grayMedium
-                              : theme.colors.brown
+                            ? theme.colors.grayMedium
+                            : theme.colors.brown
                         }
                       />
                     </View>
@@ -285,6 +298,7 @@ export default function RankScreen({ navigation }) {
         )}
       />
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </LinearGradient>
   );
 }

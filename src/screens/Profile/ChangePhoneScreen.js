@@ -20,6 +20,9 @@ import {
 } from "../../redux/profileSlice";
 import { verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
 const parseErrorMessage = (error, t, fallbackKey = "unknownError") => {
   if (typeof error === "object") {
     if (error.vi || error.en) return error;
@@ -38,7 +41,18 @@ export default function ChangePhoneScreen({ navigation }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const profile = useSelector((state) => state.profile.info);
+  const loading = useSelector((state) => state.profile.loading);
   const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const [newPhone, setNewPhone] = useState("");
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
   const [pin, setPin] = useState(["", "", "", ""]);
@@ -65,16 +79,20 @@ export default function ChangePhoneScreen({ navigation }) {
 
       await dispatch(profileById(user?.id)).unwrap();
       setErrors({});
-      Alert.alert(t("successTitle"), t("updatePhoneSuccess"));
+      setSuccessContent({
+        title: t("successTitle"),
+        description: t("updatePhoneSuccess"),
+      });
+      setShowSuccess(true);
       setPinModalVisible(false);
       setPin(["", "", "", ""]);
-      navigation.navigate("PrivacyScreen");
     } catch (error) {
       const message = parseErrorMessage(error, t, "otpOrUpdateFailed");
-      Alert.alert(
-        t("errorTitle"),
-        message[i18n.language] || message.vi || message.en
-      );
+      setErrorContent({
+        title: t("errorTitle"),
+        description: message[i18n.language] || message.vi || message.en,
+      });
+      setShowError(true);
     }
   };
 
@@ -107,7 +125,11 @@ export default function ChangePhoneScreen({ navigation }) {
       } else if (typeof error === "string") {
         msg = error;
       }
-      Alert.alert(t("sendOtpFailedTitle"), msg);
+      setErrorContent({
+        title: t("sendOtpFailedTitle"),
+        description: msg,
+      });
+      setShowError(true);
     }
   };
 
@@ -358,6 +380,22 @@ export default function ChangePhoneScreen({ navigation }) {
           <Text style={styles.confirmText}>{t("confirm")}</Text>
         </LinearGradient>
       </TouchableOpacity>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+          navigation.navigate("PrivacyScreen");
+        }}
+      />
     </LinearGradient>
   );
 }

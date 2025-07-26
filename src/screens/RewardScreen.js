@@ -15,7 +15,10 @@ import * as Progress from "react-native-progress";
 import Modal from "react-native-modal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import FloatingMenu from "../components/FloatingMenu";
-import { getRewardByDisabledStatus, getExchangeRewardByPupil } from "../redux/rewardSlice";
+import {
+  getRewardByDisabledStatus,
+  getExchangeRewardByPupil,
+} from "../redux/rewardSlice";
 import { createOrUpdate, getByPupilId } from "../redux/owned_rewardSlice";
 import { pupilById, updatePupilProfile } from "../redux/pupilSlice";
 import { createExchangeReward } from "../redux/owned_rewardSlice";
@@ -26,7 +29,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import isEqual from "lodash/isEqual";
 import debounce from "lodash/debounce";
-
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
+import MessageConfirm from "../components/MessageConfirm";
+import MessageWarning from "../components/MessangeWarning";
 export default function RewardScreen({ navigation }) {
   const { t, i18n } = useTranslation("reward");
   const { theme } = useTheme();
@@ -45,18 +52,41 @@ export default function RewardScreen({ navigation }) {
   const retryCountRef = useRef(0);
   const lastSyncRef = useRef(null);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmContent, setConfirmContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningContent, setWarningContent] = useState({
+    title: "",
+    description: "",
+  });
   const user = useSelector((state) => state.auth);
   const userId = user?.user?.id;
   const pupil = useSelector((state) => state.pupil.pupil, isEqual);
   const pupilId = pupil?.id;
   const pupilLoading = useSelector((state) => state.pupil.loading);
   const pupilError = useSelector((state) => state.pupil.error);
+
   const rawRewardList = useSelector(
     (state) => state.reward?.rewards || [],
     isEqual
   );
+  const loading = useSelector((state) => state.reward.loading || pupilLoading);
   const exchangeRewards = useSelector(
-    (state) => state.reward?.exchangeRewards || { rewardIds: [], rewardCount: [] },
+    (state) =>
+      state.reward?.exchangeRewards || { rewardIds: [], rewardCount: [] },
     isEqual
   );
   const rewardLoading = useSelector((state) => state.reward.loading);
@@ -80,9 +110,15 @@ export default function RewardScreen({ navigation }) {
 
   useEffect(() => {
     if (!user || !user.user || !userId) {
-      Alert.alert(t("Error"), t("User_data_missing"), [
-        { text: "OK", onPress: () => navigation.navigate("Login") },
-      ]);
+      setErrorContent({
+        title: t("error"),
+        description: t("User_data_missing"),
+        onConfirm: () => {
+          setShowError(false);
+          navigation.navigate("Login");
+        },
+      });
+      setShowError(true);
     }
   }, [user, userId, navigation, t]);
 
@@ -114,22 +150,23 @@ export default function RewardScreen({ navigation }) {
                   error
                 );
                 if (retryCountRef.current >= 3) {
-                  console.error("Final pupilById:", pupilId);
                   if (!pupil || !pupilId) {
-                    Alert.alert(
-                      t("Error"),
-                      t("Error_loading_pupil", { error: "Failed to load pupil data" }),
-                      [
-                        {
-                          text: "OK",
-                          onPress: () => navigation.navigate("Login"),
-                        },
-                      ]
-                    );
+                    setErrorContent({
+                      title: t("error"),
+                      description: t("Error_loading_pupil", {
+                        error: "Failed to load pupil data",
+                      }),
+                      onConfirm: () => {
+                        setShowError(false);
+                        navigation.navigate("Login");
+                      },
+                    });
+                    setShowError(true);
                     return;
                   }
                   break;
                 }
+
                 await new Promise((resolve) => setTimeout(resolve, 1000));
               }
             }
@@ -139,18 +176,28 @@ export default function RewardScreen({ navigation }) {
             await dispatch(getByPupilId(targetPupilId)).unwrap();
           } else {
             console.warn("No pupilId available for getByPupilId");
-            Alert.alert(
-              t("Error"),
-              t("Error_loading_pupil", { error: "No pupil ID found" }),
-              [{ text: "OK", onPress: () => navigation.navigate("Login") }]
-            );
+            setErrorContent({
+              title: t("error"),
+              description: t("Error_loading_pupil", {
+                error: "No pupil ID found",
+              }),
+              onConfirm: () => {
+                setShowError(false);
+                navigation.navigate("Login");
+              },
+            });
+            setShowError(true);
           }
         } catch (error) {
           console.error("API error:", error);
-          Alert.alert(
-            t("Error"),
-            t("Error_loading_rewards", { error: error?.[i18n.language] || "Unknown error" })
-          );
+          setErrorContent({
+            title: t("error"),
+            description: t("Error_loading_rewards", {
+              error: error?.[i18n.language] || "Unknown error",
+            }),
+            onConfirm: () => setShowError(false),
+          });
+          setShowError(true);
         }
       }
     };
@@ -176,7 +223,8 @@ export default function RewardScreen({ navigation }) {
     if (selectedTab === "Exchange points") {
       setIsValid(item.exchangePoint <= (pupil?.point || 0));
     } else if (selectedTab === "Exchange item") {
-      const ownedNumber = owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
+      const ownedNumber =
+        owned_rewards.find((o) => o.rewardId === item.id)?.quantity || 0;
       setIsValid(50 <= ownedNumber);
     }
   };
@@ -247,7 +295,11 @@ export default function RewardScreen({ navigation }) {
         pupil,
         userId,
       });
-      Alert.alert(t("Error"), t("Invalid_input"));
+      setErrorContent({
+        title: t("Error"),
+        description: t("Invalid_input"),
+      });
+      setShowError(true);
       return;
     }
 
@@ -267,13 +319,25 @@ export default function RewardScreen({ navigation }) {
     // console.log("exchangeQuantity:", exchangeQuantity);
 
     if (!rewardId) {
-      Alert.alert(t("Error"), t("Missing_reward_id"));
+      setErrorContent({
+        title: t("Error"),
+        description: t("Missing_reward_id"),
+      });
+      setShowError(true);
       return;
     }
 
     if (!pupil.fullName || !rewardName || isNaN(exchangeQuantity)) {
-      console.error("Invalid data:", { pupilFullName: pupil.fullName, rewardName, exchangeQuantity });
-      Alert.alert(t("Error"), t("Invalid_input"));
+      console.error("Invalid data:", {
+        pupilFullName: pupil.fullName,
+        rewardName,
+        exchangeQuantity,
+      });
+      setErrorContent({
+        title: t("Error"),
+        description: t("Invalid_input"),
+      });
+      setShowError(true);
       return;
     }
 
@@ -283,17 +347,26 @@ export default function RewardScreen({ navigation }) {
     try {
       if (selectedTab === "Exchange points") {
         if (isNaN(exchangePoint) || exchangePoint <= 0) {
-          Alert.alert(t("Error"), t("Invalid_exchange_point"));
+          setErrorContent({
+            title: t("Error"),
+            description: t("Invalid_exchange_point"),
+          });
+          setShowError(true);
           return;
         }
 
         const totalPointsRequired = exchangePoint * exchangeQuantity;
 
         if (totalPointsRequired > pupil.point) {
-          Alert.alert(
-            t("Error"),
-            t("Not_enough_points", { required: totalPointsRequired, available: pupil.point })
-          );
+          setErrorContent({
+            title: t("error"),
+            description: t("Not_enough_points", {
+              required: totalPointsRequired,
+              available: pupil.point,
+            }),
+            onConfirm: () => setShowError(false),
+          });
+          setShowError(true);
           return;
         }
 
@@ -319,8 +392,11 @@ export default function RewardScreen({ navigation }) {
         if (!updatePupilAction) {
           throw new Error("Failed to update pupil points.");
         }
-
-        Alert.alert(t("Success"), t("Exchange_success"));
+        setSuccessContent({
+          title: t("Success"),
+          description: t("Exchange_success"),
+        });
+        setShowSuccess(true);
         setSelectedReward(null);
         setQuantity(1);
       } else if (selectedTab === "Exchange item") {
@@ -331,10 +407,15 @@ export default function RewardScreen({ navigation }) {
           : 0;
 
         if (quantityToDeduct > ownedNumber) {
-          Alert.alert(
-            t("Error"),
-            t("Not_enough_items", { required: quantityToDeduct, available: ownedNumber })
-          );
+          setErrorContent({
+            title: t("error"),
+            description: t("Not_enough_items", {
+              required: quantityToDeduct,
+              available: ownedNumber,
+            }),
+            onConfirm: () => setShowError(false),
+          });
+          setShowError(true);
           return;
         }
 
@@ -424,17 +505,20 @@ export default function RewardScreen({ navigation }) {
             createdAt,
           })
         );
-
-        Alert.alert(t("Success"), t("Exchange_success"));
+        setSuccessContent({
+          title: t("Success"),
+          description: t("Exchange_success"),
+        });
+        setShowSuccess(true);
         setSelectedReward(null);
         setQuantity(1);
       }
     } catch (error) {
-      console.error("Exchange error:", error);
-      Alert.alert(
-        t("Error"),
-        t("Exchange_failed", { message: error.message })
-      );
+      setErrorContent({
+        title: t("Error"),
+        description: t("Exchange_failed", { message: error.message }),
+      });
+      setShowError(true);
     } finally {
       setIsExchanging(false);
       setIsRefreshing(false);
@@ -883,7 +967,9 @@ export default function RewardScreen({ navigation }) {
       <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {t("Error_loading_rewards", { error: rewardError?.en || rewardError?.vi || rewardError })}
+            {t("Error_loading_rewards", {
+              error: rewardError?.en || rewardError?.vi || rewardError,
+            })}
           </Text>
         </View>
       </View>
@@ -895,7 +981,9 @@ export default function RewardScreen({ navigation }) {
       <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {t("Error_loading_pupil", { error: pupilError?.en || pupilError?.vi || pupilError })}
+            {t("Error_loading_pupil", {
+              error: pupilError?.en || pupilError?.vi || pupilError,
+            })}
           </Text>
         </View>
       </View>
@@ -916,7 +1004,10 @@ export default function RewardScreen({ navigation }) {
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             {t("Error_loading_owned_rewards", {
-              error: owned_reward_error?.en || owned_reward_error?.vi || owned_reward_error
+              error:
+                owned_reward_error?.en ||
+                owned_reward_error?.vi ||
+                owned_reward_error,
             })}
           </Text>
         </View>
@@ -953,7 +1044,9 @@ export default function RewardScreen({ navigation }) {
                 selectedTab === tab && styles.tabTextActive,
               ]}
             >
-              {t(tab === "Exchange points" ? "Exchange_points" : "Exchange_item")}
+              {t(
+                tab === "Exchange points" ? "Exchange_points" : "Exchange_item"
+              )}
             </Text>
           </TouchableOpacity>
         ))}
@@ -1077,17 +1170,19 @@ export default function RewardScreen({ navigation }) {
         ? allTargets.filter((item) => item && item.id && item.ownedNumber > 0)
         : ownedExchangeRewards
       ).length === 0 && (
-          <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
-        )}
+        <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
+      )}
       <FlatList
         data={
           selectedTab === "Exchange points"
             ? allTargets.filter((item) => {
-              if (!item || !item.id) return null;
-              const rewardData = rawRewardList.find((r) => r && r.id === item.id);
-              if (!rewardData) return null;
-              return item.ownedNumber > 0;
-            })
+                if (!item || !item.id) return null;
+                const rewardData = rawRewardList.find(
+                  (r) => r && r.id === item.id
+                );
+                if (!rewardData) return null;
+                return item.ownedNumber > 0;
+              })
             : ownedExchangeRewards
         }
         keyExtractor={(item) => item.id.toString() + "-own"}
@@ -1119,7 +1214,9 @@ export default function RewardScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalBackground}>
               {rewardLoading || isRefreshing ? (
-                <Text style={styles.modalText}>{t("Loading_reward_details")}</Text>
+                <Text style={styles.modalText}>
+                  {t("Loading_reward_details")}
+                </Text>
               ) : rewardError ? (
                 <Text style={styles.errorText}>
                   {t("Error_loading_rewards", {
@@ -1130,7 +1227,9 @@ export default function RewardScreen({ navigation }) {
                 <>
                   <Image
                     source={{
-                      uri: selectedReward?.image || "https://via.placeholder.com/60",
+                      uri:
+                        selectedReward?.image ||
+                        "https://via.placeholder.com/60",
                     }}
                     style={styles.modalImage}
                     resizeMode="contain"
@@ -1174,9 +1273,9 @@ export default function RewardScreen({ navigation }) {
                       style={
                         isExchanging || !isValid
                           ? {
-                            ...styles.exchangeButton,
-                            backgroundColor: theme.colors.grayDark,
-                          }
+                              ...styles.exchangeButton,
+                              backgroundColor: theme.colors.grayDark,
+                            }
                           : styles.exchangeButton
                       }
                       onPress={debouncedHandleExchange}
@@ -1209,7 +1308,9 @@ export default function RewardScreen({ navigation }) {
             <View style={styles.modalBackground}>
               <Image
                 source={{
-                  uri: selectedRewardOwn?.rewardImage || "https://via.placeholder.com/60",
+                  uri:
+                    selectedRewardOwn?.rewardImage ||
+                    "https://via.placeholder.com/60",
                 }}
                 style={styles.modalImage}
                 resizeMode="contain"
@@ -1254,6 +1355,36 @@ export default function RewardScreen({ navigation }) {
         </Modal>
       )}
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
+      <MessageWarning
+        visible={showWarning}
+        title={warningContent.title}
+        description={warningContent.description}
+        onCancel={warningContent.onCancel}
+        onConfirm={warningContent.onConfirm}
+        showCancelButton={warningContent.showCancelButton !== false}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onConfirm={confirmContent.onConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
     </LinearGradient>
   );
 }

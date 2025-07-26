@@ -72,5 +72,8 @@
   "successTitle": "Thành công",
   "emailUpdateSuccess": "Cập nhật email thành công.",
   "invalidPhoneMsg": "Vui lòng nhập số điện thoại hợp lệ (10–11 chữ số).",
-  "updatePhoneSuccess": "Cập nhật số điện thoại thành công!"
+  "updatePhoneSuccess": "Cập nhật số điện thoại thành công!",
+  "uploadFailed": "Tải ảnh lên thất bại",
+  "profileUpdated": "Cập nhật hồ sơ thành công",
+  "updateProfileFailed": "Cập nhật hồ sơ thất bại"
 }

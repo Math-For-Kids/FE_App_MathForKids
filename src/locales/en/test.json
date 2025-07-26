@@ -22,5 +22,6 @@
   "wrong": "Wrong",
   "time": "Time",
   "nextLesson": "Next lesson",
-  "success": "Success"
+  "success": "Success",
+  "timeEnd": "Your test time has ended, the system has automatically submitted your test."
 }

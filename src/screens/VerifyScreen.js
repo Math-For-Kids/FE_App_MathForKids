@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   sendOTPByPhone,
   sendOTPByEmail,
@@ -20,18 +20,30 @@ import {
   updateUser,
 } from "../redux/authSlice";
 import { useTranslation } from "react-i18next";
-
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
 export default function VerifyOTP({ navigation, route }) {
   const { theme } = useTheme();
   const { userId, contact, isEmail, isLogin } = route.params;
   const dispatch = useDispatch();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("verify");
   const [isResending, setIsResending] = useState(false);
-
+  const loading = useSelector((state) => state.auth.loading);
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputs = useRef([]);
   const [focusedIndex, setFocusedIndex] = useState(null);
   const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const handleChange = (text, index) => {
     const newOtp = [...otp];
     newOtp[index] = text;
@@ -47,23 +59,20 @@ export default function VerifyOTP({ navigation, route }) {
   const handleVerify = async () => {
     const otpCode = otp.join("").trim();
 
-    // Kiểm tra nếu chưa đủ 4 chữ số OTP
     if (otpCode.length !== 4) {
       setErrors({ otp: "Please enter the full 4-digit OTP" });
       return;
     }
 
-    setErrors({}); // Xóa lỗi cũ nếu có
+    setErrors({});
 
     try {
       const result = await dispatch(verifyOTP({ userId, otpCode })).unwrap();
 
-      // Nếu đang là đăng ký mới → cập nhật trạng thái đã xác thực
       if (!isLogin) {
         await dispatch(updateUser({ id: result.id, data: { isVerify: true } }));
       }
 
-      // Lưu thông tin người dùng vào store
       dispatch(
         setUser({
           id: result.id,
@@ -76,15 +85,14 @@ export default function VerifyOTP({ navigation, route }) {
         })
       );
 
-      // Thông báo thành công và chuyển trang
-      Alert.alert("Success", "OTP Verified!", [
-        {
-          text: "OK",
-          onPress: () => navigation.navigate("AccountScreen"),
-        },
-      ]);
+      setSuccessContent({
+        title: t("successTitle"),
+        description: t("successVerified"),
+        type: "verify",
+      });
+      setShowSuccess(true);
     } catch (err) {
-      let msg = "Failed to verify OTP";
+      let msg = t("errorVerifyFailed");
 
       if (err && typeof err === "object") {
         if (
@@ -105,15 +113,14 @@ export default function VerifyOTP({ navigation, route }) {
         msg = err;
       }
 
-      // ✅ Thêm alert để hiển thị thông báo lỗi
-      Alert.alert("Error", msg);
-      setErrors({ otp: msg });
+      setErrorContent({ title: t("errorTitle"), description: msg });
+      setShowError(true);
+      // setErrors({ otp: msg });
     }
   };
 
   const handleResend = async () => {
-    setIsResending(true); // 👉 Bắt đầu loading
-
+    setIsResending(true);
     const resendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
     const targetKey = isEmail ? "email" : "phoneNumber";
 
@@ -123,22 +130,31 @@ export default function VerifyOTP({ navigation, route }) {
       );
 
       if (!res.error) {
-        Alert.alert("Success", "OTP resent successfully!");
+        setSuccessContent({
+          title: t("successTitle"),
+          description: t("resendSuccess"),
+          type: "resend",
+        });
+        setShowSuccess(true);
       } else {
         const msg =
           typeof res.payload === "object"
             ? res.payload?.[i18n.language] || res.payload?.en || res.payload?.vi
             : String(res.payload);
 
-        Alert.alert("Error", "Failed to resend OTP: " + msg);
+        setErrorContent({ title: t("errorTitle"), description: msg });
+        setShowError(true);
       }
-    } catch (err) {
-      Alert.alert("Error", "Unexpected error when resending OTP.");
+    } catch {
+      setErrorContent({
+        title: t("errorTitle"),
+        description: t("resendFailed"),
+      });
+      setShowError(true);
     } finally {
-      setIsResending(false); // 👉 Kết thúc loading
+      setIsResending(false);
     }
   };
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -218,14 +234,37 @@ export default function VerifyOTP({ navigation, route }) {
       fontSize: 12,
       alignSelf: "flex-start",
     },
+    backContainer: {
+      position: "absolute",
+      top: 20,
+      left: 5,
+      backgroundColor: theme.colors.backBackgound,
+      marginLeft: 20,
+      padding: 8,
+      borderRadius: 50,
+    },
+    backIcon: { width: 24, height: 24 },
   });
-
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Verify</Text>
+        <Text style={styles.title}>{t("verifyTitle")}</Text>
+
+        <TouchableOpacity
+          style={styles.backContainer}
+          onPress={() => navigation.goBack()}
+        >
+          <Image
+            source={theme.icons.back}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+
         <Text style={styles.subtitle}>
-          Enter the code sent to your {isEmail ? "email" : "phone"}:
+          {t("subtitle", {
+            method: t(isEmail ? "byEmail" : "byPhone"),
+          })}
         </Text>
         <Text style={styles.phoneNumber}>{contact}</Text>
 
@@ -247,7 +286,9 @@ export default function VerifyOTP({ navigation, route }) {
             />
           ))}
         </View>
+
         {errors.otp && <Text style={styles.errorText}>{errors.otp}</Text>}
+
         <LinearGradient
           colors={theme.colors.gradientBluePrimary}
           start={{ x: 1, y: 0 }}
@@ -255,21 +296,39 @@ export default function VerifyOTP({ navigation, route }) {
           style={styles.verifyButton}
         >
           <TouchableOpacity onPress={handleVerify}>
-            <Text style={styles.verifyText}>Verify</Text>
+            <Text style={styles.verifyText}>{t("verifyButton")}</Text>
           </TouchableOpacity>
         </LinearGradient>
 
-        <Text style={styles.resendText}>Didn’t receive a code?</Text>
+        <Text style={styles.resendText}>{t("noCode")}</Text>
         <Text style={styles.resendText}>
           {isResending ? (
-            <ActivityIndicator size="small" color={theme.colors.blueDark} />
+            "Sending..."
           ) : (
             <Text style={styles.resendLink} onPress={handleResend}>
-              Resend
+              {t("resendLink")}
             </Text>
           )}
         </Text>
       </View>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+          if (successContent.type === "verify") {
+            navigation.navigate("AccountScreen");
+          }
+        }}
+      />
     </LinearGradient>
   );
 }

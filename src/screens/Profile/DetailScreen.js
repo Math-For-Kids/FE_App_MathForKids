@@ -25,6 +25,9 @@ import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
 export default function DetailScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
@@ -37,9 +40,21 @@ export default function DetailScreen({ navigation }) {
   const [editedProfile, setEditedProfile] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const users = useSelector((state) => state.auth.user);
   const profile = useSelector((state) => state.profile?.info || {});
+  const loading =
+    useSelector((state) => state.auth.loading) ||
+    useSelector((state) => state.profile.loading);
 
   useEffect(() => {
     if (isFocused) {
@@ -83,9 +98,17 @@ export default function DetailScreen({ navigation }) {
       try {
         await dispatch(uploadAvatar({ id: users.id, uri })).unwrap();
         dispatch(profileById(users.id));
-        Alert.alert("Success", "Avatar updated!");
+        setSuccessContent({
+          title: t("successTitle"),
+          description: t("avatarUpdated"),
+        });
+        setShowSuccess(true);
       } catch (error) {
-        Alert.alert("Upload failed", error);
+        setErrorContent({
+          title: t("errorTitle"),
+          description: t("uploadFailed"),
+        });
+        setShowError(true);
       }
     }
   };
@@ -95,7 +118,7 @@ export default function DetailScreen({ navigation }) {
 
     for (const [key, value] of Object.entries(editedProfile)) {
       if (!value || value === "none") {
-        newErrors[key] = t("fieldRequired"); // ví dụ "Vui lòng không để trống."
+        newErrors[key] = t("fieldRequired");
       }
     }
 
@@ -119,10 +142,18 @@ export default function DetailScreen({ navigation }) {
         updateProfile({ id: users.id, data: editedProfile })
       ).unwrap();
       dispatch(profileById(users.id));
-      Alert.alert(t("successTitle"), t("profileUpdated"));
+      setSuccessContent({
+        title: t("successTitle"),
+        description: t("profileUpdated"),
+      });
+      setShowSuccess(true);
       setModalVisible(false);
     } catch (error) {
-      Alert.alert(t("errorTitle"), t("updateProfileFailed"));
+      setErrorContent({
+        title: t("errorTitle"),
+        description: t("updateProfileFailed"),
+      });
+      setShowError(true);
     }
   };
 
@@ -622,6 +653,21 @@ export default function DetailScreen({ navigation }) {
         </LinearGradient>
       </TouchableOpacity>
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
     </LinearGradient>
   );
 }

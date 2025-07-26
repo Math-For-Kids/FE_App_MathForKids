@@ -16,17 +16,29 @@ import { useDispatch, useSelector } from "react-redux";
 import { updatePin, profileById } from "../../redux/profileSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
 export default function ChangePinScreen({ navigation }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const loading = useSelector((state) => state.auth.loading);
   const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const [currentPin, setCurrentPin] = useState(["", "", "", ""]);
   const [newPin, setNewPin] = useState(["", "", "", ""]);
   const [confirmPin, setConfirmPin] = useState(["", "", "", ""]);
-
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -111,8 +123,11 @@ export default function ChangePinScreen({ navigation }) {
         updatePin({ id: user.id, data: { oldPin: current, newPin: newCode } })
       ).unwrap();
       dispatch(profileById(user.id));
-      Alert.alert(t("success"), t("updateSuccess"));
-      navigation.goBack();
+      setSuccessContent({
+        title: t("success"),
+        description: t("updateSuccess"),
+      });
+      setShowSuccess(true);
     } catch (error) {
       const msg =
         typeof error === "object"
@@ -121,7 +136,11 @@ export default function ChangePinScreen({ navigation }) {
           ? error
           : t("updateFailed");
 
-      Alert.alert(t("incorrectPinTitle"), msg);
+      setErrorContent({
+        title: t("incorrectPinTitle"),
+        description: msg,
+      });
+      setShowError(true);
     }
   };
 
@@ -273,6 +292,22 @@ export default function ChangePinScreen({ navigation }) {
           <Text style={styles.confirmText}>{t("update")}</Text>
         </LinearGradient>
       </TouchableOpacity>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+          navigation.navigate("PrivacyScreen");
+        }}
+      />
     </LinearGradient>
   );
 }

@@ -16,6 +16,9 @@ import { Fonts } from "../../constants/Fonts";
 import { sendOTPByPhone, verifyOnlyOTP, updateUser } from "../redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
 const steps = [
   { key: "step1", title: "confirmPhone" },
   { key: "step2", title: "verifyOTP" },
@@ -26,6 +29,7 @@ export default function ForgetPinScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const loading = useSelector((state) => state.auth.loading);
   const [currentStep, setCurrentStep] = useState(0);
   const [contact] = useState(user?.phoneNumber || "");
   const [otp, setOtp] = useState("");
@@ -34,6 +38,16 @@ export default function ForgetPinScreen({ navigation }) {
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const otpInputs = useRef([]);
   const inputs = useRef([]);
   const confirmInputs = useRef([]);
@@ -46,14 +60,22 @@ export default function ForgetPinScreen({ navigation }) {
   // console.log("userId", user?.id);
   const handleSendOTP = () => {
     if (!contact || !user?.id) {
-      Alert.alert(t("noticeTitle"), t("missingUserOrPhone")); 
+      setErrorContent({
+        title: t("noticeTitle"),
+        description: t("missingUserOrPhone"),
+      });
+      setShowError(true);
       return;
     }
 
     dispatch(sendOTPByPhone({ userId: user?.id, phoneNumber: contact }))
       .unwrap()
       .then(() => {
-        Alert.alert(t("successTitle"), t("successOtpSent")); 
+        setSuccessContent({
+          title: t("successTitle"),
+          description: t("successOtpSent"),
+        });
+        setShowSuccess(true);
         setCurrentStep(1);
       })
       .catch((err) => {
@@ -61,7 +83,11 @@ export default function ForgetPinScreen({ navigation }) {
           typeof err === "object"
             ? err[i18n.language] || err.en || err.vi
             : String(err);
-        Alert.alert(t("errorTitle"), msg || t("sendOtpFailed")); 
+        setErrorContent({
+          title: t("errorTitle"),
+          description: msg || t("sendOtpFailed"),
+        });
+        setShowError(true);
       });
   };
 
@@ -86,7 +112,12 @@ export default function ForgetPinScreen({ navigation }) {
           typeof err === "object"
             ? err[i18n.language] || err.en || err.vi
             : String(err);
-        Alert.alert(t("errorTitle"), msg || t("otpInvalid"));
+
+        setErrorContent({
+          title: t("errorTitle"),
+          description: msg || t("otpInvalid"),
+        });
+        setShowError(true);
       });
   };
 
@@ -117,11 +148,19 @@ export default function ForgetPinScreen({ navigation }) {
     dispatch(updateUser({ id: user?.id, data: { pin: np } }))
       .unwrap()
       .then(() => {
-        Alert.alert(t("successTitle"), t("successResetPin"));
+        setSuccessContent({
+          title: t("successTitle"),
+          description: t("successResetPin"),
+        });
+        setShowSuccess(true);
         navigation.navigate("AccountScreen");
       })
       .catch((err) => {
-        Alert.alert(t("errorTitle"), err?.message || t("resetPinFailed"));
+        setErrorContent({
+          title: t("errorTitle"),
+          description: err?.message || t("resetPinFailed"),
+        });
+        setShowError(true);
       });
   };
 
@@ -486,6 +525,28 @@ export default function ForgetPinScreen({ navigation }) {
           </View>
         ))}
       </ScrollView>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onClose={confirmPupilSelection}
+        onCancel={() => setShowConfirm(false)}
+      />
     </LinearGradient>
   );
 }
