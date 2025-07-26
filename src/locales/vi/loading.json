@@ -3,5 +3,8 @@
   "fpt": "Sinh viên FPT",
   "title": "Toán học thật vui!",
   "subtitle": "Ứng dụng học toán cho học sinh lớp 1 - 2 - 3",
-  "loadingText": "Đang tải"
+  "loadingText": "Đang tải",
+  "ok": "Đồng ý",
+  "again": "Thử lại",
+  "no": "Hủy"
 }

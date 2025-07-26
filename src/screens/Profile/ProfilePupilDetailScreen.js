@@ -146,13 +146,15 @@ export default function ProfilePupilScreen({ navigation }) {
         tempProfile[field] === "none" ||
         tempProfile[field].trim() === ""
       ) {
-        Alert.alert(t("profile:errorTitle"), t("profile:requiredField", { field: label }));
+        Alert.alert(
+          t("profile:errorTitle"),
+          t("profile:requiredField", { field: label })
+        );
         return false;
       }
     }
     return true;
   };
-
 
   const handleSave = async () => {
     if (!validateInputs()) {
@@ -480,8 +482,8 @@ export default function ProfilePupilScreen({ navigation }) {
                           newAvatar
                             ? { uri: newAvatar }
                             : pupil?.image
-                              ? { uri: pupil?.image }
-                              : theme.icons.avatarFemale
+                            ? { uri: pupil?.image }
+                            : theme.icons.avatarFemale
                         }
                         style={styles.avatar}
                       />
@@ -594,23 +596,23 @@ export default function ProfilePupilScreen({ navigation }) {
                       {["phoneNumber", "email", "pin"].includes(
                         field.fieldName
                       ) && (
-                          <TouchableOpacity
-                            onPress={() => {
-                              if (field.fieldName === "phoneNumber") {
-                                navigation.navigate("ChangePhoneScreen");
-                              } else if (field.fieldName === "email") {
-                                navigation.navigate("ChangeEmailScreen");
-                              } else if (field.fieldName === "pin") {
-                                navigation.navigate("ChangePinScreen");
-                              }
-                            }}
-                            style={styles.editChangeButtonContainer}
-                          >
-                            <Text style={styles.editChangeTextButton}>
-                              {t("common:edit")}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (field.fieldName === "phoneNumber") {
+                              navigation.navigate("ChangePhoneScreen");
+                            } else if (field.fieldName === "email") {
+                              navigation.navigate("ChangeEmailScreen");
+                            } else if (field.fieldName === "pin") {
+                              navigation.navigate("ChangePinScreen");
+                            }
+                          }}
+                          style={styles.editChangeButtonContainer}
+                        >
+                          <Text style={styles.editChangeTextButton}>
+                            {t("common:edit")}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   )}
                 </View>

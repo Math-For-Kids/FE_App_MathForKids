@@ -17,7 +17,7 @@ import { getLessonById } from "../redux/lessonSlice";
 import { getRewardById } from "../redux/rewardSlice";
 import { getEnabledLevels } from "../redux/goalSlice";
 import { pupilById } from "../redux/pupilSlice";
-
+import FullScreenLoading from "../components/FullScreenLoading";
 import { useTranslation } from "react-i18next";
 export default function TargetScreen({ navigation, route }) {
   const { theme } = useTheme();
@@ -35,6 +35,9 @@ export default function TargetScreen({ navigation, route }) {
   const { enabledLevels } = useSelector((state) => state.goal);
   // console.log("enabledLevels", enabledLevels);
   const dispatch = useDispatch();
+  const loading = useSelector(
+    (state) => state.goal.loading || state.goal.enabledLevels?.loading
+  );
 
   const getSkillIconByName = (skillName = "") => {
     const name = skillName.toLowerCase();
@@ -445,6 +448,7 @@ export default function TargetScreen({ navigation, route }) {
         }}
       />
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </LinearGradient>
   );
 }

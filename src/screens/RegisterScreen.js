@@ -15,17 +15,19 @@ import Checkbox from "expo-checkbox";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { createUser, sendOTPByPhone } from "../redux/authSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { RadioButton } from "react-native-paper";
-
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
 export default function RegisterScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation("register");
-
+  const loading = useSelector((state) => state.auth.loading);
   const [gender, setGender] = useState("female");
   const [focusedField, setFocusedField] = useState(null);
   const [fullName, setFullName] = useState("");
@@ -39,6 +41,16 @@ export default function RegisterScreen({ navigation }) {
   const [showPicker, setShowPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
 
   const handlePinChange = (value, index) => {
     const updated = [...pin];
@@ -112,24 +124,23 @@ export default function RegisterScreen({ navigation }) {
       const sendMsg =
         sendMsgObj[i18n.language] || sendMsgObj.en || t("sentOtpDefault");
 
-      Alert.alert(createMsg, sendMsg, [
-        {
-          text: t("ok"),
-          onPress: () =>
-            navigation.navigate("VerifyScreen", {
-              contact: phone,
-              isEmail: false,
-              userId: result.id,
-            }),
-        },
-      ]);
+      setSuccessContent({
+        title: createMsg,
+        description: sendMsg,
+        userId: result.id,
+      });
+      setShowSuccess(true);
     } catch (err) {
       const payload = err.payload ?? err.message ?? err;
       const errMsg =
         typeof payload === "object"
           ? payload[i18n.language] || payload.en
           : String(payload);
-      Alert.alert(t("errorTitle"), errMsg);
+      setErrorContent({
+        title: t("errorTitle"),
+        description: errMsg,
+      });
+      setShowError(true);
     } finally {
       setIsLoading(false);
     }
@@ -523,6 +534,26 @@ export default function RegisterScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </ScrollView>
+        <MessageError
+          visible={showError}
+          title={errorContent.title}
+          description={errorContent.description}
+          onClose={() => setShowError(false)}
+        />
+        <MessageSuccess
+          visible={showSuccess}
+          title={successContent.title}
+          description={successContent.description}
+          onClose={() => {
+            setShowSuccess(false);
+            navigation.navigate("VerifyScreen", {
+              contact: phone,
+              isEmail: false,
+              userId: successContent.userId,
+            });
+          }}
+        />
+        <FullScreenLoading visible={loading} color={theme.colors.white} />
       </LinearGradient>
     </TouchableWithoutFeedback>
   );

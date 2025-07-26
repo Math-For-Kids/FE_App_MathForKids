@@ -51,6 +51,8 @@ import enTarget from "./locales/en/target.json";
 import viTarget from "./locales/vi/target.json";
 import enForgotPin from "./locales/en/forgotPin.json";
 import viForgotPin from "./locales/vi/forgotPin.json";
+import enCreatePupilAccount from "./locales/en/createpupilaccount.json";
+import viCreatePupilAccount from "./locales/vi/createpupilaccount.json";
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en", // Ngôn ngữ mặc định
@@ -80,6 +82,7 @@ i18n.use(initReactI18next).init({
     "reward",
     "target",
     "forgotPin",
+    "createpupilaccount",
   ],
   defaultNS: ["goal", "reward"],
   resources: {
@@ -108,6 +111,7 @@ i18n.use(initReactI18next).init({
       reward: enReward,
       target: enTarget,
       forgotPin: enForgotPin,
+      createpupilaccount: enCreatePupilAccount,
     },
     vi: {
       setting: vi,
@@ -134,6 +138,7 @@ i18n.use(initReactI18next).init({
       reward: viReward,
       target: viTarget,
       forgotPin: viForgotPin,
+      createpupilaccount: viCreatePupilAccount,
     },
   },
   interpolation: {

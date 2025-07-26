@@ -32,6 +32,7 @@ import swipeGifLeft from "../../../assets/animations/swipe.gif/1.json";
 import swipeGifRight from "../../../assets/animations/swipe.gif/2.json";
 import { WebView } from "react-native-webview";
 import { useWindowDimensions } from "react-native";
+import FullScreenLoading from "../../components/FullScreenLoading";
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, lessonId, grade } = route.params;
@@ -45,6 +46,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   const isAnimating = useRef(false);
 
   const enabledList = useSelector((state) => state.lessonDetail.enabledList);
+  const loading = useSelector((state) => state.lessonDetail.loading);
   // console.log("enabledList", enabledList);
   const [lessonName, setLessonName] = useState("");
   const [content, setContent] = useState("");
@@ -323,7 +325,6 @@ export default function LessonDetailScreen({ navigation, route }) {
           {lessonName}
         </Text>
       </LinearGradient>
-
       <LinearGradient colors={getGradient()} style={styles.soundContainer}>
         <TouchableOpacity
           onPress={() => {
@@ -337,7 +338,6 @@ export default function LessonDetailScreen({ navigation, route }) {
           <Ionicons name="volume-medium" size={28} color={theme.colors.white} />
         </TouchableOpacity>
       </LinearGradient>
-
       {showSwipeHint && currentOrder !== 2 && (
         <View style={styles.swipeHintContainer}>
           <LottieView
@@ -351,7 +351,6 @@ export default function LessonDetailScreen({ navigation, route }) {
           </View>
         </View>
       )}
-
       <Animated.View
         {...panResponder.panHandlers}
         style={[styles.cardLesson, { transform: [{ translateX: position }] }]}
@@ -431,8 +430,8 @@ export default function LessonDetailScreen({ navigation, route }) {
           </TouchableOpacity>
         )}
       </Animated.View>
-
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </View>
   );
 }

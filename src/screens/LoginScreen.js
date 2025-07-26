@@ -8,26 +8,36 @@ import {
   Image,
   TouchableWithoutFeedback,
   Keyboard,
-  Alert,
   ScrollView,
+  ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { sendOTPByPhone, sendOTPByEmail } from "../redux/authSlice";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import useSound from "../audio/useSound";
 import { useTranslation } from "react-i18next";
-
+import MessageError from "../components/MessageError";
+import FullScreenLoading from "../components/FullScreenLoading";
 export default function LoginScreen({ navigation }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
 
   const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
   const { play } = useSound();
   const { t } = useTranslation("login");
   const [errors, setErrors] = useState({});
+  const loading = useSelector((state) => state.auth.loading);
   const handleLogin = async () => {
     play("openClick");
 
@@ -50,6 +60,8 @@ export default function LoginScreen({ navigation }) {
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
     try {
+      setIsLoading(true);
+
       const sendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
       const contactKey = isEmail ? "email" : "phoneNumber";
       const result = await dispatch(
@@ -79,7 +91,14 @@ export default function LoginScreen({ navigation }) {
       } else if (typeof err === "string") {
         msg = err;
       }
-      Alert.alert(t("loginFailedTitle"), msg);
+
+      setErrorContent({
+        title: t("loginFailedTitle"),
+        description: msg,
+      });
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -176,6 +195,17 @@ export default function LoginScreen({ navigation }) {
     inputWrapperContainer: {
       width: 250,
     },
+    overlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: Dimensions.get("window").width,
+      height: Dimensions.get("window").height,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 999,
+    },
   });
 
   return (
@@ -195,6 +225,7 @@ export default function LoginScreen({ navigation }) {
             resizeMode="contain"
           />
           <Text style={styles.title}>{t("title")}</Text>
+
           <View style={styles.inputWrapperContainer}>
             <View
               style={[
@@ -222,11 +253,13 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.errorText}>{errors.contact}</Text>
             )}
           </View>
+
           <View style={styles.inputWrapperContainer}>
             <TouchableOpacity
               activeOpacity={0.8}
               style={styles.buttonWrapper}
               onPress={handleLogin}
+              disabled={isLoading}
             >
               <LinearGradient
                 colors={theme.colors.gradientBlue}
@@ -238,6 +271,7 @@ export default function LoginScreen({ navigation }) {
               </LinearGradient>
             </TouchableOpacity>
           </View>
+
           <View style={styles.footer}>
             <Text style={styles.footerText}>{t("noAccount")}</Text>
             <TouchableOpacity
@@ -250,6 +284,21 @@ export default function LoginScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        {/* Overlay Loading */}
+        {isLoading && (
+          <View style={styles.overlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+
+        <MessageError
+          visible={showError}
+          title={errorContent.title}
+          description={errorContent.description}
+          onClose={() => setShowError(false)}
+        />
+        <FullScreenLoading visible={loading} color={theme.colors.white} />
       </LinearGradient>
     </TouchableWithoutFeedback>
   );

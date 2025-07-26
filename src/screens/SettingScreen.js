@@ -15,16 +15,16 @@ import {
   setTheme,
   setVolume,
 } from "../redux/settingsSlice";
-
+import FullScreenLoading from "../components/FullScreenLoading";
 export default function SettingScreen({ navigation }) {
   const { theme, isDarkMode, themeKey, toggleThemeMode, switchThemeKey } =
     useTheme();
-  const { volume, increaseVolume, decreaseVolume } = useSound();
   const { t, i18n } = useTranslation("setting");
 
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  const loading = useSelector((state) => state.auth.loading);
   const profile = pupilId?.userId ? pupilId : user;
   const updateUserOrPupil = (data) => {
     if (pupilId) {
@@ -35,12 +35,13 @@ export default function SettingScreen({ navigation }) {
       console.warn("No valid user ID found!");
     }
   };
+  const reduxVolume = useSelector((state) => state.settings.volume);
+  const volume = reduxVolume / 100;
   const handleVolumeChange = (change) => {
-    const newVolume = Math.max(0, Math.min(1, volume + change));
-    if (change > 0) increaseVolume();
-    else decreaseVolume();
-
+    const currentVolume = reduxVolume / 100;
+    const newVolume = Math.max(0, Math.min(1, currentVolume + change));
     const volumeNumber = Math.round(newVolume * 100);
+
     dispatch(setVolume(volumeNumber));
     updateUserOrPupil({ volume: volumeNumber });
   };
@@ -76,8 +77,8 @@ export default function SettingScreen({ navigation }) {
       themeKey === "theme1"
         ? "theme2"
         : themeKey === "theme2"
-          ? "theme3"
-          : "theme1";
+        ? "theme3"
+        : "theme1";
 
     switchThemeKey(nextThemeKey);
 
@@ -180,7 +181,7 @@ export default function SettingScreen({ navigation }) {
       </Text>
       <View style={styles.selectorRow}>
         <TouchableOpacity
-          onPress={() => handleVolumeChange(-0.33)}
+          onPress={() => handleVolumeChange(-0.2)}
           dispatch={volume <= 0}
         >
           <Ionicons
@@ -206,7 +207,7 @@ export default function SettingScreen({ navigation }) {
           ))}
         </View>
         <TouchableOpacity
-          onPress={() => handleVolumeChange(0.34)}
+          onPress={() => handleVolumeChange(0.2)}
           disabled={volume >= 1}
         >
           <Ionicons
@@ -227,7 +228,14 @@ export default function SettingScreen({ navigation }) {
           />
         </TouchableOpacity>
         <View style={styles.languageContainer}>
-          <Image source={i18n.language === "en" ? theme.icons.languageEnglish : theme.icons.languageVietnamese} style={styles.flagIcon} />
+          <Image
+            source={
+              i18n.language === "en"
+                ? theme.icons.languageEnglish
+                : theme.icons.languageVietnamese
+            }
+            style={styles.flagIcon}
+          />
           <Text style={styles.languageText}>
             {i18n.language === "en" ? t("english") : t("vietnamese")}
           </Text>
@@ -287,8 +295,8 @@ export default function SettingScreen({ navigation }) {
             {themeKey === "theme1"
               ? t("capybara")
               : themeKey === "theme2"
-                ? t("animal")
-                : t("super_hero")}
+              ? t("animal")
+              : t("super_hero")}
           </Text>
         </View>
         <TouchableOpacity onPress={handleSwitchTheme}>
@@ -301,6 +309,7 @@ export default function SettingScreen({ navigation }) {
       </View>
 
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </LinearGradient>
   );
 }

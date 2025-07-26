@@ -22,7 +22,9 @@ import { useTranslation } from "react-i18next";
 import { applySettings } from "../components/applySettings";
 import { Fonts } from "../../constants/Fonts";
 import { ScrollView } from "react-native";
-
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageConfirm from "../components/MessageConfirm";
 export default function AccountScreen({ navigation }) {
   const { theme, switchThemeKey, toggleThemeMode, isDarkMode } = useTheme();
   const { setVolume } = useSound();
@@ -30,16 +32,30 @@ export default function AccountScreen({ navigation }) {
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmContent, setConfirmContent] = useState({
+    title: "",
+    description: "",
+  });
+  // const [loading, setLoading] = useState(false);
   const [pin, setPin] = useState(["", "", "", ""]);
   const [modalVisible, setModalVisible] = useState(false);
   const [redirectToCreatePupil, setRedirectToCreatePupil] = useState(false);
+
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
 
   const user = useSelector((state) => state.auth.user);
   // console.log("user", user);
   // const pupils = useSelector((state) => state.pupil.pupils || []);
   const pupils = useSelector((state) => state.pupil.pupils);
+  const loading = useSelector(
+    (state) => state.auth.loading || state.pupil.loading
+  );
 
   const userId = user?.id;
   const filteredPupils = pupils.filter(
@@ -54,7 +70,8 @@ export default function AccountScreen({ navigation }) {
             typeof err === "object"
               ? err[i18n.language] ?? err.en
               : err.toString();
-          Alert.alert(t("errorTitle"), msg);
+          setErrorContent({ title: t("errorTitle"), description: msg });
+          setShowError(true);
         });
       dispatch(getUserById(userId))
         .unwrap()
@@ -63,7 +80,8 @@ export default function AccountScreen({ navigation }) {
             typeof err === "object"
               ? err[i18n.language] ?? err.en
               : err.toString();
-          Alert.alert(t("errorTitle"), msg);
+          setErrorContent({ title: t("errorTitle"), description: msg });
+          setShowError(true);
         });
     }
   }, [isFocused, userId, dispatch]);
@@ -81,38 +99,37 @@ export default function AccountScreen({ navigation }) {
   };
 
   const handlePupilSelect = (pupil) => {
-    Alert.alert(
-      t("confirmTitle"),
-      t("confirmPupil", { name: pupil.fullName }),
-      [
-        { text: t("no"), style: "cancel" },
-        {
-          text: t("yes"),
-          onPress: async () => {
-            setLoading(true);
-            dispatch(pupilById(pupil.id))
-              .unwrap()
-              .then((res) => {
-                handleApplySettings(res);
-                dispatch(setPupilId(pupil.id));
-                setLoading(false);
-                navigation.navigate(
-                  res.isAssess ? "HomeScreen" : "TestLevelScreen",
-                  { pupilId: pupil.id, grade: pupil.grade }
-                );
-              })
-              .catch((err) => {
-                setLoading(false);
-                const msg =
-                  typeof err === "object"
-                    ? err[i18n.language] ?? err.en
-                    : err.toString();
-                Alert.alert(t("errorTitle"), msg);
-              });
-          },
-        },
-      ]
-    );
+    setConfirmContent({
+      title: t("confirmTitle"),
+      description: t("confirmPupil", { name: pupil.fullName }),
+      pupilId: pupil.id,
+      grade: pupil.grade,
+    });
+    setShowConfirm(true);
+  };
+
+  const confirmPupilSelection = () => {
+    setShowConfirm(false);
+    const { pupilId, grade } = confirmContent;
+
+    dispatch(pupilById(pupilId))
+      .unwrap()
+      .then((res) => {
+        handleApplySettings(res);
+        dispatch(setPupilId(pupilId));
+        navigation.navigate(res.isAssess ? "HomeScreen" : "TestLevelScreen", {
+          pupilId,
+          grade,
+        });
+      })
+      .catch((err) => {
+        const msg =
+          typeof err === "object"
+            ? err[i18n.language] ?? err.en
+            : err.toString();
+        setErrorContent({ title: t("errorTitle"), description: msg });
+        setShowError(true);
+      });
   };
 
   const handleParentSelect = () => {
@@ -155,7 +172,8 @@ export default function AccountScreen({ navigation }) {
       }, 300);
     } else {
       const msg = t("incorrectPinMsg");
-      Alert.alert(t("errorTitle"), msg);
+      setErrorContent({ title: t("errorTitle"), description: msg });
+      setShowError(true);
       setErrors({});
     }
   };
@@ -452,6 +470,20 @@ export default function AccountScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onClose={confirmPupilSelection}
+        onCancel={() => setShowConfirm(false)}
+      />
     </LinearGradient>
   );
 }

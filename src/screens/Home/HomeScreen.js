@@ -17,7 +17,7 @@ import { notificationsByPupilId } from "../../redux/pupilNotificationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useIsFocused } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
-
+import FullScreenLoading from "../../components/FullScreenLoading";
 export default function HomeScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { pupilId } = route.params || {};
@@ -32,7 +32,7 @@ export default function HomeScreen({ navigation, route }) {
   const pupilNotifications = useSelector(
     (state) => state.pupilnotifications.list || []
   );
-
+  const loading = useSelector((state) => state.pupil.loading);
   const [selectedGrade, setSelectedGrade] = useState();
   const [showDropdown, setShowDropdown] = useState(false);
   const gradeOptions = ["1", "2", "3"];
@@ -196,7 +196,6 @@ export default function HomeScreen({ navigation, route }) {
       width: 100,
       borderWidth: 1,
       borderColor: theme.colors.white,
-      zIndex: 2000, // Tăng zIndex để đảm bảo ở trên
     },
     grade: {
       fontSize: 14,
@@ -217,7 +216,6 @@ export default function HomeScreen({ navigation, route }) {
       borderRadius: 5,
       elevation: 3,
       paddingVertical: 0,
-      zIndex: 2001, // Tăng zIndex để đảm bảo ở trên
     },
     dropdownItem: {
       paddingVertical: 6,
@@ -319,7 +317,6 @@ export default function HomeScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </LinearGradient>
-
       <View style={styles.gradeWrapper}>
         <TouchableOpacity
           onPress={() => setShowDropdown(!showDropdown)}
@@ -352,9 +349,7 @@ export default function HomeScreen({ navigation, route }) {
           </View>
         )}
       </View>
-
       <Text style={styles.title}>{t("select_skill")}</Text>
-
       <ScrollView contentContainerStyle={styles.skillsContainer}>
         {skills.map((item, index) => (
           <TouchableOpacity
@@ -374,8 +369,8 @@ export default function HomeScreen({ navigation, route }) {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </LinearGradient>
   );
 }

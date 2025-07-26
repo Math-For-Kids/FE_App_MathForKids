@@ -22,5 +22,6 @@
   "wrong": "Sai",
   "time": "Thời gian",
   "nextLesson": "Bài học tiếp theo",
-  "success": "Thành Công"
+  "success": "Thành Công",
+  "timeEnd": "Đã hết giờ làm bài, hệ thống đã tự động nộp bài của bạn."
 }

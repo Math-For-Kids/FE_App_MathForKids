@@ -15,7 +15,7 @@ import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-
+import FullScreenLoading from "../../components/FullScreenLoading";
 export default function ExerciseResultScreen({ navigation, route }) {
   const { theme } = useTheme();
   const {
@@ -34,6 +34,7 @@ export default function ExerciseResultScreen({ navigation, route }) {
   } = route.params;
   // console.log("fsesfroute.params", route.params);
   const { levels } = useSelector((state) => state.level);
+  const loading = useSelector((state) => state.level.loading);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const { t, i18n } = useTranslation("exercise");
@@ -54,7 +55,8 @@ export default function ExerciseResultScreen({ navigation, route }) {
 
   const getQuestionColor = (question) => {
     const selected = answers[question.id];
-    return selected && selected === extractAnswerValue(question.answer, question.level)
+    return selected &&
+      selected === extractAnswerValue(question.answer, question.level)
       ? getCorrectBackground()
       : theme.colors.redTomato;
   };
@@ -79,12 +81,13 @@ export default function ExerciseResultScreen({ navigation, route }) {
       (level) => String(level.id) === String(questionLevel)
     );
     const isEasyLevel = questionLevelObj
-      ? questionLevelObj.level === 1 || questionLevelObj.name?.en === "Easy" : false;
+      ? questionLevelObj.level === 1 || questionLevelObj.name?.en === "Easy"
+      : false;
     if (isEasyLevel && typeof value === "string" && value.includes("=")) {
       return value.split("=")[1].trim();
     }
     return value;
-  }
+  };
 
   const extractNumbers = (answerText) => {
     if (!answerText || typeof answerText !== "string") {
@@ -277,7 +280,6 @@ export default function ExerciseResultScreen({ navigation, route }) {
           {t("header")}
         </Text>
       </LinearGradient>
-
       <View style={styles.summaryContainer}>
         <Text style={styles.scoreText}>
           {t("score")}: {score}
@@ -289,7 +291,6 @@ export default function ExerciseResultScreen({ navigation, route }) {
           {t("wrong")} <Text style={styles.wrongNumber}>{wrongCount}</Text>
         </Text>
       </View>
-
       <ScrollView contentContainerStyle={styles.resultList}>
         {questions.map((q, index) => (
           <TouchableOpacity
@@ -309,7 +310,6 @@ export default function ExerciseResultScreen({ navigation, route }) {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
       <Modal
         animationType="fade"
         transparent={true}
@@ -338,15 +338,22 @@ export default function ExerciseResultScreen({ navigation, route }) {
                   {t("correctAnswer")}:{" "}
                   {selectedQuestion.expression
                     ? selectedQuestion.expression
-                    : extractAnswerValue(selectedQuestion.answer, selectedQuestion.level)}
+                    : extractAnswerValue(
+                        selectedQuestion.answer,
+                        selectedQuestion.level
+                      )}
                 </Text>
                 <TouchableOpacity
                   style={styles.stepByStepButton}
                   onPress={() => {
                     // const answerText = selectedQuestion.answer || "";
                     // const { number1, number2 } = extractNumbers(answerText);
-                    const textToExtract = selectedQuestion.expression || selectedQuestion.answer || "";
-                    const { number1, number2, operator } = extractNumbers(textToExtract);
+                    const textToExtract =
+                      selectedQuestion.expression ||
+                      selectedQuestion.answer ||
+                      "";
+                    const { number1, number2, operator } =
+                      extractNumbers(textToExtract);
                     if (!number1 || !number2) {
                       console.warn(
                         "Navigation skipped: Invalid numbers extracted",
@@ -380,8 +387,8 @@ export default function ExerciseResultScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </View>
   );
 }
