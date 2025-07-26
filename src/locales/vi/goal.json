@@ -47,5 +47,8 @@
   "selectExerciseError": "Vui lòng chọn cấp độ",
   "selectRewardError": "Vui lòng chọn phần thưởng",
   "selectRewardQuantityError": "Vui lòng chọn số lượng phần thưởng",
-  "alertFailTitle": "Thất bại"
+  "success": "Thành công",
+  "error": "Thất bại",
+  "confirmSubmissionDescription": "Thiết lập mục tiêu thành công",
+  "errorDescription": "Thiết lập mục tiêu thất bại"
 }

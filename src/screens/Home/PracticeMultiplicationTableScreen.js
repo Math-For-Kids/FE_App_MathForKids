@@ -251,7 +251,7 @@ export default function PracticeMultiplicationTableScreen({
       <LinearGradient colors={theme.colors.gradientPink} style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.navigate("MultiplicationTableDetailScreen", {
-            skillName,
+            skillName: "Expression",
             pupilId,
             grade,
             table,

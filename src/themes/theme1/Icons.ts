@@ -80,6 +80,7 @@ export const Icons = {
   changeemail: require("../../../assets/images/graphics/capybaras/change emial.png"),
   changephone: require("../../../assets/images/graphics/capybaras/change phone.png"),
   changepin: require("../../../assets/images/graphics/capybaras/change pin.png"),
+  profilepupil: require("../../../assets/images/graphics/capybaras/profile pupil.png"),
   viewprofile: require("../../../assets/images/graphics/capybaras/view profile.png"),
   ticksuccess: require("../../../assets/images/graphics/capybaras/ticksuccess.png"),
   error: require("../../../assets/images/graphics/capybaras/error.png"),

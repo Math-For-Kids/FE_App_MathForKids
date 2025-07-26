@@ -3,5 +3,6 @@
   "viewProfile": "View profile",
   "changeEmail": "Update email",
   "changePhone": "Update phone",
-  "changePin": "Change PIN"
+  "changePin": "Change PIN",
+  "changePupilProfile":"Change profile pupil"
 }

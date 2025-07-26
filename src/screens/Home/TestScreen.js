@@ -83,16 +83,33 @@ export default function TestScreen({ navigation, route }) {
     title: "",
     description: "",
   });
-  // Consolidated timer logic
+  // Hàm reset tất cả trạng thái
+  const resetTestState = () => {
+    setUserAnswers({});
+    setShuffledOptions({});
+    setNextLessonName(null);
+    setCurrentQuestion(1);
+    setFinalScore(0);
+    setCorrectCount(0);
+    setWrongCount(0);
+    setElapsedTime(0);
+  };
+
+  // Reset trạng thái khi lessonId thay đổi hoặc bắt đầu bài kiểm tra mới
+  useEffect(() => {
+    // resetTestState();
+    dispatch(getRandomTests({ lessonId }));
+    dispatch(getEnabledLevels());
+    dispatch(updatePupilProfile({ id: pupilId }));
+    if (pupilId) {
+      dispatch(pupilById(pupilId));
+    }
+  }, [dispatch, lessonId, pupilId]);
+
+  // Timer logic
   useEffect(() => {
     if (!validTests.length || showResultModal) return;
-    let newTime = 1; // Default 10 minutes
-    if (validTests.length > 10 && validTests.length <= 20) {
-      newTime = 25;
-    } else if (validTests.length > 20 && validTests.length <= 30) {
-      newTime = 35;
-    }
-    const totalSeconds = newTime * 60;
+    const totalSeconds = (validTests.length > 20 ? 35 : validTests.length > 10 ? 25 : 10) * 60;
     setTimer(totalSeconds);
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
@@ -116,23 +133,14 @@ export default function TestScreen({ navigation, route }) {
     return () => clearInterval(timerRef.current);
   }, [validTests.length, t, showResultModal]);
 
-  useEffect(() => {
-    dispatch(getRandomTests({ lessonId }));
-    dispatch(getEnabledLevels());
-    dispatch(updatePupilProfile({ id: pupilId }));
-    if (pupilId) {
-      dispatch(pupilById(pupilId));
-    }
-  }, [dispatch, lessonId, pupilId]);
-
   // Shuffle options with unique IDs
   useEffect(() => {
-    if (!currentQ) return;
+    if (!currentQ || !validTests.length) return;
     if (!shuffledOptions[currentQ.id]) {
       const options = [...(currentQ.option || []), currentQ.answer]
         .map((option, index) => ({
           value: option,
-          id: `${currentQ.id}-option-${index}`, // Unique ID for each option
+          id: `${currentQ.id}-option-${index}`,
           levelId: currentQ.levelId || currentQ.level,
         }))
         .sort(() => Math.random() - 0.5);
@@ -141,8 +149,9 @@ export default function TestScreen({ navigation, route }) {
         [currentQ.id]: options,
       }));
     }
-  }, [currentQ]);
+  }, [currentQ, validTests.length]);
 
+  // Progress bar animation
   useEffect(() => {
     if (!validTests.length || showResultModal) return;
     const totalMargin = (validTests.length - 1) * 2;
@@ -176,14 +185,19 @@ export default function TestScreen({ navigation, route }) {
   }, [currentQuestion, validTests.length, showResultModal]);
 
   const extractAnswerValue = (value, questionLevel) => {
+    if (value === undefined || value === null) return "";
+    let result = value;
+    if (typeof value === "object" && value?.[i18n.language]) {
+      result = value[i18n.language];
+    }
     const questionLevelObj = levels.find(
       (level) => String(level.id) === String(questionLevel)
     );
     const isEasyLevel = questionLevelObj ? questionLevelObj.level === 1 : false;
-    if (isEasyLevel && typeof value === "string" && value.includes("=")) {
-      return value.split("=")[1].trim();
+    if (isEasyLevel && typeof result === "string" && result.includes("=")) {
+      result = result.split("=")[1].trim();
     }
-    return value;
+    return typeof result === "string" ? result.trim().toLowerCase() : result;
   };
 
   const handleAnswer = (val, levelId) => {
@@ -198,6 +212,12 @@ export default function TestScreen({ navigation, route }) {
       }, 300);
     }
   };
+
+  useEffect(() => {
+    if (validTests.length > 0 && currentQuestion > validTests.length) {
+      setCurrentQuestion(1);
+    }
+  }, [validTests.length, currentQuestion]);
 
   const handleBack = () => {
     if (currentQuestion > 1) {
@@ -221,18 +241,23 @@ export default function TestScreen({ navigation, route }) {
       const questionLevel = questionLevelObj ? questionLevelObj.level : 1;
       maxScore += questionLevel;
 
+      const userAnswer = userAnswers[q.id];
+      const correctAnswer = extractAnswerValue(q.answer, q.levelId);
+      console.log(`Question ID: ${q.id}, User Answer: ${userAnswer}, Correct Answer: ${correctAnswer}`);
+
       if (
-        userAnswers[q.id] !== undefined &&
-        userAnswers[q.id] === extractAnswerValue(q.answer, q.levelId)
+        userAnswer !== undefined &&
+        String(userAnswer).trim().toLowerCase() === String(correctAnswer).trim().toLowerCase()
       ) {
         rawScore += questionLevel;
         correct++;
-      } else if (userAnswers[q.id] !== undefined) {
+      } else if (userAnswer !== undefined) {
         wrong++;
       }
     });
 
     const score = maxScore > 0 ? (rawScore / maxScore) * 10 : 0;
+    console.log(`Final Score: ${score}, Correct: ${correct}, Wrong: ${wrong}`);
     return { score: Math.round(score), correct, wrong };
   };
 
@@ -285,45 +310,44 @@ export default function TestScreen({ navigation, route }) {
             correctAnswer: question.answer,
             selectedAnswer: userAnswers[question.id] || null,
           }));
-          await dispatch(
-            createMultipleTestQuestions(questionPayloads)
-          ).unwrap();
+          await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
         }
 
         await dispatch(getGoalsWithin30Days(pupilId));
         setShowResultModal(true);
 
         if (bonus > 0) {
-          dispatch(
-            updatePupilProfile({ id: pupilId, data: { point: newPoint } })
-          );
+          dispatch(updatePupilProfile({ id: pupilId, data: { point: newPoint } }));
         }
 
         if (score >= 9) {
-          const unlockResult = await dispatch(
-            completeAndUnlockNextLesson({ pupilId, lessonId })
-          ).unwrap();
-          const exercise = levelIds.join(",");
-          const res = await dispatch(
-            autoMarkCompletedGoals({ pupilId, lessonId, exercise })
-          );
+          let exercise = levelIds ? levelIds.join(",") : null; // Check if levelIds exists
+          let unlockResult = null; // Initialize as null
 
-          if (res.payload?.message?.[i18n.language]) {
-            setSuccessContent({
-              title: t("success"),
-              description: res.payload.message[i18n.language],
-            });
-            setShowSuccess(true);
-          } else if (res.error?.message?.[i18n.language]) {
-            setErrorContent({
-              title: t("error"),
-              description: res.error.message[i18n.language],
-            });
-            setShowError(true);
+          if (exercise === null) {
+            unlockResult = await dispatch(
+              completeAndUnlockNextLesson({ pupilId, lessonId })
+            ).unwrap();
+          } else {
+            const res = await dispatch(
+              autoMarkCompletedGoals({ pupilId, lessonId, exercise })
+            );
+
+            if (res.payload?.message?.[i18n.language]) {
+              setSuccessContent({
+                title: t("success"),
+                description: res.payload.message[i18n.language],
+              });
+              setShowSuccess(true);
+            } else if (res.error?.message?.[i18n.language]) {
+              setErrorContent({
+                title: t("error"),
+                description: res.error.message[i18n.language],
+              });
+              setShowError(true);
+            }
+            setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
           }
-          setNextLessonName(
-            unlockResult?.nextLessonName?.[i18n.language] || null
-          );
         } else {
           setNextLessonName(null);
         }
@@ -398,7 +422,7 @@ export default function TestScreen({ navigation, route }) {
   const progress = Math.min(
     Math.max(
       timer /
-        ((validTests.length > 20 ? 30 : validTests.length > 10 ? 20 : 10) * 60),
+      ((validTests.length > 20 ? 30 : validTests.length > 10 ? 20 : 10) * 60),
       0
     ),
     1
@@ -629,9 +653,10 @@ export default function TestScreen({ navigation, route }) {
     modalRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center",
+      alignItems: "flex-start",
       marginBottom: 10,
       paddingHorizontal: 20,
+      minHeight: 30,
     },
     modalText: {
       fontSize: 20,
@@ -670,39 +695,7 @@ export default function TestScreen({ navigation, route }) {
     },
   });
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.loadingText}>{t("loading")}</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
-  if (validTests.length === 0) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{t("noExercisesFound")}</Text>
-      </View>
-    );
-  }
-
-  if (!currentQ) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{t("noQuestionAvailable")}</Text>
-      </View>
-    );
-  }
-
-  const options = shuffledOptions[currentQ.id] || [];
+  const options = currentQ && currentQ.id ? shuffledOptions[currentQ.id] || [] : [];
 
   return (
     <View style={styles.container}>
@@ -713,6 +706,7 @@ export default function TestScreen({ navigation, route }) {
               title: t("confirm"),
               description: t("wantToSkipTest"),
               onConfirm: () => {
+                resetTestState();
                 setShowConfirm(false);
                 navigation.goBack();
               },
@@ -732,141 +726,158 @@ export default function TestScreen({ navigation, route }) {
           {t("exercise")}
         </Text>
       </LinearGradient>
-      <View style={styles.subtitleContainer}>
-        <View>
-          <Text style={styles.subtitleText}>
-            {t("totalQuestions")}: {totalQuestions}
-          </Text>
-          <Text style={styles.subtitleText}>
-            {t("answers")}: {currentQuestion}/{totalQuestions}
-          </Text>
+      {loading ? (
+        <View style={styles.container}>
+          <Text style={styles.loadingText}>{t("loading")}</Text>
         </View>
-        <View style={styles.timerCircleContainer}>
-          <Svg width={60} height={60}>
-            <Circle
-              cx={30}
-              cy={30}
-              r={25}
-              stroke={theme.colors.graySoft}
-              strokeWidth={10}
-              fill="none"
-            />
-            <Circle
-              cx={30}
-              cy={30}
-              r={25}
-              stroke={getProgressBackground()}
-              strokeWidth={10}
-              strokeDasharray={2 * Math.PI * 25}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              fill="none"
-              rotation={-90}
-              origin="30, 30"
-            />
-          </Svg>
-          <Text style={styles.timerTextOverlay}>{formatTime(timer)}</Text>
+      ) : error ? (
+        <View style={styles.container}>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
-      </View>
-      <View>
-        <View style={styles.visualProgressBar}>
-          {validTests.map((q, index) => (
-            <View
-              key={q.id ?? `segment-${index}`} // Fallback to index if q.id is undefined
-              style={[
-                styles.segmentBlock,
-                {
-                  backgroundColor:
-                    index <= currentQuestion - 1
-                      ? visualProgressBar()
-                      : theme.colors.progressTestBackground,
-                },
-              ]}
-            />
-          ))}
+      ) : validTests.length === 0 ? (
+        <View style={styles.container}>
+          <Text style={styles.errorText}>{t("noExercisesFound")}</Text>
         </View>
-        <Animated.View
-          style={[
-            styles.bearIconWrapper,
-            {
-              transform: [
-                { translateX: bearPosition },
-                {
-                  rotate: bearRotate.interpolate({
-                    inputRange: [-1, 0, 1],
-                    outputRange: ["-10deg", "0deg", "10deg"],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Image source={theme.icons.test} style={styles.bearIcon} />
-        </Animated.View>
-      </View>
-      <ScrollView contentContainerStyle={styles.skillsContainer}>
-        <View>
-          <View style={styles.questionContent}>
-            {currentQ.question?.[i18n.language] && (
-              <Text
-                style={styles.question}
-                numberOfLines={5}
-                adjustsFontSizeToFit
-                minimumFontScale={0.1}
-              >
-                {currentQ.question?.[i18n.language]}
+      ) : !currentQ ? (
+        <View style={styles.container}>
+          <Text style={styles.errorText}>{t("noQuestionAvailable")}</Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.subtitleContainer}>
+            <View>
+              <Text style={styles.subtitleText}>
+                {t("totalQuestions")}: {totalQuestions}
               </Text>
-            )}
-            {currentQ.image && (
-              <Image
-                source={{ uri: currentQ.image }}
-                style={styles.questionImage}
-                resizeMode="contain"
-              />
-            )}
+              <Text style={styles.subtitleText}>
+                {t("answers")}: {currentQuestion}/{totalQuestions}
+              </Text>
+            </View>
+            <View style={styles.timerCircleContainer}>
+              <Svg width={60} height={60}>
+                <Circle
+                  cx={30}
+                  cy={30}
+                  r={25}
+                  stroke={theme.colors.graySoft}
+                  strokeWidth={10}
+                  fill="none"
+                />
+                <Circle
+                  cx={30}
+                  cy={30}
+                  r={25}
+                  stroke={getProgressBackground()}
+                  strokeWidth={10}
+                  strokeDasharray={2 * Math.PI * 25}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  fill="none"
+                  rotation={-90}
+                  origin="30, 30"
+                />
+              </Svg>
+              <Text style={styles.timerTextOverlay}>{formatTime(timer)}</Text>
+            </View>
           </View>
-        </View>
-        <TouchableOpacity
-          onPress={() => handleBack()}
-          style={styles.backQuestion}
-        >
-          <Ionicons name="play-back" size={24} color={theme.colors.white} />
-        </TouchableOpacity>
-        <View style={styles.answerOptions}>
-          {options.map((option) => (
-            <TouchableOpacity
-              key={option.id} // Use unique ID from shuffled options
+          <View>
+            <View style={styles.visualProgressBar}>
+              {validTests.map((q, index) => (
+                <View
+                  key={q.id ?? `segment-${index}`}
+                  style={[
+                    styles.segmentBlock,
+                    {
+                      backgroundColor:
+                        index <= currentQuestion - 1
+                          ? visualProgressBar()
+                          : theme.colors.progressTestBackground,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+            <Animated.View
               style={[
-                styles.answerButton,
-                userAnswers[currentQ.id] ===
-                extractAnswerValue(option.value, option.levelId)
-                  ? styles.answerSelectedButton
-                  : null,
+                styles.bearIconWrapper,
+                {
+                  transform: [
+                    { translateX: bearPosition },
+                    {
+                      rotate: bearRotate.interpolate({
+                        inputRange: [-1, 0, 1],
+                        outputRange: ["-10deg", "0deg", "10deg"],
+                      }),
+                    },
+                  ],
+                },
               ]}
-              onPress={() => handleAnswer(option.value)}
             >
-              <Text style={styles.answerText}>
-                {extractAnswerValue(
-                  option.value?.[i18n.language],
-                  option.levelId
+              <Image source={theme.icons.test} style={styles.bearIcon} />
+            </Animated.View >
+          </View >
+          <ScrollView contentContainerStyle={styles.skillsContainer}>
+            <View>
+              <View style={styles.questionContent}>
+                {currentQ.question?.[i18n.language] && (
+                  <Text
+                    style={styles.question}
+                    numberOfLines={5}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.1}
+                  >
+                    {currentQ.question?.[i18n.language]}
+                  </Text>
                 )}
-              </Text>
+                {currentQ.image && (
+                  <Image
+                    source={{ uri: currentQ.image }}
+                    style={styles.questionImage}
+                    resizeMode="contain"
+                  />
+                )}
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => handleBack()}
+              style={styles.backQuestion}
+            >
+              <Ionicons name="play-back" size={24} color={theme.colors.white} />
             </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-      <View style={styles.submitButtonContainer}>
-        <LinearGradient
-          colors={getGradient()}
-          style={styles.submitButton}
-          start={{ x: 0, y: 1 }}
-          end={{ x: 0, y: 0 }}
-        >
-          <TouchableOpacity onPress={handleSubmit}>
-            <Text style={styles.submitText}>{t("submit")}</Text>
-          </TouchableOpacity>
-        </LinearGradient>
-      </View>
+            <View style={styles.answerOptions}>
+              {options.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.answerButton,
+                    userAnswers[currentQ.id] === extractAnswerValue(option.value, option.levelId)
+                      ? styles.answerSelectedButton
+                      : null,
+                  ]}
+                  onPress={() => handleAnswer(option.value, option.levelId)}
+                >
+                  <Text style={styles.answerText}>
+                    {extractAnswerValue(option.value?.[i18n.language], option.levelId)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+          <View style={styles.submitButtonContainer}>
+            <LinearGradient
+              colors={getGradient()}
+              style={styles.submitButton}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 0, y: 0 }}
+            >
+              <TouchableOpacity onPress={handleSubmit}>
+                <Text style={styles.submitText}>{t("submit")}</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        </>
+      )
+      }
       <Modal visible={showResultModal} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalCardContainer}>
@@ -901,11 +912,8 @@ export default function TestScreen({ navigation, route }) {
               style={styles.closeIcon}
               onPress={() => {
                 setShowResultModal(false);
+                resetTestState(); // Reset trạng thái khi đóng modal
                 navigation.goBack();
-                setUserAnswers({});
-                setShuffledOptions({});
-                setNextLessonName(null);
-                setCurrentQuestion(1);
               }}
             >
               <Ionicons name="close" size={20} color={theme.colors.white} />
@@ -942,7 +950,8 @@ export default function TestScreen({ navigation, route }) {
         description={confirmContent.description}
         onConfirm={confirmContent.onConfirm}
         onCancel={() => setShowConfirm(false)}
+        onClose={() => navigation.goBack()}
       />
-    </View>
+    </View >
   );
 }

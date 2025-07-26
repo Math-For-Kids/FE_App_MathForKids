@@ -47,5 +47,8 @@
   "selectExerciseError": "Please select level",
   "selectRewardError": "Please select reward",
   "selectRewardQuantityError": "Please select reward quantity",
-  "alertFailTitle": "Failed"
+  "success": "Success",
+  "error": "Fail",
+  "confirmSubmissionDescription": "Goal setting successful",
+  "errorDescription": "Goal setting failed"
 }

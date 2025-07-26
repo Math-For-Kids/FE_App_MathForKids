@@ -80,6 +80,7 @@ export const Icons = {
   changeemail: require("../../../assets/images/graphics/superhero/change emial.png"),
   changephone: require("../../../assets/images/graphics/superhero/change phone.png"),
   changepin: require("../../../assets/images/graphics/superhero/change pin.png"),
+  profilepupil: require("../../../assets/images/graphics/capybaras/profile pupil.png"),
   viewprofile: require("../../../assets/images/graphics/superhero/view profile.png"),
 };
 export type Theme3Icons = typeof Icons;
