@@ -20,14 +20,39 @@ import {
 } from "../../redux/profileSlice";
 import { verifyOnlyOTP } from "../../redux/authSlice";
 import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
+const parseErrorMessage = (error, t, fallbackKey = "unknownError") => {
+  if (typeof error === "object") {
+    if (error.vi || error.en) return error;
+    if (error.message && (error.message.vi || error.message.en))
+      return error.message;
+  }
+  if (typeof error === "string") {
+    return { vi: error, en: error };
+  }
+  return { vi: t(fallbackKey), en: t(fallbackKey) };
+};
 
 export default function ChangePhoneScreen({ navigation }) {
   const { theme } = useTheme();
-  const { t } = useTranslation("profile");
+  const { t, i18n } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const profile = useSelector((state) => state.profile.info);
-
+  const loading = useSelector((state) => state.profile.loading);
+  const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const [newPhone, setNewPhone] = useState("");
   const pinRefs = [useRef(), useRef(), useRef(), useRef()];
   const [pin, setPin] = useState(["", "", "", ""]);
@@ -39,40 +64,50 @@ export default function ChangePhoneScreen({ navigation }) {
     const joinedPin = pin.join("");
 
     if (!/^\d{4}$/.test(joinedPin)) {
-      Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
+      setErrors({ pin: t("invalidPinMessage") });
       return;
     }
 
     try {
       await dispatch(
-        verifyOnlyOTP({ userId: user.id, otpCode: joinedPin })
+        verifyOnlyOTP({ userId: user?.id, otpCode: joinedPin })
       ).unwrap();
+
       await dispatch(
-        updateProfile({ id: user.id, data: { phoneNumber: newPhone } })
+        updateProfile({ id: user?.id, data: { phoneNumber: newPhone } })
       ).unwrap();
-      dispatch(profileById(user.id));
-      Alert.alert(t("success"), t("updateSuccess"));
-      setPin(["", "", "", ""]);
+
+      await dispatch(profileById(user?.id)).unwrap();
+      setErrors({});
+      setSuccessContent({
+        title: t("successTitle"),
+        description: t("updatePhoneSuccess"),
+      });
+      setShowSuccess(true);
       setPinModalVisible(false);
-      navigation.navigate("PrivacyScreen");
+      setPin(["", "", "", ""]);
     } catch (error) {
-      Alert.alert(
-        t("error"),
-        typeof error === "string" ? error : t("verifyOtpFailed")
-      );
+      const message = parseErrorMessage(error, t, "otpOrUpdateFailed");
+      setErrorContent({
+        title: t("errorTitle"),
+        description: message[i18n.language] || message.vi || message.en,
+      });
+      setShowError(true);
     }
   };
 
   const handleOpenPinModal = async () => {
     if (!validatePhone(newPhone)) {
-      Alert.alert(t("invalidPhoneTitle"), t("invalidPhoneMsg"));
+      setErrors({ newPhone: t("invalidPhoneMsg") });
+      return;
+    }
+    if (newPhone === profile?.phoneNumber) {
+      setErrors({ newPhone: t("phoneAlreadyExistsMsg") });
       return;
     }
 
-    if (newPhone === profile?.phoneNumber) {
-      Alert.alert(t("phoneAlreadyExistsTitle"), t("phoneAlreadyExistsMsg"));
-      return;
-    }
+    // Clear error nếu hợp lệ
+    setErrors({});
 
     try {
       await dispatch(
@@ -90,7 +125,11 @@ export default function ChangePhoneScreen({ navigation }) {
       } else if (typeof error === "string") {
         msg = error;
       }
-      Alert.alert(t("sendOtpFailedTitle"), msg);
+      setErrorContent({
+        title: t("sendOtpFailedTitle"),
+        description: msg,
+      });
+      setShowError(true);
     }
   };
 
@@ -193,7 +232,7 @@ export default function ChangePhoneScreen({ navigation }) {
       flexDirection: "row",
       gap: 10,
       width: "80%",
-      marginBottom: 20,
+      marginBottom: 5,
     },
     pinBox: {
       borderWidth: 1,
@@ -211,6 +250,7 @@ export default function ChangePhoneScreen({ navigation }) {
       flexDirection: "row",
       gap: 40,
       width: "100%",
+      marginTop: 20,
     },
     cancelButton: {
       flex: 1,
@@ -274,6 +314,11 @@ export default function ChangePhoneScreen({ navigation }) {
             placeholderTextColor={theme.colors.grayMedium}
             color={theme.colors.blueDark}
           />
+          {errors.newPhone && (
+            <Text style={{ color: theme.colors.red, marginBottom: 10 }}>
+              {errors.newPhone}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -300,6 +345,12 @@ export default function ChangePhoneScreen({ navigation }) {
                 />
               ))}
             </View>
+            {errors.pin && (
+              <Text style={{ color: theme.colors.red, fontSize: 12 }}>
+                {errors.pin}
+              </Text>
+            )}
+
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
                 style={styles.cancelButton}
@@ -329,6 +380,22 @@ export default function ChangePhoneScreen({ navigation }) {
           <Text style={styles.confirmText}>{t("confirm")}</Text>
         </LinearGradient>
       </TouchableOpacity>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+          navigation.navigate("PrivacyScreen");
+        }}
+      />
     </LinearGradient>
   );
 }

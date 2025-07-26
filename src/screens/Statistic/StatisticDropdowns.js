@@ -1,8 +1,7 @@
-import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { ActivityIndicator, Alert } from "react-native";
+import { Alert } from "react-native";
 export default function StatisticDropdowns({
   t,
   i18n,
@@ -45,7 +44,6 @@ export default function StatisticDropdowns({
   data,
 }) {
   const navigation = useNavigation();
-  const [isLoadingTestData, setIsLoadingTestData] = useState(false);
   const isTestDropdownEnabled =
     selectedChart === "trueFalse" &&
     selectedPupil &&
@@ -54,23 +52,18 @@ export default function StatisticDropdowns({
     selectedRangeType;
 
   const handleSelectTest = (test) => {
-    setSelectedTest(test);
-    setShowTestDropdown(false);
-
-    // Lọc danh sách câu hỏi theo testId
-    const filteredQuestions = data?.data?.filter(
-      (q) => q.testId === (test.testId || selectedTest)
-    );
-    console.log("filteredQuestions", filteredQuestions);
-    // Chuyển sang màn hình mới và truyền danh sách câu hỏi
+    const testId = typeof test === "string" ? test : test.testId;
+    const filteredQuestions = data?.data?.filter((q) => q.testId === testId);
     navigation.navigate("TestListScreen", {
-      testId: selectedTest,
+      testId,
       questions: filteredQuestions,
       testName:
-        typeof test.lessonName === "object"
-          ? test.lessonName[i18n.language] || test.lessonName.en
-          : test.lessonName,
+        typeof test === "object"
+          ? test.lessonName?.[i18n.language] || test.lessonName?.en || testId
+          : testId,
     });
+    setSelectedTest(test);
+    setShowTestDropdown(false);
   };
 
   return (
@@ -316,7 +309,7 @@ export default function StatisticDropdowns({
                   {testList?.length > 0 ? (
                     testList.map((test, index) => (
                       <TouchableOpacity
-                        key={index}
+                        key={test.testId || index}
                         style={styles.dropdownItem}
                         onPress={() => handleSelectTest(test)}
                       >

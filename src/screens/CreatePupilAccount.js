@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Fonts } from "../../constants/Fonts";
@@ -18,7 +19,10 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { RadioButton } from "react-native-paper";
-
+import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
 export default function CreatePupilAccountScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
@@ -31,68 +35,89 @@ export default function CreatePupilAccountScreen({ navigation }) {
   const [birthdayDate, setBirthdayDate] = useState(null); // Date object
   const [gender, setGender] = useState("female");
   const [focusedField, setFocusedField] = useState(null);
+  const { t, i18n } = useTranslation("createpupilaccount");
+  const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
   const onCreate = async () => {
     try {
+      setIsLoading(true);
+      const newErrors = {};
       if (!userId) {
-        Alert.alert("Error", "User ID not found from Redux.");
+        setErrorContent({
+          title: t("errorTitle"),
+          description: t("userNotFound"),
+        });
+        setShowError(true);
         return;
       }
 
       if (!fullName.trim()) {
-        Alert.alert("Validation Error", "Please enter the full name.");
-        return;
+        newErrors.fullName = t("fullNameRequired");
       }
-
+      if (!nickName.trim()) {
+        newErrors.nickName = t("nickNameRequired");
+      }
       if (!studentClass) {
-        Alert.alert("Validation Error", "Please select a grade (1–3).");
-        return;
+        newErrors.studentClass = t("gradeRequired");
       }
 
       if (!birthdayDate) {
-        Alert.alert("Validation Error", "Please select a birthday.");
-        return;
+        newErrors.birthday = t("birthdayRequired");
       }
 
       const today = new Date();
       const age =
         today.getFullYear() -
-        birthdayDate.getFullYear() -
+        (birthdayDate?.getFullYear() || 0) -
         (today <
-          new Date(
-            today.getFullYear(),
-            birthdayDate.getMonth(),
-            birthdayDate.getDate()
-          )
+        new Date(
+          today.getFullYear(),
+          birthdayDate?.getMonth(),
+          birthdayDate?.getDate()
+        )
           ? 1
           : 0);
 
-      if (age <= 1 || age >= 100) {
-        Alert.alert(
-          "Validation Error",
-          "Age must be between 1 and 100 years old."
-        );
-        return;
-      }
       const minAgeForGrade = {
-        "1": 6,
-        "2": 7,
-        "3": 8,
+        1: 6,
+        2: 7,
+        3: 8,
       };
 
-      if (age < minAgeForGrade[studentClass]) {
-        Alert.alert(
-          "Lỗi xác thực",
-          `Học sinh lớp ${studentClass} phải ít nhất ${minAgeForGrade[studentClass]} tuổi.`
-        );
+      if (birthdayDate && (age <= 1 || age >= 100)) {
+        newErrors.birthday = t("ageBetween", { min: 1, max: 100 });
+      }
+
+      if (birthdayDate && age < minAgeForGrade[studentClass]) {
+        newErrors.birthday = t("gradeAgeInvalid", {
+          grade: studentClass,
+          age: minAgeForGrade[studentClass],
+        });
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
         return;
       }
 
+      setErrors({});
       const formattedBirthday = birthdayDate.toISOString().split("T")[0];
 
       const data = {
-        userId: userId,
+        userId,
         fullName: fullName.trim(),
-        nickName: nickName.trim(), // optional
+        nickName: nickName.trim(),
         image: "",
         gender,
         dateOfBirth: formattedBirthday,
@@ -102,11 +127,23 @@ export default function CreatePupilAccountScreen({ navigation }) {
 
       await dispatch(createPupil(data)).unwrap();
 
-      Alert.alert("Success", "Pupil created successfully", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
+      setSuccessContent({
+        title: t("successTitle"),
+        description: t("createPupilSuccess"),
+      });
+      setShowSuccess(true);
     } catch (error) {
-      Alert.alert("Error", error?.message || "Failed to create pupil");
+      const msg =
+        typeof error === "object"
+          ? error[i18n.language] ?? error.en
+          : error.message || error.toString();
+      setErrorContent({
+        title: t("errorTitle"),
+        description: msg,
+      });
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -115,15 +152,15 @@ export default function CreatePupilAccountScreen({ navigation }) {
     card: {
       backgroundColor: theme.colors.cardBackground,
       width: "80%",
-      borderRadius: 22,
       padding: 30,
-      paddingTop: 60,
+      paddingVertical: 80,
       alignItems: "center",
       elevation: 10,
+      marginTop: 15,
     },
     title: {
       position: "absolute",
-      top: 20,
+      top: 30,
       fontSize: 28,
       color: theme.colors.blueDark,
       fontFamily: Fonts.NUNITO_BOLD,
@@ -133,7 +170,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
       fontSize: 16,
       color: theme.colors.blueGray,
       fontFamily: Fonts.NUNITO_MEDIUM,
-      marginBottom: 4,
+      marginBottom: 15,
     },
     inputWrapper: {
       width: "100%",
@@ -141,7 +178,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
       backgroundColor: theme.colors.paleBeige,
       borderRadius: 10,
       paddingHorizontal: 15,
-      marginBottom: 18,
+      marginBottom: 15,
       borderWidth: 1,
       borderColor: theme.colors.white,
       justifyContent: "center",
@@ -175,6 +212,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
       flexDirection: "row",
       width: "100%",
       justifyContent: "space-between",
+      // paddingBottom: 30,
     },
     buttonWrapper: {
       width: "40%",
@@ -191,6 +229,9 @@ export default function CreatePupilAccountScreen({ navigation }) {
       fontSize: 16,
       color: theme.colors.white,
     },
+    inputWrapperContainer: {
+      width: 250,
+    },
   });
 
   return (
@@ -199,111 +240,140 @@ export default function CreatePupilAccountScreen({ navigation }) {
         colors={theme.colors.gradientBlue}
         style={styles.container}
       >
-        <View style={styles.card}>
-          <Text style={styles.title}>Create Pupil</Text>
+        <ScrollView
+          contentContainerStyle={styles.card}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>{t("createPupilTitle")}</Text>
 
           {/* Full Name */}
-          <Text style={styles.label}>Full Name</Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              focusedField === "fullName" && {
-                borderColor: theme.colors.blueDark,
-                elevation: 8,
-              },
-            ]}
-          >
-            <TextInput
-              value={fullName}
-              onChangeText={setFullName}
-              style={styles.input}
-              placeholder="Enter full name"
-              placeholderTextColor={theme.colors.grayMedium}
-              onFocus={() => setFocusedField("fullName")}
-              onBlur={() => setFocusedField(null)}
-            />
-          </View>
-
-          {/* Nickname */}
-          <Text style={styles.label}>Nick Name</Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              focusedField === "nickName" && {
-                borderColor: theme.colors.blueDark,
-                elevation: 8,
-              },
-            ]}
-          >
-            <TextInput
-              value={nickName}
-              onChangeText={setNickName}
-              style={styles.input}
-              placeholder="Enter nickname"
-              placeholderTextColor={theme.colors.grayMedium}
-              onFocus={() => setFocusedField("nickName")}
-              onBlur={() => setFocusedField(null)}
-            />
-          </View>
-
-          {/* Grade */}
-          <Text style={styles.label}>Grade</Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              focusedField === "class" && {
-                borderColor: theme.colors.blueDark,
-                elevation: 8,
-              },
-            ]}
-          >
-            <Picker
-              selectedValue={studentClass}
-              onValueChange={(itemValue) => setStudentClass(itemValue)}
-              dropdownIconColor={theme.colors.grayDark}
+          <View style={styles.inputWrapperContainer}>
+            <Text style={styles.label}>{t("fullName")}</Text>
+            <View
               style={[
-                styles.input,
-                { paddingLeft: 0 }, // Loại bỏ padding để chữ không bị lệch
-              ]}
-            >
-              <Picker.Item
-                label="Select grade"
-                value=""
-                color={theme.colors.grayMedium}
-              />
-              <Picker.Item label="Grade 1" value="1" />
-              <Picker.Item label="Grade 2" value="2" />
-              <Picker.Item label="Grade 3" value="3" />
-            </Picker>
-          </View>
-
-          {/* Birthday */}
-          <Text style={styles.label}>Birthday</Text>
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={[
-              styles.inputWrapper,
-              focusedField === "birthday" && {
-                borderColor: theme.colors.blueDark,
-                elevation: 8,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.input,
-                {
-                  color: birthdayDate
-                    ? theme.colors.grayDark
-                    : theme.colors.grayMedium,
+                styles.inputWrapper,
+                focusedField === "fullName" && {
+                  borderColor: theme.colors.blueDark,
+                  elevation: 8,
                 },
               ]}
             >
-              {birthdayDate
-                ? birthdayDate.toISOString().split("T")[0]
-                : "Select birthday"}
-            </Text>
-          </TouchableOpacity>
+              <TextInput
+                value={fullName}
+                onChangeText={setFullName}
+                style={styles.input}
+                placeholder={t("enterFullName")}
+                placeholderTextColor={theme.colors.grayMedium}
+                onFocus={() => setFocusedField("fullName")}
+                onBlur={() => setFocusedField(null)}
+              />
+            </View>
+            {errors.fullName && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.fullName}
+              </Text>
+            )}
+          </View>
+
+          {/* Nickname */}
+          <View style={styles.inputWrapperContainer}>
+            <Text style={styles.label}>{t("nickName")}</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                focusedField === "nickName" && {
+                  borderColor: theme.colors.blueDark,
+                  elevation: 8,
+                },
+              ]}
+            >
+              <TextInput
+                value={nickName}
+                onChangeText={setNickName}
+                style={styles.input}
+                placeholder={t("enterNickName")}
+                placeholderTextColor={theme.colors.grayMedium}
+                onFocus={() => setFocusedField("nickName")}
+                onBlur={() => setFocusedField(null)}
+              />
+            </View>
+            {errors.nickName && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.nickName}
+              </Text>
+            )}
+          </View>
+
+          {/* Grade */}
+          <View style={styles.inputWrapperContainer}>
+            <Text style={styles.label}>{t("grade")}</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                focusedField === "class" && {
+                  borderColor: theme.colors.blueDark,
+                  elevation: 8,
+                },
+              ]}
+            >
+              <Picker
+                selectedValue={studentClass}
+                onValueChange={(itemValue) => setStudentClass(itemValue)}
+                dropdownIconColor={theme.colors.grayDark}
+                style={[styles.input, { paddingLeft: 0 }]}
+              >
+                <Picker.Item
+                  label={t("selectGrade")}
+                  value=""
+                  color={theme.colors.grayMedium}
+                />
+                <Picker.Item label={t("grade_1", { number: 1 })} value="1" />
+                <Picker.Item label={t("grade_2", { number: 2 })} value="2" />
+                <Picker.Item label={t("grade_3", { number: 3 })} value="3" />
+              </Picker>
+            </View>
+            {errors.studentClass && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.studentClass}
+              </Text>
+            )}
+          </View>
+
+          {/* Birthday */}
+          <View style={styles.inputWrapperContainer}>
+            <Text style={styles.label}>{t("birthday")}</Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              style={[
+                styles.inputWrapper,
+                focusedField === "birthday" && {
+                  borderColor: theme.colors.blueDark,
+                  elevation: 8,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.input,
+                  {
+                    color: birthdayDate
+                      ? theme.colors.grayDark
+                      : theme.colors.grayMedium,
+                  },
+                ]}
+              >
+                {birthdayDate
+                  ? birthdayDate.toISOString().split("T")[0]
+                  : t("selectBirthday")}
+              </Text>
+            </TouchableOpacity>
+            {errors.birthday && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.birthday}
+              </Text>
+            )}
+          </View>
 
           {showDatePicker && (
             <DateTimePicker
@@ -315,34 +385,36 @@ export default function CreatePupilAccountScreen({ navigation }) {
                 setShowDatePicker(Platform.OS === "ios");
                 if (selectedDate) {
                   setBirthdayDate(selectedDate);
-                  setBirthday(selectedDate.toISOString().split("T")[0]);
                 }
               }}
             />
           )}
+
           {/* Gender */}
-          <Text style={styles.label}>Gender</Text>
-          <RadioButton.Group
-            onValueChange={(value) => setGender(value)}
-            value={gender}
-          >
-            <View style={styles.checkboxGroup}>
-              <View style={styles.checkboxItem}>
-                <RadioButton
-                  value="female"
-                  color={theme.colors.checkBoxBackground}
-                />
-                <Text style={styles.checkboxLabel}>Female</Text>
+          <View style={styles.inputWrapperContainer}>
+            <Text style={styles.label}>{t("gender")}</Text>
+            <RadioButton.Group
+              onValueChange={(value) => setGender(value)}
+              value={gender}
+            >
+              <View style={styles.checkboxGroup}>
+                <View style={styles.checkboxItem}>
+                  <RadioButton
+                    value="female"
+                    color={theme.colors.checkBoxBackground}
+                  />
+                  <Text style={styles.checkboxLabel}>{t("female")}</Text>
+                </View>
+                <View style={styles.checkboxItem}>
+                  <RadioButton
+                    value="male"
+                    color={theme.colors.checkBoxBackground}
+                  />
+                  <Text style={styles.checkboxLabel}>{t("male")}</Text>
+                </View>
               </View>
-              <View style={styles.checkboxItem}>
-                <RadioButton
-                  value="male"
-                  color={theme.colors.checkBoxBackground}
-                />
-                <Text style={styles.checkboxLabel}>Male</Text>
-              </View>
-            </View>
-          </RadioButton.Group>
+            </RadioButton.Group>
+          </View>
 
           {/* Buttons */}
           <View style={styles.buttonRow}>
@@ -354,7 +426,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
               <View
                 style={[styles.button, { backgroundColor: theme.colors.red }]}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{t("cancel")}</Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
@@ -365,11 +437,28 @@ export default function CreatePupilAccountScreen({ navigation }) {
               <View
                 style={[styles.button, { backgroundColor: theme.colors.green }]}
               >
-                <Text style={styles.buttonText}>Create</Text>
+                <Text style={styles.buttonText}>{t("create")}</Text>
               </View>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
+        <FullScreenLoading visible={isLoading} color={theme.colors.white} />
+        <MessageError
+          visible={showError}
+          title={errorContent.title}
+          description={errorContent.description}
+          onClose={() => setShowError(false)}
+        />
+
+        <MessageSuccess
+          visible={showSuccess}
+          title={successContent.title}
+          description={successContent.description}
+          onClose={() => {
+            setShowSuccess(false);
+            navigation.goBack();
+          }}
+        />
       </LinearGradient>
     </TouchableWithoutFeedback>
   );

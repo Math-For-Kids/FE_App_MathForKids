@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  FlatList,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
@@ -8,9 +15,9 @@ import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-
+import FullScreenLoading from "../../components/FullScreenLoading";
 export default function LevelScreen({ navigation, route }) {
-  const colony = 'colony';
+  const colony = "colony";
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("common");
   const { skillName, grade, lessonId } = route.params;
@@ -45,17 +52,17 @@ export default function LevelScreen({ navigation, route }) {
   };
 
   const handleContinue = () => {
-  if (selectedLevels.length === 0) {
-    alert(t("pleaseSelectLevel"));
-    return;
-  }
-  navigation.navigate("ExerciseDetailScreen", {
-    levelIds: selectedLevels, // Pass the array of selected level IDs
-    lessonId, // Pass the lessonId from route.params
-    skillName, // Pass the skillName from route.params
-    grade, // Pass the grade from route.params
-  });
-};
+    if (selectedLevels.length === 0) {
+      alert(t("pleaseSelectLevel"));
+      return;
+    }
+    navigation.navigate("ExerciseDetailScreen", {
+      levelIds: selectedLevels, // Pass the array of selected level IDs
+      lessonId, // Pass the lessonId from route.params
+      skillName, // Pass the skillName from route.params
+      grade, // Pass the grade from route.params
+    });
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -149,11 +156,24 @@ export default function LevelScreen({ navigation, route }) {
 
   const renderLevelItem = ({ item }) => (
     <LinearGradient
-      colors={selectedLevels.includes(item.id) ? getSelectedGradient() : getGradientBySkill()}
+      colors={
+        selectedLevels.includes(item.id)
+          ? getSelectedGradient()
+          : getGradientBySkill()
+      }
       style={styles.card}
     >
       <TouchableOpacity onPress={() => toggleLevelSelection(item.id)}>
-        <Text style={[styles.cardLabel, { color: selectedLevels.includes(item.id) ? theme.colors.black : theme.colors.white }]}>
+        <Text
+          style={[
+            styles.cardLabel,
+            {
+              color: selectedLevels.includes(item.id)
+                ? theme.colors.black
+                : theme.colors.white,
+            },
+          ]}
+        >
           {item.name[i18n.language]}
         </Text>
       </TouchableOpacity>
@@ -173,7 +193,6 @@ export default function LevelScreen({ navigation, route }) {
           <Text style={styles.skillName}>{t(skillName)}</Text>
         </View>
       </LinearGradient>
-
       {loading ? (
         <Text style={styles.loadingText}>{t("loading")}</Text>
       ) : error ? (
@@ -187,7 +206,6 @@ export default function LevelScreen({ navigation, route }) {
           numColumns={2}
         />
       )}
-
       <LinearGradient
         colors={getGradientBySkill()}
         style={styles.continueButton}
@@ -196,8 +214,8 @@ export default function LevelScreen({ navigation, route }) {
           <Text style={styles.continueButtonText}>{t("continue")}</Text>
         </TouchableOpacity>
       </LinearGradient>
-
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </View>
   );
 }

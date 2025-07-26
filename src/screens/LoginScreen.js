@@ -8,40 +8,60 @@ import {
   Image,
   TouchableWithoutFeedback,
   Keyboard,
-  Alert,
+  ScrollView,
+  ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { sendOTPByPhone, sendOTPByEmail } from "../redux/authSlice";
 import { Fonts } from "../../constants/Fonts";
 import { useTheme } from "../themes/ThemeContext";
 import useSound from "../audio/useSound";
 import { useTranslation } from "react-i18next";
-
+import MessageError from "../components/MessageError";
+import FullScreenLoading from "../components/FullScreenLoading";
 export default function LoginScreen({ navigation }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
 
   const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
   const { play } = useSound();
   const { t } = useTranslation("login");
-
+  const [errors, setErrors] = useState({});
+  const loading = useSelector((state) => state.auth.loading);
   const handleLogin = async () => {
     play("openClick");
 
     const value = inputValue.trim();
+    const newErrors = {};
+
     if (!value) {
-      return Alert.alert(t("errorTitle"), t("errorEnterContact"));
+      newErrors.contact = t("errorEnterContact");
+    } else if (
+      !/^[0-9]{9,15}$/.test(value) &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    ) {
+      newErrors.contact = t("errorInvalidContact");
     }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
     const isPhone = /^[0-9]{9,15}$/.test(value);
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    if (!isPhone && !isEmail) {
-      return Alert.alert(t("invalidTitle"), t("errorInvalidContact"));
-    }
 
     try {
+      setIsLoading(true);
+
       const sendAction = isEmail ? sendOTPByEmail : sendOTPByPhone;
       const contactKey = isEmail ? "email" : "phoneNumber";
       const result = await dispatch(
@@ -71,7 +91,14 @@ export default function LoginScreen({ navigation }) {
       } else if (typeof err === "string") {
         msg = err;
       }
-      Alert.alert(t("loginFailedTitle"), msg);
+
+      setErrorContent({
+        title: t("loginFailedTitle"),
+        description: msg,
+      });
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,9 +114,9 @@ export default function LoginScreen({ navigation }) {
       height: "90%",
       borderRadius: 20,
       padding: 30,
-      marginTop: 25,
+      marginTop: 45,
       alignItems: "center",
-      elevation: 10,
+      elevation: 3,
     },
     logo: {
       width: 150,
@@ -157,6 +184,28 @@ export default function LoginScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_MEDIUM,
       marginLeft: 5,
     },
+    errorText: {
+      color: "red",
+      fontSize: 12,
+      marginTop: -10,
+      marginBottom: 10,
+      alignSelf: "flex-start",
+      width: "100%",
+    },
+    inputWrapperContainer: {
+      width: 250,
+    },
+    overlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: Dimensions.get("window").width,
+      height: Dimensions.get("window").height,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 999,
+    },
   });
 
   return (
@@ -165,49 +214,64 @@ export default function LoginScreen({ navigation }) {
         colors={theme.colors.gradientBlue}
         style={styles.container}
       >
-        <View style={styles.card}>
+        <ScrollView
+          contentContainerStyle={styles.card}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Image
             source={isDarkMode ? theme.icons.logoDark : theme.icons.logoLight}
             style={styles.logo}
             resizeMode="contain"
           />
           <Text style={styles.title}>{t("title")}</Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              isFocused && styles.inputWrapperFocused,
-            ]}
-          >
-            <TextInput
-              style={styles.input}
-              placeholder={t("placeholder")}
-              placeholderTextColor={theme.colors.grayLight}
-              value={inputValue}
-              onChangeText={setInputValue}
-              onFocus={() => {
-                play("openClick");
-                setIsFocused(true);
-              }}
-              onBlur={() => {
-                play("closeClick");
-                setIsFocused(false);
-              }}
-            />
-          </View>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.buttonWrapper}
-            onPress={handleLogin}
-          >
-            <LinearGradient
-              colors={theme.colors.gradientBlue}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.button}
+
+          <View style={styles.inputWrapperContainer}>
+            <View
+              style={[
+                styles.inputWrapper,
+                isFocused && styles.inputWrapperFocused,
+              ]}
             >
-              <Text style={styles.buttonText}>{t("loginButton")}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <TextInput
+                style={styles.input}
+                placeholder={t("placeholder")}
+                placeholderTextColor={theme.colors.grayLight}
+                value={inputValue}
+                onChangeText={setInputValue}
+                onFocus={() => {
+                  play("openClick");
+                  setIsFocused(true);
+                }}
+                onBlur={() => {
+                  play("closeClick");
+                  setIsFocused(false);
+                }}
+              />
+            </View>
+            {errors.contact && (
+              <Text style={styles.errorText}>{errors.contact}</Text>
+            )}
+          </View>
+
+          <View style={styles.inputWrapperContainer}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.buttonWrapper}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              <LinearGradient
+                colors={theme.colors.gradientBlue}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.button}
+              >
+                <Text style={styles.buttonText}>{t("loginButton")}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.footer}>
             <Text style={styles.footerText}>{t("noAccount")}</Text>
             <TouchableOpacity
@@ -219,7 +283,22 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.registerText}>{t("registerLink")}</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
+
+        {/* Overlay Loading */}
+        {isLoading && (
+          <View style={styles.overlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+
+        <MessageError
+          visible={showError}
+          title={errorContent.title}
+          description={errorContent.description}
+          onClose={() => setShowError(false)}
+        />
+        <FullScreenLoading visible={loading} color={theme.colors.white} />
       </LinearGradient>
     </TouchableWithoutFeedback>
   );

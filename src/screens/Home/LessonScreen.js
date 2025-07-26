@@ -19,6 +19,7 @@ import i18n from "../../i18n";
 import * as Speech from "expo-speech";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
+import FullScreenLoading from "../../components/FullScreenLoading";
 export default function LessonScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, grade, pupilId, skillIcon } = route.params;
@@ -30,12 +31,8 @@ export default function LessonScreen({ navigation, route }) {
   const normalizedSkillName = skillName.toLowerCase();
   // const [activeTab] = useState("Lesson");
   // console.log("skillIcon", skillIcon);
-  const {
-    lessons,
-    loading: lessonLoading,
-    error: lessonError,
-  } = useSelector((state) => state.lesson);
-
+  const { lessons, error: lessonError } = useSelector((state) => state.lesson);
+  const loading = useSelector((state) => state.lesson.loading);
   useFocusEffect(
     useCallback(() => {
       dispatch(
@@ -55,23 +52,6 @@ export default function LessonScreen({ navigation, route }) {
     if (skillName === "Division") return theme.colors.gradientRed;
     return theme.colors.gradientPink;
   };
-
-  const getTab = () => {
-    if (skillName === "Addition") return theme.colors.greenLight;
-    if (skillName === "Subtraction") return theme.colors.purpleLight;
-    if (skillName === "Multiplication") return theme.colors.orangeLight;
-    if (skillName === "Division") return theme.colors.redLight;
-    return theme.colors.pinkLight;
-  };
-
-  const getTabSelected = () => {
-    if (skillName === "Addition") return theme.colors.GreenDark;
-    if (skillName === "Subtraction") return theme.colors.purpleDark;
-    if (skillName === "Multiplication") return theme.colors.orangeDark;
-    if (skillName === "Division") return theme.colors.redDark;
-    return theme.colors.pinkDark;
-  };
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -155,7 +135,6 @@ export default function LessonScreen({ navigation, route }) {
     },
   });
 
-  if (lessonLoading) return <Text>Loading...</Text>;
   if (lessonError) {
     const errorText =
       typeof lessonError === "object"
@@ -241,6 +220,7 @@ export default function LessonScreen({ navigation, route }) {
         })}
       </ScrollView>
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </View>
   );
 }

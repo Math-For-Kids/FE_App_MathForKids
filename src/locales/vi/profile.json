@@ -65,5 +65,19 @@
   "pupilProfiles": "Hồ sơ học sinh",
   "editPupilProfile": "Chỉnh sửa hồ sơ học sinh",
   "selectpupil":"Chọn hồ sơ học sinh",
-  "noPupilsFound": "Không tìm thấy học sinh"
+  "noPupilsFound": "Không tìm thấy học sinh",
+  "fieldRequired": "Vui lòng không để trống.",
+  "ageRangeInvalid": "Tuổi phải từ 18 đến 100.",
+  "emailRequired": "Vui lòng nhập email.",
+  "invalidEmailTitle": "Email không hợp lệ",
+  "invalidEmailMessage": "Vui lòng nhập địa chỉ email hợp lệ.",
+  "invalidPinMessage": "Vui lòng nhập PIN gồm 4 chữ số.",
+  "otpOrUpdateFailed": "Xác thực thất bại hoặc cập nhật không thành công.",
+  "successTitle": "Thành công",
+  "emailUpdateSuccess": "Cập nhật email thành công.",
+  "invalidPhoneMsg": "Vui lòng nhập số điện thoại hợp lệ (10–11 chữ số).",
+  "updatePhoneSuccess": "Cập nhật số điện thoại thành công!",
+  "uploadFailed": "Tải ảnh lên thất bại",
+  "profileUpdated": "Cập nhật hồ sơ thành công",
+  "updateProfileFailed": "Cập nhật hồ sơ thất bại"
 }

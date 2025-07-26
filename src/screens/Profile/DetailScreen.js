@@ -25,6 +25,9 @@ import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
 export default function DetailScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
@@ -36,9 +39,22 @@ export default function DetailScreen({ navigation }) {
   const [newAvatar, setNewAvatar] = useState(null);
   const [editedProfile, setEditedProfile] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
-
+  const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const users = useSelector((state) => state.auth.user);
   const profile = useSelector((state) => state.profile?.info || {});
+  const loading =
+    useSelector((state) => state.auth.loading) ||
+    useSelector((state) => state.profile.loading);
 
   useEffect(() => {
     if (isFocused) {
@@ -82,38 +98,62 @@ export default function DetailScreen({ navigation }) {
       try {
         await dispatch(uploadAvatar({ id: users.id, uri })).unwrap();
         dispatch(profileById(users.id));
-        Alert.alert("Success", "Avatar updated!");
+        setSuccessContent({
+          title: t("successTitle"),
+          description: t("avatarUpdated"),
+        });
+        setShowSuccess(true);
       } catch (error) {
-        Alert.alert("Upload failed", error);
+        setErrorContent({
+          title: t("errorTitle"),
+          description: t("uploadFailed"),
+        });
+        setShowError(true);
       }
     }
   };
 
   const handleSave = async () => {
+    const newErrors = {};
+
     for (const [key, value] of Object.entries(editedProfile)) {
       if (!value || value === "none") {
-        Alert.alert("Missing Info", `Please fill in all fields.`);
-        return;
+        newErrors[key] = t("fieldRequired");
       }
     }
+
     const age =
       new Date().getFullYear() -
       new Date(editedProfile.dateOfBirth).getFullYear();
 
-    if (age < 18 || age > 100) {
-      Alert.alert("Invalid Age", "Age must be between 18 and 100 years.");
+    if (editedProfile.dateOfBirth && (age < 18 || age > 100)) {
+      newErrors.dateOfBirth = t("ageRangeInvalid");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({});
 
     try {
       await dispatch(
         updateProfile({ id: users.id, data: editedProfile })
       ).unwrap();
       dispatch(profileById(users.id));
-      Alert.alert("Success", "Profile updated successfully!");
+      setSuccessContent({
+        title: t("successTitle"),
+        description: t("profileUpdated"),
+      });
+      setShowSuccess(true);
       setModalVisible(false);
     } catch (error) {
-      Alert.alert("Error", "Failed to update profile");
+      setErrorContent({
+        title: t("errorTitle"),
+        description: t("updateProfileFailed"),
+      });
+      setShowError(true);
     }
   };
 
@@ -474,103 +514,115 @@ export default function DetailScreen({ navigation }) {
                       )}
                     </>
                   ) : (
-                    <View
-                      style={[
-                        styles.inputBox,
-                        {
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        },
-                        ["phoneNumber", "email", "pin"].includes(
-                          field.fieldName
-                        ) && {
-                          backgroundColor: theme.colors.grayMedium,
-                        },
-                      ]}
-                    >
-                      {field.fieldName === "dateOfBirth" ? (
-                        <>
-                          <TouchableOpacity
-                            onPress={() => setShowDatePicker(true)}
-                            style={styles.inputBox}
-                          >
-                            <Text
-                              style={[
-                                styles.inputTextBox,
-                                {
-                                  textAlign: "center",
-                                  width: "100%",
-                                },
-                              ]}
+                    <View style={{ marginBottom: 12 }}>
+                      <View
+                        style={[
+                          styles.inputBox,
+                          {
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          },
+                          ["phoneNumber", "email", "pin"].includes(
+                            field.fieldName
+                          ) && {
+                            backgroundColor: theme.colors.grayMedium,
+                          },
+                        ]}
+                      >
+                        {field.fieldName === "dateOfBirth" ? (
+                          <>
+                            <TouchableOpacity
+                              onPress={() => setShowDatePicker(true)}
+                              style={styles.inputBox}
                             >
-                              {editedProfile.dateOfBirth || "Select date"}
+                              <Text
+                                style={[
+                                  styles.inputTextBox,
+                                  {
+                                    textAlign: "center",
+                                    width: "100%",
+                                  },
+                                ]}
+                              >
+                                {editedProfile.dateOfBirth || "Select date"}
+                              </Text>
+                            </TouchableOpacity>
+
+                            {showDatePicker && (
+                              <DateTimePicker
+                                value={
+                                  editedProfile.dateOfBirth
+                                    ? new Date(editedProfile.dateOfBirth)
+                                    : new Date()
+                                }
+                                mode="date"
+                                display="default"
+                                onChange={(event, selectedDate) => {
+                                  setShowDatePicker(false);
+                                  if (selectedDate) {
+                                    const isoDate = selectedDate
+                                      .toISOString()
+                                      .split("T")[0];
+                                    handleChange("dateOfBirth", isoDate);
+                                  }
+                                }}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <TextInput
+                            value={editedProfile[field.fieldName]}
+                            onChangeText={(text) =>
+                              handleChange(field.fieldName, text)
+                            }
+                            editable={
+                              !["phoneNumber", "email", "pin"].includes(
+                                field.fieldName
+                              )
+                            }
+                            style={[
+                              styles.inputTextBox,
+                              { flex: 1 },
+                              ["phoneNumber", "email", "pin"].includes(
+                                field.fieldName
+                              ) && {
+                                color: theme.colors.graySoft,
+                              },
+                            ]}
+                            placeholder={`Enter ${field.label.toLowerCase()}`}
+                            placeholderTextColor={theme.colors.grayMedium}
+                          />
+                        )}
+
+                        {["phoneNumber", "email", "pin"].includes(
+                          field.fieldName
+                        ) && (
+                          <TouchableOpacity
+                            onPress={() => {
+                              if (field.fieldName === "phoneNumber") {
+                                navigation.navigate("ChangePhoneScreen");
+                              } else if (field.fieldName === "email") {
+                                navigation.navigate("ChangeEmailScreen");
+                              } else if (field.fieldName === "pin") {
+                                navigation.navigate("ChangePinScreen");
+                              }
+                            }}
+                            style={styles.editChangeButtonContainer}
+                          >
+                            <Text style={styles.editChangeTextButton}>
+                              Edit
                             </Text>
                           </TouchableOpacity>
+                        )}
+                      </View>
 
-                          {showDatePicker && (
-                            <DateTimePicker
-                              value={
-                                editedProfile.dateOfBirth
-                                  ? new Date(editedProfile.dateOfBirth)
-                                  : new Date()
-                              }
-                              mode="date"
-                              display="default"
-                              onChange={(event, selectedDate) => {
-                                setShowDatePicker(false);
-                                if (selectedDate) {
-                                  const isoDate = selectedDate
-                                    .toISOString()
-                                    .split("T")[0];
-                                  handleChange("dateOfBirth", isoDate);
-                                }
-                              }}
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <TextInput
-                          value={editedProfile[field.fieldName]}
-                          onChangeText={(text) =>
-                            handleChange(field.fieldName, text)
-                          }
-                          editable={
-                            !["phoneNumber", "email", "pin"].includes(
-                              field.fieldName
-                            )
-                          }
-                          style={[
-                            styles.inputTextBox,
-                            { flex: 1 },
-                            ["phoneNumber", "email", "pin"].includes(
-                              field.fieldName
-                            ) && {
-                              color: theme.colors.graySoft,
-                            },
-                          ]}
-                          placeholder={`Enter ${field.label.toLowerCase()}`}
-                          placeholderTextColor={theme.colors.grayMedium}
-                        />
-                      )}
-
-                      {["phoneNumber", "email", "pin"].includes(
-                        field.fieldName
-                      ) && (
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (field.fieldName === "phoneNumber") {
-                              navigation.navigate("ChangePhoneScreen");
-                            } else if (field.fieldName === "email") {
-                              navigation.navigate("ChangeEmailScreen");
-                            } else if (field.fieldName === "pin") {
-                              navigation.navigate("ChangePinScreen");
-                            }
-                          }}
-                          style={styles.editChangeButtonContainer}
+                      {errors[field.fieldName] && (
+                        <Text
+                          style={{ color: "red", fontSize: 12, marginTop: 4 }}
                         >
-                          <Text style={styles.editChangeTextButton}>Edit</Text>
-                        </TouchableOpacity>
+                          {errors[field.fieldName]}
+                        </Text>
                       )}
                     </View>
                   )}
@@ -601,6 +653,21 @@ export default function DetailScreen({ navigation }) {
         </LinearGradient>
       </TouchableOpacity>
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
     </LinearGradient>
   );
 }

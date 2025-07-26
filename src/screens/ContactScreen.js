@@ -14,9 +14,11 @@ import FloatingMenu from "../components/FloatingMenu";
 import { getAllUser } from "../redux/authSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
+import FullScreenLoading from "../components/FullScreenLoading";
 export default function ContactScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const users = useSelector((state) => state.auth.list || []);
+  const loading = useSelector((state) => state.auth.loading);
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   useEffect(() => {
@@ -162,6 +164,7 @@ export default function ContactScreen({ navigation }) {
         )}
       />
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </LinearGradient>
   );
 }

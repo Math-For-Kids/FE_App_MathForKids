@@ -110,21 +110,21 @@ export default function StatisticScreen({ navigation }) {
     {
       label: `${formatWeek(today.subtract(1, "week"))} - ${formatWeek(
         today
-      )} (lastWeek - thisWeek)`,
+      )} (${t("lastWeek")} - ${t("thisWeek")})`,
       rangeType: "week",
       ranges: [formatWeek(today.subtract(1, "week")), formatWeek(today)],
     },
     {
       label: `${formatMonth(today.subtract(1, "month"))} - ${formatMonth(
         today
-      )} (lastMonth - thisMonth)`,
+      )} (${t("lastMonth")} - ${t("thisMonth")})`,
       rangeType: "month",
       ranges: [formatMonth(today.subtract(1, "month")), formatMonth(today)],
     },
     {
       label: `${formatQuarter(today.subtract(1, "quarter"))} - ${formatQuarter(
         today
-      )} (lastQuarter - thisQuarter)`,
+      )} (${t("lastQuarter")} - ${t("thisQuarter")})`,
       rangeType: "quarter",
       ranges: [
         formatQuarter(today.subtract(1, "quarter")),
@@ -216,11 +216,18 @@ export default function StatisticScreen({ navigation }) {
           skill: selectedSkill || null, // Raw skill key
         })
       );
-      if (selectedChart === "trueFalse" && selectedRangeType && selectedRange) {
+      if (
+        selectedPupil &&
+        selectedLesson?.id &&
+        selectedRangeType &&
+        selectedRange
+      ) {
         dispatch(
           getAnswerStats({
             pupilId: selectedPupil?.id,
+            grade: selectedPupil?.grade,
             skill: selectedSkill,
+            lessonId: selectedLesson.id,
             rangeType: selectedRangeType,
             ranges: selectedRange,
           })

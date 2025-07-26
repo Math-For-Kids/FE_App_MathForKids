@@ -65,5 +65,16 @@
   "pupilProfiles": "Pupil Profiles",
   "editPupilProfile": "Edit Pupil Profile",
   "selectpupil":"Select student profile",
-  "noPupilsFound": "No pupils found"
+  "noPupilsFound": "No pupils found",
+  "fieldRequired": "Please do not leave blank.",
+  "ageRangeInvalid": "Age must be between 18 and 100.",
+  "emailRequired": "Please enter an email.",
+  "invalidEmailTitle": "Invalid email",
+  "invalidEmailMessage": "Please enter a valid email address.",
+  "invalidPinMessage": "Please enter 4-digit PIN.",
+  "otpOrUpdateFailed": "Authentication failed or update failed.",
+  "successTitle": "Success",
+  "emailUpdateSuccess": "Email updated successfully.",
+  "invalidPhoneMsg": "Please enter a valid phone number (10–11 digits).",
+  "updatePhoneSuccess": "Phone number updated successfully!"
 }

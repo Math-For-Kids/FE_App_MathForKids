@@ -15,17 +15,21 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import { sendOTPByPhone, verifyOnlyOTP, updateUser } from "../redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
-
+import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
 const steps = [
-  { title: "Confirm phone number" },
-  { title: "Verify OTP" },
-  { title: "Create PIN" },
+  { key: "step1", title: "confirmPhone" },
+  { key: "step2", title: "verifyOTP" },
+  { key: "step3", title: "createPIN" },
 ];
 
 export default function ForgetPinScreen({ navigation }) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const loading = useSelector((state) => state.auth.loading);
   const [currentStep, setCurrentStep] = useState(0);
   const [contact] = useState(user?.phoneNumber || "");
   const [otp, setOtp] = useState("");
@@ -33,11 +37,21 @@ export default function ForgetPinScreen({ navigation }) {
   const [confirmPin, setConfirmPin] = useState(["", "", "", ""]);
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
-
+  const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const otpInputs = useRef([]);
   const inputs = useRef([]);
   const confirmInputs = useRef([]);
-
+  const { t, i18n } = useTranslation("forgotPin");
   const handleChangePin = (val, index, isConfirm = false) => {
     const updated = isConfirm ? [...confirmPin] : [...newPin];
     updated[index] = val.replace(/[^0-9]/g, "");
@@ -46,26 +60,47 @@ export default function ForgetPinScreen({ navigation }) {
   // console.log("userId", user?.id);
   const handleSendOTP = () => {
     if (!contact || !user?.id) {
-      Alert.alert("Notice", "Missing user ID or phone number.");
+      setErrorContent({
+        title: t("noticeTitle"),
+        description: t("missingUserOrPhone"),
+      });
+      setShowError(true);
       return;
     }
 
     dispatch(sendOTPByPhone({ userId: user?.id, phoneNumber: contact }))
       .unwrap()
       .then(() => {
-        Alert.alert("Success", "OTP has been sent.");
+        setSuccessContent({
+          title: t("successTitle"),
+          description: t("successOtpSent"),
+        });
+        setShowSuccess(true);
         setCurrentStep(1);
       })
       .catch((err) => {
-        Alert.alert("Error", err || "Failed to send OTP.");
+        const msg =
+          typeof err === "object"
+            ? err[i18n.language] || err.en || err.vi
+            : String(err);
+        setErrorContent({
+          title: t("errorTitle"),
+          description: msg || t("sendOtpFailed"),
+        });
+        setShowError(true);
       });
   };
 
   const handleVerifyOTP = () => {
-    if (!user?.id || otp.length !== 4) {
-      Alert.alert("Invalid", "Missing user ID or invalid OTP.");
+    const newErrors = {};
+
+    if (!otp || otp.length !== 4) {
+      newErrors.otp = t("otpRequired");
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({});
 
     dispatch(verifyOnlyOTP({ userId: user?.id, otpCode: otp }))
       .unwrap()
@@ -73,32 +108,59 @@ export default function ForgetPinScreen({ navigation }) {
         setCurrentStep(2);
       })
       .catch((err) => {
-        Alert.alert("Invalid OTP", err || "Please check again.");
+        const msg =
+          typeof err === "object"
+            ? err[i18n.language] || err.en || err.vi
+            : String(err);
+
+        setErrorContent({
+          title: t("errorTitle"),
+          description: msg || t("otpInvalid"),
+        });
+        setShowError(true);
       });
   };
 
   const handleResetPin = () => {
     const np = newPin.join("");
     const cp = confirmPin.join("");
+    const newErrors = {};
 
-    if (np.length !== 4 || cp.length !== 4) {
-      Alert.alert("Error", "PIN must be 4 digits.");
+    if (np.length !== 4) {
+      newErrors.newPin = t("pinRequired");
+    }
+
+    if (cp.length !== 4) {
+      newErrors.confirmPin = t("confirmPinRequired");
+    }
+
+    if (np.length === 4 && cp.length === 4 && np !== cp) {
+      newErrors.confirmPin = t("pinNotMatch");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (np !== cp) {
-      Alert.alert("Error", "PINs do not match.");
-      return;
-    }
+    setErrors({});
 
     dispatch(updateUser({ id: user?.id, data: { pin: np } }))
       .unwrap()
       .then(() => {
-        Alert.alert("Success", "PIN has been reset.");
+        setSuccessContent({
+          title: t("successTitle"),
+          description: t("successResetPin"),
+        });
+        setShowSuccess(true);
         navigation.navigate("AccountScreen");
       })
       .catch((err) => {
-        Alert.alert("Error", err?.message || "Something went wrong.");
+        setErrorContent({
+          title: t("errorTitle"),
+          description: err?.message || t("resetPinFailed"),
+        });
+        setShowError(true);
       });
   };
 
@@ -113,15 +175,16 @@ export default function ForgetPinScreen({ navigation }) {
               style={styles.button}
             >
               <TouchableOpacity onPress={handleSendOTP}>
-                <Text style={styles.buttonText}>Send OTP</Text>
+                <Text style={styles.buttonText}>{t("sendOtp")}</Text>
               </TouchableOpacity>
             </LinearGradient>
           </View>
         );
+
       case 1:
         return (
           <View style={styles.cardContent}>
-            <Text style={styles.stepTitle}>Enter OTP</Text>
+            <Text style={styles.stepTitle}>{t("enterOTP")}</Text>
             <View style={styles.pinWrapper}>
               {[0, 1, 2, 3].map((index) => (
                 <TextInput
@@ -154,12 +217,18 @@ export default function ForgetPinScreen({ navigation }) {
                 />
               ))}
             </View>
+            {errors.otp && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.otp}
+              </Text>
+            )}
+
             <LinearGradient
               colors={theme.colors.gradientBlue}
               style={styles.button}
             >
               <TouchableOpacity onPress={handleVerifyOTP}>
-                <Text style={styles.buttonText}>Confirm</Text>
+                <Text style={styles.buttonText}>{t("sendOtp")}</Text>
               </TouchableOpacity>
             </LinearGradient>
           </View>
@@ -167,7 +236,7 @@ export default function ForgetPinScreen({ navigation }) {
       case 2:
         return (
           <View style={styles.cardContent}>
-            <Text style={styles.stepTitle}>Create New PIN</Text>
+            <Text style={styles.stepTitle}>{t("createNewPin")}</Text>
             <View style={styles.pinWrapper}>
               {newPin.map((digit, index) => (
                 <TextInput
@@ -209,8 +278,12 @@ export default function ForgetPinScreen({ navigation }) {
                 />
               </TouchableOpacity>
             </View>
-
-            <Text style={styles.stepTitle}>Confirm New PIN</Text>
+            {errors.newPin && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.newPin}
+              </Text>
+            )}
+            <Text style={styles.stepTitle}>{t("confirmNewPin")}</Text>
             <View style={styles.pinWrapper}>
               {confirmPin.map((digit, index) => (
                 <TextInput
@@ -252,13 +325,17 @@ export default function ForgetPinScreen({ navigation }) {
                 />
               </TouchableOpacity>
             </View>
-
+            {errors.confirmPin && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 10 }}>
+                {errors.confirmPin}
+              </Text>
+            )}
             <LinearGradient
               colors={theme.colors.gradientBlue}
               style={styles.button}
             >
               <TouchableOpacity onPress={handleResetPin}>
-                <Text style={styles.buttonText}>Confirm</Text>
+                <Text style={styles.buttonText}>{t("confirm")}</Text>
               </TouchableOpacity>
             </LinearGradient>
           </View>
@@ -392,7 +469,7 @@ export default function ForgetPinScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Forgot pin</Text>
+        <Text style={styles.title}>{t("screenTitle")}</Text>
       </LinearGradient>
       <ScrollView>
         {steps.map((step, index) => (
@@ -441,13 +518,35 @@ export default function ForgetPinScreen({ navigation }) {
                       : theme.colors.grayDark,
                 }}
               >
-                {`Step ${index + 1}: ${step.title}`}
+                {`${t(steps[index].key)}: ${t(steps[index].title)}`}
               </Text>
             </View>
             {index === currentStep && renderStepContent()}
           </View>
         ))}
       </ScrollView>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onClose={confirmPupilSelection}
+        onCancel={() => setShowConfirm(false)}
+      />
     </LinearGradient>
   );
 }

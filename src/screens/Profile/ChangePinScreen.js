@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
@@ -15,18 +16,29 @@ import { useDispatch, useSelector } from "react-redux";
 import { updatePin, profileById } from "../../redux/profileSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
 export default function ChangePinScreen({ navigation }) {
   const { theme } = useTheme();
-  const { t } = useTranslation("profile");
+  const { t, i18n } = useTranslation("profile");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-  const profile = useSelector((state) => state.profile?.info || {});
-
+  const loading = useSelector((state) => state.auth.loading);
+  const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const [currentPin, setCurrentPin] = useState(["", "", "", ""]);
   const [newPin, setNewPin] = useState(["", "", "", ""]);
   const [confirmPin, setConfirmPin] = useState(["", "", "", ""]);
-
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -45,36 +57,44 @@ export default function ChangePinScreen({ navigation }) {
     if (!value && index > 0) refs[index - 1].current.focus();
   };
 
-  const renderPinInputs = (pin, setPin, refs, show, setShow) => (
-    <View style={styles.pinRowContainer}>
-      <View style={styles.pinRow}>
-        {pin.map((digit, index) => (
-          <TextInput
-            key={index}
-            ref={refs[index]}
-            style={styles.pinBox}
-            value={digit}
-            onChangeText={(val) => handleInput(val, index, pin, setPin, refs)}
-            maxLength={1}
-            keyboardType="number-pad"
-            secureTextEntry={!show}
-            textAlign="center"
-            color={theme.colors.blueDark}
-          />
-        ))}
-      </View>
-      <TouchableOpacity
-        onPress={() => setShow(!show)}
-        style={styles.lockIconContainer}
-      >
-        <View style={styles.lockIcon}>
-          <Ionicons
-            name={show ? "eye" : "eye-off"}
-            size={14}
-            color={theme.colors.blueGray}
-          />
+  const renderPinInputs = (pin, setPin, refs, show, setShow, errorKey) => (
+    <View style={{ marginBottom: 20 }}>
+      <View style={styles.pinRowContainer}>
+        <View style={styles.pinRow}>
+          {pin.map((digit, index) => (
+            <TextInput
+              key={index}
+              ref={refs[index]}
+              style={styles.pinBox}
+              value={digit}
+              onChangeText={(val) => handleInput(val, index, pin, setPin, refs)}
+              maxLength={1}
+              keyboardType="number-pad"
+              secureTextEntry={!show}
+              textAlign="center"
+              color={theme.colors.blueDark}
+            />
+          ))}
         </View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setShow(!show)}
+          style={styles.lockIconContainer}
+        >
+          <View style={styles.lockIcon}>
+            <Ionicons
+              name={show ? "eye" : "eye-off"}
+              size={14}
+              color={theme.colors.blueGray}
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {errors[errorKey] && (
+        <Text style={{ color: theme.colors.red, fontSize: 10 }}>
+          {errors[errorKey]}
+        </Text>
+      )}
     </View>
   );
 
@@ -82,13 +102,19 @@ export default function ChangePinScreen({ navigation }) {
     const current = currentPin.join("");
     const newCode = newPin.join("");
     const confirm = confirmPin.join("");
+    setErrors({});
+    const newErrors = {};
+    if (!/^\d{4}$/.test(current)) newErrors.currentPin = t("invalidPinMsg");
+    if (!/^\d{4}$/.test(newCode)) newErrors.newPin = t("invalidPinMsg");
+    if (!/^\d{4}$/.test(confirm)) newErrors.confirmPin = t("invalidPinMsg");
 
-    if (![current, newCode, confirm].every((code) => /^\d{4}$/.test(code))) {
-      Alert.alert(t("invalidPinTitle"), t("invalidPinMsg"));
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
     if (newCode !== confirm) {
-      Alert.alert(t("mismatchPinTitle"), t("mismatchPinMsg"));
+      setErrors({ confirmPin: t("mismatchPinMsg") });
       return;
     }
 
@@ -97,8 +123,11 @@ export default function ChangePinScreen({ navigation }) {
         updatePin({ id: user.id, data: { oldPin: current, newPin: newCode } })
       ).unwrap();
       dispatch(profileById(user.id));
-      Alert.alert(t("success"), t("updateSuccess"));
-      navigation.goBack();
+      setSuccessContent({
+        title: t("success"),
+        description: t("updateSuccess"),
+      });
+      setShowSuccess(true);
     } catch (error) {
       const msg =
         typeof error === "object"
@@ -106,7 +135,12 @@ export default function ChangePinScreen({ navigation }) {
           : typeof error === "string"
           ? error
           : t("updateFailed");
-      Alert.alert(t("incorrectPinTitle"), msg);
+
+      setErrorContent({
+        title: t("incorrectPinTitle"),
+        description: msg,
+      });
+      setShowError(true);
     }
   };
 
@@ -121,7 +155,7 @@ export default function ChangePinScreen({ navigation }) {
       borderBottomLeftRadius: 50,
       borderBottomRightRadius: 50,
       elevation: 3,
-      marginBottom: 30,
+      marginBottom: 10,
     },
     backContainer: {
       position: "absolute",
@@ -137,7 +171,7 @@ export default function ChangePinScreen({ navigation }) {
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.white,
     },
-    section: { flex: 1, paddingHorizontal: 20, marginTop: 20 },
+    section: { flex: 1, paddingHorizontal: 20, marginTop: 10 },
     label: {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.white,
@@ -154,7 +188,7 @@ export default function ChangePinScreen({ navigation }) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 20,
+      marginBottom: 10,
     },
     pinRow: {
       flexDirection: "row",
@@ -211,20 +245,32 @@ export default function ChangePinScreen({ navigation }) {
         <Text style={styles.title}>{t("changePin")}</Text>
       </LinearGradient>
 
-      <View style={styles.section}>
-        <Text style={[styles.label, { marginTop: 10 }]}>{t("currentPin")}</Text>
+      <ScrollView
+        contentContainerStyle={styles.section}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.label]}>{t("currentPin")}</Text>
         <Text style={styles.hint}>{t("currentPinHint")}</Text>
         {renderPinInputs(
           currentPin,
           setCurrentPin,
           pinRefs.current,
           showCurrent,
-          setShowCurrent
+          setShowCurrent,
+          "currentPin"
         )}
 
         <Text style={styles.label}>{t("newPin")}</Text>
         <Text style={styles.hint}>{t("newPinHint")}</Text>
-        {renderPinInputs(newPin, setNewPin, pinRefs.new, showNew, setShowNew)}
+        {renderPinInputs(
+          newPin,
+          setNewPin,
+          pinRefs.new,
+          showNew,
+          setShowNew,
+          "newPin"
+        )}
 
         <Text style={styles.label}>{t("confirmPin")}</Text>
         <Text style={styles.hint}>{t("confirmPinHint")}</Text>
@@ -233,9 +279,10 @@ export default function ChangePinScreen({ navigation }) {
           setConfirmPin,
           pinRefs.confirm,
           showConfirm,
-          setShowConfirm
+          setShowConfirm,
+          "confirmPin"
         )}
-      </View>
+      </ScrollView>
 
       <TouchableOpacity onPress={handleChangePin}>
         <LinearGradient
@@ -245,6 +292,22 @@ export default function ChangePinScreen({ navigation }) {
           <Text style={styles.confirmText}>{t("update")}</Text>
         </LinearGradient>
       </TouchableOpacity>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+          navigation.navigate("PrivacyScreen");
+        }}
+      />
     </LinearGradient>
   );
 }

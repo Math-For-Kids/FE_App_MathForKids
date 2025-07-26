@@ -21,16 +21,16 @@ import {
 import {
   notificationsByPupilId,
   updatePupilNotification,
-  createPupilNotification
+  createPupilNotification,
 } from "../redux/pupilNotificationSlice";
-import {
-  getExchangeReward,
-  updateExchangeReward
-} from "../redux/rewardSlice";
+import { getExchangeReward, updateExchangeReward } from "../redux/rewardSlice";
 
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import FullScreenLoading from "../components/FullScreenLoading";
+import MessageError from "../components/MessageError";
+import MessageSuccess from "../components/MessageSuccess";
 export default function NotificationScreen({ navigation, route }) {
   const { theme, isDarkMode } = useTheme();
   const { userId, pupilId } = route.params || {};
@@ -38,10 +38,22 @@ export default function NotificationScreen({ navigation, route }) {
   const [expandedId, setExpandedId] = useState(null);
   const [rewardData, setRewardData] = useState({});
   const user = useSelector((state) => state.auth.user);
+
+  const [showError, setShowError] = useState(false);
+  const [errorContent, setErrorContent] = useState({
+    title: "",
+    description: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successContent, setSuccessContent] = useState({
+    title: "",
+    description: "",
+  });
   const { t, i18n } = useTranslation("notification");
   const userNotifications = useSelector(
     (state) => state.notifications?.list || []
   );
+  const loading = useSelector((state) => state.notifications.loading);
   const pupilNotifications = useSelector(
     (state) => state.pupilnotifications?.list || []
   );
@@ -293,8 +305,10 @@ export default function NotificationScreen({ navigation, route }) {
                     item.content?.en ||
                     t("noContent")}
                 </Markdown>
-                {item.exchangedRewardId && userId && rewardData[item.exchangedRewardId]
-                  && !rewardData[item.exchangedRewardId].isAccept && (
+                {item.exchangedRewardId &&
+                  userId &&
+                  rewardData[item.exchangedRewardId] &&
+                  !rewardData[item.exchangedRewardId].isAccept && (
                     <TouchableOpacity
                       onPress={async () => {
                         try {
@@ -331,20 +345,19 @@ export default function NotificationScreen({ navigation, route }) {
                               createdAt: new Date(),
                             })
                           ).unwrap();
-                          Alert.alert(
-                            t("success"),
-                            t("rewardConfirmed"),
-                            [{ text: t("ok") }]
-                          );
+                          Alert.alert(t("success"), t("rewardConfirmed"), [
+                            { text: t("ok") },
+                          ]);
                           // Cập nhật lại danh sách thông báo sau khi xác nhận
                           dispatch(notificationsByUserId(userId));
                         } catch (err) {
-                          console.error("Failed to update exchange reward:", err);
-                          Alert.alert(
-                            t("error"),
-                            t("failedToConfirm"),
-                            [{ text: t("ok") }]
+                          console.error(
+                            "Failed to update exchange reward:",
+                            err
                           );
+                          Alert.alert(t("error"), t("failedToConfirm"), [
+                            { text: t("ok") },
+                          ]);
                         }
                       }}
                       style={{
@@ -400,8 +413,8 @@ export default function NotificationScreen({ navigation, route }) {
           </TouchableOpacity>
         )}
       />
-
       <FloatingMenu />
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
     </LinearGradient>
   );
 }

@@ -30,11 +30,16 @@ import {
   getGoalsWithin30Days,
   autoMarkCompletedGoals,
 } from "../../redux/goalSlice";
-
+import FullScreenLoading from "../../components/FullScreenLoading";
+import MessageError from "../../components/MessageError";
+import MessageSuccess from "../../components/MessageSuccess";
+import MessageConfirm from "../../components/MessageConfirm";
+import MessageWarning from "../../components/MessangeWarning";
 export default function TestScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t, i18n } = useTranslation("test");
   const { skillName, lessonId, pupilId, levelIds, skillIcon } = route.params;
+  // console.log("levelIds", levelIds);
   const dispatch = useDispatch();
   const { tests, loading, error } = useSelector((state) => state.test);
   const pupil = useSelector((state) => state.profile.info);
@@ -93,7 +98,13 @@ export default function TestScreen({ navigation, route }) {
           return 0;
         }
         if (prev === 60) {
-          Alert.alert(t("warning"), t("timeAlmostUp"));
+          setWarningContent({
+            title: t("warning"),
+            description: t("timeAlmostUp"),
+            onConfirm: () => setShowWarning(false),
+            showCancelButton: false,
+          });
+          setShowWarning(true);
         }
         return prev - 1;
       });
@@ -240,6 +251,7 @@ export default function TestScreen({ navigation, route }) {
     const answeredCount = Object.keys(userAnswers).length;
     const totalTime =
       (validTests.length > 20 ? 35 : validTests.length > 10 ? 25 : 10) * 60;
+
     clearInterval(timerRef.current);
 
     const { score, correct, wrong } = calculateScore();
@@ -255,6 +267,7 @@ export default function TestScreen({ navigation, route }) {
         const usedTime = totalTime - timer;
         const actualElapsedTime = Math.max(0, usedTime);
         setElapsedTime(actualElapsedTime);
+
         const testPayload = {
           pupilId,
           lessonId,
@@ -278,12 +291,14 @@ export default function TestScreen({ navigation, route }) {
           }));
           await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
         }
+
         await dispatch(getGoalsWithin30Days(pupilId));
         setShowResultModal(true);
 
         if (bonus > 0) {
           dispatch(updatePupilProfile({ id: pupilId, data: { point: newPoint } }));
         }
+
         if (score >= 9) {
           const unlockResult = await dispatch(
             completeAndUnlockNextLesson({ pupilId, lessonId })
@@ -294,58 +309,82 @@ export default function TestScreen({ navigation, route }) {
           );
 
           if (res.payload?.message?.[i18n.language]) {
-            Alert.alert(t("success"), res.payload.message[i18n.language]);
+            setSuccessContent({
+              title: t("success"),
+              description: res.payload.message[i18n.language],
+            });
+            setShowSuccess(true);
           } else if (res.error?.message?.[i18n.language]) {
-            Alert.alert(t("error"), res.error.message[i18n.language]);
+            setErrorContent({
+              title: t("error"),
+              description: res.error.message[i18n.language],
+            });
+            setShowError(true);
           }
           setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
         } else {
           setNextLessonName(null);
         }
       } catch (error) {
-        Alert.alert(t("error"), error.message || t("submissionFailed"), [
-          { text: "OK" },
-        ]);
+        setErrorContent({
+          title: t("error"),
+          description: t("submissionFailed"),
+        });
+        setShowError(true);
       }
     };
 
-    if (answeredCount < validTests.length && timer > 0) {
-      Alert.alert(t("warning"), t("youHaveAnswered"), [
-        {
-          text: t("keepDoing"),
-          style: "cancel",
-          onPress: () => {
-            if (!showResultModal) {
-              timerRef.current = setInterval(() => {
-                setTimer((prev) => {
-                  if (prev <= 1) {
-                    clearInterval(timerRef.current);
-                    handleTimeUp();
-                    return 0;
-                  }
-                  if (prev === 60) {
-                    Alert.alert(t("warning"), t("timeAlmostUp"));
-                  }
-                  return prev - 1;
+    // 👇 Điều kiện hiện cảnh báo (nếu không phải do hết giờ)
+    if (!fromTimeUp && answeredCount < validTests.length && timer > 0) {
+      setWarningContent({
+        title: t("warning"),
+        description: t("youHaveAnswered"),
+        onCancel: () => {
+          clearInterval(timerRef.current); // ✅ clear để tránh đè timer
+          timerRef.current = setInterval(() => {
+            setTimer((prev) => {
+              if (prev <= 1) {
+                clearInterval(timerRef.current);
+                handleTimeUp();
+                return 0;
+              }
+              if (prev === 60) {
+                setWarningContent({
+                  title: t("warning"),
+                  description: t("timeAlmostUp"),
+                  onConfirm: () => setShowWarning(false),
+                  showCancelButton: false,
                 });
-              }, 1000);
-            }
-          },
+                setShowWarning(true);
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          setShowWarning(false);
         },
-        {
-          text: t("submit"),
-          style: "destructive",
-          onPress: doSubmit,
+        onConfirm: async () => {
+          setShowWarning(false);
+          await doSubmit();
         },
-      ]);
+      });
+      setShowWarning(true);
     } else {
+      setFromTimeUp(false);
       await doSubmit();
     }
   };
-
   const handleTimeUp = () => {
-    Alert.alert(t("timeUp"), t("autoSubmit"));
-    handleSubmit();
+    setFromTimeUp(true);
+    setWarningContent({
+      title: t("warning"),
+      description: t("timeEnd"),
+      onConfirm: async () => {
+        setShowWarning(false);
+        await handleSubmit();
+      },
+      showCancelButton: false,
+    });
+    setShowWarning(true);
   };
 
   const formatTime = (seconds) => {
@@ -637,20 +676,16 @@ export default function TestScreen({ navigation, route }) {
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
           onPress={() => {
-            Alert.alert(t("confirm"), t("wantToSkipTest"), [
-              {
-                text: t("no"),
-                style: "cancel",
+            setConfirmContent({
+              title: t("confirm"),
+              description: t("wantToSkipTest"),
+              onConfirm: () => {
+                resetTestState();
+                setShowConfirm(false);
+                navigation.goBack();
               },
-              {
-                text: t("yes"),
-                style: "destructive",
-                onPress: () => {
-                  resetTestState(); // Reset trạng thái khi nhấn back
-                  navigation.goBack();
-                },
-              },
-            ]);
+            });
+            setShowConfirm(true);
           }}
           style={styles.backButton}
         >
@@ -753,8 +788,8 @@ export default function TestScreen({ navigation, route }) {
               ]}
             >
               <Image source={theme.icons.test} style={styles.bearIcon} />
-            </Animated.View>
-          </View>
+            </Animated.View >
+          </View >
           <ScrollView contentContainerStyle={styles.skillsContainer}>
             <View>
               <View style={styles.questionContent}>
@@ -815,7 +850,8 @@ export default function TestScreen({ navigation, route }) {
             </LinearGradient>
           </View>
         </>
-      )}
+      )
+      }
       <Modal visible={showResultModal} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalCardContainer}>
@@ -859,6 +895,36 @@ export default function TestScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </View>
+      <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => {
+          setShowSuccess(false);
+        }}
+      />
+      <MessageWarning
+        visible={showWarning}
+        title={warningContent.title}
+        description={warningContent.description}
+        onCancel={warningContent.onCancel}
+        onConfirm={warningContent.onConfirm}
+        showCancelButton={warningContent.showCancelButton !== false}
+      />
+      <MessageConfirm
+        visible={showConfirm}
+        title={confirmContent.title}
+        description={confirmContent.description}
+        onConfirm={confirmContent.onConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
+    </View >
   );
 }

@@ -40,5 +40,12 @@
   "lessonLocked": "Bài chưa học",
   "lessonCompleted": "Bài đã học",
   "lessonInProgress": "Bài đang học",
-  "alertDateStartDate": "Ngày kết thúc không được sớm hơn ngày bắt đầu."
+  "alertDateStartDate": "Ngày kết thúc không được sớm hơn ngày bắt đầu.",
+  "selectAccountError": "Vui lòng chọn học sinh",
+  "selectSkillTypeError": "Vui lòng chọn kỹ năng",
+  "selectLessonError": "Vui lòng chọn bài học",
+  "selectExerciseError": "Vui lòng chọn cấp độ",
+  "selectRewardError": "Vui lòng chọn phần thưởng",
+  "selectRewardQuantityError": "Vui lòng chọn số lượng phần thưởng",
+  "alertFailTitle": "Thất bại"
 }

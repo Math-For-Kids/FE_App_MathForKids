@@ -376,7 +376,7 @@ export default function createStyles(theme) {
     },
     loadingText: {
       fontSize: 16,
-      color: theme.colors.blueDark,
+      color: theme.colors.white,
       textAlign: "center",
       marginTop: 20,
     },
@@ -552,11 +552,6 @@ export default function createStyles(theme) {
       alignItems: "center",
       paddingVertical: 40,
     },
-    loadingText: {
-      marginTop: 8,
-      fontSize: 14,
-      color: theme.colors.white,
-    },
     loadingOverlay: {
       position: "absolute",
       top: 0,
@@ -567,11 +562,6 @@ export default function createStyles(theme) {
       alignItems: "center",
       backgroundColor: "rgba(255, 255, 255, 0.7)",
       zIndex: 1000,
-    },
-    loadingText: {
-      marginTop: 8,
-      fontSize: 14,
-      color: theme.colors.white,
     },
   });
 }
