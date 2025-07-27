@@ -33,7 +33,7 @@ export default function SkillScreen({ navigation, route }) {
     levelId,
     levelIds,
   } = route.params;
-  console.log("skillIcon", skillIcon);
+  // console.log("skillIcon", skillIcon);
   // console.log("pupilId", pupilId);
   // console.log("lessonId", lessonId);
   // console.log("title", title);
@@ -49,9 +49,18 @@ export default function SkillScreen({ navigation, route }) {
   const [persistedLevels, setPersistedLevels] = useState([]);
   // console.log("selectedLevels", selectedLevels);
   // console.log("persistedLevels", persistedLevels);
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedLevels([]);
+      setPersistedLevels([]);
+      return () => { };
+    }, [])
+  );
+
   useEffect(() => {
     dispatch(getEnabledLevels());
   }, [dispatch]);
+
   const level = useMemo(() => {
     if (!Array.isArray(levelIds) || levelIds.length === 0) {
       if (levels && levels.length > 0) {
@@ -61,6 +70,7 @@ export default function SkillScreen({ navigation, route }) {
     }
     return levelIds;
   }, [levelIds, levels]);
+
   useEffect(() => {
     if (levelId && !route.params?.fromExercise) {
       setSelectedLevels(Array.isArray(levelId) ? levelId : [levelId]);
@@ -299,8 +309,8 @@ export default function SkillScreen({ navigation, route }) {
               isDisabled
                 ? getDisabledGradient()
                 : selectedLevels.includes(item.id)
-                ? getSelectedGradient()
-                : getGradientBySkill()
+                  ? getSelectedGradient()
+                  : getGradientBySkill()
             }
             style={[
               styles.levelCard,
