@@ -25,6 +25,8 @@ import {
 import MessageError from "../../components/MessageError";
 import MessageSuccess from "../../components/MessageSuccess";
 import MessageConfirm from "../../components/MessageConfirm";
+import MessageWarning from "../../components/MessangeWarning";
+
 import FullScreenLoading from "../../components/FullScreenLoading";
 
 export default function ExerciseScreen({ navigation, route }) {
@@ -69,6 +71,11 @@ export default function ExerciseScreen({ navigation, route }) {
     title: "",
     description: "",
   });
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningContent, setWarningContent] = useState({
+    title: "",
+    description: "",
+  });
   useEffect(() => {
     dispatch(getRandomExercises({ lessonId, levelIds }));
     dispatch(getEnabledLevels());
@@ -105,7 +112,7 @@ export default function ExerciseScreen({ navigation, route }) {
     const isEasyLevel = questionLevelObj
       ? questionLevelObj.level === 1 || questionLevelObj.name.en === "Easy"
       : false;
-    console.log("levels:", levels, "questionLevel:", questionLevel);
+    // console.log("levels:", levels, "questionLevel:", questionLevel);
     if (isEasyLevel && typeof value === "string" && value.includes("=")) {
       return value.split("=")[1].trim();
     }
@@ -211,13 +218,70 @@ export default function ExerciseScreen({ navigation, route }) {
       setShowError(true);
       return;
     }
+    // Check if all questions are answered
+    const unansweredQuestions = questions.some((q) => !selectedAnswers[q.id]);
+    if (unansweredQuestions) {
+      setWarningContent({
+        title: t("warning"),
+        description: t("pleaseAnswerAllQuestions"),
+        onCancel: () => setShowWarning(false), // Continue answering
+        onConfirm: () => setShowWarning(false), // Submit anyway
+        // showCancelButton: true, // Show both buttons
+      });
+      setShowWarning(true);
+      return;
+    }
     // Show confirmation popup
     setConfirmContent({
       title: t("confirmSubmission"),
-      description: t("confirmSubmissionDescription"),
+      description: t("confirmSubmissionMessage"),
+      onConfirm: handleConfirmSubmit,
     });
     setShowConfirm(true);
 
+  };
+
+  const handleConfirmSubmit = async () => {
+    setShowConfirm(false);
+    setIsSubmitting(true);
+    const { correct, wrong, score } = calculateResults();
+    try {
+      await dispatch(
+        createCompletedExercise({
+          pupilId,
+          lessonId,
+          levelId: levelIds,
+          point: score,
+        })
+      ).unwrap();
+      navigation.navigate("ExerciseResultScreen", {
+        skillName,
+        answers: selectedAnswers,
+        questions,
+        score,
+        correctCount: correct,
+        wrongCount: wrong,
+        lessonId,
+        levelIds,
+        pupilId,
+        title,
+        grade,
+        skillIcon: skillIcon,
+      });
+    } catch (err) {
+      setErrorContent({
+        title: t("error"),
+        description: t("failedToSubmitExercise"),
+      });
+      setShowError(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBackConfirm = () => {
+    setShowConfirm(false);
+    navigation.goBack();
   };
 
   const renderOption = (questionId, value, optIndex, style, questionLevel) => {
@@ -424,7 +488,15 @@ export default function ExerciseScreen({ navigation, route }) {
     <View style={styles.container}>
       <LinearGradient colors={getGradient()} style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          // onPress={() => navigation.goBack()}
+          onPress={() => {
+            setConfirmContent({
+              title: t("confirm"),
+              description: t("wantToSkipTest"),
+              onConfirm: handleBackConfirm,
+            });
+            setShowConfirm(true);
+          }}
           style={styles.backButton}
         >
           <Image source={theme.icons.back} style={styles.backIcon} />
@@ -597,48 +669,23 @@ export default function ExerciseScreen({ navigation, route }) {
         description={successContent.description}
         onClose={() => setShowSuccess(false)}
       />
+      <MessageWarning
+        visible={showWarning}
+        title={warningContent.title}
+        description={warningContent.description}
+        onCancel={warningContent.onCancel}
+        onConfirm={() => {
+          setShowWarning(false);
+          handleConfirmSubmit();
+        }}
+        showCancelButton={warningContent.showCancelButton !== false}
+      />
       <MessageConfirm
         visible={showConfirm}
         title={confirmContent.title}
         description={confirmContent.description}
         onCancel={() => setShowConfirm(false)}
-        onClose={async () => {
-          setShowConfirm(false);
-          setIsSubmitting(true);
-          const { correct, wrong, score } = calculateResults();
-          try {
-            await dispatch(
-              createCompletedExercise({
-                pupilId,
-                lessonId,
-                levelId: levelIds,
-                point: score,
-              })
-            ).unwrap();
-            navigation.navigate("ExerciseResultScreen", {
-              skillName,
-              answers: selectedAnswers,
-              questions,
-              score,
-              correctCount: correct,
-              wrongCount: wrong,
-              lessonId,
-              levelIds,
-              pupilId,
-              title,
-              grade,
-              skillIcon: skillIcon,
-            });
-          } catch (err) {
-            setErrorContent({
-              title: t("error"),
-              description: t("failedToSubmitExercise"),
-            });
-            setShowError(true);
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
+        onClose={confirmContent.onConfirm}
       />
     </View>
   );

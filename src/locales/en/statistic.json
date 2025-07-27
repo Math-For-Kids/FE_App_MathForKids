@@ -84,5 +84,6 @@
   "incompleteSelection": "Missing selection",
   "pleaseSelectAllBeforeViewingTests": "Please select pupil, skill, lesson, and range type before viewing tests.",
   "noSignificantChange":"No significant change",
-  "noTestAvailable": "No test available."
+  "noTestAvailable": "No test available.",
+  "selectSkill":"Select skill"
 }
