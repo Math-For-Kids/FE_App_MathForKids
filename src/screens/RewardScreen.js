@@ -34,6 +34,7 @@ import MessageError from "../components/MessageError";
 import MessageSuccess from "../components/MessageSuccess";
 import MessageConfirm from "../components/MessageConfirm";
 import MessageWarning from "../components/MessangeWarning";
+
 export default function RewardScreen({ navigation }) {
   const { t, i18n } = useTranslation("reward");
   const { theme } = useTheme();
@@ -944,60 +945,6 @@ export default function RewardScreen({ navigation }) {
     },
   });
 
-  if (!userId) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{t("User_data_missing")}</Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (rewardLoading || pupilLoading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.modalText}>{t("Loading_data")}</Text>
-      </View>
-    );
-  }
-
-  if (rewardError) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {t("Error_loading_rewards", {
-              error: rewardError?.en || rewardError?.vi || rewardError,
-            })}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (pupilError && !pupil) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {t("Error_loading_pupil", {
-              error: pupilError?.en || pupilError?.vi || pupilError,
-            })}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (!pupil || !rawRewardList) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.modalText}>{t("No_data_available")}</Text>
-      </View>
-    );
-  }
-
   return (
     <LinearGradient colors={theme.colors.gradientBlue} style={styles.container}>
       {owned_reward_error && (
@@ -1028,363 +975,412 @@ export default function RewardScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.title}>{t("Reward")}</Text>
       </LinearGradient>
-      <View style={styles.tabContainer}>
-        {["Exchange points", "Exchange item"].map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tabButton,
-              selectedTab === tab && styles.tabButtonActive,
-            ]}
-            onPress={() => setSelectedTab(tab)}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === tab && styles.tabTextActive,
-              ]}
-            >
-              {t(
-                tab === "Exchange points" ? "Exchange_points" : "Exchange_item"
-              )}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <View style={styles.cardTitle}>
-        <Text style={styles.cardTitleText}>{t("Rewards_achieved")}</Text>
-      </View>
-      {filteredRewardList.length === 0 && (
-        <Text style={styles.errorText}>{t("No_rewards_available")}</Text>
-      )}
-      <FlatList
-        data={allTargets.map((item) => ({
-          ...item,
-          ownedNumber:
-            allTargets.find((item2) => item2.id === item.id)?.ownedNumber || 0,
-        }))}
-        keyExtractor={(item) => item.id?.toString()}
-        numColumns={selectedTab === "Exchange points" ? 3 : 1}
-        key={selectedTab}
-        extraData={[selectedTab, allTargets]}
-        style={
-          selectedTab === "Exchange points"
-            ? exchangePoint.cardPoint
-            : exchangeItem.cardItem
-        }
-        renderItem={({ item }) => {
-          const progressPoint =
-            item.exchangePoint > 0 && pupil?.point != null
-              ? pupil.point / item.exchangePoint
-              : 0;
-          const ownerReward =
-            item.exchangeReward !== null && item.ownedNumber !== null
-              ? item.ownedNumber / item.exchangeReward
-              : 0;
-          return (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => handleRewardPress(item)}
-            >
-              <View
-                style={
-                  selectedTab === "Exchange points"
-                    ? exchangePoint.cardContentPoint
-                    : exchangeItem.cardContentItem
-                }
+      {rewardLoading || pupilLoading ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{t("Loading_data")}</Text>
+        </View>
+      ) : null}
+      {!userId ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{t("User_data_missing")}</Text>
+        </View>
+      ) : null}
+      {rewardError ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {t("Error_loading_rewards", {
+              error: rewardError?.en || rewardError?.vi || rewardError,
+            })}
+          </Text>
+        </View>
+      ) : null}
+      {pupilError && !pupil ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {t("Error_loading_pupil", {
+              error: pupilError?.en || pupilError?.vi || pupilError,
+            })}
+          </Text>
+        </View>
+      ) : null}
+      {!pupil || !rawRewardList ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{t("No_data_available")}</Text>
+        </View>
+      ) : null}
+      {(!rewardLoading && !pupilLoading && userId && !rewardError && pupil && rawRewardList) && (
+        <>
+          {owned_reward_error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>
+                {t("Error_loading_owned_rewards", {
+                  error:
+                    owned_reward_error?.en ||
+                    owned_reward_error?.vi ||
+                    owned_reward_error,
+                })}
+              </Text>
+            </View>
+          )}
+          <View style={styles.tabContainer}>
+            {["Exchange points", "Exchange item"].map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                style={[
+                  styles.tabButton,
+                  selectedTab === tab && styles.tabButtonActive,
+                ]}
+                onPress={() => setSelectedTab(tab)}
               >
-                <View
-                  style={
-                    selectedTab === "Exchange points"
-                      ? exchangePoint.rewardImageContainer
-                      : exchangeItem.rewardImageContainer
-                  }
+                <Text
+                  style={[
+                    styles.tabText,
+                    selectedTab === tab && styles.tabTextActive,
+                  ]}
+                >
+                  {t(
+                    tab === "Exchange points" ? "Exchange_points" : "Exchange_item"
+                  )}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.cardTitle}>
+            <Text style={styles.cardTitleText}>{t("Rewards_achieved")}</Text>
+          </View>
+          {filteredRewardList.length === 0 && (
+            <Text style={styles.errorText}>{t("No_rewards_available")}</Text>
+          )}
+          <FlatList
+            data={allTargets.map((item) => ({
+              ...item,
+              ownedNumber:
+                allTargets.find((item2) => item2.id === item.id)?.ownedNumber || 0,
+            }))}
+            keyExtractor={(item) => item.id?.toString()}
+            numColumns={selectedTab === "Exchange points" ? 3 : 1}
+            key={selectedTab}
+            extraData={[selectedTab, allTargets]}
+            style={
+              selectedTab === "Exchange points"
+                ? exchangePoint.cardPoint
+                : exchangeItem.cardItem
+            }
+            renderItem={({ item }) => {
+              const progressPoint =
+                item.exchangePoint > 0 && pupil?.point != null
+                  ? pupil.point / item.exchangePoint
+                  : 0;
+              const ownerReward =
+                item.exchangeReward !== null && item.ownedNumber !== null
+                  ? item.ownedNumber / item.exchangeReward
+                  : 0;
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => handleRewardPress(item)}
                 >
                   <View
                     style={
                       selectedTab === "Exchange points"
-                        ? exchangePoint.rewardImageBackground
-                        : exchangeItem.rewardImageBackground
+                        ? exchangePoint.cardContentPoint
+                        : exchangeItem.cardContentItem
                     }
                   >
-                    <Image
-                      source={{
-                        uri: item.image || "https://via.placeholder.com/60",
-                      }}
+                    <View
                       style={
                         selectedTab === "Exchange points"
-                          ? exchangePoint.rewardImage
-                          : exchangeItem.rewardImage
+                          ? exchangePoint.rewardImageContainer
+                          : exchangeItem.rewardImageContainer
                       }
+                    >
+                      <View
+                        style={
+                          selectedTab === "Exchange points"
+                            ? exchangePoint.rewardImageBackground
+                            : exchangeItem.rewardImageBackground
+                        }
+                      >
+                        <Image
+                          source={{
+                            uri: item.image || "https://via.placeholder.com/60",
+                          }}
+                          style={
+                            selectedTab === "Exchange points"
+                              ? exchangePoint.rewardImage
+                              : exchangeItem.rewardImage
+                          }
+                          resizeMode="contain"
+                        />
+                      </View>
+                    </View>
+                    <View
+                      style={{ justifyContent: "center", alignItems: "center" }}
+                    >
+                      {selectedTab === "Exchange points" && (
+                        <View style={exchangePoint.progress}>
+                          <Progress.Bar
+                            progress={progressPoint}
+                            height={20}
+                            borderRadius={20}
+                            color={theme.colors.green}
+                            unfilledColor={theme.colors.progressBackground}
+                            borderWidth={1}
+                            borderColor={theme.colors.greenLight}
+                            style={{ position: "absolute", width: "100%" }}
+                          />
+                          <Text style={exchangePoint.progressText}>
+                            {pupil?.point ?? 0} / {item.exchangePoint}
+                          </Text>
+                        </View>
+                      )}
+                      {selectedTab === "Exchange item" && (
+                        <View style={exchangeItem.progress}>
+                          <Progress.Bar
+                            progress={ownerReward}
+                            height={20}
+                            borderRadius={20}
+                            color={theme.colors.green}
+                            unfilledColor={theme.colors.progressBackground}
+                            borderWidth={1}
+                            borderColor={theme.colors.greenLight}
+                            style={{ position: "absolute", width: "100%" }}
+                          />
+                          <Text style={exchangeItem.progressText}>
+                            {item.ownedNumber ?? 0} / {item.exchangeReward}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+          />
+          <View style={styles.cardOwn}>
+            <Text style={styles.cardTitleText}>{t("Own")}</Text>
+          </View>
+          {(selectedTab === "Exchange points"
+            ? allTargets.filter((item) => item && item.id && item.ownedNumber > 0)
+            : ownedExchangeRewards
+          ).length === 0 && (
+              <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
+            )}
+          <FlatList
+            data={
+              selectedTab === "Exchange points"
+                ? allTargets.filter((item) => {
+                  if (!item || !item.id) return null;
+                  const rewardData = rawRewardList.find(
+                    (r) => r && r.id === item.id
+                  );
+                  if (!rewardData) return null;
+                  return item.ownedNumber > 0;
+                })
+                : ownedExchangeRewards
+            }
+            keyExtractor={(item) => item.id.toString() + "-own"}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.itemOwnContainer}
+            extraData={[selectedTab, allTargets, ownedExchangeRewards]}
+            renderItem={({ item }) => (
+              <View style={styles.itemOwn}>
+                <TouchableOpacity onPress={() => handleOwnRewardPress(item)}>
+                  <View style={exchangePoint.rewardImageBackground}>
+                    <Image
+                      source={{
+                        uri: item.rewardImage || "https://via.placeholder.com/60",
+                      }}
+                      style={exchangePoint.rewardImage}
                       resizeMode="contain"
                     />
                   </View>
+                </TouchableOpacity>
+                <View style={styles.ownNumberContainer}>
+                  <Text style={styles.ownTextNumber}>{item.ownedNumber}</Text>
                 </View>
-                <View
-                  style={{ justifyContent: "center", alignItems: "center" }}
-                >
-                  {selectedTab === "Exchange points" && (
-                    <View style={exchangePoint.progress}>
-                      <Progress.Bar
-                        progress={progressPoint}
-                        height={20}
-                        borderRadius={20}
-                        color={theme.colors.green}
-                        unfilledColor={theme.colors.progressBackground}
-                        borderWidth={1}
-                        borderColor={theme.colors.greenLight}
-                        style={{ position: "absolute", width: "100%" }}
+              </View>
+            )}
+          />
+          {selectedReward && (
+            <Modal isVisible={true} onBackdropPress={() => setSelectedReward(null)}>
+              <View style={styles.modalContainer}>
+                <View style={styles.modalBackground}>
+                  {rewardLoading || isRefreshing ? (
+                    <Text style={styles.modalText}>
+                      {t("Loading_reward_details")}
+                    </Text>
+                  ) : rewardError ? (
+                    <Text style={styles.errorText}>
+                      {t("Error_loading_rewards", {
+                        error: rewardError?.en || rewardError?.vi || rewardError,
+                      })}
+                    </Text>
+                  ) : (
+                    <>
+                      <Image
+                        source={{
+                          uri:
+                            selectedReward?.image ||
+                            "https://via.placeholder.com/60",
+                        }}
+                        style={styles.modalImage}
+                        resizeMode="contain"
                       />
-                      <Text style={exchangePoint.progressText}>
-                        {pupil?.point ?? 0} / {item.exchangePoint}
+                      <Text style={styles.modalText}>
+                        {selectedReward?.name?.en ||
+                          selectedReward?.name?.vi ||
+                          t("Unknown_reward")}
                       </Text>
-                    </View>
-                  )}
-                  {selectedTab === "Exchange item" && (
-                    <View style={exchangeItem.progress}>
-                      <Progress.Bar
-                        progress={ownerReward}
-                        height={20}
-                        borderRadius={20}
-                        color={theme.colors.green}
-                        unfilledColor={theme.colors.progressBackground}
-                        borderWidth={1}
-                        borderColor={theme.colors.greenLight}
-                        style={{ position: "absolute", width: "100%" }}
-                      />
-                      <Text style={exchangeItem.progressText}>
-                        {item.ownedNumber ?? 0} / {item.exchangeReward}
+                      <Text style={styles.rewardInfoText}>
+                        {selectedReward?.description?.en ||
+                          selectedReward?.description?.vi ||
+                          t("No_description")}
                       </Text>
-                    </View>
+                      {selectedTab === "Exchange points" && (
+                        <View style={styles.quantityContainer}>
+                          <TouchableOpacity
+                            style={styles.quantityButton}
+                            onPress={() => handleQuantityChange("decrement")}
+                            disabled={quantity <= 1}
+                          >
+                            <Text style={styles.quantityButtonText}>-</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.quantityText}>{quantity}</Text>
+                          <TouchableOpacity
+                            style={styles.quantityButton}
+                            onPress={() => handleQuantityChange("increment")}
+                          >
+                            <Text style={styles.quantityButtonText}>+</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                      {selectedTab === "Exchange item" && (
+                        <View style={styles.quantityContainer}>
+                          <Text style={styles.quantityText}>1</Text>
+                        </View>
+                      )}
+                      <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                          disabled={isExchanging || !isValid}
+                          style={
+                            isExchanging || !isValid
+                              ? {
+                                ...styles.exchangeButton,
+                                backgroundColor: theme.colors.grayDark,
+                              }
+                              : styles.exchangeButton
+                          }
+                          onPress={debouncedHandleExchange}
+                        >
+                          <Text style={styles.exchangeButtonText}>
+                            {isExchanging || isRefreshing
+                              ? t("Exchanging")
+                              : t("Exchange")}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.closeButton}
+                          onPress={() => setSelectedReward(null)}
+                        >
+                          <Text style={styles.closeButtonText}>{t("Close")}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
                   )}
                 </View>
               </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
-      <View style={styles.cardOwn}>
-        <Text style={styles.cardTitleText}>{t("Own")}</Text>
-      </View>
-      {(selectedTab === "Exchange points"
-        ? allTargets.filter((item) => item && item.id && item.ownedNumber > 0)
-        : ownedExchangeRewards
-      ).length === 0 && (
-        <Text style={styles.errorText}>{t("No_owned_rewards")}</Text>
-      )}
-      <FlatList
-        data={
-          selectedTab === "Exchange points"
-            ? allTargets.filter((item) => {
-                if (!item || !item.id) return null;
-                const rewardData = rawRewardList.find(
-                  (r) => r && r.id === item.id
-                );
-                if (!rewardData) return null;
-                return item.ownedNumber > 0;
-              })
-            : ownedExchangeRewards
-        }
-        keyExtractor={(item) => item.id.toString() + "-own"}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.itemOwnContainer}
-        extraData={[selectedTab, allTargets, ownedExchangeRewards]}
-        renderItem={({ item }) => (
-          <View style={styles.itemOwn}>
-            <TouchableOpacity onPress={() => handleOwnRewardPress(item)}>
-              <View style={exchangePoint.rewardImageBackground}>
-                <Image
-                  source={{
-                    uri: item.rewardImage || "https://via.placeholder.com/60",
-                  }}
-                  style={exchangePoint.rewardImage}
-                  resizeMode="contain"
-                />
-              </View>
-            </TouchableOpacity>
-            <View style={styles.ownNumberContainer}>
-              <Text style={styles.ownTextNumber}>{item.ownedNumber}</Text>
-            </View>
-          </View>
-        )}
-      />
-      {selectedReward && (
-        <Modal isVisible={true} onBackdropPress={() => setSelectedReward(null)}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalBackground}>
-              {rewardLoading || isRefreshing ? (
-                <Text style={styles.modalText}>
-                  {t("Loading_reward_details")}
-                </Text>
-              ) : rewardError ? (
-                <Text style={styles.errorText}>
-                  {t("Error_loading_rewards", {
-                    error: rewardError?.en || rewardError?.vi || rewardError,
-                  })}
-                </Text>
-              ) : (
-                <>
+            </Modal>
+          )}
+          {selectedRewardOwn && (
+            <Modal
+              isVisible={true}
+              onBackdropPress={() => setSelectedRewardOwn(null)}
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalBackground}>
                   <Image
                     source={{
                       uri:
-                        selectedReward?.image ||
+                        selectedRewardOwn?.rewardImage ||
                         "https://via.placeholder.com/60",
                     }}
                     style={styles.modalImage}
                     resizeMode="contain"
                   />
+                  <TouchableOpacity
+                    style={styles.closeIcon}
+                    onPress={() => setSelectedRewardOwn(null)}
+                  >
+                    <Ionicons name="close" size={24} color={theme.colors.black} />
+                  </TouchableOpacity>
+                  <LinearGradient
+                    colors={theme.colors.gradientBlue}
+                    style={styles.soundContainer}
+                  >
+                    <TouchableOpacity>
+                      <Ionicons
+                        name="volume-high"
+                        size={20}
+                        color={theme.colors.white}
+                      />
+                    </TouchableOpacity>
+                  </LinearGradient>
                   <Text style={styles.modalText}>
-                    {selectedReward?.name?.en ||
-                      selectedReward?.name?.vi ||
+                    {selectedRewardOwn?.name?.en ||
+                      selectedRewardOwn?.name?.vi ||
                       t("Unknown_reward")}
                   </Text>
                   <Text style={styles.rewardInfoText}>
-                    {selectedReward?.description?.en ||
-                      selectedReward?.description?.vi ||
-                      t("No_description")}
+                    {(() => {
+                      const reward = rawRewardList.find(
+                        (r) => r && r.id === selectedRewardOwn.id
+                      );
+                      return (
+                        reward?.description?.en ||
+                        reward?.description?.vi ||
+                        t("No_description")
+                      );
+                    })()}
                   </Text>
-                  {selectedTab === "Exchange points" && (
-                    <View style={styles.quantityContainer}>
-                      <TouchableOpacity
-                        style={styles.quantityButton}
-                        onPress={() => handleQuantityChange("decrement")}
-                        disabled={quantity <= 1}
-                      >
-                        <Text style={styles.quantityButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.quantityText}>{quantity}</Text>
-                      <TouchableOpacity
-                        style={styles.quantityButton}
-                        onPress={() => handleQuantityChange("increment")}
-                      >
-                        <Text style={styles.quantityButtonText}>+</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  {selectedTab === "Exchange item" && (
-                    <View style={styles.quantityContainer}>
-                      <Text style={styles.quantityText}>1</Text>
-                    </View>
-                  )}
-                  <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                      disabled={isExchanging || !isValid}
-                      style={
-                        isExchanging || !isValid
-                          ? {
-                              ...styles.exchangeButton,
-                              backgroundColor: theme.colors.grayDark,
-                            }
-                          : styles.exchangeButton
-                      }
-                      onPress={debouncedHandleExchange}
-                    >
-                      <Text style={styles.exchangeButtonText}>
-                        {isExchanging || isRefreshing
-                          ? t("Exchanging")
-                          : t("Exchange")}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.closeButton}
-                      onPress={() => setSelectedReward(null)}
-                    >
-                      <Text style={styles.closeButtonText}>{t("Close")}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-        </Modal>
+                </View>
+              </View>
+            </Modal>
+          )}
+          <FloatingMenu />
+          <FullScreenLoading visible={loading} color={theme.colors.white} />
+          <MessageError
+            visible={showError}
+            title={errorContent.title}
+            description={errorContent.description}
+            onClose={() => setShowError(false)}
+          />
+          <MessageSuccess
+            visible={showSuccess}
+            title={successContent.title}
+            description={successContent.description}
+            onClose={() => {
+              setShowSuccess(false);
+            }}
+          />
+          <MessageWarning
+            visible={showWarning}
+            title={warningContent.title}
+            description={warningContent.description}
+            onCancel={warningContent.onCancel}
+            onConfirm={warningContent.onConfirm}
+            showCancelButton={warningContent.showCancelButton !== false}
+          />
+          <MessageConfirm
+            visible={showConfirm}
+            title={confirmContent.title}
+            description={confirmContent.description}
+            onConfirm={confirmContent.onConfirm}
+            onCancel={() => setShowConfirm(false)}
+          />
+        </>
       )}
-      {selectedRewardOwn && (
-        <Modal
-          isVisible={true}
-          onBackdropPress={() => setSelectedRewardOwn(null)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalBackground}>
-              <Image
-                source={{
-                  uri:
-                    selectedRewardOwn?.rewardImage ||
-                    "https://via.placeholder.com/60",
-                }}
-                style={styles.modalImage}
-                resizeMode="contain"
-              />
-              <TouchableOpacity
-                style={styles.closeIcon}
-                onPress={() => setSelectedRewardOwn(null)}
-              >
-                <Ionicons name="close" size={24} color={theme.colors.black} />
-              </TouchableOpacity>
-              <LinearGradient
-                colors={theme.colors.gradientBlue}
-                style={styles.soundContainer}
-              >
-                <TouchableOpacity>
-                  <Ionicons
-                    name="volume-high"
-                    size={20}
-                    color={theme.colors.white}
-                  />
-                </TouchableOpacity>
-              </LinearGradient>
-              <Text style={styles.modalText}>
-                {selectedRewardOwn?.name?.en ||
-                  selectedRewardOwn?.name?.vi ||
-                  t("Unknown_reward")}
-              </Text>
-              <Text style={styles.rewardInfoText}>
-                {(() => {
-                  const reward = rawRewardList.find(
-                    (r) => r && r.id === selectedRewardOwn.id
-                  );
-                  return (
-                    reward?.description?.en ||
-                    reward?.description?.vi ||
-                    t("No_description")
-                  );
-                })()}
-              </Text>
-            </View>
-          </View>
-        </Modal>
-      )}
-      <FloatingMenu />
-      <FullScreenLoading visible={loading} color={theme.colors.white} />
-      <MessageError
-        visible={showError}
-        title={errorContent.title}
-        description={errorContent.description}
-        onClose={() => setShowError(false)}
-      />
-      <MessageSuccess
-        visible={showSuccess}
-        title={successContent.title}
-        description={successContent.description}
-        onClose={() => {
-          setShowSuccess(false);
-        }}
-      />
-      <MessageWarning
-        visible={showWarning}
-        title={warningContent.title}
-        description={warningContent.description}
-        onCancel={warningContent.onCancel}
-        onConfirm={warningContent.onConfirm}
-        showCancelButton={warningContent.showCancelButton !== false}
-      />
-      <MessageConfirm
-        visible={showConfirm}
-        title={confirmContent.title}
-        description={confirmContent.description}
-        onConfirm={confirmContent.onConfirm}
-        onCancel={() => setShowConfirm(false)}
-      />
     </LinearGradient>
   );
 }

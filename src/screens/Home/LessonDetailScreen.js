@@ -33,6 +33,8 @@ import swipeGifRight from "../../../assets/animations/swipe.gif/2.json";
 import { WebView } from "react-native-webview";
 import { useWindowDimensions } from "react-native";
 import FullScreenLoading from "../../components/FullScreenLoading";
+import AutoHeightWebView from "react-native-autoheight-webview";
+
 export default function LessonDetailScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { skillName, lessonId, grade } = route.params;
@@ -57,18 +59,63 @@ export default function LessonDetailScreen({ navigation, route }) {
   const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   const getOperatorFromSkillName = (skill) => {
-    switch (skill) {
-      case "Addition":
+    const normalizedSkill = skill?.toLowerCase(); // Chuẩn hóa skillName để tránh lỗi viết hoa
+    switch (normalizedSkill) {
+      case "addition":
         return "+";
-      case "Subtraction":
+      case "subtraction":
         return "-";
-      case "Multiplication":
+      case "multiplication":
         return "×";
-      case "Division":
+      case "division":
         return "÷";
       default:
+        console.warn(`Unknown skillName: ${skill}, defaulting to '+'`);
         return "+";
     }
+  };
+
+  const stripHtml = (html) => {
+    if (!html) return "";
+    let cleanText = html
+      .replace(/<[^>]+>/g, "") // Loại bỏ thẻ HTML
+      .replace(/&nbsp;/g, " ") // Thay &nbsp; bằng khoảng trắng
+      .replace(/\s+/g, " ") // Chuẩn hóa nhiều khoảng trắng thành một khoảng
+      .trim();
+
+    // Thay thế ký hiệu toán học tùy theo ngôn ngữ
+    const isVietnamese = i18n.language === "vi";
+    cleanText = cleanText
+      .replace(/\+/g, isVietnamese ? " cộng " : " plus ")
+      .replace(/-/g, isVietnamese ? " trừ " : " minus ")
+      .replace(/×/g, isVietnamese ? " nhân " : " times ")
+      .replace(/÷/g, isVietnamese ? " chia " : " divided by ")
+      .replace(/=/g, isVietnamese ? " bằng " : " equals ");
+
+    return cleanText;
+  };
+  const speakWithPauses = (text, language) => {
+    // Tách dựa trên mẫu phép tính
+    const lines = text.split(/(\d+\s*[-+×÷]\s*\d+\s*=)\s*(\d+)/).filter(line => line.trim() !== "");
+    let index = 0;
+
+    const speakNext = () => {
+      if (index < lines.length) {
+        const cleanLine = stripHtml(lines[index]);
+        console.log("Speaking line:", cleanLine);
+        Speech.speak(cleanLine, {
+          language: language === "vi" ? "vi-VN" : "en-US",
+          onDone: () => {
+            setTimeout(() => {
+              index++;
+              speakNext();
+            }, 500);
+          },
+        });
+      }
+    };
+
+    speakNext();
   };
   // console.log("gradeLeson", grade);
   // console.log("autoNumber2", autoNumber2);
@@ -123,9 +170,9 @@ export default function LessonDetailScreen({ navigation, route }) {
   const tabTitles = useMemo(() => {
     return Array.isArray(enabledList)
       ? enabledList
-          .slice()
-          .sort((a, b) => a.order - b.order)
-          .map((item) => item.title?.[i18n.language] || "")
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((item) => item.title?.[i18n.language] || "")
       : [];
   }, [enabledList, i18n.language]);
 
@@ -138,8 +185,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       direction === "left" && indexNow < maxIndex
         ? indexNow + 1
         : direction === "right" && indexNow > 0
-        ? indexNow - 1
-        : null;
+          ? indexNow - 1
+          : null;
 
     if (newIndex === null) return;
 
@@ -267,7 +314,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       minHeight: 250,
       maxHeight: 400,
     },
-    lessonTextListContainer: { maxHeight: 400 },
+    lessonTextListContainer: { minHeight: 300 },
     lessonTextList: {
       fontSize: 20,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -329,9 +376,7 @@ export default function LessonDetailScreen({ navigation, route }) {
         <TouchableOpacity
           onPress={() => {
             if (content) {
-              Speech.speak(content, {
-                language: i18n.language === "vi" ? "vi-VN" : "en-US",
-              });
+              speakWithPauses(content, i18n.language); // Gọi hàm đọc có dừng
             }
           }}
         >
@@ -368,14 +413,13 @@ export default function LessonDetailScreen({ navigation, route }) {
         </ScrollView> */}
         <ScrollView style={styles.lessonTextListContainer}>
           {typeof content === "string" && content.trim().length > 0 ? (
-            <View style={{ width: width - 40, height: 300 }}>
-              <WebView
+            <View style={{ width: width - 40 }}>
+              <AutoHeightWebView
                 originWhitelist={["*"]}
                 source={{ html: content }}
                 style={{
                   backgroundColor: "transparent",
-                  width: width - 70,
-                  textAlign: "center",
+                  width: width - 80,
                 }}
                 scrollEnabled={false}
                 scalesPageToFit={false}
@@ -383,7 +427,7 @@ export default function LessonDetailScreen({ navigation, route }) {
               />
             </View>
           ) : (
-            <Text style={styles.lessonTextList}>Không có nội dung</Text>
+            <Text style={styles.lessonTextList}>{t("noData")}</Text>
           )}
 
           {imageUrl && (

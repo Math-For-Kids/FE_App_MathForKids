@@ -449,6 +449,12 @@ export default function ExerciseScreen({ navigation, route }) {
       marginTop: 10,
       marginBottom: 5,
     },
+    questionText1: {
+      fontFamily: Fonts.NUNITO_BLACK,
+      fontSize: 16,
+      marginTop: 10,
+      marginBottom: 5,
+    },
     submitButton: {
       marginTop: 20,
       paddingHorizontal: 40,
@@ -529,7 +535,10 @@ export default function ExerciseScreen({ navigation, route }) {
               return (
                 <View key={q.id} style={styles.questionContainer}>
                   <Text style={styles.questionText}>
-                    {t("question")} {ind + 1}: {q.question}
+                    <Text style={styles.questionText1}>
+                      {t("question")} {ind + 1}:
+                    </Text>{' '}
+                    {q.question}
                   </Text>
                   <View style={styles.questionImageContainer}>
                     {q.image && (
