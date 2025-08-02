@@ -14,6 +14,7 @@ import FloatingMenu from "../components/FloatingMenu";
 import { getAllUser } from "../redux/authSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import FullScreenLoading from "../components/FullScreenLoading";
 import { useTranslation } from "react-i18next";
 export default function ContactScreen({ navigation }) {
@@ -149,8 +150,8 @@ export default function ContactScreen({ navigation }) {
                       item.image
                         ? { uri: item.image }
                         : item.gender === "female"
-                        ? theme.icons.avatarFemale
-                        : theme.icons.avatarMale
+                          ? theme.icons.avatarFemale
+                          : theme.icons.avatarMale
                     }
                     style={styles.avatar}
                   />

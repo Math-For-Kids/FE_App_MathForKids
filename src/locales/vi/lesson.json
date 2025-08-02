@@ -6,5 +6,7 @@
   "level": "Mức độ: {{level}}",
   "go_to_step_by_step": "Xem các bước tính toán của ví dụ",
   "practice_custom_problem": "Thực hành với bài toán tùy chọn",
-  "swipe_hint": "Vuốt sang trái hoặc phải để xem tiếp"
+  "swipe_hint": "Vuốt sang trái hoặc phải để xem tiếp",
+  "noData":"Không có nội dung"
+
 }
