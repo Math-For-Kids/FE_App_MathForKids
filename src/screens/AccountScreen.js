@@ -312,6 +312,7 @@ export default function AccountScreen({ navigation }) {
       fontSize: 18,
       fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 10,
+      color: theme.colors.black,
     },
     inputModalContainer: {
       flexDirection: "row",
@@ -326,6 +327,7 @@ export default function AccountScreen({ navigation }) {
       textAlign: "center",
       fontSize: 24,
       borderRadius: 8,
+      color: theme.colors.black,
     },
     buttonModalContainer: {
       flexDirection: "row",

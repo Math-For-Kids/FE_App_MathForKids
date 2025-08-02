@@ -284,8 +284,11 @@ export default function StatisticDropdowns({
             }}
           >
             <Text style={styles.dropdownText} numberOfLines={1}>
-              {selectedTest ? t(selectedTest) : t("selectTest")}
+              {selectedTest
+                ? `${t("test")} ${testList.indexOf(selectedTest) + 1}`
+                : t("selectTest")}
             </Text>
+
             <Ionicons
               name="caret-down-outline"
               size={20}
@@ -316,10 +319,10 @@ export default function StatisticDropdowns({
                         <Text style={styles.dropdownItemText}>
                           {typeof test.lessonName === "object"
                             ? test.lessonName[i18n.language] ||
-                            test.lessonName.en ||
-                            `${t("test")} ${index + 1}`
+                              test.lessonName.en ||
+                              `${t("test")} ${index + 1}`
                             : test.lessonName || `${t("test")} ${index + 1}`}
-                          {` (ID: ${test})`}
+                          {/* {` (ID: ${test})`} */}
                         </Text>
                       </TouchableOpacity>
                     ))

@@ -266,6 +266,7 @@ export default function ChangeEmailScreen({ navigation }) {
       height: 50,
       backgroundColor: theme.colors.cardBackground,
       elevation: 5,
+      color: theme.colors.black
     },
     modalButtonRow: {
       flexDirection: "row",

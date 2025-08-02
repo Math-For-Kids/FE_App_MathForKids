@@ -168,7 +168,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
     label: {
       width: "100%",
       fontSize: 16,
-      color: theme.colors.blueGray,
+      color: theme.colors.black,
       fontFamily: Fonts.NUNITO_MEDIUM,
       marginBottom: 15,
     },
@@ -186,7 +186,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
     },
     input: {
       fontSize: 16,
-      color: theme.colors.grayDark,
+      color: theme.colors.black,
       fontFamily: Fonts.NUNITO_MEDIUM,
     },
     checkboxGroup: {
@@ -320,7 +320,7 @@ export default function CreatePupilAccountScreen({ navigation }) {
               <Picker
                 selectedValue={studentClass}
                 onValueChange={(itemValue) => setStudentClass(itemValue)}
-                dropdownIconColor={theme.colors.grayDark}
+                dropdownIconColor={theme.colors.black}
                 style={[styles.input, { paddingLeft: 0 }]}
               >
                 <Picker.Item

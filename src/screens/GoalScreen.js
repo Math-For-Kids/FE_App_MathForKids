@@ -389,6 +389,7 @@ export default function GoalScreen() {
       borderColor: theme.colors.blueDark,
       marginHorizontal: 10,
       marginBottom: 10,
+      color: theme.colors.black,
     },
     saveButton: {
       padding: 14,
@@ -696,7 +697,7 @@ export default function GoalScreen() {
         >
           <Text
             style={{
-              color: skillType ? theme.colors.black : theme.colors.gray,
+              color: theme.colors.black,
             }}
           >
             {skillType ? t(`skill_${skillType}`) : t("selectSkillType")}
@@ -720,7 +721,7 @@ export default function GoalScreen() {
         >
           <Text
             style={{
-              color: lesson ? theme.colors.black : theme.colors.gray,
+              color: theme.colors.black,
             }}
           >
             {lesson?.name?.[i18n.language] ||
@@ -745,19 +746,18 @@ export default function GoalScreen() {
         >
           <Text
             style={{
-              color:
-                exercise?.length > 0 ? theme.colors.black : theme.colors.gray,
+              color: theme.colors.black,
             }}
           >
             {exercise.length > 0
               ? exercise
-                .map(
-                  (id) =>
-                    enabledLevels?.find((lvl) => lvl.id === id)?.name[
-                    i18n.language
-                    ] || id
-                )
-                .join(", ")
+                  .map(
+                    (id) =>
+                      enabledLevels?.find((lvl) => lvl.id === id)?.name[
+                        i18n.language
+                      ] || id
+                  )
+                  .join(", ")
               : t("selectLevel")}
           </Text>
 
@@ -778,7 +778,9 @@ export default function GoalScreen() {
           style={styles.input}
         >
           <Text
-            style={{ color: reward ? theme.colors.black : theme.colors.gray }}
+            style={{
+              color: theme.colors.black,
+            }}
           >
             {reward?.name?.[i18n.language] ||
               reward?.name?.en ||
@@ -863,7 +865,7 @@ export default function GoalScreen() {
           visible={showExerciseModal}
           onDismiss={() => setShowExerciseModal(false)}
           contentContainerStyle={{
-            backgroundColor: "white",
+            backgroundColor: theme.colors.cardBackground,
             margin: 20,
             padding: 20,
             borderRadius: 10,

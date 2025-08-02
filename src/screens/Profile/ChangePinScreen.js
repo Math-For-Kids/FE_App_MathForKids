@@ -204,6 +204,7 @@ export default function ChangePinScreen({ navigation }) {
       height: 50,
       backgroundColor: theme.colors.cardBackground,
       elevation: 3,
+      color: theme.colors.black,
     },
     lockIconContainer: {
       backgroundColor: theme.colors.cardBackground,
