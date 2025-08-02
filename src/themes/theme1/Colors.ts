@@ -88,7 +88,7 @@ export const DarkColors = {
   grayLight: "#D9D9D9",
   grayBorder: "#FFFFFF",
   grayMedium: "#BFBFBF",
-  grayDark: "#5F5F5F",
+  grayDark: "#d0d0d0ff",
   blueLight: "#FFFFFF",
   blueDark: "#FFFFFF",
   graySoft: "#B526E4",

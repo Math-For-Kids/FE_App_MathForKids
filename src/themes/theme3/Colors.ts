@@ -73,6 +73,8 @@ export const LightColors = {
   redBorderDark: "#FD8550",
   pinkBorderDark: "#F761DF",
   comment: "#FF4E46",
+  text: "#000000",
+
 };
 
 export const DarkColors = {
@@ -84,7 +86,7 @@ export const DarkColors = {
   grayLight: "#D9D9D9",
   grayBorder: "#FFFFFF",
   grayMedium: "#BFBFBF",
-  grayDark: "#5F5F5F",
+  grayDark: "#d0d0d0ff",
   blueLight: "#FFFFFF",
   blueDark: "#FFFFFF",
   graySoft: "#B526E4",
@@ -149,5 +151,7 @@ export const DarkColors = {
   redBorderDark: "#FFFFFF",
   pinkBorderDark: "#FFFFFF",
   comment: "#5D3A8B",
+  text: "#FFFFFF",
+
 };
 export type Theme3Colors = typeof LightColors;
