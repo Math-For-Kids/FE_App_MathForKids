@@ -196,7 +196,7 @@ export default function NotificationScreen({ navigation, route }) {
     },
     notificationContent: {
       fontSize: 14,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.black,
     },
     notificationIcon: {
@@ -259,7 +259,7 @@ export default function NotificationScreen({ navigation, route }) {
                       color: theme.colors.black,
                     },
                     strong: {
-                      fontWeight: "bold",
+                      fontFamily: Fonts.NUNITO_MEDIUM,
                     },
                     paragraph: {
                       marginBottom: 8,
@@ -285,10 +285,10 @@ export default function NotificationScreen({ navigation, route }) {
                     body: {
                       fontSize: 14,
                       lineHeight: 22,
-                      color: "#333",
+                      color: theme.colors.dropdownItemText,
                     },
                     strong: {
-                      fontWeight: "bold",
+                      fontFamily: Fonts.NUNITO_MEDIUM,
                     },
                     paragraph: {
                       marginBottom: 8,
@@ -386,7 +386,7 @@ export default function NotificationScreen({ navigation, route }) {
                     }
                     style={{
                       marginTop: 10,
-                      backgroundColor: theme.colors.blueDark,
+                      backgroundColor: theme.colors.checkBoxBackground,
                       paddingVertical: 10,
                       paddingHorizontal: 16,
                       borderRadius: 8,

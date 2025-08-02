@@ -56,7 +56,7 @@ export default function PrivacyManagementScreen({ navigation }) {
     wrapContainer: {
       flexDirection: "row",
       gap: 35,
-      justifyContent: "space-between",
+      justifyContent: "space-evenly",
     },
     button: {
       width: "45%",

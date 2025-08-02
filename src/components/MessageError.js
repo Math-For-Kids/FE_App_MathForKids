@@ -13,8 +13,8 @@ export default function MessageError({ visible, title, description, onClose }) {
       title={title}
       description={description}
       onClose={onClose}
-      themeColor="#e9584dff"
-      borderColor="#e9584dff"
+      themeColor={theme.colors.cancel}
+      borderColor={theme.colors.cancel}
       buttonText={t("again")}
     />
   );

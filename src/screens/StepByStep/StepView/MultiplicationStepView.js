@@ -251,7 +251,6 @@ export const MultiplicationStepView = ({
                 {showPlus && (
                   <Text
                     style={{
-                      color: getBorderBox(),
                       fontSize: 14,
                       fontFamily: Fonts.NUNITO_BOLD,
                       color: theme.colors.white,
@@ -276,7 +275,7 @@ export const MultiplicationStepView = ({
                         !isCurrentlyHighlight && rightIndex <= revealed;
                       let color = theme.colors.textModal;
                       if (isCurrentlyHighlight) {
-                        color = theme.colors.highlightText;
+                        color = theme.colors.white;
                       } else if (isAfterHighlight) {
                         color = "white";
                       }
@@ -317,7 +316,7 @@ export const MultiplicationStepView = ({
           } else if (isAfterHighlight) {
             carryColor = { color: theme.colors.white };
           } else {
-            carryColor = { color: "#5F5F5F" };
+            carryColor = { color: theme.colors.textModal };
           }
         }
         const isCellHighlighted =
@@ -366,12 +365,19 @@ export const MultiplicationStepView = ({
     carryBothHighlightIndexes = [maxLen - 1 - meta.column];
   }
   const mergedCarryTopAndCarryRow0 = buildMergedCarryTopRow();
-  const getBorderBox = () => {
+  const getText = () => {
     if (skillName === "Addition") return theme.colors.GreenBorderDark;
     if (skillName === "Subtraction") return theme.colors.purpleBorderDark;
     if (skillName === "Multiplication") return theme.colors.orangeBorderDark;
     if (skillName === "Division") return theme.colors.redBorderDark;
     return theme.colors.pinkDark;
+  };
+    const getBorderBox = () => {
+    if (skillName === "Addition") return theme.colors.GreenStepDark;
+    if (skillName === "Subtraction") return theme.colors.purpleStepDark;
+    if (skillName === "Multiplication") return theme.colors.orangeStepDark;
+    if (skillName === "Division") return theme.colors.redStepDark;
+    return theme.colors.pinkStepDark;
   };
   const styles = StyleSheet.create({
     container: {
@@ -386,13 +392,13 @@ export const MultiplicationStepView = ({
       marginBottom: 16,
       maxHeight: 140,
       borderWidth: 1,
-      borderColor: getBorderBox(),
+      borderColor: getText(),
     },
     explanationText: {
       fontSize: 17,
       lineHeight: 24,
       fontFamily: Fonts.NUNITO_BOLD,
-      color: getBorderBox(),
+      color: getText(),
     },
     rowsBox: {
       backgroundColor: theme.colors.cardBackground,
@@ -400,7 +406,7 @@ export const MultiplicationStepView = ({
       padding: 12,
       marginBottom: 20,
       borderWidth: 1,
-      borderColor: getBorderBox(),
+      borderColor: getText(),
     },
     rowContainer: {
       flexDirection: "row",
@@ -447,7 +453,7 @@ export const MultiplicationStepView = ({
       color: theme.colors.highlightText,
     },
     colHighlight: {
-      backgroundColor: getBorderBox(),
+      backgroundColor: getText(),
       borderRadius: 4,
       borderWidth: 1,
       borderColor: theme.colors.white,

@@ -244,6 +244,7 @@ export default function ChangePhoneScreen({ navigation }) {
       width: 50,
       height: 50,
       backgroundColor: theme.colors.cardBackground,
+      color: theme.colors.black,
       elevation: 5,
     },
     modalButtonRow: {

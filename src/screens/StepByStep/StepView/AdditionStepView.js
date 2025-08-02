@@ -36,7 +36,20 @@ export const AdditionStepView = ({
         return theme.colors.pinkDark;
     }
   };
-
+  const getSkillTextColor = () => {
+    switch (skillName) {
+      case "Addition":
+        return theme.colors.GreenBorderDark;
+      case "Subtraction":
+        return theme.colors.purpleBorderDark;
+      case "Multiplication":
+        return theme.colors.orangeBorderDark;
+      case "Division":
+        return theme.colors.redBorderDark;
+      default:
+        return theme.colors.pinkBorderDark;
+    }
+  };
   useEffect(() => {
     const line = subTextLines[Math.max(0, currentStep)];
     if (line) {
@@ -123,8 +136,8 @@ export const AdditionStepView = ({
       marginRight: 16,
       width: 300,
       borderWidth: 1,
-      color: getSkillColor(),
-      borderColor: getSkillColor(),
+      color: getSkillTextColor(),
+      borderColor: getSkillTextColor(),
     },
     additionBox: {
       backgroundColor: theme.colors.cardBackground,
@@ -135,7 +148,7 @@ export const AdditionStepView = ({
       marginRight: 16,
       width: 300,
       borderWidth: 1,
-      borderColor: getSkillColor(),
+      borderColor: getSkillTextColor(),
     },
   });
 

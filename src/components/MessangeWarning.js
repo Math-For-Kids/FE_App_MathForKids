@@ -24,9 +24,9 @@ export default function MessageWarning({
       onConfirm={onConfirm}
       showCancelButton={showCancelButton}
       cancelText={t("no")}
-      themeColor="#ffde59"
-      borderColor="#ffde59"
-      cancelColor="#ff4646ff"
+      themeColor={theme.colors.warning}
+      borderColor={theme.colors.warning}
+      cancelColor={theme.colors.cancel}
       buttonText={t("ok")}
     />
   );

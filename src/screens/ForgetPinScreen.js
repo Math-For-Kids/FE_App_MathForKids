@@ -213,7 +213,7 @@ export default function ForgetPinScreen({ navigation }) {
                   keyboardType="number-pad"
                   maxLength={1}
                   textAlign="center"
-                  color={theme.colors.blueDark}
+                  color={theme.colors.homeColor}
                 />
               ))}
             </View>
@@ -264,7 +264,7 @@ export default function ForgetPinScreen({ navigation }) {
                   maxLength={1}
                   secureTextEntry={!showNewPin}
                   textAlign="center"
-                  color={theme.colors.blueDark}
+                  color={theme.colors.homeColor}
                 />
               ))}
               <TouchableOpacity
@@ -400,7 +400,7 @@ export default function ForgetPinScreen({ navigation }) {
       borderRadius: 10,
       marginBottom: 20,
       fontSize: 16,
-      color: theme.colors.blueDark,
+      color: theme.colors.homeColor,
     },
     button: {
       backgroundColor: theme.colors.blueDark,
@@ -429,6 +429,7 @@ export default function ForgetPinScreen({ navigation }) {
       borderRadius: 10,
       textAlign: "center",
       marginHorizontal: 5,
+      color: theme.colors.black,
     },
     stepTitle: {
       fontSize: 14,
@@ -510,7 +511,7 @@ export default function ForgetPinScreen({ navigation }) {
                   marginTop: 2,
                   fontFamily:
                     index === currentStep
-                      ? Fonts.NUNITO_EXTRA_BOLD
+                      ? Fonts.NUNITO_BOLD
                       : Fonts.NUNITO_MEDIUM,
                   color:
                     index <= currentStep
@@ -539,13 +540,6 @@ export default function ForgetPinScreen({ navigation }) {
         onClose={() => {
           setShowSuccess(false);
         }}
-      />
-      <MessageConfirm
-        visible={showConfirm}
-        title={confirmContent.title}
-        description={confirmContent.description}
-        onClose={confirmPupilSelection}
-        onCancel={() => setShowConfirm(false)}
       />
     </LinearGradient>
   );
