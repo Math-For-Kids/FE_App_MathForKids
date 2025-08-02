@@ -53,12 +53,12 @@ export default function TrueFalseChart({
     datasets: [
       {
         data: wrongs,
-        color: () => theme.colors.redTomato,
+        color: () => theme.colors.chartRed,
         strokeWidth: 2,
       },
       {
         data: accuracies,
-        color: () => theme.colors.blueDark,
+        color: () => theme.colors.chartGreen,
         strokeWidth: 2,
       },
       {
@@ -83,8 +83,8 @@ export default function TrueFalseChart({
   const stackedBarData = sortedRanges.map((range, index) => ({
     label: getLabelFromRange(range),
     stacks: [
-      { value: resultByRange[range].correct, color: theme.colors.green },
-      { value: resultByRange[range].wrong, color: theme.colors.redDark },
+      { value: resultByRange[range].correct, color: theme.colors.chartGreen },
+      { value: resultByRange[range].wrong, color: theme.colors.chartRed },
     ],
     onPress: () => setSelectedBarIndex(index),
   }));
@@ -129,8 +129,8 @@ export default function TrueFalseChart({
     return {
       label: level,
       stacks: [
-        { value: correctPercent, color: theme.colors.greenDark },
-        { value: wrongPercent, color: theme.colors.redTomato },
+        { value: correctPercent, color: theme.colors.chartGreen },
+        { value: wrongPercent, color: theme.colors.chartRed },
       ],
       onPress: () => setSelectedBarLevelIndex(index),
     };
@@ -229,8 +229,8 @@ export default function TrueFalseChart({
             yAxisSuffix="%"
             bezier
             chartConfig={{
-              backgroundGradientFrom: theme.colors.white,
-              backgroundGradientTo: theme.colors.white,
+              backgroundGradientFrom: theme.colors.cardBackground,
+              backgroundGradientTo: theme.colors.cardBackground,
               decimalPlaces: 0,
               color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
               labelColor: () => theme.colors.black,
@@ -257,7 +257,7 @@ export default function TrueFalseChart({
                     position: "absolute",
                     top: y - 300,
                     left: x - 20,
-                    backgroundColor: theme.colors.red,
+                    backgroundColor: theme.colors.chartRed,
                     padding: 4,
                     borderRadius: 4,
                   }}
@@ -312,7 +312,7 @@ export default function TrueFalseChart({
                 <View
                   style={[
                     styles.noteColorBox,
-                    { backgroundColor: theme.colors.green },
+                    { backgroundColor: theme.colors.chartGreen },
                   ]}
                 />
                 <Text style={styles.noteLabel}>{t("correct")}</Text>
@@ -321,7 +321,7 @@ export default function TrueFalseChart({
                 <View
                   style={[
                     styles.noteColorBox,
-                    { backgroundColor: theme.colors.orangeLight },
+                    { backgroundColor: theme.colors.chartRed },
                   ]}
                 />
                 <Text style={styles.noteLabel}>{t("wrong")}</Text>
@@ -419,7 +419,7 @@ export default function TrueFalseChart({
                 <View
                   style={[
                     styles.noteColorBox,
-                    { backgroundColor: theme.colors.greenDark },
+                    { backgroundColor: theme.colors.chartGreen },
                   ]}
                 />
                 <Text style={styles.noteLabel}>{t("correct")}</Text>
@@ -428,7 +428,7 @@ export default function TrueFalseChart({
                 <View
                   style={[
                     styles.noteColorBox,
-                    { backgroundColor: theme.colors.redTomato },
+                    { backgroundColor: theme.colors.chartRed },
                   ]}
                 />
                 <Text style={styles.noteLabel}>{t("wrong")}</Text>
@@ -502,7 +502,7 @@ export default function TrueFalseChart({
         </Text>
 
         {/* Tổng đúng/sai toàn giai đoạn */}
-        <Text style={styles.summaryItem}>
+        <Text style={styles.commentText}>
           {t("performance")}: {correct} / {total} (
           {sanitize((correct / total) * 100).toFixed(1)}%)
         </Text>
@@ -541,7 +541,7 @@ export default function TrueFalseChart({
             return (
               <Text
                 key={item.range || item.month || index}
-                style={styles.summaryItem}
+                style={styles.commentText}
               >
                 {item.range || item.month}: {t("correct")}: {correct}/{total} (
                 {acc.toFixed(1)}%), {t("wrong")}: {wrong}/{total} (
@@ -570,7 +570,7 @@ export default function TrueFalseChart({
                 : t("needImprovement");
 
             return (
-              <Text style={styles.summaryItem}>
+              <Text style={styles.commentText}>
                 {t("insight")}: {comment}
               </Text>
             );
@@ -578,20 +578,20 @@ export default function TrueFalseChart({
 
         {/* Kỹ năng yếu */}
         {weakSkills.length > 0 && (
-          <Text style={styles.summaryItem}>
+          <Text style={styles.commentText}>
             {t("weakSkills")}: {weakSkills.map((s) => t(s)).join(", ")}
           </Text>
         )}
 
         {/* Cấp độ đúng/sai nhiều nhất */}
         {mostCorrectLevel && (
-          <Text style={styles.summaryItem}>
+          <Text style={styles.commentText}>
             {t("mostCorrectLevel")}: {mostCorrectLevel.level} (
             {mostCorrectLevel.stats.correct} {t("times")})
           </Text>
         )}
         {mostWrongLevel && (
-          <Text style={styles.summaryItem}>
+          <Text style={styles.commentText}>
             {t("mostWrongLevel")}: {mostWrongLevel.level} (
             {mostWrongLevel.stats.wrong} {t("times")})
           </Text>

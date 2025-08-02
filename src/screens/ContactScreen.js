@@ -15,8 +15,10 @@ import { getAllUser } from "../redux/authSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import FullScreenLoading from "../components/FullScreenLoading";
+import { useTranslation } from "react-i18next";
 export default function ContactScreen({ navigation }) {
-  const { theme, isDarkMode } = useTheme();
+  const { theme } = useTheme();
+  const { t } = useTranslation("contact");
   const users = useSelector((state) => state.auth.list || []);
   const loading = useSelector((state) => state.auth.loading);
   const isFocused = useIsFocused();
@@ -122,7 +124,7 @@ export default function ContactScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Contact</Text>
+        <Text style={styles.title}>{t("contactTitle")}</Text>
       </LinearGradient>
       <FlatList
         data={filteredUsers}
@@ -156,8 +158,8 @@ export default function ContactScreen({ navigation }) {
                 <Text style={styles.name}>{item.fullName}</Text>
               </View>
               <View style={styles.rightContainer}>
-                <Text style={styles.position}>{item.role}</Text>
-                <Text style={styles.email}>{item.email} </Text>
+                <Text style={styles.position}>{t(item.role)}</Text>
+                <Text style={styles.email}>{item.email || t("noEmail")}</Text>
               </View>
             </LinearGradient>
           </TouchableOpacity>

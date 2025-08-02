@@ -4,7 +4,7 @@ import { BarChart } from "react-native-chart-kit";
 import { useTheme } from "../../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
-
+import { Fonts } from "../../../constants/Fonts";
 // Component hiển thị biểu đồ cột so sánh điểm số học tập
 export default React.memo(function AcademicChart({
   t,
@@ -188,8 +188,8 @@ export default React.memo(function AcademicChart({
       {
         data: aggregatedData.flat(),
         colors: scoreCategories.flatMap(() => [
-          () => "#FF6F61", // Màu đỏ cam cho giai đoạn trước
-          () => "#6BCB77", // Màu xanh lá cho giai đoạn hiện tại
+          () => theme.colors.chartRed, // Màu đỏ cam cho giai đoạn trước
+          () => theme.colors.chartGreen, // Màu xanh lá cho giai đoạn hiện tại
           () => "rgba(0,0,0,0)", // Khoảng trống giữa các cột
         ]),
       },
@@ -199,12 +199,12 @@ export default React.memo(function AcademicChart({
 
   // Cấu hình giao diện cho biểu đồ, bao gồm đường dọc trục Y
   const chartConfig = {
-    backgroundColor: "#F5F5F5", // Màu nền nhẹ
-    backgroundGradientFrom: "#F5F5F5",
-    backgroundGradientTo: "#F5F5F5",
+    backgroundColor: theme.colors.cardBackground, // Màu nền nhẹ
+    backgroundGradientFrom: theme.colors.cardBackground,
+    backgroundGradientTo: theme.colors.cardBackground,
     decimalPlaces: 0,
-    color: () => theme.colors.black || "#333", // Màu chữ tối
-    labelColor: () => "#333", // Màu nhãn cột
+    color: () => theme.colors.black || theme.colors.dropdownItemText, // Màu chữ tối
+    labelColor: () => theme.colors.dropdownItemText, // Màu nhãn cột
     barPercentage: 0.7, // Tăng chiều rộng cột
     formatYLabel: (value) => `${Math.max(Math.round(value), 0)}`,
     minY: 0,
@@ -213,17 +213,17 @@ export default React.memo(function AcademicChart({
     withVerticalLines: true, // Bật đường dọc
     withHorizontalLines: true, // Bật đường ngang
     propsForBackgroundLines: {
-      stroke: "#E0E0E0", // Màu đường lưới ngang nhạt
+      stroke: theme.colors.white, // Màu đường lưới ngang nhạt
       strokeWidth: 1,
     },
     propsForVerticalLines: {
-      stroke: "#666", // Màu đường dọc đậm hơn để rõ ràng
+      stroke: theme.colors.dropdownItemText, // Màu đường dọc đậm hơn để rõ ràng
       strokeWidth: 2, // Độ dày đường dọc
       strokeDashArray: "", // Đường liền, không nét đứt
     },
     propsForLabels: {
       fontSize: 14, // Tăng kích thước chữ nhãn
-      fontWeight: "500",
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
   };
 
@@ -238,7 +238,12 @@ export default React.memo(function AcademicChart({
       <Text
         style={[
           styles.chartName,
-          { fontSize: 22, fontWeight: "700", color: "#333", marginBottom: 16 },
+          {
+            fontSize: 22,
+            fontFamily: Fonts.NUNITO_BOLD,
+            color: theme.colors.dropdownItemText,
+            marginBottom: 16,
+          },
         ]}
       >
         {t("academicProgress")}
@@ -278,7 +283,7 @@ export default React.memo(function AcademicChart({
                 {
                   width: 16,
                   height: 16,
-                  backgroundColor: "#FF6F61",
+                  backgroundColor: theme.colors.chartRed,
                   borderRadius: 4,
                 },
               ]}
@@ -287,9 +292,9 @@ export default React.memo(function AcademicChart({
               style={[
                 {
                   marginLeft: 8,
-                  color: "#333",
+                  color: theme.colors.dropdownItemText,
                   fontSize: 14,
-                  fontWeight: "500",
+                  fontFamily: Fonts.NUNITO_MEDIUM,
                 },
               ]}
             >
@@ -307,7 +312,7 @@ export default React.memo(function AcademicChart({
                 {
                   width: 16,
                   height: 16,
-                  backgroundColor: "#6BCB77",
+                  backgroundColor: theme.colors.chartGreen,
                   borderRadius: 4,
                 },
               ]}
@@ -316,9 +321,9 @@ export default React.memo(function AcademicChart({
               style={[
                 {
                   marginLeft: 8,
-                  color: "#333",
+                  color:  theme.colors.dropdownItemText,
                   fontSize: 14,
-                  fontWeight: "500",
+                  fontFamily: Fonts.NUNITO_MEDIUM,
                 },
               ]}
             >
@@ -331,7 +336,7 @@ export default React.memo(function AcademicChart({
       <View style={[styles.summaryTFContainer, { width: 330 }]}>
         <Text style={styles.summaryTitle}>{t("summary")}</Text>
         {notificationMessage.map((line, index) => (
-          <Text key={index} style={styles.summaryItem}>
+          <Text key={index} style={styles.noteText}>
             {line}
           </Text>
         ))}

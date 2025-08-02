@@ -31,7 +31,7 @@ export default function TestListScreen({ route }) {
       height: 32,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: theme.colors.blueDark,
+      backgroundColor: theme.colors.checkBoxBackground,
       borderRadius: 30,
       elevation: 3,
       width: "20%",
@@ -49,27 +49,30 @@ export default function TestListScreen({ route }) {
       marginVertical: 12,
       borderWidth: 1,
       borderRadius: 10,
-      borderColor: theme.colors.blueDark,
+      borderColor: theme.colors.checkBoxBackground,
       padding: 20,
       backgroundColor: theme.colors.cardBackground,
       elevation: 3,
     },
     questionText: {
       fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.black,
     },
     questionLevel: {
       fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.black,
     },
     questionImage: {
       width: "100%",
       height: 150,
       borderRadius: 8,
       marginVertical: 8,
+      backgroundColor: theme.colors.white,
     },
     questionAnswer: {
       fontSize: 14,
       fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.greenDark,
+      color: theme.colors.chartGreen,
     },
     resultText: {
       fontFamily: Fonts.NUNITO_BOLD,
@@ -91,9 +94,9 @@ export default function TestListScreen({ route }) {
         />
       </TouchableOpacity>
 
-      <Text style={styles.title}>
+      {/* <Text style={styles.title}>
         {t("testId")}: {testId}
-      </Text>
+      </Text> */}
 
       {questions.map((q, index) => (
         <View

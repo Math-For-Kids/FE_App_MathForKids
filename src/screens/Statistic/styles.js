@@ -40,7 +40,7 @@ export default function createStyles(theme) {
     greeting: {
       color: theme.colors.white,
       fontSize: 16,
-      fontFamily: Fonts.NUNITO_REGULAR,
+      fontFamily: Fonts.NUNITO_MEDIUM,
     },
     name: {
       color: theme.colors.white,
@@ -183,7 +183,7 @@ export default function createStyles(theme) {
       backgroundColor: theme.colors.grayLight,
     },
     chartTFNote: {
-      backgroundColor: theme.colors.black,
+      backgroundColor: theme.colors.shadowDark,
       borderTopLeftRadius: 20,
       borderBottomRightRadius: 20,
       padding: 10,
@@ -244,7 +244,7 @@ export default function createStyles(theme) {
     summaryTitle: {
       fontSize: 16,
       fontFamily: Fonts.NUNITO_MEDIUM,
-      color: theme.colors.green,
+      color: theme.colors.chartGreen,
     },
     commentText: {
       fontSize: 14,
@@ -252,7 +252,6 @@ export default function createStyles(theme) {
       color: theme.colors.black,
     },
     skillName: {
-      fontWeight: "bold",
       fontFamily: Fonts.NUNITO_BOLD,
       color: theme.colors.black,
     },
@@ -274,18 +273,18 @@ export default function createStyles(theme) {
     filterButton: {
       padding: 10,
       borderRadius: 5,
-      backgroundColor: "#e0e0e0",
+      backgroundColor: theme.colors.cardBackground,
     },
     filterButtonSelected: {
-      backgroundColor: "#007AFF",
+      backgroundColor: theme.colors.checkBoxBackground,
     },
     filterText: {
       fontSize: 14,
-      color: "#000",
+      color: theme.colors.black,
     },
     filterTextSelected: {
-      color: "#fff",
-      fontWeight: "bold",
+      color: theme.colors.white,
+      fontFamily: Fonts.NUNITO_BOLD,
     },
     chartTypeWrapper: {
       flexDirection: "row",
@@ -309,8 +308,8 @@ export default function createStyles(theme) {
     },
     chartTypeText: {
       fontSize: 14,
-      fontWeight: "600",
-      color: theme.colors.blueDark,
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: theme.colors.chartTypeText,
     },
     chartTypeTextSelected: {
       color: theme.colors.white,
@@ -327,22 +326,18 @@ export default function createStyles(theme) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: "#FFFFFF",
+      backgroundColor: theme.colors.white,
       borderRadius: 8,
       paddingVertical: 10,
       paddingHorizontal: 16,
       borderWidth: 1,
-      borderColor: "#E0E4E8", // Subtle border for definition
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
+      borderColor: theme.colors.grayLight,
       elevation: 3, // For Android shadow
     },
     dropdownText: {
       fontSize: 14,
-      fontWeight: "500",
-      color: "#333333", // Dark text for readability
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: theme.colors.grayDark,
       flex: 1, // Allow text to take available space
     },
     dropdownModal: {
@@ -352,27 +347,23 @@ export default function createStyles(theme) {
       alignItems: "center",
     },
     dropdownContent: {
-      backgroundColor: "#FFFFFF",
+      backgroundColor: theme.colors.cardBackground,
       borderRadius: 10,
       padding: 10,
       width: "90%", // Responsive width
       maxHeight: 400, // Limit height to avoid overflow
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 6,
       elevation: 5,
     },
     dropdownItem: {
       paddingVertical: 12,
       paddingHorizontal: 16,
       borderBottomWidth: 1,
-      borderBottomColor: "#E0E4E8", // Separator line
+      borderBottomColor: theme.colors.grayLight,
     },
     dropdownItemText: {
       fontSize: 16,
-      fontWeight: "400",
-      color: "#333333",
+      fontFamily: Fonts.NUNITO_MEDIUM,
+      color: theme.colors.dropdownItemText,
     },
     loadingText: {
       fontSize: 16,
@@ -388,31 +379,31 @@ export default function createStyles(theme) {
     },
     weakSkillContainer: {
       margin: 16,
-      backgroundColor: "#ffe5e5",
+      backgroundColor: theme.colors.weakSkillContainer,
       padding: 12,
       borderRadius: 10,
     },
     weakSkillTitle: {
-      fontWeight: "bold",
-      color: "#cc0000",
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.red,
     },
     weakSkillItem: {
       marginTop: 4,
     },
     retryContainer: {
       marginVertical: 20,
-      backgroundColor: "#e6f7ff",
+      backgroundColor: theme.colors.retryContainer,
       padding: 12,
       borderRadius: 10,
     },
     retryTitle: {
-      fontWeight: "bold",
-      color: "#006699",
+      fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.checkBoxBackground,
     },
     retryItem: {
       marginTop: 8,
       borderWidth: 1,
-      borderColor: "#fff",
+      borderColor: theme.colors.white,
       borderRadius: 20,
       padding: 10,
     },
@@ -425,8 +416,8 @@ export default function createStyles(theme) {
       marginVertical: 4,
     },
     retryCount: {
-      color: "#333",
-      fontStyle: "italic",
+      color: theme.colors.dropdownItemText,
+      fontFamily: Fonts.NUNITO_MEDIUM_ITALIC,
     },
     containerTF: { paddingHorizontal: 16, paddingBottom: 60 },
     summaryTFContainer: {
@@ -530,11 +521,11 @@ export default function createStyles(theme) {
     },
     noteLabel: {
       fontSize: 12,
-      color: "#333",
+      color: theme.colors.dropdownItemText,
     },
     yAxisUnitLabel: {
       fontSize: 12,
-      color: "#555",
+      color: theme.colors.grayMedium,
       alignSelf: "flex-start",
       marginLeft: 4,
       marginBottom: 4,
@@ -560,7 +551,7 @@ export default function createStyles(theme) {
       bottom: 0,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(255, 255, 255, 0.7)",
+      backgroundColor: theme.colors.loadingOverlay,
       zIndex: 1000,
     },
   });

@@ -17,8 +17,8 @@ export default function MessageSuccess({
       title={title}
       description={description}
       onClose={onClose}
-      themeColor="#4CAF50"
-      borderColor="#4CAF50"
+      themeColor={theme.colors.chartGreen}
+      borderColor={theme.colors.chartGreen}
       buttonText={t("ok")}
     />
   );
