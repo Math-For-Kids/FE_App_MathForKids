@@ -17,5 +17,7 @@
   "selectOption": "Select option...",
   "male": "Male",
   "female": "Female",
-  "grade": "Grade"
+  "grade": "Grade",
+  "loading": "Loading...",
+  "contact": "Contact"
 }

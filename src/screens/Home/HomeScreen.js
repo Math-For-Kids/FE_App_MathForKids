@@ -99,7 +99,7 @@ export default function HomeScreen({ navigation, route }) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text style={{ color: theme.colors.white, fontSize: 18 }}>
-          Loading grade...
+          {t("loading")}
         </Text>
       </View>
     );

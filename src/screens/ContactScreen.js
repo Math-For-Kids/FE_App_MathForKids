@@ -14,9 +14,11 @@ import FloatingMenu from "../components/FloatingMenu";
 import { getAllUser } from "../redux/authSlice";
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import FullScreenLoading from "../components/FullScreenLoading";
 export default function ContactScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
+  const { t, i18n } = useTranslation("commmon");
   const users = useSelector((state) => state.auth.list || []);
   const loading = useSelector((state) => state.auth.loading);
   const isFocused = useIsFocused();
@@ -122,7 +124,7 @@ export default function ContactScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Contact</Text>
+        <Text style={styles.title}>{t("common:contact")}</Text>
       </LinearGradient>
       <FlatList
         data={filteredUsers}
@@ -147,8 +149,8 @@ export default function ContactScreen({ navigation }) {
                       item.image
                         ? { uri: item.image }
                         : item.gender === "female"
-                        ? theme.icons.avatarFemale
-                        : theme.icons.avatarMale
+                          ? theme.icons.avatarFemale
+                          : theme.icons.avatarMale
                     }
                     style={styles.avatar}
                   />

@@ -6,5 +6,7 @@
   "Subtraction": "Subtraction",
   "Multiplication": "Multiplication",
   "Division": "Division",
-  "Expression": "Expression"
+  "Expression": "Expression",
+  "loading":"Loading grade..."
+
 }
