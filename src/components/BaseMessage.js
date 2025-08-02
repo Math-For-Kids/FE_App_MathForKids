@@ -49,6 +49,7 @@ export default function BaseMessage({
     },
     title: {
       fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.text,
       fontSize: 16,
       marginBottom: 10,
       textAlign: "center",

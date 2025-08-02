@@ -296,7 +296,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       borderRadius: 40,
     },
     swipeHintText: {
-      color: theme.colors.gray,
+      color: theme.colors.text,
       fontSize: 13,
       fontFamily: Fonts.NUNITO_MEDIUM,
       paddingHorizontal: 20,
@@ -314,7 +314,10 @@ export default function LessonDetailScreen({ navigation, route }) {
       minHeight: 250,
       maxHeight: 400,
     },
-    lessonTextListContainer: { minHeight: 300 },
+    lessonTextListContainer: {
+      minHeight: 300,
+      color: theme.colors.text
+    },
     lessonTextList: {
       fontSize: 20,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -416,7 +419,12 @@ export default function LessonDetailScreen({ navigation, route }) {
             <View style={{ width: width - 40 }}>
               <AutoHeightWebView
                 originWhitelist={["*"]}
-                source={{ html: content }}
+                source={{
+                  html: `
+                    <div style="color: ${theme.colors.text}">
+                      ${content}
+                    </div>
+                  `}}
                 style={{
                   backgroundColor: "transparent",
                   width: width - 80,

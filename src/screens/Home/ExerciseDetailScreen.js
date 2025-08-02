@@ -445,6 +445,7 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     questionText: {
       fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.text,
       fontSize: 16,
       marginTop: 10,
       marginBottom: 5,
