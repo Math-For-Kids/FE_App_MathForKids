@@ -508,4 +508,4 @@ export default function StatisticScreen({ navigation }) {
       <FloatingMenu />
     </LinearGradient>
   );
-}
+};

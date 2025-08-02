@@ -711,7 +711,7 @@ export default function AssessmentScreen({ navigation, route }) {
             </View>
           </Modal>
         </>
-      )}{" "}
+      )}
       <MessageError
         visible={showError}
         title={errorContent.title}

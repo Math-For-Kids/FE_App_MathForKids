@@ -12,6 +12,7 @@ import { useTheme } from "../../themes/ThemeContext";
 import { Fonts } from "../../../constants/Fonts";
 import FloatingMenu from "../../components/FloatingMenu";
 import { useTranslation } from "react-i18next";
+
 export default function PrivacyManagementScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useTranslation("privacy");
@@ -36,7 +37,10 @@ export default function PrivacyManagementScreen({ navigation }) {
       padding: 8,
       borderRadius: 50,
     },
-    backIcon: { width: 24, height: 24 },
+    backIcon: {
+      width: 24,
+      height: 24
+    },
     title: {
       fontSize: 24,
       fontFamily: Fonts.NUNITO_EXTRA_BOLD,
@@ -52,6 +56,7 @@ export default function PrivacyManagementScreen({ navigation }) {
     wrapContainer: {
       flexDirection: "row",
       gap: 35,
+      justifyContent: "space-between",
     },
     button: {
       width: "45%",
@@ -139,6 +144,19 @@ export default function PrivacyManagementScreen({ navigation }) {
                 resizeMode="contain"
               />
               <Text style={styles.buttonText}>{t("changePin")}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.wrapContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("ChangeProfilePupilScreen")}
+            >
+              <Image
+                source={theme.icons.profilepupil || theme.icons.profilepupil}
+                style={styles.buttonImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.buttonText}>{t("changePupilProfile")}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -80,6 +80,7 @@ export const Icons = {
   changeemail: require("../../../assets/images/graphics/animals/change emial.png"),
   changephone: require("../../../assets/images/graphics/animals/change phone.png"),
   changepin: require("../../../assets/images/graphics/animals/change pin.png"),
+  profilepupil: require("../../../assets/images/graphics/capybaras/profile pupil.png"),
   viewprofile: require("../../../assets/images/graphics/animals/view profile.png"),
 };
 export type Theme2Icons = typeof Icons;

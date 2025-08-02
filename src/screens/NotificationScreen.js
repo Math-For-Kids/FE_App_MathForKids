@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,17 +23,16 @@ import {
   createPupilNotification,
 } from "../redux/pupilNotificationSlice";
 import { getExchangeReward, updateExchangeReward } from "../redux/rewardSlice";
-
 import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import FullScreenLoading from "../components/FullScreenLoading";
 import MessageError from "../components/MessageError";
 import MessageSuccess from "../components/MessageSuccess";
+
 export default function NotificationScreen({ navigation, route }) {
   const { theme, isDarkMode } = useTheme();
   const { userId, pupilId } = route.params || {};
-  // console.log("userId", userId);
   const [expandedId, setExpandedId] = useState(null);
   const [rewardData, setRewardData] = useState({});
   const user = useSelector((state) => state.auth.user);
@@ -60,7 +58,6 @@ export default function NotificationScreen({ navigation, route }) {
   const notificationsToDisplay = pupilId
     ? pupilNotifications
     : userNotifications;
-  // console.log("Notifications to display:", pupilNotifications);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -75,7 +72,6 @@ export default function NotificationScreen({ navigation, route }) {
 
   useEffect(() => {
     if (isFocused) {
-      // console.log("pupilId:", pupilId);
       if (pupilId) {
         dispatch(notificationsByPupilId(pupilId));
       } else if (userId) {
@@ -83,6 +79,7 @@ export default function NotificationScreen({ navigation, route }) {
       }
     }
   }, [isFocused, pupilId, userId]);
+
   useEffect(() => {
     const fetchRewards = async () => {
       const rewards = {};
@@ -108,9 +105,6 @@ export default function NotificationScreen({ navigation, route }) {
 
   const handlePress = async (id) => {
     const selected = notificationsToDisplay.find((n) => n.id === id);
-    // console.log("Pressed notification ID:", id);
-    // console.log("Selected notification:", selected);
-
     if (selected && !selected.isRead) {
       try {
         if (pupilId) {
@@ -125,12 +119,12 @@ export default function NotificationScreen({ navigation, route }) {
           dispatch(notificationsByUserId(user.id));
         }
       } catch (err) {
-        // console.error("Failed to update notification:", err);
+        console.error("Failed to update notification:", err);
       }
     }
     setExpandedId((prev) => (prev === id ? null : id));
   };
-  // xem lai date
+
   const formatDate = (value) => {
     try {
       if (!value) return "Invalid Date";
@@ -313,8 +307,6 @@ export default function NotificationScreen({ navigation, route }) {
                       onPress={async () => {
                         try {
                           const reward = rewardData[item.exchangedRewardId];
-                          console.log("Reward data for confirmation:", reward); // Debug log
-
                           await dispatch(
                             updateExchangeReward({
                               exchangedRewardId: item.exchangedRewardId,
@@ -345,9 +337,11 @@ export default function NotificationScreen({ navigation, route }) {
                               createdAt: new Date(),
                             })
                           ).unwrap();
-                          Alert.alert(t("success"), t("rewardConfirmed"), [
-                            { text: t("ok") },
-                          ]);
+                          setSuccessContent({
+                            title: t("success"),
+                            description: t("rewardConfirmed"),
+                          });
+                          setShowSuccess(true);
                           // Cập nhật lại danh sách thông báo sau khi xác nhận
                           dispatch(notificationsByUserId(userId));
                         } catch (err) {
@@ -355,9 +349,11 @@ export default function NotificationScreen({ navigation, route }) {
                             "Failed to update exchange reward:",
                             err
                           );
-                          Alert.alert(t("error"), t("failedToConfirm"), [
-                            { text: t("ok") },
-                          ]);
+                          setErrorContent({
+                            title: t("error"),
+                            description: t("failedToConfirm"),
+                          });
+                          setShowError(true);
                         }
                       }}
                       style={{
@@ -415,6 +411,18 @@ export default function NotificationScreen({ navigation, route }) {
       />
       <FloatingMenu />
       <FullScreenLoading visible={loading} color={theme.colors.white} />
+      <MessageError
+        visible={showError}
+        title={errorContent.title}
+        description={errorContent.description}
+        onClose={() => setShowError(false)}
+      />
+      <MessageSuccess
+        visible={showSuccess}
+        title={successContent.title}
+        description={successContent.description}
+        onClose={() => setShowSuccess(false)}
+      />
     </LinearGradient>
   );
 }

@@ -27,6 +27,8 @@ import PrivacyScreen from "./screens/Profile/PrivacyScreen";
 import ChangeEmailScreen from "./screens/Profile/ChangeEmailScreen";
 import ChangePhoneScreen from "./screens/Profile/ChangePhoneScreen";
 import ChangePinScreen from "./screens/Profile/ChangePinScreen";
+import ChangeProfilePupilScreen from "./screens/Profile/ChangeProfilePupilScreen";
+
 import ProfileScreen from "./screens/Profile/ProfileScreen";
 import DetailScreen from "./screens/Profile/DetailScreen";
 import ProfilePupilDetailScreen from "./screens/Profile/ProfilePupilDetailScreen";
@@ -116,6 +118,7 @@ export default function AppNavigator() {
       <Stack.Screen name="ChangeEmailScreen" component={ChangeEmailScreen} />
       <Stack.Screen name="ChangePhoneScreen" component={ChangePhoneScreen} />
       <Stack.Screen name="ChangePinScreen" component={ChangePinScreen} />
+      <Stack.Screen name="ChangeProfilePupilScreen" component={ChangeProfilePupilScreen} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
       <Stack.Screen name="DetailScreen" component={DetailScreen} />
       <Stack.Screen

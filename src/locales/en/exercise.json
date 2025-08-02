@@ -26,5 +26,9 @@
   "correctAnswer": "Correct Answer",
   "goToStepByStep": "Go to Step by Step",
   "close": "Close",
+  "warning": "Warning",
+  "pleaseAnswerAllQuestions": "You have not answered all the questions. Are you sure you want to submit?",
+  "confirm": "Confirm",
+  "wantToSkipTest": "Are you sure you want to skip the test?",
   "invalidImage": "Invalid Image"
 }

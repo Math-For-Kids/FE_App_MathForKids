@@ -77,12 +77,13 @@
   "accuracyOverTime": "Chart showing progress over time",
   "correctWrongByMonth": "Correct and incorrect answers over learning periods",
   "accuracyByLevel": "Correct/incorrect results by question difficulty",
-  "selectSkill": "Select skill",
   "selectTest": "Select test",
   "unit": "Unit",
   "questions": "questions",
   "loadingStats": "Loading statistics...",
   "incompleteSelection": "Missing selection",
   "pleaseSelectAllBeforeViewingTests": "Please select pupil, skill, lesson, and range type before viewing tests.",
-  "noTestAvailable": "No test available."
+  "noSignificantChange":"No significant change",
+  "noTestAvailable": "No test available.",
+  "selectSkill":"Select skill"
 }

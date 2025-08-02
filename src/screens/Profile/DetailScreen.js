@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  Platform
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../themes/ThemeContext";
@@ -37,8 +38,11 @@ export default function DetailScreen({ navigation }) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [currentField, setCurrentField] = useState("");
   const [newAvatar, setNewAvatar] = useState(null);
+  const [refreshProfile, setRefreshProfile] = useState(false);
   const [editedProfile, setEditedProfile] = useState({});
+  const [tempProfile, setTempProfile] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDateField, setCurrentDateField] = useState(null);
   const [errors, setErrors] = useState({});
   const [showError, setShowError] = useState(false);
   const [errorContent, setErrorContent] = useState({
@@ -63,25 +67,36 @@ export default function DetailScreen({ navigation }) {
   }, [isFocused, users?.id]);
 
   useEffect(() => {
-    const dobSeconds = profile?.dateOfBirth?.seconds || 0;
-    const formattedDate =
-      dobSeconds && dobSeconds > 0
-        ? new Date(dobSeconds * 1000).toLocaleDateString("vi-VN")
-        : "";
-
-    setEditedProfile({
+    const dobSeconds = profile?.dateOfBirth?.seconds;
+    const dobDate = dobSeconds ? new Date(dobSeconds * 1000) : null;
+    const formattedBirthday = dobDate ? dobDate.toISOString() : "";
+    const initialProfile = {
       fullName: profile.fullName || "none",
       phoneNumber: profile.phoneNumber || "none",
       email: profile.email || "none",
       pin: profile.pin || "none",
-      dateOfBirth: formattedDate,
-      gender: profile.gender || "none",
+      dateOfBirth: formattedBirthday,
+      gender: getFormatGender(profile.gender) || "none",
       address: profile.address || "none",
-    });
+    };
+    setEditedProfile(initialProfile);
+    setTempProfile(initialProfile);
   }, [profile]);
 
+  const getFormatGender = (gender) => {
+    if (!gender) return "none";
+    const lowercaseGender = gender.toLowerCase();
+    return lowercaseGender === "male" ? t("male") : lowercaseGender === "female" ? t("female") : "none";
+  };
+
+  const formatDateString = (isoStr) => {
+    if (!isoStr) return "";
+    const date = new Date(isoStr);
+    return isNaN(date) ? "" : date.toLocaleDateString("vi-VN");
+  };
+
   const handleChange = (field, value) => {
-    setEditedProfile((prev) => ({ ...prev, [field]: value }));
+    setTempProfile((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePickImage = async () => {
@@ -112,57 +127,86 @@ export default function DetailScreen({ navigation }) {
       }
     }
   };
+  const handlePickerDate = (fieldName) => {
+    setCurrentDateField(fieldName);
+    setShowDatePicker(true);
+  };
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate && currentDateField) {
+      const selectedYear = selectedDate.getFullYear();
+      const currentYear = new Date().getFullYear();
+      const age = currentYear - selectedYear;
 
-  const handleSave = async () => {
-    const newErrors = {};
+      if (age < 18 || age > 100) {
+        setErrorContent({
+          title: t("errorTitle"),
+          description: t("ageRangeInvalid"),
+        });
+        setShowError(true);
+        return;
+      }
+      handleChange(currentDateField, selectedDate.toISOString());
+    }
+  };
 
-    for (const [key, value] of Object.entries(editedProfile)) {
-      if (!value || value === "none") {
-        newErrors[key] = t("fieldRequired");
+  const validateInputs = () => {
+    const requiredFields = [
+      { field: "fullName", label: t("fullName") },
+      { field: "dateOfBirth", label: t("birthday") },
+      { field: "gender", label: t("gender") },
+      { field: "address", label: t("address") },
+    ];
+
+    for (const { field, label } of requiredFields) {
+      if (
+        !tempProfile[field] ||
+        tempProfile[field] === "none" ||
+        tempProfile[field].trim() === ""
+      ) {
+        setErrorContent({
+          title: t("errorTitle"),
+          description: t("requiredField", { field: label }),
+        });
+        setShowError(true);
+        return false;
       }
     }
+    return true;
+  };
 
-    const age =
-      new Date().getFullYear() -
-      new Date(editedProfile.dateOfBirth).getFullYear();
-
-    if (editedProfile.dateOfBirth && (age < 18 || age > 100)) {
-      newErrors.dateOfBirth = t("ageRangeInvalid");
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  const handleSave = async () => {
+    if (!validateInputs()) {
       return;
     }
-
-    setErrors({});
-
     try {
       await dispatch(
-        updateProfile({ id: users.id, data: editedProfile })
+        updateProfile({ id: users.id, data: tempProfile })
       ).unwrap();
-      dispatch(profileById(users.id));
+      setEditedProfile(tempProfile);
+      setRefreshProfile((prev) => !prev);
       setSuccessContent({
-        title: t("successTitle"),
+        title: t("success"),
         description: t("profileUpdated"),
       });
       setShowSuccess(true);
       setModalVisible(false);
     } catch (error) {
       setErrorContent({
-        title: t("errorTitle"),
+        title: t("error"),
         description: t("updateProfileFailed"),
       });
       setShowError(true);
     }
   };
-
+  const handleCancel = () => {
+    setTempProfile(editedProfile);
+    setModalVisible(false);
+    setNewAvatar(null);
+  };
   const userFields = [
     { label: t("fullName"), fieldName: "fullName", type: "text" },
-    // { label: "Phone number", fieldName: "phoneNumber", type: "text" },
-    // { label: "Email", fieldName: "email", type: "text" },
-    // { label: "Pin", fieldName: "pin", type: "text" },
-    { label: t("birthday"), fieldName: "dateOfBirth", type: "text" },
+    { label: t("birthday"), fieldName: "dateOfBirth", type: "date" },
     {
       label: t("gender"),
       fieldName: "gender",
@@ -433,12 +477,28 @@ export default function DetailScreen({ navigation }) {
             <Text style={styles.fieldLabel}>{field.label}</Text>
             <View style={styles.fieldBox}>
               <Text style={styles.fieldText}>
-                {editedProfile[field.fieldName]}
+                {field.type === "date"
+                  ? formatDateString(tempProfile[field.fieldName])
+                  : tempProfile[field.fieldName]}
               </Text>
             </View>
           </View>
         ))}
       </ScrollView>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={
+            tempProfile.dateOfBirth
+              ? new Date(tempProfile.dateOfBirth)
+              : new Date()
+          }
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "calendar"}
+          onChange={handleDateChange}
+        />
+      )}
+
       {/* Edit Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -446,7 +506,7 @@ export default function DetailScreen({ navigation }) {
             <ScrollView>
               <View style={styles.carModalContainer}>
                 <View style={styles.carModal}>
-                  <Text style={styles.textModal}>Edit Profile</Text>
+                  <Text style={styles.textModal}>{t("editProfile")}</Text>
                   <View style={styles.avatarWrapperModel}>
                     <TouchableOpacity onPress={handlePickImage}>
                       <Image
@@ -454,8 +514,8 @@ export default function DetailScreen({ navigation }) {
                           newAvatar
                             ? { uri: newAvatar }
                             : profile?.image
-                            ? { uri: profile?.image }
-                            : theme.icons.avatarFemale
+                              ? { uri: profile?.image }
+                              : theme.icons.avatarFemale
                         }
                         style={styles.avatar}
                       />
@@ -488,12 +548,12 @@ export default function DetailScreen({ navigation }) {
                       <TouchableOpacity
                         onPress={() => {
                           setCurrentField(field.fieldName);
-                          setMenuVisible(true);
+                          setMenuVisible((prev) => !prev);
                         }}
                         style={styles.dropdownButton}
                       >
                         <Text style={styles.dropdownButtonText}>
-                          {editedProfile[field.fieldName] || "Select option..."}
+                          {tempProfile[field.fieldName] || t("selectOption")}
                         </Text>
                       </TouchableOpacity>
                       {menuVisible && currentField === field.fieldName && (
@@ -513,91 +573,61 @@ export default function DetailScreen({ navigation }) {
                         </View>
                       )}
                     </>
+                  ) : field.type === "date" ? (
+                    <TouchableOpacity
+                      onPress={() => handlePickerDate(field.fieldName)}
+                      style={[styles.inputBox, { justifyContent: "center" }]}
+                    >
+                      <Text style={styles.inputTextBox}>
+                        {tempProfile[field.fieldName]
+                          ? formatDateString(tempProfile[field.fieldName])
+                          : t("selectDate")}
+                      </Text>
+                    </TouchableOpacity>
                   ) : (
-                    <View style={{ marginBottom: 12 }}>
-                      <View
+                    <View
+                      style={[
+                        styles.inputBox,
+                        {
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        },
+                        ["phoneNumber", "email", "pin"].includes(
+                          field.fieldName
+                        ) && {
+                          backgroundColor: theme.colors.grayMedium,
+                        },
+                      ]}
+                    >
+                      <TextInput
+                        value={tempProfile[field.fieldName]}
+                        onChangeText={(text) =>
+                          handleChange(field.fieldName, text)
+                        }
+                        editable={
+                          !["phoneNumber", "email", "pin"].includes(
+                            field.fieldName
+                          )
+                        }
                         style={[
-                          styles.inputBox,
-                          {
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                          },
+                          styles.inputTextBox,
+                          { flex: 1 },
                           ["phoneNumber", "email", "pin"].includes(
                             field.fieldName
                           ) && {
-                            backgroundColor: theme.colors.grayMedium,
+                            color: theme.colors.graySoft,
                           },
                         ]}
-                      >
-                        {field.fieldName === "dateOfBirth" ? (
-                          <>
-                            <TouchableOpacity
-                              onPress={() => setShowDatePicker(true)}
-                              style={styles.inputBox}
-                            >
-                              <Text
-                                style={[
-                                  styles.inputTextBox,
-                                  {
-                                    textAlign: "center",
-                                    width: "100%",
-                                  },
-                                ]}
-                              >
-                                {editedProfile.dateOfBirth || "Select date"}
-                              </Text>
-                            </TouchableOpacity>
+                        placeholder={t("placeholder", {
+                          field: field.label.toLowerCase(),
+                        })}
+                        placeholderTextColor={theme.colors.grayMedium}
+                      />
 
-                            {showDatePicker && (
-                              <DateTimePicker
-                                value={
-                                  editedProfile.dateOfBirth
-                                    ? new Date(editedProfile.dateOfBirth)
-                                    : new Date()
-                                }
-                                mode="date"
-                                display="default"
-                                onChange={(event, selectedDate) => {
-                                  setShowDatePicker(false);
-                                  if (selectedDate) {
-                                    const isoDate = selectedDate
-                                      .toISOString()
-                                      .split("T")[0];
-                                    handleChange("dateOfBirth", isoDate);
-                                  }
-                                }}
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <TextInput
-                            value={editedProfile[field.fieldName]}
-                            onChangeText={(text) =>
-                              handleChange(field.fieldName, text)
-                            }
-                            editable={
-                              !["phoneNumber", "email", "pin"].includes(
-                                field.fieldName
-                              )
-                            }
-                            style={[
-                              styles.inputTextBox,
-                              { flex: 1 },
-                              ["phoneNumber", "email", "pin"].includes(
-                                field.fieldName
-                              ) && {
-                                color: theme.colors.graySoft,
-                              },
-                            ]}
-                            placeholder={`Enter ${field.label.toLowerCase()}`}
-                            placeholderTextColor={theme.colors.grayMedium}
-                          />
-                        )}
-
-                        {["phoneNumber", "email", "pin"].includes(
-                          field.fieldName
-                        ) && (
+                      {["phoneNumber", "email", "pin"].includes(
+                        field.fieldName
+                      ) && (
                           <TouchableOpacity
                             onPress={() => {
                               if (field.fieldName === "phoneNumber") {
@@ -611,19 +641,10 @@ export default function DetailScreen({ navigation }) {
                             style={styles.editChangeButtonContainer}
                           >
                             <Text style={styles.editChangeTextButton}>
-                              Edit
+                              {t("edit")}
                             </Text>
                           </TouchableOpacity>
                         )}
-                      </View>
-
-                      {errors[field.fieldName] && (
-                        <Text
-                          style={{ color: "red", fontSize: 12, marginTop: 4 }}
-                        >
-                          {errors[field.fieldName]}
-                        </Text>
-                      )}
                     </View>
                   )}
                 </View>
@@ -635,7 +656,7 @@ export default function DetailScreen({ navigation }) {
                 <Text style={styles.buttonText}>{t("save")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setModalVisible(false)}
+                onPress={handleCancel}
                 style={styles.cancelButton}
               >
                 <Text style={styles.buttonText}>{t("cancel")}</Text>
@@ -644,6 +665,7 @@ export default function DetailScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <LinearGradient
           colors={theme.colors.gradientBlue}
@@ -652,6 +674,7 @@ export default function DetailScreen({ navigation }) {
           <Text style={styles.fieldLabel}>{t("edit")}</Text>
         </LinearGradient>
       </TouchableOpacity>
+
       <FloatingMenu />
       <FullScreenLoading visible={loading} color={theme.colors.white} />
       <MessageError
@@ -664,9 +687,7 @@ export default function DetailScreen({ navigation }) {
         visible={showSuccess}
         title={successContent.title}
         description={successContent.description}
-        onClose={() => {
-          setShowSuccess(false);
-        }}
+        onClose={() => setShowSuccess(false)}
       />
     </LinearGradient>
   );
