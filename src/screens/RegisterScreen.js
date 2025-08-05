@@ -91,7 +91,7 @@ export default function RegisterScreen({ navigation }) {
         (today.getMonth() === birth.getMonth() &&
           today.getDate() >= birth.getDate());
       const finalAge = hadBirthday ? age : age - 1;
-      if (finalAge < 18 || finalAge > 100)
+      if (finalAge < 22 || finalAge > 100)
         newErrors.dateOfBirth = t("invalidAgeRange");
     }
 

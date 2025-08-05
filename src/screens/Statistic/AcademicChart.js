@@ -4,7 +4,7 @@ import { BarChart } from "react-native-chart-kit";
 import { useTheme } from "../../themes/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
-import { Fonts } from "../../../constants/Fonts";
+
 // Component hiển thị biểu đồ cột so sánh điểm số học tập
 export default React.memo(function AcademicChart({
   t,
@@ -22,7 +22,6 @@ export default React.memo(function AcademicChart({
 }) {
   const dispatch = useDispatch();
   const { theme } = useTheme();
-  // Sắp xếp thứ tự danh mục điểm số: <5, ≥5, ≥7, ≥9
   const scoreCategories = ["<5", "≥5", "≥7", "≥9"];
   const lessons = useSelector((state) => state.lesson.lessons);
 
@@ -110,7 +109,7 @@ export default React.memo(function AcademicChart({
       .filter(({ highScores, lowScores }) => lowScores > highScores)
       .map(
         ({ lessonId }) =>
-          `${lessonNameMap[lessonId] || lessonId} ${t("needsImprovement")}.`
+          `${lessonNameMap[lessonId] || lessonId} ${t("needsImprovement")}`
       );
 
     return lessonsToImprove.length
@@ -145,22 +144,20 @@ export default React.memo(function AcademicChart({
   // Tổng hợp dữ liệu cho biểu đồ
   const aggregatedData = scoreCategories.map((category) => {
     const thisPeriodTotal = skills.reduce((sum, skill) => {
-      const skillData =
-        pointStats.compareByType[skill]?.[thisRange]?.[category] || 0;
-      return sum + skillData;
+      const skillData = pointStats.compareByType[skill]?.[thisRange]?.[category] || 0;
+      return sum + (skillData || 0);
     }, 0);
-    const lastPeriodTotal = skills.reduce(
-      (sum, skill) =>
-        sum + (pointStats.compareByType[skill]?.[lastRange]?.[category] || 0),
-      0
-    );
-    return [lastPeriodTotal, thisPeriodTotal, 0]; // 0 là placeholder cho khoảng trống
+
+    const lastPeriodTotal = skills.reduce((sum, skill) => {
+      const skillData = pointStats.compareByType[skill]?.[lastRange]?.[category] || 0;
+      return sum + (skillData || 0);
+    }, 0);
+
+    return [lastPeriodTotal, thisPeriodTotal, 0]; // [lastPeriod, thisPeriod, padding]
   });
 
-  // Kiểm tra nếu không có dữ liệu để hiển thị biểu đồ
-  const shouldShowChart = aggregatedData.some(
-    (data) => data[0] > 0 || data[1] > 0
-  );
+  // Kiểm tra nếu có dữ liệu để hiển thị biểu đồ
+  const shouldShowChart = aggregatedData.some((data) => data.some((val) => val > 0));
   if (!shouldShowChart) {
     return (
       <View
@@ -183,48 +180,52 @@ export default React.memo(function AcademicChart({
 
   // Cấu hình dữ liệu cho biểu đồ
   const chartData = {
-    labels: scoreCategories.flatMap((cat) => [cat, ""]), // Thêm khoảng trống giữa các nhóm cột
+    labels: scoreCategories.flatMap((cat) => [cat, ""]),
     datasets: [
       {
         data: aggregatedData.flat(),
-        colors: scoreCategories.flatMap(() => [
-          () => theme.colors.chartRed, // Màu đỏ cam cho giai đoạn trước
-          () => theme.colors.chartGreen, // Màu xanh lá cho giai đoạn hiện tại
-          () => "rgba(0,0,0,0)", // Khoảng trống giữa các cột
-        ]),
+        colors: [
+          ...scoreCategories.flatMap(() => [
+            () => "#FF6F61", // Màu cho lastPeriod
+            () => "#6BCB77", // Màu cho thisPeriod
+            () => "rgba(0,0,0,0)", // Padding
+          ]),
+        ],
       },
     ],
     legend: [t(lastRange), t(thisRange)],
   };
 
-  // Cấu hình giao diện cho biểu đồ, bao gồm đường dọc trục Y
+  // Cấu hình giao diện cho biểu đồ
+  const maxDataValue = Math.max(...aggregatedData.flat()) || 1;
   const chartConfig = {
-    backgroundColor: theme.colors.cardBackground, // Màu nền nhẹ
-    backgroundGradientFrom: theme.colors.cardBackground,
-    backgroundGradientTo: theme.colors.cardBackground,
+    backgroundColor: "#F5F5F5",
+    backgroundGradientFrom: "#F5F5F5",
+    backgroundGradientTo: "#F5F5F5",
     decimalPlaces: 0,
-    color: () => theme.colors.black || theme.colors.dropdownItemText, // Màu chữ tối
-    labelColor: () => theme.colors.dropdownItemText, // Màu nhãn cột
-    barPercentage: 0.7, // Tăng chiều rộng cột
+    color: () => theme.colors.black || "#333",
+    labelColor: () => "#333",
+    barPercentage: 0.7,
     formatYLabel: (value) => `${Math.max(Math.round(value), 0)}`,
     minY: 0,
-    maxY: Math.max(...aggregatedData.flat()) + 2, // Tăng maxY để có không gian
-    yAxisLabel: "", // Không hiển thị nhãn trục Y
-    withVerticalLines: true, // Bật đường dọc
-    withHorizontalLines: true, // Bật đường ngang
+    maxY: maxDataValue === 1 ? 2 : maxDataValue + 1, // Ensure Y-axis goes to 2 if maxDataValue is 1
+    yAxisLabel: "",
+    withVerticalLines: true,
+    withHorizontalLines: true,
     propsForBackgroundLines: {
-      stroke: theme.colors.white, // Màu đường lưới ngang nhạt
+      stroke: "#E0E0E0",
       strokeWidth: 1,
     },
     propsForVerticalLines: {
-      stroke: theme.colors.dropdownItemText, // Màu đường dọc đậm hơn để rõ ràng
-      strokeWidth: 2, // Độ dày đường dọc
-      strokeDashArray: "", // Đường liền, không nét đứt
+      stroke: "#666",
+      strokeWidth: 2,
+      strokeDashArray: "",
     },
     propsForLabels: {
-      fontSize: 14, // Tăng kích thước chữ nhãn
-      fontFamily: Fonts.NUNITO_MEDIUM,
+      fontSize: 14,
+      fontWeight: "500",
     },
+    segments: maxDataValue === 1 ? 2 : Math.max(2, Math.ceil(maxDataValue)), // Show 0, 1, 2 for maxDataValue=1
   };
 
   return (
@@ -234,38 +235,30 @@ export default React.memo(function AcademicChart({
         { padding: 16, borderRadius: 12, alignItems: "center" },
       ]}
     >
-      {/* Tiêu đề biểu đồ */}
       <Text
         style={[
           styles.chartName,
-          {
-            fontSize: 22,
-            fontFamily: Fonts.NUNITO_BOLD,
-            color: theme.colors.dropdownItemText,
-            marginBottom: 16,
-          },
+          { fontSize: 22, fontWeight: "700", color: "#333", marginBottom: 16 },
         ]}
       >
         {t("academicProgress")}
       </Text>
       <View style={[styles.back, { alignItems: "center" }]}>
-        {/* Biểu đồ cột */}
         <BarChart
           data={chartData}
-          width={screenWidth} // Giảm chiều rộng để có lề
-          height={320} // Tăng chiều cao biểu đồ
-          spacing={80} // Tăng khoảng cách giữa các nhóm cột
+          width={screenWidth}
+          height={320}
+          spacing={80}
           fromZero
           flatColor
-          segments={Math.max(...chartData.datasets[0].data, 1)}
+          segments={Math.max(2, Math.ceil(maxDataValue))} // Đảm bảo ít nhất 2 đoạn
           chartConfig={chartConfig}
           withCustomBarColorFromData
           showTooltip={false}
           showBarTops={false}
-          withVerticalLines={true} // Đảm bảo bật đường dọc
+          withVerticalLines={true}
           style={styles.academicChartContainer}
         />
-        {/* Chú thích màu */}
         <View
           style={[
             styles.chartNoteContainer,
@@ -279,64 +272,52 @@ export default React.memo(function AcademicChart({
             ]}
           >
             <View
-              style={[
-                {
-                  width: 16,
-                  height: 16,
-                  backgroundColor: theme.colors.chartRed,
-                  borderRadius: 4,
-                },
-              ]}
+              style={{
+                width: 16,
+                height: 16,
+                backgroundColor: "#FF6F61",
+                borderRadius: 4,
+              }}
             />
             <Text
-              style={[
-                {
-                  marginLeft: 8,
-                  color: theme.colors.dropdownItemText,
-                  fontSize: 14,
-                  fontFamily: Fonts.NUNITO_MEDIUM,
-                },
-              ]}
+              style={{
+                marginLeft: 8,
+                color: "#333",
+                fontSize: 14,
+                fontWeight: "500",
+              }}
             >
               {t(lastRange)}
             </Text>
           </View>
           <View
-            style={[
-              styles.chartNote,
-              { flexDirection: "row", alignItems: "center" },
-            ]}
+            style={[styles.chartNote, { flexDirection: "row", alignItems: "center" }]}
           >
             <View
-              style={[
-                {
-                  width: 16,
-                  height: 16,
-                  backgroundColor: theme.colors.chartGreen,
-                  borderRadius: 4,
-                },
-              ]}
+              style={{
+                width: 16,
+                height: 16,
+                backgroundColor: "#6BCB77",
+                borderRadius: 4,
+              }}
             />
             <Text
-              style={[
-                {
-                  marginLeft: 8,
-                  color:  theme.colors.dropdownItemText,
-                  fontSize: 14,
-                  fontFamily: Fonts.NUNITO_MEDIUM,
-                },
-              ]}
+              style={{
+                marginLeft: 8,
+                color: "#333",
+                fontSize: 14,
+                fontWeight: "500",
+              }}
             >
               {t(thisRange)}
             </Text>
           </View>
         </View>
       </View>
-      {/* Phần tóm tắt */}
       <View style={[styles.summaryTFContainer, { width: 330 }]}>
         <Text style={styles.summaryTitle}>{t("summary")}</Text>
         {notificationMessage.map((line, index) => (
-          <Text key={index} style={styles.noteText}>
+          <Text key={index} style={styles.summaryItem}>
             {line}
           </Text>
         ))}
