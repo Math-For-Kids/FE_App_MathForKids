@@ -322,13 +322,10 @@ export default function TestScreen({ navigation, route }) {
 
         if (score >= 9) {
           let exercise = levelIds ? levelIds.join(",") : null; // Check if levelIds exists
-          let unlockResult = null; // Initialize as null
-
-          if (exercise === null) {
-            unlockResult = await dispatch(
-              completeAndUnlockNextLesson({ pupilId, lessonId })
-            ).unwrap();
-          } else {
+          let unlockResult = await dispatch(
+            completeAndUnlockNextLesson({ pupilId, lessonId })
+          ).unwrap();
+          if (exercise !== null) {
             const res = await dispatch(
               autoMarkCompletedGoals({ pupilId, lessonId, exercise })
             );
@@ -346,11 +343,10 @@ export default function TestScreen({ navigation, route }) {
               });
               setShowError(true);
             }
-            setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
           }
-        } else {
-          setNextLessonName(null);
+          setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
         }
+
       } catch (error) {
         setErrorContent({
           title: t("error"),
@@ -559,6 +555,7 @@ export default function TestScreen({ navigation, route }) {
       paddingHorizontal: 20,
     },
     questionImage: {
+      backgroundColor: "#fff",
       width: 300,
       height: 150,
       borderRadius: 10,
