@@ -16,7 +16,6 @@ import { useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import FullScreenLoading from "../components/FullScreenLoading";
-import { useTranslation } from "react-i18next";
 export default function ContactScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useTranslation("contact");

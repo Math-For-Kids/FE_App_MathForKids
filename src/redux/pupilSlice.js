@@ -61,12 +61,25 @@ export const updatePupilProfile = createAsyncThunk(
     }
   }
 );
+export const rankings = createAsyncThunk(
+  "pupil/fetchRankings",
+  async (grade, { rejectWithValue }) => {
+    try {
+      const res = await Api.get(`/test/rankingByGrade/${grade}`);
+
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 const pupilSlice = createSlice({
   name: "pupil",
   initialState: {
     loading: false,
     error: null,
     pupils: [],
+    rankings: [],
     nextPageToken: null,
     pupil: null,
   },
@@ -123,6 +136,19 @@ const pupilSlice = createSlice({
         state.pupils = action.payload || [];
       })
       .addCase(pupilByUserId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      //get rankings
+      .addCase(rankings.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(rankings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.rankings = action.payload || [];
+      })
+      .addCase(rankings.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

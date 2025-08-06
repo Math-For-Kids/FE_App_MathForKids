@@ -702,7 +702,7 @@ export default function AssessmentScreen({ navigation, route }) {
                   style={styles.modalButton}
                   onPress={() => {
                     setShowModal(false);
-                    navigation.goBack();
+                    navigation.navigate("HomeScreen", { pupilId, grade });
                   }}
                 >
                   <Text style={styles.modalButtonText}>{t("ok")}</Text>
