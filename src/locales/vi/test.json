@@ -24,5 +24,6 @@
   "nextLesson": "Bài học tiếp theo",
   "success": "Thành Công",
   "error": "Lỗi",
-  "timeEnd": "Đã hết giờ làm bài, hệ thống đã tự động nộp bài của bạn."
+  "timeEnd": "Đã hết giờ làm bài, hệ thống đã tự động nộp bài của bạn.",
+  "bonusPoints":"Điểm thưởng"
 }

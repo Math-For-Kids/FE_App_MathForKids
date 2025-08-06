@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TouchableOpacity, ScrollView,Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../themes/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
@@ -407,44 +407,46 @@ export default function StepByStepScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      <LinearGradient
-        colors={getGradient()}
-        style={styles.nextButton}
-        start={{ x: 0, y: 1 }}
-        end={{ x: 0, y: 0 }}
-      >
-        <TouchableOpacity
-          onPress={() =>
-            handleNext({
-              stepIndex,
-              setStepIndex,
-              subStepIndex,
-              setSubStepIndex,
-              setRevealedResultDigits,
-              setRevealedDigits,
-              setSteps,
-              setCurrentRowIndex,
-              currentRowIndex,
-              steps,
-              number1,
-              number2,
-              operator,
-              t,
-              setRemember,
-              revealedResultDigits,
-              visibleDigitsMap,
-              setVisibleDigitsMap,
-              setVisibleCarryMap,
-              visibleCarryMap,
-              setColumnStepIndex,
-              columnStepIndex,
-              carryBackupRef,
-            })
-          }
+      {(stepIndex === 0 || stepIndex < steps.length - 1) && (
+        <LinearGradient
+          colors={getGradient()}
+          style={styles.nextButton}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
         >
-          <Text style={styles.nextText}>{t("button.next")}</Text>
-        </TouchableOpacity>
-      </LinearGradient>
+          <TouchableOpacity
+            onPress={() =>
+              handleNext({
+                stepIndex,
+                setStepIndex,
+                subStepIndex,
+                setSubStepIndex,
+                setRevealedResultDigits,
+                setRevealedDigits,
+                setSteps,
+                setCurrentRowIndex,
+                currentRowIndex,
+                steps,
+                number1,
+                number2,
+                operator,
+                t,
+                setRemember,
+                revealedResultDigits,
+                visibleDigitsMap,
+                setVisibleDigitsMap,
+                setVisibleCarryMap,
+                visibleCarryMap,
+                setColumnStepIndex,
+                columnStepIndex,
+                carryBackupRef,
+              })
+            }
+          >
+            <Text style={styles.nextText}>{t("button.next")}</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      )}
       <FloatingMenu />
     </View>
   );
