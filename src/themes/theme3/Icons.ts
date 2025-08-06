@@ -82,5 +82,9 @@ export const Icons = {
   changepin: require("../../../assets/images/graphics/superhero/change pin.png"),
   profilepupil: require("../../../assets/images/graphics/capybaras/profile pupil.png"),
   viewprofile: require("../../../assets/images/graphics/superhero/view profile.png"),
+  ticksuccess: require("../../../assets/images/graphics/capybaras/ticksuccess.png"),
+  error: require("../../../assets/images/graphics/capybaras/error.png"),
+  confirm: require("../../../assets/images/graphics/capybaras/confirm.png"),
+  warning: require("../../../assets/images/graphics/capybaras/warning.png"),
 };
 export type Theme3Icons = typeof Icons;

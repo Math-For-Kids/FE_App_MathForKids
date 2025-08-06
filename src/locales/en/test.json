@@ -23,6 +23,8 @@
   "time": "Time",
   "nextLesson": "Next lesson",
   "success": "Success",
-  "error": "Lỗi",
-  "timeEnd": "Your test time has ended, the system has automatically submitted your test."
+  "error": "Error",
+  "timeEnd": "Your test time has ended, the system has automatically submitted your test.",
+  "bonusPoints":"Bonus points"
+
 }
