@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getLessonsByGradeAndType } from "../../redux/lessonSlice";
 
 // Component hiển thị biểu đồ cột so sánh điểm số học tập
-export default React.memo(function AcademicChart({
+export default function AcademicChart({
   t,
   styles,
   skills,
@@ -324,4 +324,4 @@ export default React.memo(function AcademicChart({
       </View>
     </View>
   );
-});
+};
