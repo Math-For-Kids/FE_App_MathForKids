@@ -144,7 +144,7 @@ export const getStyles = (theme, getBorderBox) =>
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: getBorderBox(),
       fontSize: 80,
-      textAlign: "right",
+      textAlign: "center",
     },
     subText: {
       fontSize: 14,
@@ -226,10 +226,10 @@ export const getStyles = (theme, getBorderBox) =>
     operatorInactive: { backgroundColor: theme.colors.grayMedium },
     hiddenButton: {
       opacity: 0, // Làm nút trong suốt nhưng vẫn chiếm chỗ
-      pointerEvents: 'none', // Vô hiệu hóa tương tác
+      pointerEvents: "none", // Vô hiệu hóa tương tác
     },
     hiddenText: {
-      color: 'transparent', // Làm chữ trong suốt
+      color: "transparent", // Làm chữ trong suốt
     },
     operatorSymbol: { fontSize: 100, color: theme.colors.highlightText },
     scrollContainer: { flexGrow: 1, paddingBottom: 40 },
