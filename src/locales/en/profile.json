@@ -30,7 +30,7 @@
   "currentEmail": "Current email",
   "changeEmailInstruction": "Please enter your new email. You will need to confirm it with your 4-digit PIN.",
   "newEmail": "New Email",
-  "enterPin": "Enter 4-digit PIN",
+  "enterPin": "Enter 4-digit OTP",
   "changePhone": "Change Phone",
   "currentPhone": "Current phone",
   "changePhoneInstruction": "Enter your new phone number. You will need to confirm it with your 4-digit PIN.",
