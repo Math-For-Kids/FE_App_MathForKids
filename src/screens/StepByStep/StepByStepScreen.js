@@ -104,7 +104,7 @@ export default function StepByStepScreen({ navigation, route }) {
       rate: 1,
     });
   }, [operator, i18n.language]);
-
+  console.log("stepIndex", stepIndex);
   const getMaxLength = (inputIndex) => {
     switch (operator) {
       case "+":
@@ -210,7 +210,6 @@ export default function StepByStepScreen({ navigation, route }) {
           autoNumber1={autoNumber1} // Pass autoNumber1
           autoNumber2={autoNumber2} // Pass autoNumber2
           grade={grade} // Pass autoNumber2
-
         />
       )}
 
@@ -406,7 +405,6 @@ export default function StepByStepScreen({ navigation, route }) {
           )}
         </View>
       </ScrollView>
-
       {(stepIndex === 0 || stepIndex < steps.length - 1) && (
         <LinearGradient
           colors={getGradient()}

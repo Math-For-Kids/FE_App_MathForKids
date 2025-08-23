@@ -30,7 +30,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
 import swipeGifLeft from "../../../assets/animations/swipe.gif/1.json";
 import swipeGifRight from "../../../assets/animations/swipe.gif/2.json";
-import { WebView } from "react-native-webview";
 import { useWindowDimensions } from "react-native";
 import FullScreenLoading from "../../components/FullScreenLoading";
 import AutoHeightWebView from "react-native-autoheight-webview";
@@ -406,16 +405,8 @@ export default function LessonDetailScreen({ navigation, route }) {
         <Text style={styles.lessonTitleTextList}>
           {tabTitles?.[currentIndex] || ""}
         </Text>
-        {/* <ScrollView style={styles.lessonTextListContainer}>
-          <Text style={styles.lessonTextList}>{content}</Text>
-          {imageUrl && (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: imageUrl }} style={styles.image} />
-            </View>
-          )}
-        </ScrollView> */}
         <ScrollView style={styles.lessonTextListContainer}>
-          {typeof content === "string" && content.trim().length > 0 ? (
+          {typeof content === "string" && content.trim().length > 1 ? (
             <View style={{ width: width - 40 }}>
               <AutoHeightWebView
                 originWhitelist={["*"]}

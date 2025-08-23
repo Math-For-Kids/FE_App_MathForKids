@@ -68,7 +68,7 @@ export default function RegisterScreen({ navigation }) {
 
     if (!fullName.trim()) newErrors.fullName = t("emptyFullName");
     if (!phone.trim()) newErrors.phone = t("emptyPhone");
-    else if (!/^[0-9]{9,15}$/.test(phone)) newErrors.phone = t("invalidPhone");
+    else if (!/^[0-9]{10}$/.test(phone)) newErrors.phone = t("invalidPhone");
 
     if (!email.trim()) newErrors.email = t("emptyEmail");
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))

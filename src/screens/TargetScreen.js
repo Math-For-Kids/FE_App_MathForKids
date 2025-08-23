@@ -36,7 +36,10 @@ export default function TargetScreen({ navigation, route }) {
   // console.log("enabledLevels", enabledLevels);
   const dispatch = useDispatch();
   const loading = useSelector(
-    (state) => state.goal.loading || state.goal.enabledLevels?.loading
+    (state) =>
+      state.goal.loading ||
+      state.goal.enabledLevels?.loading ||
+      state.pupil.loading 
   );
 
   const getSkillIconByName = (skillName = "") => {

@@ -14,7 +14,7 @@ import { useTheme } from "../themes/ThemeContext";
 import { Fonts } from "../../constants/Fonts";
 import FloatingMenu from "../components/FloatingMenu";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllPupils } from "../redux/pupilSlice";
+import { pupilById, rankings } from "../redux/pupilSlice";
 import FullScreenLoading from "../components/FullScreenLoading";
 const AnimatedStar = ({ color }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -45,19 +45,32 @@ const AnimatedStar = ({ color }) => {
 export default function RankScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const dispatch = useDispatch();
-  const { pupils, loading, error } = useSelector((state) => state.pupil);
-  const user = useSelector((state) => state.auth.user);
-  const userId = user?.id;
-
+  const pupilId = useSelector((state) => state.auth.user?.pupilId);
+  const pupilData = useSelector((state) => state.pupil.pupil);
+  const rankingData = useSelector((state) => state.pupil.rankings);
+  const loading = useSelector((state) => state.pupil.loading);
+  const error = useSelector((state) => state.pupil.error);
   useEffect(() => {
-    dispatch(getAllPupils(userId));
-  }, [dispatch]);
+    if (pupilId) {
+      dispatch(pupilById(pupilId));
+    }
+    if (pupilData?.grade) {
+      dispatch(rankings(pupilData.grade));
+    }
+  }, [dispatch, pupilId, pupilData?.grade]);
 
+  console.log("rankingData", rankingData);
   // Sort pupils by point in descending order
-  // const sortedPupils = [...pupils].sort((a, b) => b.point - a.point);
-  const sortedPupils = [...pupils]
+  const sortedPupils = [...rankingData]
     .sort((a, b) => b.point - a.point)
     .slice(0, 5);
+  // const sortedPupils = Array.isArray(rankingData)
+  //   ? rankingData
+  //       .filter((item) => item && item.id) // tránh lỗi undefined
+  //       .sort((a, b) => b.point - a.point)
+  //       .slice(0, 5)
+  //   : [];
+  console.log("sortedPupils", sortedPupils);
   const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 20 },
     header: {
@@ -193,16 +206,16 @@ export default function RankScreen({ navigation }) {
     },
   });
 
-  if (loading) {
-    return (
-      <LinearGradient
-        colors={theme.colors.gradientBlue}
-        style={styles.container}
-      >
-        <Text style={styles.loadingText}>Loading...</Text>
-      </LinearGradient>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <LinearGradient
+  //       colors={theme.colors.gradientBlue}
+  //       style={styles.container}
+  //     >
+  //       <Text style={styles.loadingText}>Loading...</Text>
+  //     </LinearGradient>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -251,7 +264,9 @@ export default function RankScreen({ navigation }) {
       </View>
       <FlatList
         data={sortedPupils}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) =>
+          item?.id ? item.id.toString() : index.toString()
+        }
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
         renderItem={({ item, index }) => (
           <TouchableOpacity key={item.id}>
@@ -269,7 +284,7 @@ export default function RankScreen({ navigation }) {
                 <View style={styles.avatarContainer}>
                   <Image
                     source={
-                      item.image ? { uri: item.image } : theme.icons.badge
+                      item.pupil?.image ? { uri: item.pupil.image } : theme.icons.badge
                     }
                     style={styles.avatar}
                   />
@@ -287,7 +302,7 @@ export default function RankScreen({ navigation }) {
                     </View>
                   )}
                 </View>
-                <Text style={styles.name}>{item.fullName}</Text>
+                <Text style={styles.name}>{item.pupil.fullName}</Text>
               </View>
               <View style={styles.rightContainer}>
                 <Text style={styles.point}>{item.point}</Text>

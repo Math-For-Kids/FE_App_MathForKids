@@ -9,7 +9,7 @@ export const SoundProvider = ({ children }) => {
   useEffect(() => {
     const load = async () => {
       await SoundManager.loadBackgroundSound(
-        require("../../assets/sounds/bg-sound.mp3")
+        // require("../../assets/sounds/bg-sound.mp3")
       );
       setVolume(SoundManager.getVolume());
     };

@@ -14,6 +14,10 @@ import { NavigationContainer } from "@react-navigation/native";
 import AuthChecker from "./src/components/AuthChecker";
 import { navigationRef } from "./src/components/navigationRef";
 SplashScreen.preventAutoHideAsync();
+import { LogBox } from "react-native";
+
+LogBox.ignoreLogs(["ForwardRef: Support for defaultProps will be removed"]);
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     "Nunito-Black": require("./assets/fonts/Nunito-Black.ttf"),
