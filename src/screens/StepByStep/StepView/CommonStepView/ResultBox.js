@@ -6,7 +6,6 @@ export default function ResultBox({ currentStep, styles }) {
       {currentStep.result !== "" && (
         <Text
           style={styles.resultText}
-          numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.5}
         >

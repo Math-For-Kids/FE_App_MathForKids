@@ -35,7 +35,7 @@ export default function LoginScreen({ navigation }) {
   const dispatch = useDispatch();
   const { theme, isDarkMode } = useTheme();
   const { play } = useSound();
-  const { t } = useTranslation("login");
+  const { t, i18n } = useTranslation("login");
   const [errors, setErrors] = useState({});
   const loading = useSelector((state) => state.auth.loading);
   const handleLogin = async () => {
@@ -47,7 +47,7 @@ export default function LoginScreen({ navigation }) {
     if (!value) {
       newErrors.contact = t("errorEnterContact");
     } else if (
-      !/^[0-9]{9,15}$/.test(value) &&
+      !/^[0-9]{10}$/.test(value) &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
     ) {
       newErrors.contact = t("errorInvalidContact");
@@ -56,7 +56,7 @@ export default function LoginScreen({ navigation }) {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const isPhone = /^[0-9]{9,15}$/.test(value);
+    const isPhone = /^[0-9]{10}$/.test(value);
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
     try {
@@ -79,19 +79,23 @@ export default function LoginScreen({ navigation }) {
       });
     } catch (err) {
       let msg = t("errorSendOtp");
-
       if (err && typeof err === "object") {
-        if (err.vi || err.en) {
-          msg = err.vi || err.en || msg;
+        if (err.messageKey) {
+          msg = t(err.messageKey);
+        } else if (err.vi || err.en) {
+          msg = err[i18n.language] || err.vi || err.en || msg;
         } else if (typeof err.message === "object") {
-          msg = err.message.vi || err.message.en || msg;
+          msg =
+            err.message[i18n.language] ||
+            err.message.vi ||
+            err.message.en ||
+            msg;
         } else if (typeof err.message === "string") {
           msg = err.message;
         }
       } else if (typeof err === "string") {
         msg = err;
       }
-
       setErrorContent({
         title: t("loginFailedTitle"),
         description: msg,

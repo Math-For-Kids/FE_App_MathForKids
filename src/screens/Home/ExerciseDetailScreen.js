@@ -102,8 +102,19 @@ export default function ExerciseScreen({ navigation, route }) {
     level: exercise.levelId,
   }));
 
-  const isExpression = (value) =>
-    (typeof value === "string" && value.includes("=")) || value.length >= 6;
+  const isExpression = (value, questionLevel) => {
+    const questionLevelObj = levels.find(
+      (level) => String(level.id) === String(questionLevel)
+    );
+    const isEasyLevel = questionLevelObj
+      ? questionLevelObj.level === 1 || questionLevelObj.name.en === "Easy"
+      : false;
+
+    if (isEasyLevel && typeof value === "string" && value.includes("=")) {
+      return value.split("=")[1].trim().length >= 6;
+    }
+    return typeof value === "string" && value.length >= 6;
+  };
 
   const extractAnswerValue = (value, questionLevel) => {
     const questionLevelObj = levels.find(
@@ -112,7 +123,6 @@ export default function ExerciseScreen({ navigation, route }) {
     const isEasyLevel = questionLevelObj
       ? questionLevelObj.level === 1 || questionLevelObj.name.en === "Easy"
       : false;
-    // console.log("levels:", levels, "questionLevel:", questionLevel);
     if (isEasyLevel && typeof value === "string" && value.includes("=")) {
       return value.split("=")[1].trim();
     }
@@ -206,8 +216,8 @@ export default function ExerciseScreen({ navigation, route }) {
     return theme.colors.gradientPink;
   };
 
-  const shouldUseSingleRow = (options) =>
-    options.every((opt) => extractAnswerValue(opt, 1).length <= 5);
+  const shouldUseSingleRow = (options, questionLevel) =>
+    options.every((opt) => extractAnswerValue(opt, questionLevel).length <= 5);
 
   const handleSubmit = async () => {
     if (!pupilId) {
@@ -238,7 +248,6 @@ export default function ExerciseScreen({ navigation, route }) {
       onConfirm: handleConfirmSubmit,
     });
     setShowConfirm(true);
-
   };
 
   const handleConfirmSubmit = async () => {
@@ -292,7 +301,7 @@ export default function ExerciseScreen({ navigation, route }) {
     const optionStyle = [
       styles.option,
       style,
-      isExpression(value) && { borderRadius: 10, paddingHorizontal: 20 },
+      isExpression(value, questionLevel) && { borderRadius: 10, paddingHorizontal: 20 },
     ];
     return (
       <TouchableOpacity
@@ -371,6 +380,8 @@ export default function ExerciseScreen({ navigation, route }) {
       alignItems: "center",
     },
     questionImage: {
+      backgroundColor: "#fff",
+      borderRadius: 10,
       width: 150,
       height: 100,
       resizeMode: "contain",
@@ -445,6 +456,7 @@ export default function ExerciseScreen({ navigation, route }) {
     },
     questionText: {
       fontFamily: Fonts.NUNITO_BOLD,
+      color: theme.colors.text,
       fontSize: 16,
       marginTop: 10,
       marginBottom: 5,
@@ -531,7 +543,7 @@ export default function ExerciseScreen({ navigation, route }) {
           <>
             {questions.map((q, ind) => {
               const options = generateOptions(q);
-              const useSingleRow = shouldUseSingleRow(options);
+              const useSingleRow = shouldUseSingleRow(options, q.level);
               return (
                 <View key={q.id} style={styles.questionContainer}>
                   <Text style={styles.questionText}>
@@ -575,7 +587,7 @@ export default function ExerciseScreen({ navigation, route }) {
                             val,
                             optIndex,
                             {
-                              ...(isExpression(val) && {
+                              ...(isExpression(val, q.level) && {
                                 paddingHorizontal: 20,
                                 borderRadius: 10,
                                 width: 150,
@@ -601,7 +613,7 @@ export default function ExerciseScreen({ navigation, route }) {
                                 val,
                                 optIndex,
                                 {
-                                  ...(isExpression(val) && {
+                                  ...(isExpression(val, q.level) && {
                                     paddingHorizontal: 20,
                                     borderRadius: 10,
                                     width: 150,
@@ -625,7 +637,7 @@ export default function ExerciseScreen({ navigation, route }) {
                                 val,
                                 optIndex + Math.ceil(options.length / 2),
                                 {
-                                  ...(isExpression(val) && {
+                                  ...(isExpression(val, q.level) && {
                                     paddingHorizontal: 20,
                                     borderRadius: 10,
                                     width: 150,
@@ -656,7 +668,7 @@ export default function ExerciseScreen({ navigation, route }) {
           style={[
             styles.isFlying,
             { transform: flyingAnim.getTranslateTransform() },
-            isExpression(flyingValue) && {
+            isExpression(flyingValue, questions.find(q => q.id === parseInt(flyingValue))?.level) && {
               paddingHorizontal: 10,
               borderRadius: 10,
             },

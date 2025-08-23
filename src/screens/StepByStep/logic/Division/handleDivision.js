@@ -50,12 +50,14 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
         });
 
         if (i + 1 < dividend.length) {
+          const afterBringDown = current.toString() + dividend[i + 1].toString();
           subSteps.push({
             key: "step_bring_down",
             params: {
               step: stepCounter++,
               nextDigit: dividend[i + 1],
-              afterBringDown: current.toString() + dividend[i + 1].toString(),
+              afterBringDown,
+              currentDisplay: afterBringDown,
               indent: divisionCount,
               visualIndent: divisionCount,
             },
@@ -124,6 +126,7 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
         current,
         product: sub,
         remainder,
+        currentDisplay: remainder,
         indent: remainderIndent,
         visualIndent: adjustIndent(remainderIndent),
       },
@@ -141,6 +144,7 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
           nextDigit,
           remainder,
           afterBringDown,
+          currentDisplay: afterBringDown,
           indent: bringDownIndent,
           visualIndent: adjustIndent(bringDownIndent),
           explanationKey: "after_subtract",
@@ -169,15 +173,17 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
         quotient += 0;
         steps[2].quotient = quotient;
 
-
         subSteps.push({
           key: "less_then_bring_down",
           params: {
             step: stepCounter++,
+            current: newCurrent,
+            divisor: absN2,
             nextDigit: nextDigit2,
             result: parseInt(quotient[quotient.length - 1], 10),
           },
         });
+
 
         subSteps.push({
           key: "step_bring_down_extra",
@@ -186,6 +192,7 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
             nextDigit: nextDigit2,
             remainder: newCurrent,
             afterBringDown: extendedAfterBringDown,
+            currentDisplay: extendedAfterBringDown,
             indent: bringDownIndent,
             visualIndent: adjustIndent(bringDownIndent),
             explanationKey: "after_subtract",
@@ -258,6 +265,8 @@ export const handleDivision = (n1, n2, steps, setRemember, t) => {
   const remainder = current;
   const cleanedQuotient = quotient.replace(/^0+/, "") || "0";
   const finalQuotient = sign < 0 ? `-${cleanedQuotient}` : cleanedQuotient;
+
+  console.log("subSteps", JSON.stringify(subSteps, null, 2));
 
   steps[2].dividend = absN1.toString();
   steps[2].divisor = absN2.toString();

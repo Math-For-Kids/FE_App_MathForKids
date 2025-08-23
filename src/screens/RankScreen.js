@@ -206,16 +206,16 @@ export default function RankScreen({ navigation }) {
     },
   });
 
-  if (loading) {
-    return (
-      <LinearGradient
-        colors={theme.colors.gradientBlue}
-        style={styles.container}
-      >
-        <Text style={styles.loadingText}>Loading...</Text>
-      </LinearGradient>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <LinearGradient
+  //       colors={theme.colors.gradientBlue}
+  //       style={styles.container}
+  //     >
+  //       <Text style={styles.loadingText}>Loading...</Text>
+  //     </LinearGradient>
+  //   );
+  // }
 
   if (error) {
     return (

@@ -878,7 +878,10 @@ export default function RewardScreen({ navigation }) {
       borderColor: theme.colors.black,
       elevation: 3,
     },
-    rewardImage: { width: 40, height: 40 },
+    rewardImage: {
+      width: 40,
+      height: 40
+    },
     progress: {
       width: 100,
       height: 20,
@@ -924,7 +927,11 @@ export default function RewardScreen({ navigation }) {
       borderColor: theme.colors.black,
       elevation: 3,
     },
-    rewardImage: { width: 60, height: 60 },
+    rewardImage: {
+      width: 60,
+      height: 60,
+      borderRadius: 9,
+    },
     progress: {
       width: 150,
       height: 20,

@@ -204,7 +204,10 @@ export default function TestScreen({ navigation, route }) {
     if (!currentQ) return;
     setUserAnswers((prev) => ({
       ...prev,
-      [currentQ.id]: extractAnswerValue(val, levelId),
+      [currentQ.id]: {
+        processed: extractAnswerValue(val, levelId), // For comparison and display
+        original: val, // Store the original value
+      },
     }));
     if (currentQuestion < validTests.length) {
       setTimeout(() => {
@@ -241,7 +244,7 @@ export default function TestScreen({ navigation, route }) {
       const questionLevel = questionLevelObj ? questionLevelObj.level : 1;
       maxScore += questionLevel;
 
-      const userAnswer = userAnswers[q.id];
+      const userAnswer = userAnswers[q.id]?.processed;
       const correctAnswer = extractAnswerValue(q.answer, q.levelId);
       console.log(`Question ID: ${q.id}, User Answer: ${userAnswer}, Correct Answer: ${correctAnswer}`);
 
@@ -308,7 +311,7 @@ export default function TestScreen({ navigation, route }) {
             image: question.image || null,
             option: question.option || [],
             correctAnswer: question.answer,
-            selectedAnswer: userAnswers[question.id] || null,
+            selectedAnswer: userAnswers[question.id]?.original || null,
           }));
           await dispatch(createMultipleTestQuestions(questionPayloads)).unwrap();
         }
@@ -322,13 +325,10 @@ export default function TestScreen({ navigation, route }) {
 
         if (score >= 9) {
           let exercise = levelIds ? levelIds.join(",") : null; // Check if levelIds exists
-          let unlockResult = null; // Initialize as null
-
-          if (exercise === null) {
-            unlockResult = await dispatch(
-              completeAndUnlockNextLesson({ pupilId, lessonId })
-            ).unwrap();
-          } else {
+          let unlockResult = await dispatch(
+            completeAndUnlockNextLesson({ pupilId, lessonId })
+          ).unwrap();
+          if (exercise !== null) {
             const res = await dispatch(
               autoMarkCompletedGoals({ pupilId, lessonId, exercise })
             );
@@ -346,11 +346,10 @@ export default function TestScreen({ navigation, route }) {
               });
               setShowError(true);
             }
-            setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
           }
-        } else {
-          setNextLessonName(null);
+          setNextLessonName(unlockResult?.nextLessonName?.[i18n.language] || null);
         }
+
       } catch (error) {
         setErrorContent({
           title: t("error"),
@@ -559,6 +558,7 @@ export default function TestScreen({ navigation, route }) {
       paddingHorizontal: 20,
     },
     questionImage: {
+      backgroundColor: "#fff",
       width: 300,
       height: 150,
       borderRadius: 10,
@@ -850,7 +850,7 @@ export default function TestScreen({ navigation, route }) {
                   key={option.id}
                   style={[
                     styles.answerButton,
-                    userAnswers[currentQ.id] === extractAnswerValue(option.value, option.levelId)
+                    userAnswers[currentQ.id]?.processed === extractAnswerValue(option.value, option.levelId)
                       ? styles.answerSelectedButton
                       : null,
                   ]}
@@ -901,11 +901,21 @@ export default function TestScreen({ navigation, route }) {
                   {formatTime(elapsedTime)}
                 </Text>
               </View>
+              <View style={styles.modalRow}>
+                <Text style={styles.modalText}>{t("bonusPoints")}:</Text>
+                <Text style={styles.modalResultText}>{calculateBonusPoint(finalScore)}</Text>
+              </View>
               {nextLessonName && (
-                <View style={styles.modalRow}>
-                  <Text style={styles.modalText}>{t("nextLesson")}:</Text>
-                  <Text style={styles.modalResultText}>{nextLessonName}</Text>
-                </View>
+                <>
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalText}>{t("nextLesson")}:</Text>
+                  </View>
+                  <View style={styles.modalRow}>
+                    <Text style={[styles.modalResultText, { maxWidth: "100%", textAlign: "left" }]}>
+                      {nextLessonName}
+                    </Text>
+                  </View>
+                </>
               )}
             </View>
             <TouchableOpacity

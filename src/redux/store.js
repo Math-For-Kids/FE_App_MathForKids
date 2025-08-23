@@ -63,6 +63,7 @@ export const store = configureStore({
       }
       return next(action);
     }),
+  devTools: true,
 });
 
 export const persistor = persistStore(store);

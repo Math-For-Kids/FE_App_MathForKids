@@ -7,16 +7,12 @@ import * as Speech from "expo-speech";
 
 export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
   const { theme } = useTheme?.();
-  const { t, i18n } = useTranslation("stepbystep") || {
-    t: (key, params) => key,
-  };
+  const { t, i18n } = useTranslation("stepbystep") || { t: (key) => key };
 
   const subSteps = steps[2]?.subSteps || [];
   const dividend = steps[2]?.dividend ?? "";
   const divisor = steps[2]?.divisor ?? "";
   const quotient = steps[2]?.quotient ?? "";
-  const baseIndentOffset = steps[2]?.baseIndentOffset ?? 0;
-
   const currentStep = columnStepIndex ?? 0;
   const step = subSteps[currentStep];
 
@@ -34,19 +30,79 @@ export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
         return theme.colors.pinkDark;
     }
   };
-  const divideStepIndices = subSteps
-    .map((s, i) => (["step_divide", "less_then_bring_down"].includes(s.key)
-      ? i : null))
-    .filter((i) => i !== null);
 
-  const currentDivideIndex = divideStepIndices.findIndex(
-    (i) => i === currentStep
+  const normalizedSubSteps = steps[2]?.subSteps || [];
+  const hasBringDownExtra = normalizedSubSteps.some(
+    (s) => typeof s.key === "string" && s.key.trim() === "step_bring_down_extra"
   );
 
+  const divideStepIndices = subSteps
+    .map((s, i) =>
+      ["step_divide", "less_then_bring_down"].includes(s.key) ? i : null
+    )
+    .filter((i) => i !== null);
+  const currentDivideIndex = divideStepIndices.findIndex((i) => i === currentStep);
   const divideStepsDone = subSteps.filter(
-    (s, i) => ["step_divide", "less_then_bring_down"].includes(s.key)
-      && i <= currentStep
+    (s, i) =>
+      ["step_divide", "less_then_bring_down"].includes(s.key) &&
+      i <= currentStep
   ).length;
+
+  // extend sequences (e.g., "22" -> "226")
+  const extendPairs = [];
+  subSteps.forEach((s, i) => {
+    if (s.key === "step_subtract") {
+      const next = subSteps[i + 1];
+      if (next?.key === "step_bring_down") {
+        const base = (s.params?.currentDisplay ?? "").toString();
+        const full = (next.params?.currentDisplay ?? "").toString();
+        if (full.length === base.length + 1 && full.startsWith(base)) {
+          extendPairs.push({
+            subtractIdx: i,
+            bringDownIdx: i + 1,
+            base,
+            full,
+          });
+        }
+      }
+    }
+  });
+  const findExtendBySubtract = (idx) => extendPairs.find((p) => p.subtractIdx === idx);
+  const findExtendByBringDown = (idx) => extendPairs.find((p) => p.bringDownIdx === idx);
+
+  // step_bring_down_extra staging
+  const subtractZeroIndex = subSteps.findIndex(
+    (s) => s.key === "step_subtract" && s.params?.remainder === 0
+  );
+  const bringDownAfterZeroSubtractIndex = subSteps.findIndex(
+    (s, i) =>
+      s.key === "step_bring_down" &&
+      s.params?.explanationKey === "after_subtract" &&
+      i > subtractZeroIndex
+  );
+  const extraIndex = subSteps.findIndex(
+    (s) => typeof s.key === "string" && s.key.trim() === "step_bring_down_extra"
+  );
+  const getBringDownExtraVisibleChars = (fullStr) => {
+    if (!fullStr) return 0;
+    if (extraIndex !== -1 && currentStep >= extraIndex) return fullStr.length;
+    if (
+      bringDownAfterZeroSubtractIndex !== -1 &&
+      currentStep >= bringDownAfterZeroSubtractIndex
+    )
+      return Math.min(2, fullStr.length);
+    if (subtractZeroIndex !== -1 && currentStep >= subtractZeroIndex) return 1;
+    return 0;
+  };
+  const getBringDownExtraHighlightIndex = () => {
+    if (currentStep === subtractZeroIndex) return 0;
+    if (currentStep === bringDownAfterZeroSubtractIndex) return 1;
+    if (currentStep === extraIndex) return 2;
+    return -1;
+  };
+
+  // less_then_bring_down staging
+  const getLessThenBringDownFull = (s) => `${s.params?.result ?? ""}${s.params?.nextDigit ?? ""}`;
 
   const indentSpacing = 15;
 
@@ -58,17 +114,13 @@ export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
         ? step.params.result * step.params.divisor
         : undefined);
 
-    if (
-      step.key === "step_bring_down" &&
-      step.params?.explanationKey === "after_subtract"
-    ) {
+    if (step.key === "step_bring_down" && step.params?.explanationKey === "after_subtract") {
       return t("step_bring_down_after_subtract", {
         ...step.params,
         product,
         remainder: step.params.remainder,
       });
     }
-
     if (step.key === "step_choose_number" && step.params?.comparisonKey) {
       const explanation = t(`explanation.${step.params.comparisonKey}`);
       return t(step.key, {
@@ -78,40 +130,86 @@ export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
         product,
       });
     }
-
     return t(step.key, { ...step.params, product });
   };
 
-  const renderMaskedValue = (value, maxVisibleDigits, currentQuotientIndex) => {
-    return value
+  const renderMaskedValue = (value, maxVisibleDigits, currentQuotientIndex) =>
+    value
       .toString()
       .split("")
       .map((char, i) => {
         let color = theme.colors.text;
         if (i === currentQuotientIndex) color = getSkillColor();
-
         return (
           <Text key={i} style={{ color }}>
             {i < maxVisibleDigits ? char : "?"}
           </Text>
         );
       });
+
+  const renderMaskedStringFlexible = (
+    value,
+    maxVisibleChars,
+    highlightIndex = -1,
+    highlightCount = 1
+  ) =>
+    value
+      .toString()
+      .split("")
+      .map((char, i) => {
+        let color = theme.colors.text;
+        if (
+          highlightIndex !== -1 &&
+          i >= highlightIndex &&
+          i < highlightIndex + highlightCount
+        ) {
+          color = getSkillColor();
+        }
+        return (
+          <Text key={i} style={{ color }}>
+            {i < maxVisibleChars ? char : "?"}
+          </Text>
+        );
+      });
+
+  const getDividendHighlightLength = () => {
+    const s = subSteps[currentStep];
+    if (!s) return 0;
+
+    if (s.key === "step_choose_number") {
+      const currentVal = (s.params?.current ?? "").toString();
+      if (dividend.startsWith(currentVal)) {
+        return currentVal.length;
+      }
+    }
+
+    if (s.key === "step_bring_down") {
+      const bringdownVal = (s.params?.afterBringDown ?? "").toString();
+      if (dividend.startsWith(bringdownVal)) {
+        return bringdownVal.length;
+      }
+    }
+
+    return 0;
+  };
+
+
+  const maskSameLength = (value) => {
+    const s = (value ?? "").toString();
+    return s.replace(/./g, "?");
   };
 
   useEffect(() => {
     const step = subSteps[columnStepIndex];
-    const text = renderExplanation(step, t);
+    const text = renderExplanation(step);
     if (!text) return;
-    const lang = i18n.language;
     Speech.speak(text, {
-      language: lang === "vi" ? "vi-VN" : "en-US",
+      language: i18n.language === "vi" ? "vi-VN" : "en-US",
     });
   }, [columnStepIndex]);
 
   const styles = StyleSheet.create({
-    container: {
-      alignItems: "center",
-    },
+    container: { alignItems: "center" },
     divisionBox: {
       flexDirection: "row",
       backgroundColor: theme.colors.cardBackground,
@@ -134,11 +232,8 @@ export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
       borderRightWidth: 2,
       borderRightColor: theme.colors.text,
       paddingRight: 15,
-
     },
-    rightBox: {
-
-    },
+    rightBox: {},
     dividend: {
       fontSize: 24,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -158,10 +253,7 @@ export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
       fontFamily: Fonts.NUNITO_MEDIUM,
       color: theme.colors.text,
     },
-    lineText: {
-      fontSize: 24,
-      fontFamily: Fonts.NUNITO_MEDIUM,
-    },
+    lineText: { fontSize: 24, fontFamily: Fonts.NUNITO_MEDIUM },
     stepText: {
       fontSize: 14,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -180,63 +272,190 @@ export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
       borderWidth: 1,
       borderColor: getSkillColor(),
     },
+    extraBringDownBox: {
+      marginTop: 0,
+      alignItems: "flex-start",
+      width: "100%",
+      paddingLeft: 0,
+    },
   });
 
   return (
     <View style={styles.container}>
-      <View style={styles.centeredBox}>
-        <View style={styles.explanationBox}>
-          <Text style={styles.stepText}>{renderExplanation(step)}</Text>
-        </View>
+      <View style={styles.explanationBox}>
+        <Text style={styles.stepText}>{renderExplanation(step)}</Text>
+      </View>
 
-        <View style={styles.divisionBox}>
-          <View style={{ width: '100%', alignItems: 'center' }}>
-            <View style={styles.innerBox}>
-              {/* LEFT COLUMN */}
-              <View
-                style={styles.leftBox}
-              >
-                <Text style={styles.dividend}>{dividend}</Text>
+      <View style={styles.divisionBox}>
+        <View style={{ width: "100%", alignItems: "center" }}>
+          <View style={styles.innerBox}>
+            {/* LEFT COLUMN */}
+            <View style={styles.leftBox}>
+              <Text style={styles.dividend}>
+                {dividend.split("").map((char, i) => {
+                  const highlightLen = getDividendHighlightLength();
+                  const isHighlighted = i < highlightLen;
+                  return (
+                    <Text key={i} style={{ color: isHighlighted ? getSkillColor() : theme.colors.text }}>
+                      {char}
+                    </Text>
+                  );
+                })}
+              </Text>
 
-                {subSteps
-                  .filter((s, i) =>
-                    ["step_multiply", "step_subtract", "step_bring_down", "step_bring_down_extra"].includes(
-                      s.key
-                    )
-                  )
-                  .map((s, idx) => {
-                    const isVisible = subSteps.indexOf(s) <= currentStep;
-                    const stepIndex = subSteps.indexOf(s);
-                    const isCurrent = stepIndex === currentStep;
+              {subSteps.map((s, idx) => {
+                const isCurrent = idx === currentStep;
+                const indent =
+                  typeof s.params?.visualIndent === "number"
+                    ? s.params.visualIndent
+                    : s.params?.indent ?? 0;
 
-                    const indent =
-                      typeof s.params?.visualIndent === "number"
-                        ? s.params.visualIndent
-                        : s.params?.indent ?? 0;
+                // 1. less_then_bring_down: no highlight, chỉ show theo visibility
+                if (s.key === "less_then_bring_down") {
+                  if (hasBringDownExtra) return null;
+                  const full = getLessThenBringDownFull(s);
+                  const maxVisible =
+                    currentStep === idx
+                      ? full.length
+                      : subtractZeroIndex !== -1 && currentStep >= subtractZeroIndex
+                        ? 1
+                        : 0;
 
-                    let value = "?";
-                    if (s.key === "step_multiply") value = s.params.product;
-                    if (s.key === "step_subtract") value = s.params.remainder;
-                    if (s.key === "step_bring_down" || s.key === "step_bring_down_extra") {
-                      value = s.params.afterBringDown;
+                  return (
+                    <View key={`less-${idx}`} style={{ position: "relative" }}>
+                      <Text
+                        style={[
+                          styles.lineText,
+                          {
+                            color: theme.colors.text,
+                            paddingLeft: indent * indentSpacing,
+                          },
+                        ]}
+                      >
+                        {renderMaskedStringFlexible(full, maxVisible)}
+                      </Text>
+                    </View>
+                  );
+                }
+
+                // 2. hide intermediate bring_down folded into extra
+                if (
+                  s.key === "step_bring_down" &&
+                  s.params?.explanationKey === "after_subtract" &&
+                  idx === (() => {
+                    if (extraIndex === -1) return -1;
+                    for (let i = extraIndex - 1; i >= 0; i--) {
+                      const prev = subSteps[i];
+                      if (
+                        prev.key === "step_bring_down" &&
+                        prev.params?.explanationKey === "after_subtract"
+                      ) {
+                        const displayPrev = (prev.params?.currentDisplay ?? "").toString();
+                        const extraFull = (subSteps[extraIndex].params?.currentDisplay ?? "").toString();
+                        if (extraFull.startsWith(displayPrev)) return i;
+                      }
                     }
+                    return -1;
+                  })()
+                ) {
+                  return null;
+                }
+
+                // 3. hide subtract if part of extend
+                if (findExtendBySubtract(idx)) {
+                  return null;
+                }
+
+                // 4. extend bring_down ("22" -> "226", highlight base or last char)
+                const extendPair = findExtendByBringDown(idx);
+                if (extendPair) {
+                  const full = extendPair.full;
+                  let visible = 0;
+                  let highlightIndex = -1;
+                  let highlightCount = 0;
+
+                  if (currentStep === extendPair.bringDownIdx) {
+                    // Đúng bước bring down: full số + highlight chữ cuối
+                    visible = full.length;
+                    highlightIndex = full.length - 1;
+                    highlightCount = 1;
+                  }
+                  else if (currentStep > extendPair.bringDownIdx) {
+                    // Sau bước bring down: full số nhưng không highlight
+                    visible = full.length;
+                  }
+                  else if (currentStep === extendPair.subtractIdx) {
+                    // Bước subtract: highlight đúng base, không tô dấu ?
+                    visible = extendPair.base.length;
+                    highlightIndex = 0;
+                    highlightCount = extendPair.base.length;
+                  }
+
+                  return (
+                    <View key={`extended-bringdown-${idx}`} style={{ position: "relative" }}>
+                      <Text
+                        style={[
+                          styles.lineText,
+                          {
+                            color: isCurrent ? getSkillColor() : theme.colors.text,
+                            paddingLeft: indent * indentSpacing,
+                          },
+                        ]}
+                      >
+                        {renderMaskedStringFlexible(full, visible, highlightIndex, highlightCount)}
+                      </Text>
+                    </View>
+                  );
+                }
 
 
-                    return (
-                      <View key={`${s.key}-${idx}`} style={{ position: "relative" }}>
-                        <Text
-                          style={[
-                            styles.lineText,
-                            {
-                              color: isCurrent ? getSkillColor() : theme.colors.text,
-                              paddingLeft: indent * indentSpacing,
-                            },
-                          ]}
-                        >
-                          {isVisible ? value : "?"}
-                        </Text>
+                // 5. bring_down_extra
+                if (s.key === "step_bring_down_extra") {
+                  const full = s.params.currentDisplay?.toString() ?? "";
+                  const maxVisible = getBringDownExtraVisibleChars(full);
+                  const highlightIndex = getBringDownExtraHighlightIndex();
+                  return (
+                    <View key={`extra-${idx}`} style={styles.extraBringDownBox}>
+                      <Text
+                        style={[
+                          styles.lineText,
+                          {
+                            color: isCurrent ? getSkillColor() : theme.colors.text,
+                            paddingLeft: indent * indentSpacing,
+                          },
+                        ]}
+                      >
+                        {renderMaskedStringFlexible(full, maxVisible, highlightIndex)}
+                      </Text>
+                    </View>
+                  );
+                }
 
-                        {s.key === "step_multiply" && isVisible && (
+                // 6. default multiply / subtract / bring_down with full-length masking
+                if (["step_multiply", "step_subtract"].includes(s.key)) {
+                  let displayContent = "?";
+                  if (s.key === "step_multiply") {
+                    const actual = s.params.product;
+                    displayContent = currentStep >= idx ? actual : maskSameLength(actual);
+                  } else if (s.key === "step_subtract") {
+                    const actual = s.params.currentDisplay;
+                    displayContent = currentStep >= idx ? actual : maskSameLength(actual);
+                  } 
+                  return (
+                    <View key={`${s.key}-${idx}`} style={{ position: "relative" }}>
+                      <Text
+                        style={[
+                          styles.lineText,
+                          {
+                            color: isCurrent ? getSkillColor() : theme.colors.text,
+                            paddingLeft: indent * indentSpacing,
+                          },
+                        ]}
+                      >
+                        {displayContent}
+                      </Text>
+                      {s.key === "step_multiply" && currentStep >= idx && (
+                        <>
                           <Text
                             style={{
                               position: "absolute",
@@ -248,30 +467,30 @@ export const DivisionStepView = ({ steps, columnStepIndex, skillName }) => {
                           >
                             -
                           </Text>
-                        )}
-
-                        {s.key === "step_multiply" && isVisible && (
                           <View
                             style={{
                               height: 2,
                               backgroundColor: theme.colors.text,
                               marginVertical: 2,
-                              width: `${(value || "").toString().length * 14}px`,
+                              width: `${(s.params.product || "").toString().length * 14}px`,
                             }}
                           />
-                        )}
-                      </View>
-                    );
-                  })}
-              </View>
+                        </>
+                      )}
+                    </View>
+                  );
+                }
 
-              {/* RIGHT COLUMN */}
-              <View style={styles.rightBox}>
-                <Text style={styles.divisor}>{divisor}</Text>
-                <Text style={styles.quotient}>
-                  {renderMaskedValue(quotient, divideStepsDone, currentDivideIndex)}
-                </Text>
-              </View>
+                return null;
+              })}
+            </View>
+
+            {/* RIGHT COLUMN */}
+            <View style={styles.rightBox}>
+              <Text style={styles.divisor}>{divisor}</Text>
+              <Text style={styles.quotient}>
+                {renderMaskedValue(quotient, divideStepsDone, currentDivideIndex)}
+              </Text>
             </View>
           </View>
         </View>

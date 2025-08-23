@@ -295,7 +295,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       borderRadius: 40,
     },
     swipeHintText: {
-      color: theme.colors.gray,
+      color: theme.colors.text,
       fontSize: 13,
       fontFamily: Fonts.NUNITO_MEDIUM,
       paddingHorizontal: 20,
@@ -313,7 +313,10 @@ export default function LessonDetailScreen({ navigation, route }) {
       minHeight: 250,
       maxHeight: 400,
     },
-    lessonTextListContainer: { minHeight: 300 },
+    lessonTextListContainer: {
+      minHeight: 300,
+      color: theme.colors.text
+    },
     lessonTextList: {
       fontSize: 20,
       fontFamily: Fonts.NUNITO_MEDIUM,
@@ -402,20 +405,17 @@ export default function LessonDetailScreen({ navigation, route }) {
         <Text style={styles.lessonTitleTextList}>
           {tabTitles?.[currentIndex] || ""}
         </Text>
-        {/* <ScrollView style={styles.lessonTextListContainer}>
-          <Text style={styles.lessonTextList}>{content}</Text>
-          {imageUrl && (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: imageUrl }} style={styles.image} />
-            </View>
-          )}
-        </ScrollView> */}
         <ScrollView style={styles.lessonTextListContainer}>
           {typeof content === "string" && content.trim().length > 1 ? (
             <View style={{ width: width - 40 }}>
               <AutoHeightWebView
                 originWhitelist={["*"]}
-                source={{ html: content }}
+                source={{
+                  html: `
+                    <div style="color: ${theme.colors.text}">
+                      ${content}
+                    </div>
+                  `}}
                 style={{
                   backgroundColor: "transparent",
                   width: width - 80,
