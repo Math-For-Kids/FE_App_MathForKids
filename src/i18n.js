@@ -55,6 +55,8 @@ import enCreatePupilAccount from "./locales/en/createpupilaccount.json";
 import viCreatePupilAccount from "./locales/vi/createpupilaccount.json";
 import enContact from "./locales/en/contact.json";
 import viContact from "./locales/vi/contact.json";
+import enRank from "./locales/en/ranking.json";
+import viRank from "./locales/vi/ranking.json";
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
   lng: "en", // Ngôn ngữ mặc định
@@ -86,6 +88,7 @@ i18n.use(initReactI18next).init({
     "forgotPin",
     "createpupilaccount",
     "contact",
+    "ranking",
   ],
   defaultNS: ["goal", "reward"],
   resources: {
@@ -116,6 +119,7 @@ i18n.use(initReactI18next).init({
       forgotPin: enForgotPin,
       createpupilaccount: enCreatePupilAccount,
       contact: enContact,
+      ranking: enRank,
     },
     vi: {
       setting: vi,
@@ -144,6 +148,7 @@ i18n.use(initReactI18next).init({
       forgotPin: viForgotPin,
       createpupilaccount: viCreatePupilAccount,
       contact: viContact,
+      ranking: viRank,
     },
   },
   interpolation: {

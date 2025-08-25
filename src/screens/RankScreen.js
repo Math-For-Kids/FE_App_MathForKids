@@ -16,6 +16,7 @@ import FloatingMenu from "../components/FloatingMenu";
 import { useDispatch, useSelector } from "react-redux";
 import { pupilById, rankings } from "../redux/pupilSlice";
 import FullScreenLoading from "../components/FullScreenLoading";
+import { useTranslation } from "react-i18next";
 const AnimatedStar = ({ color }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function RankScreen({ navigation }) {
   const rankingData = useSelector((state) => state.pupil.rankings);
   const loading = useSelector((state) => state.pupil.loading);
   const error = useSelector((state) => state.pupil.error);
+  const { t, i18n } = useTranslation("ranking");
   useEffect(() => {
     if (pupilId) {
       dispatch(pupilById(pupilId));
@@ -223,7 +225,9 @@ export default function RankScreen({ navigation }) {
         colors={theme.colors.gradientBlue}
         style={styles.container}
       >
-        <Text style={styles.errorText}>Error: {error}</Text>
+        <Text style={styles.errorText}>
+          {t("error")}: {error?.message || error}
+        </Text>
       </LinearGradient>
     );
   }
@@ -244,21 +248,27 @@ export default function RankScreen({ navigation }) {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={styles.title}>Ranking</Text>
+        <Text style={styles.title}>{t("title")}</Text>
       </LinearGradient>
       <View style={styles.topContainer}>
         <View style={styles.top23}>
           <View style={[styles.topUser, { marginTop: 20 }]}>
             <Image source={theme.icons.top2} style={styles.topIcon} />
-            <Text style={styles.topName}>{sortedPupils[1]?.fullName}</Text>
+            <Text style={styles.topName}>
+              {sortedPupils[1]?.pupil?.fullName}
+            </Text>
           </View>
           <View style={[styles.topUser, { marginTop: 0 }]}>
             <Image source={theme.icons.top1} style={styles.topIcon} />
-            <Text style={styles.topName}>{sortedPupils[0]?.fullName}</Text>
+            <Text style={styles.topName}>
+              {sortedPupils[0]?.pupil?.fullName}
+            </Text>
           </View>
           <View style={[styles.topUser, { marginTop: 20 }]}>
             <Image source={theme.icons.top3} style={styles.topIcon} />
-            <Text style={styles.topName}>{sortedPupils[2]?.fullName}</Text>
+            <Text style={styles.topName}>
+              {sortedPupils[2]?.pupil?.fullName}
+            </Text>
           </View>
         </View>
       </View>
@@ -284,7 +294,9 @@ export default function RankScreen({ navigation }) {
                 <View style={styles.avatarContainer}>
                   <Image
                     source={
-                      item.pupil?.image ? { uri: item.pupil.image } : theme.icons.badge
+                      item.pupil?.image
+                        ? { uri: item.pupil.image }
+                        : theme.icons.badge
                     }
                     style={styles.avatar}
                   />
@@ -305,7 +317,9 @@ export default function RankScreen({ navigation }) {
                 <Text style={styles.name}>{item.pupil.fullName}</Text>
               </View>
               <View style={styles.rightContainer}>
-                <Text style={styles.point}>{item.point}</Text>
+                <Text style={styles.point}>
+                  {item.point} {t("point")}
+                </Text>
                 {/* <Text style={styles.time}>{item.time} Hours</Text> */}
               </View>
             </LinearGradient>

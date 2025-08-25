@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   theme: 1,
   mode: null,
-  language: "vi",
+  language: "en",
   volume: 100,
 };
 
